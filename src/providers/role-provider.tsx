@@ -51,11 +51,16 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
   const userRole = isAuthenticated && activeRole ? activeRole : localRole;
   
   // Se considera simulado si el usuario está autenticado pero el rol activo no es uno de sus roles reales en la DB
-  const isSimulatedRole = isAuthenticated && roles && !roles.includes(userRole);
+  const isSimulatedRole = !!(
+    isAuthenticated && 
+    Array.isArray(roles) && 
+    roles.includes && 
+    !roles.includes(userRole)
+  );
 
-  const userName = (isAuthenticated && !isSimulatedRole && profile)
-    ? `${profile.first_name} ${profile.last_name}` 
-    : (customDemoName || localName);
+  const userName = (isAuthenticated && !isSimulatedRole && profile && profile.first_name)
+    ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Usuario'
+    : (customDemoName || localName || 'Usuario');
 
   const setUserRole = (role: UserRole) => {
     // Nombres realistas por rol para simulación local

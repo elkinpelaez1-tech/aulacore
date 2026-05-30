@@ -58,7 +58,7 @@ const SUBJECT_PERFORMANCE = [
 
 export function StudentDashboard() {
   const { userName } = useRole();
-  const firstName = userName ? userName.split(' ')[0] : 'Alejandro';
+  const firstName = (userName && typeof userName === 'string') ? userName.split(' ')[0] : 'Alejandro';
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-10">
