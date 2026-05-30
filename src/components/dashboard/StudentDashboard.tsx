@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useRole } from '@/providers/role-provider';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -56,6 +57,9 @@ const SUBJECT_PERFORMANCE = [
 ];
 
 export function StudentDashboard() {
+  const { userName } = useRole();
+  const firstName = userName ? userName.split(' ')[0] : 'Alejandro';
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-10">
       
@@ -63,7 +67,12 @@ export function StudentDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
         {/* Ficha del Estudiante */}
-        <StudentProfileCard className="h-full" />
+        <StudentProfileCard 
+          className="h-full" 
+          studentName={userName || undefined}
+          email={userName ? `${userName.toLowerCase().replace(/\s+/g, '.')}@aulacore.edu.co` : undefined}
+          studentId={userName ? `TI. 102${userName.length}4050` : undefined}
+        />
 
         {/* GPA & Progress Card */}
         <Card className="col-span-1 border-slate-200 shadow-sm bg-gradient-to-br from-indigo-900 to-slate-900 text-white overflow-hidden relative">
@@ -80,7 +89,7 @@ export function StudentDashboard() {
                   Grado 11°
                 </Badge>
               </div>
-              <h2 className="text-3xl font-black mb-1">¡Hola, Alejandro!</h2>
+              <h2 className="text-3xl font-black mb-1">¡Hola, {firstName}!</h2>
               <p className="text-indigo-200 font-medium">Estás a un 85% de lograr tu meta del periodo.</p>
             </div>
             
