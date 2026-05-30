@@ -36,6 +36,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { downloadBoletinPDF, downloadCertificadoMatriculaPDF } from '@/lib/utils/PdfGenerator';
 import {
   AreaChart,
   Area,
@@ -410,6 +411,34 @@ export function ParentDashboard({ userName }: ParentDashboardProps) {
   // Circular Firmas Locales
   const [signedCirculars, setSignedCirculars] = useState<Record<string, boolean>>({});
 
+  // --- PERSISTENCE: LOCALSTORAGE Fallback ---
+  useEffect(() => {
+    const savedChat = localStorage.getItem('aulacore_parent_chat_history');
+    if (savedChat) {
+      try {
+        setChatHistory(JSON.parse(savedChat));
+      } catch (e) {
+        console.warn('Error reading parent chat history:', e);
+      }
+    }
+    const savedCirculars = localStorage.getItem('aulacore_parent_signed_circulars');
+    if (savedCirculars) {
+      try {
+        setSignedCirculars(JSON.parse(savedCirculars));
+      } catch (e) {
+        console.warn('Error reading parent signed circulars:', e);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('aulacore_parent_chat_history', JSON.stringify(chatHistory));
+  }, [chatHistory]);
+
+  useEffect(() => {
+    localStorage.setItem('aulacore_parent_signed_circulars', JSON.stringify(signedCirculars));
+  }, [signedCirculars]);
+
   // Modal interactivo de cita
   const [appointmentModalOpen, setAppointmentModalOpen] = useState(false);
   const [appointmentSubject, setAppointmentSubject] = useState('');
@@ -504,9 +533,24 @@ export function ParentDashboard({ userName }: ParentDashboardProps) {
     }, 1500);
   };
 
-  // Descarga simulada de boletín / certificado
+  // Descarga real de boletín / certificado
   const handleDownloadDoc = (type: 'boletin' | 'certificado') => {
-    alert(`⚡ Generando archivo en el motor de documentos (DocumentEngine)... \n[PDF Oficial] Descargando ${type === 'boletin' ? 'Boletín Académico P2' : 'Certificado de Matrícula'} para ${activeChild.name}.`);
+    if (type === 'boletin') {
+      downloadBoletinPDF(
+        activeChild.name,
+        activeChild.grade,
+        activeChild.gpa,
+        activeChild.subjectsGrades,
+        'Periodo Escolar P3'
+      );
+    } else {
+      const enrollmentNum = `2026-MAT-098${activeChild.id.slice(-2)}`;
+      downloadCertificadoMatriculaPDF(
+        activeChild.name,
+        activeChild.grade,
+        enrollmentNum
+      );
+    }
   };
 
   return (

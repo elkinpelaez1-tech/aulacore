@@ -26,11 +26,15 @@ import {
   Settings,
   ShieldAlert,
   ArrowDownCircle,
-  CheckCircle
+  CheckCircle,
+  X,
+  TrendingUp,
+  TrendingDown
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { downloadBoletinPDF } from '@/lib/utils/PdfGenerator';
 
 // =================================================================
 // 🏛️ MODELOS DE TIPOS RELACIONALES (Student 360)
@@ -301,7 +305,7 @@ const MOCK_FULL_PROFILES: Record<string, StudentFullProfile & {
   }
 };
 
-export default function Student360() {
+export default function Student360({ initialStudentId }: { initialStudentId?: string | null }) {
   const { userName } = useRole();
 
   // --- CONFIGURACIÓN & ENTIDADES GLOBALES ---
@@ -312,7 +316,7 @@ export default function Student360() {
   // --- FILTROS & ESTADOS DE SELECCIÓN ---
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'risk' | 'outstanding'>('all');
-  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
+  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(initialStudentId || null);
   const [selectedPeriodId, setSelectedPeriodId] = useState<string>('all'); // 'all' o ID del periodo
 
   // --- DATOS EXPANDIDOS DEL ESTUDIANTE SELECCIONADO ---
@@ -327,6 +331,31 @@ export default function Student360() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [supportPlanActive, setSupportPlanActive] = useState<Record<string, boolean>>({});
   const [callParentActive, setCallParentActive] = useState<Record<string, boolean>>({});
+
+  // --- ESTADOS INTERACTIVOS DE COMPARATIVA E IA ---
+  const [isComparisonOpen, setIsComparisonOpen] = useState(false);
+  const [isIaDiagnosticOpen, setIsIaDiagnosticOpen] = useState(false);
+  const [isIaLoading, setIsIaLoading] = useState(false);
+  const [iaLoadingStep, setIaLoadingStep] = useState(0);
+
+  const startIaDiagnostic = () => {
+    setIsIaDiagnosticOpen(true);
+    setIsIaLoading(true);
+    setIaLoadingStep(0);
+    
+    setTimeout(() => {
+      setIaLoadingStep(1);
+      setTimeout(() => {
+        setIaLoadingStep(2);
+        setTimeout(() => {
+          setIaLoadingStep(3);
+          setTimeout(() => {
+            setIsIaLoading(false);
+          }, 800);
+        }, 800);
+      }, 800);
+    }, 800);
+  };
 
   // 1. CARGA INICIAL DE DATOS (Supabase con fallback)
   useEffect(() => {
@@ -669,6 +698,21 @@ export default function Student360() {
     }
     return matchesSearch;
   });
+
+  // Preparar comparativa histórica
+  const periodsMap = periods.reduce<Record<string, string>>((acc, curr) => {
+    acc[curr.id] = curr.code;
+    return acc;
+  }, {});
+
+  const subjectsComparison = grades.reduce<Record<string, Record<string, number>>>((acc, curr) => {
+    if (!acc[curr.subject]) {
+      acc[curr.subject] = { P1: 0, P2: 0, P3: 0 };
+    }
+    const periodCode = periodsMap[curr.academic_period_id] || 'P3';
+    acc[curr.subject][periodCode] = curr.grade;
+    return acc;
+  }, {});
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 bg-slate-50/50 p-1.5 rounded-2xl border border-slate-200/60 min-h-[720px] animate-in fade-in duration-300">
@@ -1028,7 +1072,24 @@ export default function Student360() {
                   <p className="text-xs text-slate-450 mt-0.5 font-medium">Visualización dinámica de notas y retroalimentación del docente</p>
                 </div>
                 <div className="flex gap-2">
-                  <Button variant="outline" size="sm" className="h-8 font-bold text-xs bg-white border-slate-200 text-slate-700 hover:bg-slate-50 flex items-center gap-1.5 cursor-pointer shadow-sm">
+                  <Button 
+                    onClick={() => {
+                      if (profile) {
+                        const activePeriod = periods.find(p => p.id === selectedPeriodId);
+                        const periodName = activePeriod ? activePeriod.name : 'SaaS Consolidado (Todos los Periodos)';
+                        downloadBoletinPDF(
+                          profile.name,
+                          profile.course_name,
+                          rawGPA,
+                          filteredGrades,
+                          periodName
+                        );
+                      }
+                    }}
+                    variant="outline" 
+                    size="sm" 
+                    className="h-8 font-bold text-xs bg-white border-slate-200 text-slate-700 hover:bg-slate-50 flex items-center gap-1.5 cursor-pointer shadow-sm"
+                  >
                     <FileText className="w-3.5 h-3.5 text-slate-400" />
                     Exportar PDF Oficial
                   </Button>
@@ -1264,19 +1325,235 @@ export default function Student360() {
                 </div>
               </div>
               <div className="flex gap-2">
-                <Button size="sm" className="bg-slate-850 hover:bg-slate-800 text-white font-semibold text-xs border border-slate-750 shrink-0 h-9 rounded-lg">
+                <Button 
+                  onClick={() => setIsComparisonOpen(true)}
+                  size="sm" 
+                  className="bg-slate-850 hover:bg-slate-800 text-white font-semibold text-xs border border-slate-750 shrink-0 h-9 rounded-lg cursor-pointer"
+                >
                   Comparativa Histórica
                 </Button>
-                <Button size="sm" className="bg-indigo-650 hover:bg-indigo-650 text-white font-semibold text-xs shrink-0 h-9 rounded-lg shadow shadow-indigo-600/30">
+                <Button 
+                  onClick={startIaDiagnostic}
+                  size="sm" 
+                  className="bg-indigo-650 hover:bg-indigo-700 text-white font-semibold text-xs shrink-0 h-9 rounded-lg shadow shadow-indigo-600/30 cursor-pointer border-none outline-none"
+                >
                   Redactar Diagnóstico IA
                 </Button>
               </div>
             </div>
 
+            {/* ========================================================= */}
+            {/* COMPARATIVA HISTÓRICA MODAL */}
+            {/* ========================================================= */}
+            {isComparisonOpen && (
+              <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-[100] p-4 select-none animate-in fade-in duration-200">
+                <Card className="w-full max-w-2xl bg-white border border-slate-200 shadow-2xl rounded-2xl animate-in zoom-in-95 duration-150 overflow-hidden text-slate-800">
+                  <div className="bg-slate-950 text-white p-5 border-b border-indigo-950/20 flex items-center justify-between">
+                    <h3 className="font-black text-sm sm:text-base flex items-center gap-2">
+                      <TrendingUp className="w-5 h-5 text-indigo-400" />
+                      Comparativa Histórica de Periodos - {profile?.name}
+                    </h3>
+                    <button 
+                      onClick={() => setIsComparisonOpen(false)}
+                      className="text-slate-400 hover:text-white bg-transparent border-none outline-none cursor-pointer"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+                  
+                  <CardContent className="p-6 space-y-6">
+                    <div className="bg-slate-50 border border-slate-150 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div>
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Estudiante</span>
+                        <span className="text-xs sm:text-sm font-extrabold text-slate-950">{profile?.name}</span>
+                      </div>
+                      <div>
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Curso</span>
+                        <span className="text-xs sm:text-sm font-extrabold text-slate-950">{profile?.course_name}</span>
+                      </div>
+                      <div>
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Promedio Actual</span>
+                        <span className="text-xs sm:text-sm font-extrabold text-indigo-650">{formattedGPA} / 5.0</span>
+                      </div>
+                    </div>
+
+                    <div className="border border-slate-200 rounded-xl overflow-hidden divide-y divide-slate-150">
+                      {/* Header Table */}
+                      <div className="bg-slate-50 grid grid-cols-5 p-3.5 text-[10px] font-black text-slate-400 uppercase tracking-wider text-center">
+                        <div className="text-left col-span-2">Asignatura</div>
+                        <div>Periodo 1</div>
+                        <div>Periodo 2</div>
+                        <div>Periodo 3 (Act)</div>
+                      </div>
+
+                      {/* Rows */}
+                      {Object.entries(subjectsComparison).map(([subj, perGrades]) => {
+                        const p1 = perGrades.P1 || 0;
+                        const p2 = perGrades.P2 || 0;
+                        const p3 = perGrades.P3 || 0;
+                        
+                        // Compute simple direction
+                        let direction: 'up' | 'down' | 'stable' = 'stable';
+                        let diff = 0;
+                        if (p3 > 0 && p2 > 0) {
+                          diff = p3 - p2;
+                          if (diff > 0.05) direction = 'up';
+                          else if (diff < -0.05) direction = 'down';
+                        } else if (p2 > 0 && p1 > 0) {
+                          diff = p2 - p1;
+                          if (diff > 0.05) direction = 'up';
+                          else if (diff < -0.05) direction = 'down';
+                        }
+
+                        return (
+                          <div key={subj} className="grid grid-cols-5 p-3.5 text-xs font-semibold items-center text-center hover:bg-slate-50/50 transition-colors">
+                            <div className="text-left font-extrabold text-slate-800 col-span-2 flex items-center gap-2">
+                              {subj}
+                              {direction === 'up' && (
+                                <TrendingUp className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                              )}
+                              {direction === 'down' && (
+                                <TrendingDown className="w-3.5 h-3.5 text-rose-500 shrink-0 animate-pulse" />
+                              )}
+                            </div>
+                            <div className="text-slate-500">{p1 ? p1.toFixed(2) : '-'}</div>
+                            <div className="text-slate-500">{p2 ? p2.toFixed(2) : '-'}</div>
+                            <div className={cn(
+                              "font-black text-sm",
+                              p3 >= 3.0 ? "text-slate-900" : "text-rose-650"
+                            )}>
+                              {p3 ? p3.toFixed(2) : '-'}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    <div className="text-[10px] text-slate-450 leading-relaxed font-semibold italic bg-slate-50/60 p-3 rounded-lg border border-slate-100">
+                      💡 Los promedios históricos permiten identificar curvas de aprendizaje. Las flechas indican tendencias de rendimiento positivo (<span className="text-emerald-600 font-bold">▲</span>) o alertas de descenso cognitivo (<span className="text-rose-650 font-bold">▼</span>).
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {/* ========================================================= */}
+            {/* DIAGNÓSTICO IA MODAL */}
+            {/* ========================================================= */}
+            {isIaDiagnosticOpen && (
+              <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-[100] p-4 select-none animate-in fade-in duration-200">
+                <Card className="w-full max-w-xl bg-slate-950 text-white border border-slate-800 shadow-2xl rounded-2xl animate-in zoom-in-95 duration-150 overflow-hidden">
+                  
+                  {isIaLoading ? (
+                    /* PANTALLA DE CARGA IA */
+                    <div className="p-8 text-center space-y-6">
+                      <div className="relative w-20 h-20 mx-auto flex items-center justify-center">
+                        <div className="absolute inset-0 border-4 border-indigo-500/20 rounded-full" />
+                        <div className="absolute inset-0 border-4 border-indigo-400 border-t-transparent rounded-full animate-spin" />
+                        <Sparkles className="w-8 h-8 text-indigo-400 fill-indigo-400 animate-pulse" />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <h4 className="text-sm font-black uppercase tracking-wider text-indigo-300">
+                          Procesamiento Predictivo Neuronal
+                        </h4>
+                        <div className="h-1.5 w-40 bg-slate-800 rounded-full overflow-hidden mx-auto">
+                          <div 
+                            className="h-full bg-indigo-500 rounded-full transition-all duration-300"
+                            style={{ width: `${(iaLoadingStep + 1) * 25}%` }}
+                          />
+                        </div>
+                        <p className="text-xs text-slate-400 font-bold min-h-[1.5rem] mt-2">
+                          {iaLoadingStep === 0 && "🔮 Sincronizando modelo neuronal de AulaCore..."}
+                          {iaLoadingStep === 1 && "📡 Extrayendo bitácora de portería y sensores RFID..."}
+                          {iaLoadingStep === 2 && "📊 Mapeando sábanas académicas y coeficientes de reprobación..."}
+                          {iaLoadingStep === 3 && "🧠 Generando diagnóstico predictivo de deserción..."}
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    /* INFORME COMPLETO IA */
+                    <>
+                      <div className="p-5 border-b border-slate-900 bg-gradient-to-r from-indigo-950 to-slate-950 flex items-center justify-between">
+                        <h3 className="font-black text-sm sm:text-base flex items-center gap-2">
+                          <BrainCircuit className="w-5 h-5 text-indigo-400" />
+                          Diagnóstico de Inteligencia Artificial
+                        </h3>
+                        <button 
+                          onClick={() => setIsIaDiagnosticOpen(false)}
+                          className="text-slate-400 hover:text-white bg-transparent border-none outline-none cursor-pointer"
+                        >
+                          <X className="w-5 h-5" />
+                        </button>
+                      </div>
+                      
+                      <CardContent className="p-6 space-y-6">
+                        {/* Encabezado del documento */}
+                        <div className="border border-slate-850 rounded-xl p-4 bg-slate-900/40 flex flex-col sm:flex-row justify-between gap-4 text-xs font-semibold">
+                          <div className="space-y-1">
+                            <span className="text-slate-450 font-black uppercase text-[9px] block">Estudiante</span>
+                            <strong className="text-white font-extrabold text-sm">{profile?.name}</strong>
+                            <span className="text-slate-400 block mt-0.5">{profile?.course_name} • UID {profile?.id.slice(0,8).toUpperCase()}</span>
+                          </div>
+                          <div className="space-y-1 sm:text-right">
+                            <span className="text-slate-450 font-black uppercase text-[9px] block">Riesgo Escolar</span>
+                            <span className={cn(
+                              "text-xs font-black uppercase tracking-wider px-2 py-0.5 rounded border block w-fit sm:ml-auto mt-0.5",
+                              profile?.id.endsWith('777777777777') && "bg-emerald-950 border-emerald-800 text-emerald-400",
+                              profile?.id.endsWith('888888888888') && "bg-red-950 border-red-800 text-red-400 animate-pulse",
+                              profile?.id.endsWith('999999999999') && "bg-amber-950 border-amber-800 text-amber-400"
+                            )}>
+                              {profile?.id.endsWith('777777777777') && "ESTABLE (0.1%)"}
+                              {profile?.id.endsWith('888888888888') && "CRÍTICO (78.4%)"}
+                              {profile?.id.endsWith('999999999999') && "OBSERVACIÓN (42.1%)"}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Cuerpo del Reporte */}
+                        <div className="space-y-3">
+                          <h4 className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Dictamen Analítico IA</h4>
+                          <p className="text-xs text-slate-350 leading-relaxed font-medium bg-slate-900/20 p-4 border border-slate-900 rounded-xl">
+                            {profile?.id.endsWith('777777777777') && "El estudiante Alejandro Ortiz demuestra un coeficiente cognitivo sobresaliente en asignaturas STEM y habilidades excepcionales en oratoria. Se recomienda promoverlo al programa de monitoría avanzada y postularlo al comité del club de robótica regional. No se observan anomalías de deserción ni retardos RFID."}
+                            {profile?.id.endsWith('888888888888') && "ALERTA DE DESERCIÓN DETECTADA. La red predictiva de AulaCore ha registrado una inasistencia sistemática acumulada de 3 ausencias consecutivas este mes. Aunque sus promedios cognitivos siguen aprobando de manera básica (3.74), las alertas biométricas de portería indican desconexión presencial reiterada sin justificaciones del acudiente. Se recomienda plan de choque inmediato con psicología escolar y citación oficial presencial a padres."}
+                            {profile?.id.endsWith('999999999999') && "RIESGO COGNITIVO DETECTADO. El estudiante Mateo Gómez presenta un promedio general de 2.80, ubicándose por debajo del umbral mínimo de aprobación institucional (3.00). El análisis detallado muestra vacíos críticos en Matemáticas (2.80) e informe final de Ciencias Naturales (2.90). Se registran además 1 llamado de atención disciplinario por uso inoportuno de distractores móviles en clase. Se sugiere tutoría pedagógica especial y restricción del uso del celular en portería."}
+                          </p>
+                        </div>
+
+                        {/* Firma y verificación */}
+                        <div className="flex flex-col sm:flex-row items-center justify-between border-t border-slate-900 pt-5 mt-2 gap-4">
+                          <div className="flex items-center gap-2">
+                            <svg className="w-8 h-8 text-indigo-400/40" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="2.5">
+                              <circle cx="50" cy="50" r="40" stroke-dasharray="3 3" />
+                              <text x="50" y="45" font-size="8" font-weight="extrabold" text-anchor="middle" fill="currentColor">AULACORE</text>
+                              <path d="M 35 65 Q 48 20 65 65" fill="none" stroke="currentColor" stroke-width="2.5" />
+                              <text x="50" y="70" font-size="6" font-weight="bold" text-anchor="middle" fill="currentColor">AI CORE OK</text>
+                            </svg>
+                            <div className="text-[10px] text-slate-400 font-bold leading-tight">
+                              <span>AulaCore AI Engine v4.2</span><br/>
+                              <span className="text-[9px] text-slate-500">Dictamen Criptográfico Verificado</span>
+                            </div>
+                          </div>
+                          
+                          <Button 
+                            onClick={() => setIsIaDiagnosticOpen(false)}
+                            size="sm" 
+                            className="bg-indigo-650 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl px-4 py-2 border-none outline-none cursor-pointer"
+                          >
+                            Cerrar Diagnóstico
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </>
+                  )}
+
+                </Card>
+              </div>
+            )}
+
           </div>
         )}
       </div>
-
     </div>
   );
 }

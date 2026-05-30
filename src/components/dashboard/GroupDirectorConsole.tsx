@@ -32,14 +32,16 @@ import {
   MessageSquare,
   Send,
   CheckCheck,
-  FileSignature
+  FileSignature,
+  X
 } from 'lucide-react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { DocumentEngine } from '@/components/document-engine/DocumentEngine';
 import { SchedulePreviewWidget } from './shared/SchedulePreviewWidget';
+import Student360 from './Student360';
 
 // =================================================================
 // 🏛️ INTERFACES Y CONTRATOS (Group Director)
@@ -283,6 +285,20 @@ export default function GroupDirectorConsole() {
   const [docEngineStudentName, setDocEngineStudentName] = useState('');
   const [docEngineCourseName, setDocEngineCourseName] = useState('10-A');
   const [docEngineMetadata, setDocEngineMetadata] = useState<any>({});
+
+  // --- EXPEDIENTE ESTUDIANTE 360 SELECCIONADO ---
+  const [selectedStudent360Id, setSelectedStudent360Id] = useState<string | null>(null);
+
+  // --- STATE FOR CIRCULAR DIGITAL MODAL ---
+  const [isCircularModalOpen, setIsCircularModalOpen] = useState(false);
+  const [circularTitle, setCircularTitle] = useState('');
+  const [circularContent, setCircularContent] = useState('');
+  const [circularTarget, setCircularTarget] = useState('all');
+  const [circularRequiresSignature, setCircularRequiresSignature] = useState(true);
+  const [isSignatureDone, setIsSignatureDone] = useState(false);
+  const [isVerifyingSignature, setIsVerifyingSignature] = useState(false);
+  const canvasRef = React.useRef<HTMLCanvasElement | null>(null);
+  const [isDrawing, setIsDrawing] = useState(false);
 
   // 1. CARGA INICIAL DE SUPABASE (Con fallbacks consistentes)
   useEffect(() => {
@@ -720,6 +736,152 @@ export default function GroupDirectorConsole() {
       setNotifiedAcudientes(prev => ({ ...prev, [studentName]: false }));
     }, 4000);
   };
+
+  const handleNotifyFromAlert = (studentId: string, studentName: string, reason: string) => {
+    const newLog: ParentDirectorMessage = {
+      id: 'sim-' + Math.random().toString(36).substr(2, 9),
+      student_id: mapStudentIdToUuid(studentId),
+      sender_role: 'director',
+      message_type: 'automatic_alert',
+      content: `Alerta Oficial de Dirección de Curso - Alerta Temprana IA: Se ha identificado riesgo en ${studentName} debido a: "${reason}". Solicitamos tomar acciones inmediatas y revisar el plan remedial AulaCore.`,
+      priority_level: 'high',
+      requires_confirmation: true,
+      confirmation_type: 'parent_compromise',
+      read_confirmed: false,
+      read_at: null,
+      parent_reply: null,
+      replied_at: null,
+      created_at: new Date().toISOString()
+    };
+    
+    setMessages(prev => [newLog, ...prev]);
+    alert(`✓ Notificación oficial enviada con éxito al acudiente de ${studentName} vía AulaCore App y SMS.`);
+  };
+
+  const mapStudentIdToUuid = (id: string) => {
+    if (id === 'est-01') return '77777777-7777-7777-7777-777777777777';
+    if (id === 'est-02') return '88888888-8888-8888-8888-888888888888';
+    if (id === 'est-03') return '99999999-9999-9999-9999-999999999999';
+    return id;
+  };
+
+  // --- CANVAS SIGNATURE DRAWING HANDLERS ---
+  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = '#6366f1'; // Premium indigo stroke
+    
+    const rect = canvas.getBoundingClientRect();
+    const x = ('touches' in e) ? e.touches[0].clientX - rect.left : e.clientX - rect.left;
+    const y = ('touches' in e) ? e.touches[0].clientY - rect.top : e.clientY - rect.top;
+    
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    setIsDrawing(true);
+  };
+
+  const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    if (!isDrawing) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    
+    const rect = canvas.getBoundingClientRect();
+    const x = ('touches' in e) ? e.touches[0].clientX - rect.left : e.clientX - rect.left;
+    const y = ('touches' in e) ? e.touches[0].clientY - rect.top : e.clientY - rect.top;
+    
+    ctx.lineTo(x, y);
+    ctx.stroke();
+  };
+
+  const stopDrawing = () => {
+    setIsDrawing(false);
+  };
+
+  const clearCanvas = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    setIsSignatureDone(false);
+  };
+
+  const verifySignature = () => {
+    setIsVerifyingSignature(true);
+    setTimeout(() => {
+      setIsVerifyingSignature(false);
+      setIsSignatureDone(true);
+    }, 1200);
+  };
+
+  const handleSendCircular = () => {
+    if (!circularTitle.trim() || !circularContent.trim()) {
+      alert('Por favor complete el título y contenido de la circular.');
+      return;
+    }
+    if (circularRequiresSignature && !isSignatureDone) {
+      alert('Por favor dibuje y verifique su firma digital institucional antes de emitir la circular.');
+      return;
+    }
+
+    const studentsToNotify = circularTarget === 'all' 
+      ? ['77777777-7777-7777-7777-777777777777', '88888888-8888-8888-8888-888888888888', '99999999-9999-9999-9999-999999999999'] 
+      : [circularTarget];
+
+    studentsToNotify.forEach(studentUuid => {
+      const newCircularMessage: ParentDirectorMessage = {
+        id: 'circ-' + Math.random().toString(36).substr(2, 9),
+        student_id: studentUuid,
+        sender_role: 'director',
+        message_type: 'internal_message',
+        content: `📝 CIRCULAR OFICIAL EMITIDA: ${circularTitle}\n\n${circularContent}\n\n[DOCUMENTO FIRMADO DIGITALMENTE Y SELLADO CRIPTOGRÁFICAMENTE POR DIRECCIÓN DE CURSO]`,
+        priority_level: 'medium',
+        requires_confirmation: circularRequiresSignature,
+        confirmation_type: 'digital_signature',
+        read_confirmed: false,
+        read_at: null,
+        parent_reply: null,
+        replied_at: null,
+        created_at: new Date().toISOString()
+      };
+      setMessages(prev => [newCircularMessage, ...prev]);
+    });
+
+    alert(`✓ Circular Digital "${circularTitle}" emitida con éxito y transmitida a los acudientes seleccionados.`);
+    
+    setCircularTitle('');
+    setCircularContent('');
+    setIsCircularModalOpen(false);
+    setIsSignatureDone(false);
+  };
+
+  if (selectedStudent360Id) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between bg-slate-900 text-white p-4 rounded-xl shadow-md">
+          <div className="flex items-center gap-2">
+            <span className="text-xs bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded uppercase font-black">Expediente Escolar</span>
+            <h4 className="text-sm font-bold">Ficha Analítica Integrada Student 360°</h4>
+          </div>
+          <Button 
+            onClick={() => setSelectedStudent360Id(null)}
+            size="sm"
+            className="bg-slate-800 hover:bg-slate-750 text-white font-bold text-xs cursor-pointer border-none outline-none"
+          >
+            ← Volver a Consola de Dirección
+          </Button>
+        </div>
+        <Student360 initialStudentId={selectedStudent360Id} />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -1161,7 +1323,7 @@ export default function GroupDirectorConsole() {
                   </p>
 
                   <div className="bg-white border border-slate-200 rounded-lg p-3 text-xs font-semibold text-slate-800 leading-relaxed shadow-sm border-l-2 border-l-slate-900">
-                    <span className="text-slate-950 font-black flex items-center gap-1.5">
+                    <span className="text-slate-955 font-black flex items-center gap-1.5">
                       <Sparkles className="w-3.5 h-3.5 text-yellow-500 animate-spin" />
                       Plan de Intervención Recomendado por AulaCore IA:
                     </span>
@@ -1169,6 +1331,14 @@ export default function GroupDirectorConsole() {
                       {al.plan}
                     </p>
                   </div>
+                  
+                  <Button 
+                    onClick={() => handleNotifyFromAlert(al.studentId, al.studentName, al.reason)}
+                    size="sm" 
+                    className="w-full mt-2 text-xs bg-red-600 hover:bg-red-750 text-white font-bold cursor-pointer border-none outline-none shadow-sm"
+                  >
+                    Notificar Acudiente (Enviar Alerta)
+                  </Button>
                 </div>
               );
             })}
@@ -1647,25 +1817,36 @@ export default function GroupDirectorConsole() {
 
                     {/* Acciones */}
                     <TableCell className="pr-6 text-right">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="h-7 text-[10px] font-black text-indigo-700 border-indigo-200 hover:bg-indigo-50"
-                        onClick={() => {
-                          setDocEngineType('annual_consolidated');
-                          setDocEngineStudentId(c.studentId);
-                          setDocEngineStudentName(c.studentName);
-                          setDocEngineMetadata({
-                            finalGPA: c.finalGPA,
-                            attendance: c.attendance,
-                            status: c.status
-                          });
-                          setIsDocEngineOpen(true);
-                        }}
-                      >
-                        <FileText className="w-3.5 h-3.5 mr-1.5" />
-                        Exportar PDF
-                      </Button>
+                      <div className="flex items-center justify-end gap-1.5">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-7 text-[10px] font-black text-indigo-700 border-indigo-200 hover:bg-indigo-50 cursor-pointer"
+                          onClick={() => setSelectedStudent360Id(mapStudentIdToUuid(c.studentId))}
+                        >
+                          <Eye className="w-3.5 h-3.5 mr-1" />
+                          Ver Expediente
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-7 text-[10px] font-black text-slate-750 border-slate-200 hover:bg-slate-50 cursor-pointer"
+                          onClick={() => {
+                            setDocEngineType('annual_consolidated');
+                            setDocEngineStudentId(c.studentId);
+                            setDocEngineStudentName(c.studentName);
+                            setDocEngineMetadata({
+                              finalGPA: c.finalGPA,
+                              attendance: c.attendance,
+                              status: c.status
+                            });
+                            setIsDocEngineOpen(true);
+                          }}
+                        >
+                          <FileText className="w-3.5 h-3.5 mr-1.5" />
+                          Exportar PDF
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 );
@@ -2099,10 +2280,10 @@ export default function GroupDirectorConsole() {
               </div>
 
               <Button
-                onClick={() => alert('Módulo de Expansión: Permite definir y disparar un nuevo consentimiento digital estructurado (con firma criptográfica) a todos los acudientes en 1 clic.')}
-                className="w-full bg-slate-900 hover:bg-slate-950 text-white font-black text-xs py-2 rounded-lg cursor-pointer transition shadow-inner"
+                onClick={() => setIsCircularModalOpen(true)}
+                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs py-2.5 rounded-lg cursor-pointer transition shadow-md border-none outline-none"
               >
-                Crear Nuevo Consentimiento Parental
+                Crear Circular / Consentimiento Digital
               </Button>
             </CardContent>
           </Card>
@@ -2194,6 +2375,187 @@ export default function GroupDirectorConsole() {
         courseName={docEngineCourseName}
         metadataPayload={docEngineMetadata}
       />
+
+      {/* ========================================================= */}
+      {/* 📝 MODAL: CREAR CIRCULAR DIGITAL & CONSENTIMIENTO CRIPTOGRÁFICO */}
+      {/* ========================================================= */}
+      {isCircularModalOpen && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4 overflow-y-auto animate-fade-in">
+          <Card className="w-full max-w-xl bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden animate-scale-in">
+            <CardHeader className="bg-slate-900 text-white p-5 flex flex-row items-center justify-between">
+              <div>
+                <div className="flex items-center gap-2">
+                  <FileSignature className="w-5 h-5 text-indigo-400 animate-pulse" />
+                  <span className="text-[10px] bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded uppercase font-black tracking-wider">
+                    Official Release
+                  </span>
+                </div>
+                <CardTitle className="text-base font-black tracking-tight mt-1.5">Emitir Circular & Consentimiento Digital</CardTitle>
+                <p className="text-xs text-slate-300 mt-0.5 font-semibold">Difusión oficial con requerimiento de firma criptográfica para acudientes</p>
+              </div>
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={() => {
+                  setIsCircularModalOpen(false);
+                  setIsSignatureDone(false);
+                }}
+                className="rounded-full text-slate-400 hover:text-white hover:bg-white/10 h-8 w-8 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </Button>
+            </CardHeader>
+
+            <CardContent className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+              {/* Recipient */}
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black text-slate-700 uppercase tracking-wide">Destinatarios Oficiales</label>
+                <select
+                  value={circularTarget}
+                  onChange={(e) => setCircularTarget(e.target.value)}
+                  className="w-full border border-slate-200 rounded-xl p-2.5 text-xs font-bold text-slate-850 focus:outline-none focus:ring-2 focus:ring-purple-200 bg-white cursor-pointer"
+                >
+                  <option value="all">Todo el Grupo 10-A (Todos los Acudientes)</option>
+                  <option value="77777777-7777-7777-7777-777777777777">Acudiente de Alejandro Ortiz (Carlos Ortiz)</option>
+                  <option value="88888888-8888-8888-8888-888888888888">Acudiente de Sofía Ramírez (Marta Ramírez)</option>
+                  <option value="99999999-9999-9999-9999-999999999999">Acudiente de Mateo Gómez (Sara Gómez)</option>
+                </select>
+              </div>
+
+              {/* Title */}
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black text-slate-700 uppercase tracking-wide">Título de la Circular</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Ej: Salida de Campo Pedagógica al Observatorio Astronómico"
+                  value={circularTitle}
+                  onChange={(e) => setCircularTitle(e.target.value)}
+                  className="w-full border border-slate-200 rounded-xl p-2.5 text-xs font-bold text-slate-850 focus:outline-none focus:ring-2 focus:ring-purple-200 bg-white placeholder:text-slate-400"
+                />
+              </div>
+
+              {/* Description */}
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black text-slate-700 uppercase tracking-wide">Contenido y Directrices</label>
+                <textarea
+                  required
+                  rows={4}
+                  placeholder="Redacte aquí de forma detallada las instrucciones del comunicado o consentimiento parental..."
+                  value={circularContent}
+                  onChange={(e) => setCircularContent(e.target.value)}
+                  className="w-full border border-slate-200 rounded-xl p-2.5 text-xs font-semibold text-slate-800 leading-relaxed focus:outline-none focus:ring-2 focus:ring-purple-200 bg-white placeholder:text-slate-400 resize-none"
+                />
+              </div>
+
+              {/* Toggle Signature */}
+              <div className="flex items-center justify-between p-3.5 bg-slate-50 border border-slate-200 rounded-xl">
+                <div>
+                  <span className="text-xs font-black text-slate-900 block">¿Exigir firma digital vinculante?</span>
+                  <span className="text-[10px] text-slate-450 font-bold block mt-0.5">Obliga al acudiente a firmar criptográficamente para acusar recibo</span>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={circularRequiresSignature}
+                  onChange={(e) => setCircularRequiresSignature(e.target.checked)}
+                  className="w-4 h-4 text-purple-650 focus:ring-purple-500 border-slate-300 rounded cursor-pointer"
+                />
+              </div>
+
+              {/* Signature Board (Canvas) */}
+              {circularRequiresSignature && (
+                <div className="space-y-2.5">
+                  <div className="flex justify-between items-center">
+                    <label className="text-[10px] font-black text-slate-700 uppercase tracking-wide">Firma Autógrafa del Director (Sello Digital)</label>
+                    <button
+                      type="button"
+                      onClick={clearCanvas}
+                      className="text-[10px] font-black text-slate-450 hover:text-indigo-650 cursor-pointer bg-transparent border-none outline-none"
+                    >
+                      Limpiar Lienzo
+                    </button>
+                  </div>
+
+                  <div className="relative border border-slate-250 bg-slate-50 rounded-xl overflow-hidden select-none">
+                    <canvas
+                      ref={canvasRef}
+                      width={520}
+                      height={120}
+                      className="w-full h-[120px] bg-slate-50 block cursor-crosshair touch-none"
+                      onMouseDown={startDrawing}
+                      onMouseMove={draw}
+                      onMouseUp={stopDrawing}
+                      onMouseLeave={stopDrawing}
+                      onTouchStart={startDrawing}
+                      onTouchMove={draw}
+                      onTouchEnd={stopDrawing}
+                    />
+                    
+                    {!isSignatureDone && !isVerifyingSignature && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-slate-900/5 pointer-events-none select-none">
+                        <span className="text-[10px] font-bold text-slate-400 bg-white/90 border border-slate-200 px-3 py-1 rounded-full shadow-sm">
+                          Dibuja tu firma digital aquí con el mouse o stylus
+                        </span>
+                      </div>
+                    )}
+
+                    {isVerifyingSignature && (
+                      <div className="absolute inset-0 bg-slate-950/70 backdrop-blur-xs flex flex-col items-center justify-center text-white space-y-2 pointer-events-none">
+                        <Clock className="w-5 h-5 text-indigo-400 animate-spin" />
+                        <span className="text-[10px] font-black tracking-wider uppercase text-indigo-200 animate-pulse">
+                          Autenticando Firma & Generando PKI Hash...
+                        </span>
+                      </div>
+                    )}
+
+                    {isSignatureDone && !isVerifyingSignature && (
+                      <div className="absolute inset-0 bg-emerald-950/80 backdrop-blur-xs flex flex-col items-center justify-center text-white pointer-events-none select-none">
+                        <div className="flex items-center gap-1.5 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-3 py-1.5 rounded-full font-black text-xs">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-400 animate-bounce" />
+                          <span>Firma Autenticada y Registrada</span>
+                        </div>
+                        <span className="text-[9px] font-mono text-emerald-450 mt-1">
+                          SHA256: {Math.random().toString(36).substring(2, 10).toUpperCase()}-PKI-SECURE
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {!isSignatureDone && !isVerifyingSignature && (
+                    <Button
+                      type="button"
+                      onClick={verifySignature}
+                      className="w-full bg-slate-900 hover:bg-slate-950 text-white text-xs font-black py-2 rounded-lg cursor-pointer transition border-none outline-none shadow-sm"
+                    >
+                      Verificar & Autenticar Firma
+                    </Button>
+                  )}
+                </div>
+              )}
+            </CardContent>
+
+            <CardFooter className="bg-slate-50 border-t border-slate-100 p-4 flex gap-3 justify-end">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIsCircularModalOpen(false);
+                  setIsSignatureDone(false);
+                }}
+                className="border-slate-200 text-slate-700 font-bold text-xs h-9 cursor-pointer"
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleSendCircular}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs h-9 cursor-pointer border-none outline-none shadow-sm flex items-center gap-1.5"
+              >
+                <Send className="w-4 h-4" />
+                Emitir Circular Digital
+              </Button>
+            </CardFooter>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }

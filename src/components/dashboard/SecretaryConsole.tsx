@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Users,
   CheckCircle2,
@@ -123,6 +123,34 @@ export function SecretaryConsole({
     'est-04': { studentId: 'est-04', studentName: 'Carlos Pérez', registroCivil: 'Completo', identidad: 'Completo', eps: 'Completo', foto: 'Completo', certificados: 'Completo' },
     'est-05': { studentId: 'est-05', studentName: 'Ana Torres', registroCivil: 'Pendiente', identidad: 'Completo', eps: 'Completo', foto: 'Revisión', certificados: 'Completo' }
   });
+
+  // --- PERSISTENCE: LOCALSTORAGE Fallback ---
+  useEffect(() => {
+    const savedCrm = localStorage.getItem('aulacore_crm_queue');
+    if (savedCrm) {
+      try {
+        setCrmQueue(JSON.parse(savedCrm));
+      } catch (e) {
+        console.warn('Error reading CRM from localStorage:', e);
+      }
+    }
+    const savedDocDb = localStorage.getItem('aulacore_document_database');
+    if (savedDocDb) {
+      try {
+        setDocumentDatabase(JSON.parse(savedDocDb));
+      } catch (e) {
+        console.warn('Error reading DocDb from localStorage:', e);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('aulacore_crm_queue', JSON.stringify(crmQueue));
+  }, [crmQueue]);
+
+  useEffect(() => {
+    localStorage.setItem('aulacore_document_database', JSON.stringify(documentDatabase));
+  }, [documentDatabase]);
 
   const activeDocChecklist = documentDatabase[selectedStudentId] || {
     studentId: selectedStudentId,
