@@ -15,16 +15,18 @@ interface RoleContextType {
 const RoleContext = createContext<RoleContextType | undefined>(undefined);
 
 export function RoleProvider({ children }: { children: React.ReactNode }) {
-  const { profile, activeRole, setActiveRole, isAuthenticated, loading } = useAuth();
+  const { profile, activeRole, setActiveRole, isAuthenticated, loading, roles } = useAuth();
   
   const [localRole, setLocalRoleState] = useState<UserRole>('rector');
   const [localName, setLocalNameState] = useState<string>('Dr. Ramírez');
+  const [customDemoName, setCustomDemoName] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
 
   // Cargar desde localStorage tras montar para simulación local si no hay sesión activa
   useEffect(() => {
     const savedRole = localStorage.getItem('aulacore-user-role') as UserRole;
     const savedName = localStorage.getItem('aulacore-user-name');
+    const savedDemoName = localStorage.getItem('aulacore-demo-name');
     
     if (savedRole) {
       setLocalRoleState(savedRole);
@@ -37,6 +39,10 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
     } else {
       localStorage.setItem('aulacore-user-name', 'Dr. Ramírez');
     }
+
+    if (savedDemoName) {
+      setCustomDemoName(savedDemoName);
+    }
     
     setMounted(true);
   }, []);
@@ -44,35 +50,44 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
   // Consumir datos reales del AuthProvider si el usuario está autenticado en Supabase
   const userRole = isAuthenticated && activeRole ? activeRole : localRole;
   
-  const userName = isAuthenticated && profile 
+  // Se considera simulado si el usuario está autenticado pero el rol activo no es uno de sus roles reales en la DB
+  const isSimulatedRole = isAuthenticated && roles && !roles.includes(userRole);
+
+  const userName = (isAuthenticated && !isSimulatedRole && profile)
     ? `${profile.first_name} ${profile.last_name}` 
-    : localName;
+    : (customDemoName || localName);
 
   const setUserRole = (role: UserRole) => {
+    // Nombres realistas por rol para simulación local
+    let name = 'Dr. Ramírez';
+    if (role === 'rector') name = 'Dr. Ramírez';
+    else if (role === 'director_grupo') name = 'Lic. Martínez';
+    else if (role === 'docente') name = 'Prof. Gómez';
+    else if (role === 'secretaria') name = 'Dra. Elena Toro';
+    else if (role === 'padre_familia') name = 'Carlos Ortiz';
+    else if (role === 'estudiante') name = 'Tomas Villa';
+
     if (isAuthenticated) {
       setActiveRole(role);
+      setLocalNameState(name);
+      localStorage.setItem('aulacore-user-name', name);
+      setCustomDemoName(null);
+      localStorage.removeItem('aulacore-demo-name');
     } else {
       setLocalRoleState(role);
       localStorage.setItem('aulacore-user-role', role);
-      
-      // Nombres realistas por rol para simulación local
-      let name = 'Dr. Ramírez';
-      if (role === 'rector') name = 'Dr. Ramírez';
-      else if (role === 'director_grupo') name = 'Lic. Martínez';
-      else if (role === 'docente') name = 'Prof. Gómez';
-      else if (role === 'secretaria') name = 'Dra. Elena Toro';
-      else if (role === 'padre_familia') name = 'Carlos Ortiz';
-      
       setLocalNameState(name);
       localStorage.setItem('aulacore-user-name', name);
+      setCustomDemoName(null);
+      localStorage.removeItem('aulacore-demo-name');
     }
   };
 
   const setUserName = (name: string) => {
-    if (!isAuthenticated) {
-      setLocalNameState(name);
-      localStorage.setItem('aulacore-user-name', name);
-    }
+    setLocalNameState(name);
+    localStorage.setItem('aulacore-user-name', name);
+    setCustomDemoName(name);
+    localStorage.setItem('aulacore-demo-name', name);
   };
 
   // Se considera montado cuando cargó el cliente local y la sesión de Supabase finalizó su carga inicial
