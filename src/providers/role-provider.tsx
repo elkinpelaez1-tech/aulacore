@@ -95,8 +95,8 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem('aulacore-demo-name', name);
   };
 
-  // Se considera montado cuando cargó el cliente local y la sesión de Supabase finalizó su carga inicial
-  const isMounted = mounted && !loading;
+  // Se considera montado cuando cargó el cliente local para evitar errores de hidratación
+  const isMounted = mounted;
 
   return (
     <RoleContext.Provider value={{ userRole, setUserRole, userName, setUserName, mounted: isMounted }}>
