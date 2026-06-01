@@ -90,8 +90,8 @@ const SUBJECT_PERFORMANCE = [
         <StudentProfileCard 
           className="h-full" 
           studentName={userName || undefined}
-          email={onboardingStudent?.email || (userName ? `${userName.toLowerCase().replace(/\s+/g, '.')}@aulacore.edu.co` : undefined)}
-          studentId={onboardingStudent?.nationalId || (userName ? `TI. 102${userName.length}4050` : undefined)}
+          email={onboardingStudent?.email || (userName && typeof userName === 'string' ? `${userName.toLowerCase().replace(/\s+/g, '.')}@aulacore.edu.co` : undefined)}
+          studentId={onboardingStudent?.nationalId || (userName && typeof userName === 'string' ? `TI. 102${userName.length}4050` : undefined)}
           grade={onboardingStudent ? "10° - A (Matrícula Inteligente)" : "11° - B (Media Académica)"}
           birthDate={onboardingStudent ? `Matriculado el ${onboardingStudent.registrationDate}` : "15 de Mayo de 2008 (18 años)"}
           parentName={onboardingStudent ? "Pendiente de Sincronización" : "María Fernanda Ruiz (Madre)"}
