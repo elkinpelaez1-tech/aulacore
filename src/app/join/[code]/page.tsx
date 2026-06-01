@@ -341,21 +341,21 @@ export default function JoinOnboardingPage() {
 
             <div className="bg-slate-850 p-4 border border-slate-800 rounded-2xl text-left space-y-2.5 max-w-sm mx-auto">
               <div className="flex justify-between border-b border-slate-800 pb-1.5 text-xs">
-                <span className="text-slate-450 font-bold">Estudiante:</span>
+                <span className="text-slate-350 font-bold">Estudiante:</span>
                 <span className="text-slate-200 font-black truncate max-w-[180px]">{fullName}</span>
               </div>
               <div className="flex justify-between border-b border-slate-800 pb-1.5 text-xs">
-                <span className="text-slate-450 font-bold">Identificación:</span>
+                <span className="text-slate-350 font-bold">Identificación:</span>
                 <span className="text-slate-200 font-black">{nationalId}</span>
               </div>
               {selectedRole === 'estudiante' && (
                 <div className="flex justify-between border-b border-slate-800 pb-1.5 text-xs">
-                  <span className="text-slate-450 font-bold">Nivel de Ingreso:</span>
+                  <span className="text-slate-350 font-bold">Nivel de Ingreso:</span>
                   <span className="text-indigo-400 font-black">{gradeLevel}</span>
                 </div>
               )}
               <div className="flex justify-between text-xs">
-                <span className="text-slate-450 font-bold">Rol Asignado:</span>
+                <span className="text-slate-350 font-bold">Rol Asignado:</span>
                 <span className="text-indigo-400 font-black">
                   {selectedRole === 'estudiante' ? 'Estudiante Regular' :
                    selectedRole === 'padre_familia' ? 'Acudiente Familiar' :

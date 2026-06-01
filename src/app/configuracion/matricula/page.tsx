@@ -121,6 +121,35 @@ export default function MatriculaPage() {
   const [uploadedFiles, setUploadedFiles] = useState<Record<string, { name: string; size: string; progress: number }>>({});
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
 
+  // --- ESTADOS DE PRE-REGISTRO Y AUTOCOMPLETADO ---
+  const [preRegistrations, setPreRegistrations] = useState<any[]>([]);
+  const [preRegAlert, setPreRegAlert] = useState('');
+
+  useEffect(() => {
+    const loadPreRegs = () => {
+      const DEFAULT_PRE_REGISTRATIONS = [
+        { fullName: 'Pedro Castro', nationalId: '10174125478', email: 'castrop@yahoo.es', gradeLevel: 'Bachillerato', registrationDate: '1 Jun 2026', status: 'Pre-matriculado' },
+        { fullName: 'Andrés Felipe Gómez', nationalId: '1020485963', email: 'andres.gomez@gmail.com', gradeLevel: 'Media Técnica', registrationDate: '30 May 2026', status: 'Pre-matriculado' },
+        { fullName: 'Laura Valentina Pérez', nationalId: '1018594032', email: 'laura.perez@outlook.com', gradeLevel: 'Primaria', registrationDate: '28 May 2026', status: 'Pre-matriculado' }
+      ];
+      let list = [...DEFAULT_PRE_REGISTRATIONS];
+      const saved = localStorage.getItem('aulacore-pre-registrations');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          parsed.forEach((item: any) => {
+            if (!list.some(p => p.nationalId === item.nationalId)) {
+              list.unshift(item);
+            }
+          });
+        } catch (e) {}
+      }
+      setPreRegistrations(list);
+    };
+
+    loadPreRegs();
+  }, []);
+
   // Canvas drawing refs
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -152,7 +181,49 @@ export default function MatriculaPage() {
   };
 
   const handleInputChange = (field: keyof StudentFormData, value: any) => {
-    const updated = { ...formData, [field]: value };
+    let updated = { ...formData, [field]: value };
+
+    if (field === 'studentName' || field === 'studentId') {
+      const val = String(value).toLowerCase();
+      const matched = preRegistrations.find(p => {
+        if (!val || val.length < 3) return false;
+        return p.nationalId.includes(val) || 
+               p.fullName.toLowerCase().includes(val) ||
+               val.includes(p.fullName.toLowerCase());
+      });
+
+      if (matched) {
+        let targetGrade = 'Décimo';
+        if (matched.gradeLevel === 'Bachillerato') targetGrade = 'Noveno de Bachillerato';
+        if (matched.gradeLevel === 'Media Técnica') targetGrade = 'Décimo';
+        if (matched.gradeLevel === 'Primaria') targetGrade = 'Quinto de Primaria';
+        if (matched.gradeLevel === 'Preescolar') targetGrade = 'Transición';
+
+        updated = {
+          ...updated,
+          studentName: matched.fullName,
+          studentId: matched.nationalId,
+          epsName: 'Sura',
+          bloodType: 'O+',
+          birthDate: '2010-05-15',
+          idType: matched.nationalId.startsWith('1') ? 'TI' : 'CC',
+          address: 'Calle 100 # 15-20, Sede Central',
+          motherName: 'Marta Pelaez Ortiz',
+          motherPhone: '+57 301 234 5678',
+          fatherName: 'Ramón Pelaez',
+          fatherPhone: '+57 312 987 6543',
+          previousSchool: 'Colegio Anglo-Colombiano',
+          lastCompletedGrade: targetGrade,
+          sisbenLevel: 'C1 - C18 (Vulnerable)',
+          stratum: '2',
+          hasDisability: 'no'
+        };
+
+        setPreRegAlert(`✨ Pre-registro detectado para ${matched.fullName}. ¡Formulario autocompletado!`);
+        setTimeout(() => setPreRegAlert(''), 5000);
+      }
+    }
+
     setFormData(updated);
     autoSave(updated, step);
   };
@@ -602,7 +673,6 @@ export default function MatriculaPage() {
                 </div>
               </div>
             )}
-
             {/* STEP 2: ESTUDIANTE */}
             {step === 2 && (
               <div className="space-y-6 animate-in fade-in duration-200">
@@ -613,12 +683,26 @@ export default function MatriculaPage() {
                   <p className="text-xs text-slate-400 font-semibold mt-1">Información de identidad y contacto del alumno.</p>
                 </div>
 
+                {preRegAlert && (
+                  <div className="bg-indigo-50 border border-indigo-200 text-indigo-800 text-xs font-bold p-3.5 rounded-2xl animate-pulse flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-indigo-600 animate-pulse" />
+                    <span>{preRegAlert}</span>
+                  </div>
+                )}
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
                   <div className="md:col-span-2">
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 block">Nombres y Apellidos Completos</label>
+                    <div className="flex justify-between items-center mb-2">
+                      <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block">Nombres y Apellidos Completos</label>
+                      {preRegistrations.length > 0 && (
+                        <span className="text-[9px] font-black text-indigo-700 bg-indigo-50 border border-indigo-150 px-2 py-0.5 rounded shadow-3xs select-none">
+                          ✨ {preRegistrations.length} Pre-registros autorizados en cola
+                        </span>
+                      )}
+                    </div>
                     <input 
                       type="text"
-                      placeholder="Ej. Laura Valentina Pérez"
+                      placeholder="Ej. Laura Valentina Pérez o digita 'Elkin'"
                       value={formData.studentName}
                       onChange={(e) => handleInputChange('studentName', e.target.value)}
                       className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-sm font-medium text-slate-700 outline-none focus:border-indigo-500 focus:bg-white transition-all shadow-sm"
