@@ -92,9 +92,9 @@ const SUBJECT_PERFORMANCE = [
           studentName={userName || undefined}
           email={onboardingStudent?.email || (userName && typeof userName === 'string' ? `${userName.toLowerCase().replace(/\s+/g, '.')}@aulacore.edu.co` : undefined)}
           studentId={onboardingStudent?.nationalId || (userName && typeof userName === 'string' ? `TI. 102${userName.length}4050` : undefined)}
-          grade={onboardingStudent ? "10° - A (Matrícula Inteligente)" : "11° - B (Media Académica)"}
-          birthDate={onboardingStudent ? `Matriculado el ${onboardingStudent.registrationDate}` : "15 de Mayo de 2008 (18 años)"}
-          parentName={onboardingStudent ? "Pendiente de Sincronización" : "María Fernanda Ruiz (Madre)"}
+          grade={onboardingStudent ? "Bachillerato (Grado por Asignar)" : "11° - B (Media Académica)"}
+          birthDate={onboardingStudent ? `Pre-registro el ${onboardingStudent.registrationDate}` : "15 de Mayo de 2008 (18 años)"}
+          parentName={onboardingStudent ? "Pendiente de Asignación por Secretaría" : "María Fernanda Ruiz (Madre)"}
         />
 
         {/* GPA & Progress Card */}
@@ -114,7 +114,7 @@ const SUBJECT_PERFORMANCE = [
                   {onboardingStudent ? "Nuevo Ingreso" : "Sobresaliente"}
                 </Badge>
                 <Badge className="bg-white/10 text-slate-300 border-none">
-                  {onboardingStudent ? "Grado 10°" : "Grado 11°"}
+                  {onboardingStudent ? "Grado por Asignar" : "Grado 11°"}
                 </Badge>
               </div>
               <h2 className="text-3xl font-black mb-1">¡Hola, {firstName}!</h2>
