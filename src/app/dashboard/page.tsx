@@ -95,6 +95,55 @@ export default function DashboardPage() {
   // Buscador de verificación rápida de Rector
   const [searchVerifyCode, setSearchVerifyCode] = useState('');
 
+  // --- ESTADOS DE PRE-REGISTRO PARA RECTORÍA ---
+  const [rectorSearchQuery, setRectorSearchQuery] = useState('');
+  const [rectorPreRegistrations, setRectorPreRegistrations] = useState<any[]>([]);
+
+  React.useEffect(() => {
+    const loadPreRegs = () => {
+      const DEFAULT_PRE_REGISTRATIONS = [
+        { fullName: 'Pedro Castro', nationalId: '10174125478', email: 'castrop@yahoo.es', gradeLevel: 'Bachillerato', registrationDate: '1 Jun 2026', status: 'Pre-matriculado' },
+        { fullName: 'Andrés Felipe Gómez', nationalId: '1020485963', email: 'andres.gomez@gmail.com', gradeLevel: 'Media Técnica', registrationDate: '30 May 2026', status: 'Pre-matriculado' },
+        { fullName: 'Laura Valentina Pérez', nationalId: '1018594032', email: 'laura.perez@outlook.com', gradeLevel: 'Primaria', registrationDate: '28 May 2026', status: 'Pre-matriculado' }
+      ];
+      let list = [...DEFAULT_PRE_REGISTRATIONS];
+      const saved = localStorage.getItem('aulacore-pre-registrations');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          parsed.forEach((item: any) => {
+            if (!list.some(p => p.nationalId === item.nationalId)) {
+              list.unshift(item);
+            }
+          });
+        } catch (e) {}
+      }
+      setRectorPreRegistrations(list);
+    };
+
+    loadPreRegs();
+
+    // Sincronizar en caliente si cambia en otra pestaña o componente
+    window.addEventListener('storage', loadPreRegs);
+    
+    // Sondeo de sincronización local
+    const interval = setInterval(loadPreRegs, 2000);
+
+    return () => {
+      window.removeEventListener('storage', loadPreRegs);
+      clearInterval(interval);
+    };
+  }, []);
+
+  const filteredRectorPreRegs = rectorPreRegistrations.filter(p => {
+    if (!rectorSearchQuery.trim()) return true;
+    const query = rectorSearchQuery.toLowerCase();
+    return p.fullName.toLowerCase().includes(query) ||
+           p.nationalId.includes(query) ||
+           p.email.toLowerCase().includes(query) ||
+           (p.gradeLevel && p.gradeLevel.toLowerCase().includes(query));
+  });
+
   // --- ESTADOS INTERACTIVOS PARA DEMO SaaS PREMIUM ---
   
   // 1. Asistencia en caliente (Director de Grupo)
@@ -498,6 +547,111 @@ export default function DashboardPage() {
                 </CardContent>
               </Card>
             )}
+
+            {/* Control y Búsqueda de Solicitudes de Cupo (Aspirantes) */}
+            <Card className="border-slate-200 shadow-md bg-white rounded-2xl overflow-hidden animate-fade-in">
+              <CardHeader className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white px-6 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-yellow-400 fill-yellow-400 animate-pulse" />
+                    <span className="text-[10px] font-black tracking-widest uppercase text-indigo-300">Gestión de Aspirantes</span>
+                  </div>
+                  <CardTitle className="text-xl font-extrabold text-white mt-0.5">Control de Admisiones y Solicitudes de Cupo</CardTitle>
+                  <p className="text-xs text-slate-300 font-medium">Búsqueda general y supervisión en tiempo real de pre-registros por Magic Link</p>
+                </div>
+                <div className="relative w-full md:w-80 shrink-0">
+                  <Search className="w-4 h-4 absolute left-3 top-3.5 text-slate-400" />
+                  <input
+                    type="text"
+                    value={rectorSearchQuery}
+                    onChange={(e) => setRectorSearchQuery(e.target.value)}
+                    placeholder="Buscar aspirante por nombre o documento..."
+                    className="w-full pl-9 pr-4 py-2.5 bg-white/10 hover:bg-white/15 focus:bg-white border border-white/10 hover:border-white/20 focus:border-white rounded-xl text-xs font-semibold text-white focus:text-slate-900 placeholder:text-slate-400 focus:outline-none transition-all duration-300 shadow-inner"
+                  />
+                </div>
+              </CardHeader>
+              <CardContent className="p-6">
+                {filteredRectorPreRegs.length === 0 ? (
+                  <div className="text-center py-10 border border-dashed border-slate-200 rounded-2xl bg-slate-50/50">
+                    <Search className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                    <h4 className="text-sm font-extrabold text-slate-800">No se encontraron solicitudes</h4>
+                    <p className="text-xs text-slate-450 font-semibold mt-1">Intente buscar con otro nombre o documento de identidad</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                    {filteredRectorPreRegs.map((student: any) => (
+                      <div 
+                        key={student.nationalId}
+                        className="p-4 border border-slate-150 rounded-2xl bg-slate-50/20 hover:bg-white hover:border-indigo-400 hover:shadow-md transition-all duration-300 flex flex-col justify-between gap-4"
+                      >
+                        <div className="flex justify-between items-start gap-2">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-1.5">
+                              <span className="w-2 h-2 rounded-full bg-indigo-600 shrink-0 animate-ping" />
+                              <span className="w-2 h-2 rounded-full bg-indigo-600 shrink-0 -ml-3.5" />
+                              <h4 className="font-extrabold text-slate-900 text-sm leading-snug truncate max-w-[150px]" title={student.fullName}>
+                                {student.fullName}
+                              </h4>
+                            </div>
+                            <span className="text-[10px] text-slate-450 font-bold block">Documento: {student.nationalId}</span>
+                            <span className="text-[10px] text-slate-450 font-bold block truncate max-w-[180px]" title={student.email}>
+                              {student.email}
+                            </span>
+                          </div>
+                          
+                          <span className={cn(
+                            "text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded border shadow-3xs shrink-0",
+                            student.gradeLevel === 'Media Técnica' && "bg-amber-50 text-amber-700 border-amber-250",
+                            student.gradeLevel === 'Bachillerato' && "bg-purple-50 text-purple-700 border-purple-250",
+                            student.gradeLevel === 'Primaria' && "bg-blue-50 text-blue-700 border-blue-250",
+                            student.gradeLevel === 'Preescolar' && "bg-pink-50 text-pink-700 border-pink-250",
+                            student.gradeLevel === 'Otras' && "bg-slate-50 text-slate-700 border-slate-200"
+                          )}>
+                            {student.gradeLevel || 'Bachillerato'}
+                          </span>
+                        </div>
+
+                        {/* Semáforo/Checklist de Documentos de Admisión */}
+                        <div className="bg-white border border-slate-100 p-2.5 rounded-xl space-y-1.5">
+                          <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Requisitos de Ingreso</span>
+                          <div className="flex flex-wrap gap-2 text-[9px] font-bold text-slate-600">
+                            <div className="flex items-center gap-0.5 bg-slate-50 border border-slate-150 px-1.5 py-0.5 rounded">
+                              <CheckCircle className="w-3 h-3 text-emerald-500" /> Reg. Civil
+                            </div>
+                            <div className="flex items-center gap-0.5 bg-slate-50 border border-slate-150 px-1.5 py-0.5 rounded">
+                              <CheckCircle className="w-3 h-3 text-emerald-500" /> ID Card
+                            </div>
+                            <div className="flex items-center gap-0.5 bg-slate-50 border border-slate-150 px-1.5 py-0.5 rounded">
+                              <CheckCircle className="w-3 h-3 text-emerald-500" /> Ficha EPS
+                            </div>
+                            <div className="flex items-center gap-0.5 bg-slate-50 border border-slate-150 px-1.5 py-0.5 rounded">
+                              <Clock className="w-3 h-3 text-amber-500 animate-pulse" /> Boletín
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col gap-2 pt-3 border-t border-slate-100">
+                          <div className="flex justify-between items-center text-[10px] font-bold">
+                            <span className="text-slate-400 font-semibold">Pre-registro:</span>
+                            <span className="text-slate-700">{student.registrationDate}</span>
+                          </div>
+                          
+                          <div className="flex items-center justify-between gap-2 mt-1">
+                            <span className="text-[9.5px] font-black text-amber-700 bg-amber-50 border border-amber-250 px-2 py-1 rounded-md uppercase tracking-wider animate-pulse flex items-center gap-1 shrink-0">
+                              <Clock className="w-3 h-3 text-amber-500 shrink-0" />
+                              Por Secretaría
+                            </span>
+                            <span className="text-[10px] font-black text-indigo-700 bg-indigo-50 border border-indigo-150 px-2.5 py-1 rounded-lg flex items-center gap-1 shrink-0 select-none">
+                              Cupo Solicitado
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
             {/* GRID PRINCIPAL DE RECTORÍA (2 Columnas: Analítica y Operativa) */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

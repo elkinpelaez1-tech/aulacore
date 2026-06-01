@@ -36,6 +36,7 @@ export default function JoinOnboardingPage() {
   const [fullName, setFullName] = useState('');
   const [nationalId, setNationalId] = useState('');
   const [email, setEmail] = useState('');
+  const [gradeLevel, setGradeLevel] = useState('Bachillerato');
   const [formSubmitted, setFormSubmitted] = useState(false);
 
   // Animation states
@@ -106,12 +107,28 @@ export default function JoinOnboardingPage() {
     
     // Save onboarding details for personalization in the student dashboard
     if (selectedRole === 'estudiante') {
-      localStorage.setItem('aulacore-onboarding-student', JSON.stringify({
+      const newPreReg = {
         fullName,
         nationalId,
         email,
-        registrationDate: new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })
-      }));
+        gradeLevel,
+        registrationDate: new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }),
+        status: 'Pre-matriculado'
+      };
+
+      localStorage.setItem('aulacore-onboarding-student', JSON.stringify(newPreReg));
+
+      // Append to the list of pre-registrations in localStorage for multi-student demo support
+      const existingPreRegsStr = localStorage.getItem('aulacore-pre-registrations');
+      let preRegsList = [];
+      if (existingPreRegsStr) {
+        try {
+          preRegsList = JSON.parse(existingPreRegsStr);
+        } catch (e) {}
+      }
+      preRegsList = preRegsList.filter((p: any) => p.nationalId !== nationalId);
+      preRegsList.unshift(newPreReg);
+      localStorage.setItem('aulacore-pre-registrations', JSON.stringify(preRegsList));
     }
     
     // Redirect to main Dashboard
@@ -225,6 +242,23 @@ export default function JoinOnboardingPage() {
                 </div>
               </div>
 
+              {selectedRole === 'estudiante' && (
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Nivel Académico de Ingreso</label>
+                  <select
+                    value={gradeLevel}
+                    onChange={(e) => setGradeLevel(e.target.value)}
+                    className="w-full px-3 py-2.5 bg-slate-850 border border-slate-800 focus:border-indigo-500 rounded-xl text-xs font-semibold text-slate-200 focus:outline-none cursor-pointer"
+                  >
+                    <option value="Preescolar">Preescolar</option>
+                    <option value="Primaria">Primaria</option>
+                    <option value="Bachillerato">Bachillerato (Sexto a Noveno)</option>
+                    <option value="Media Técnica">Media Técnica (Décimo y Undécimo)</option>
+                    <option value="Otras">Otras</option>
+                  </select>
+                </div>
+              )}
+
               <div className="space-y-1">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Documento de Identidad</label>
                 <div className="relative">
@@ -314,6 +348,12 @@ export default function JoinOnboardingPage() {
                 <span className="text-slate-450 font-bold">Identificación:</span>
                 <span className="text-slate-200 font-black">{nationalId}</span>
               </div>
+              {selectedRole === 'estudiante' && (
+                <div className="flex justify-between border-b border-slate-800 pb-1.5 text-xs">
+                  <span className="text-slate-450 font-bold">Nivel de Ingreso:</span>
+                  <span className="text-indigo-400 font-black">{gradeLevel}</span>
+                </div>
+              )}
               <div className="flex justify-between text-xs">
                 <span className="text-slate-450 font-bold">Rol Asignado:</span>
                 <span className="text-indigo-400 font-black">

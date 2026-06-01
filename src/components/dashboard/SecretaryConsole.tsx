@@ -20,7 +20,8 @@ import {
   RefreshCw,
   Eye,
   Check,
-  AlertCircle
+  AlertCircle,
+  Sparkles
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -87,6 +88,95 @@ export function SecretaryConsole({
   
   // 1. Buscador Global Administrativo
   const [globalSearch, setGlobalSearch] = useState('');
+
+  // Base de datos local e integrada de pre-registros (Aspirantes)
+  const DEFAULT_PRE_REGISTRATIONS = [
+    { fullName: 'Pedro Castro', nationalId: '10174125478', email: 'castrop@yahoo.es', gradeLevel: 'Bachillerato', registrationDate: '1 Jun 2026', status: 'Pre-matriculado' },
+    { fullName: 'Andrés Felipe Gómez', nationalId: '1020485963', email: 'andres.gomez@gmail.com', gradeLevel: 'Media Técnica', registrationDate: '30 May 2026', status: 'Pre-matriculado' },
+    { fullName: 'Laura Valentina Pérez', nationalId: '1018594032', email: 'laura.perez@outlook.com', gradeLevel: 'Primaria', registrationDate: '28 May 2026', status: 'Pre-matriculado' }
+  ];
+
+  const [preRegistrations, setPreRegistrations] = useState<any[]>([]);
+  const [documentoId, setDocumentoId] = useState('');
+  const [detectPreReg, setDetectPreReg] = useState(false);
+  const [preRegAlert, setPreRegAlert] = useState('');
+
+  useEffect(() => {
+    let list = [...DEFAULT_PRE_REGISTRATIONS];
+    const saved = localStorage.getItem('aulacore-pre-registrations');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        parsed.forEach((item: any) => {
+          if (!list.some(p => p.nationalId === item.nationalId)) {
+            list.unshift(item);
+          }
+        });
+      } catch (e) {}
+    }
+    setPreRegistrations(list);
+  }, []);
+
+  const handleLoadPreRegistration = (student: any) => {
+    setNewName(student.fullName);
+    setNewEmail(student.email);
+    setDocumentoId(student.nationalId);
+    
+    let targetGrade = '10-A';
+    if (student.gradeLevel === 'Bachillerato') targetGrade = '9-C';
+    if (student.gradeLevel === 'Media Técnica') targetGrade = '10-A';
+    if (student.gradeLevel === 'Preescolar' || student.gradeLevel === 'Primaria') targetGrade = '9-C';
+    setNewGrade(targetGrade);
+    
+    setDetectPreReg(true);
+    setPreRegAlert(`✨ Pre-registro detectado para ${student.fullName}. ¡Datos cargados en el formulario!`);
+    setTimeout(() => setPreRegAlert(''), 4000);
+  };
+
+  const handleDocumentoChange = (val: string) => {
+    setDocumentoId(val);
+    const matched = preRegistrations.find(p => p.nationalId === val || p.fullName.toLowerCase() === val.toLowerCase());
+    if (matched) {
+      setNewName(matched.fullName);
+      setNewEmail(matched.email);
+      let targetGrade = '10-A';
+      if (matched.gradeLevel === 'Bachillerato') targetGrade = '9-C';
+      if (matched.gradeLevel === 'Media Técnica') targetGrade = '10-A';
+      if (matched.gradeLevel === 'Preescolar' || matched.gradeLevel === 'Primaria') targetGrade = '9-C';
+      setNewGrade(targetGrade);
+      setDetectPreReg(true);
+      setPreRegAlert(`✨ Pre-registro detectado para ${matched.fullName}. ¡Autocompletado listo!`);
+      setTimeout(() => setPreRegAlert(''), 4000);
+    } else {
+      setDetectPreReg(false);
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Remove matching student from the pending pre-registrations queue
+    const matched = preRegistrations.find(p => p.nationalId === documentoId || p.fullName.toLowerCase() === newName.toLowerCase());
+    if (matched) {
+      const updated = preRegistrations.filter(p => p.nationalId !== matched.nationalId);
+      setPreRegistrations(updated);
+      localStorage.setItem('aulacore-pre-registrations', JSON.stringify(updated));
+      
+      const activeSession = localStorage.getItem('aulacore-onboarding-student');
+      if (activeSession) {
+        try {
+          const parsed = JSON.parse(activeSession);
+          if (parsed.nationalId === matched.nationalId) {
+            localStorage.removeItem('aulacore-onboarding-student');
+          }
+        } catch (err) {}
+      }
+    }
+
+    setDocumentoId('');
+    setDetectPreReg(false);
+    handleEnroll(e);
+  };
 
   // 2. Estado de Trámites CRM de Trabajo
   const [crmFilter, setCrmFilter] = useState<'Todos' | 'Pendiente' | 'En proceso' | 'Completado'>('Todos');
@@ -492,6 +582,67 @@ export function SecretaryConsole({
         {/* COLUMNA DERECHA (MATRÍCULA RÁPIDA, GESTIÓN DOCUMENTAL, PERSONAL Y AGENDA) */}
         <div className="space-y-6">
           
+          {/* COLA DE APROBACIÓN DE PRE-MATRÍCULAS */}
+          <Card className="border-slate-200 shadow-sm bg-gradient-to-br from-white to-slate-50/20 rounded-2xl p-5 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-black text-slate-800 text-sm sm:text-base flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-indigo-650 animate-pulse" />
+                Cola de Aprobación de Pre-Matrículas
+              </h3>
+              <span className="text-[10px] font-black text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-full uppercase">
+                {preRegistrations.length} Pendientes
+              </span>
+            </div>
+            
+            <p className="text-[11px] text-slate-400 font-bold leading-normal">
+              Aspirantes que completaron su pre-registro digital vía Enlace Mágico. Haz clic en "Cargar" para oficializar su matrícula.
+            </p>
+
+            <div className="space-y-2.5 max-h-60 overflow-y-auto pr-1">
+              {preRegistrations.length === 0 ? (
+                <div className="text-center py-6 text-xs text-slate-400 font-semibold border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
+                  No hay pre-registros pendientes.
+                </div>
+              ) : (
+                preRegistrations.map((student) => (
+                  <div 
+                    key={student.nationalId} 
+                    className="p-3 border border-slate-150 rounded-xl bg-white hover:border-indigo-400 hover:shadow-xs transition duration-200 flex flex-col justify-between gap-2"
+                  >
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h4 className="font-extrabold text-slate-850 text-xs leading-snug">{student.fullName}</h4>
+                        <span className="text-[10px] text-slate-450 font-bold block mt-0.5">ID: {student.nationalId}</span>
+                        <span className="text-[10px] text-slate-450 font-bold block">{student.email}</span>
+                      </div>
+                      <span className={cn(
+                        "text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded border shadow-3xs shrink-0",
+                        student.gradeLevel === 'Media Técnica' && "bg-amber-50 text-amber-700 border-amber-200",
+                        student.gradeLevel === 'Bachillerato' && "bg-purple-50 text-purple-700 border-purple-200",
+                        student.gradeLevel === 'Primaria' && "bg-blue-50 text-blue-700 border-blue-200",
+                        student.gradeLevel === 'Preescolar' && "bg-pink-50 text-pink-700 border-pink-200",
+                        student.gradeLevel === 'Otras' && "bg-slate-50 text-slate-700 border-slate-200"
+                      )}>
+                        {student.gradeLevel}
+                      </span>
+                    </div>
+                    
+                    <div className="flex justify-between items-center pt-2 border-t border-slate-100 text-[10px] font-bold">
+                      <span className="text-slate-450">Registrado: {student.registrationDate}</span>
+                      <button
+                        type="button"
+                        onClick={() => handleLoadPreRegistration(student)}
+                        className="rounded-lg h-7 px-2.5 bg-indigo-50 border border-indigo-200 hover:bg-indigo-100 text-indigo-700 font-extrabold flex items-center gap-1 cursor-pointer transition text-[9.5px] outline-none"
+                      >
+                        Cargar Datos <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </Card>
+
           {/* MATRÍCULA RÁPIDA FORM (HEREDADO) */}
           <Card className="border-slate-200 shadow-sm bg-white rounded-2xl p-5 space-y-4">
             <div>
@@ -508,7 +659,32 @@ export function SecretaryConsole({
               </div>
             )}
 
-            <form onSubmit={handleEnroll} className="space-y-3.5">
+            {preRegAlert && (
+              <div className="bg-indigo-50 border border-indigo-250 text-indigo-800 text-xs font-bold p-3 rounded-lg animate-pulse mb-3">
+                {preRegAlert}
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-3.5">
+              <div className="space-y-1">
+                <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">Documento de Identidad</label>
+                <div className="relative">
+                  <Input
+                    type="text"
+                    required
+                    value={documentoId}
+                    onChange={(e) => handleDocumentoChange(e.target.value)}
+                    placeholder="Ej. 10174125478"
+                    className="rounded-xl border-slate-200 bg-white text-xs sm:text-sm font-semibold h-9.5 pr-20"
+                  />
+                  {detectPreReg && (
+                    <span className="absolute right-2.5 top-2.5 bg-emerald-100 text-emerald-800 text-[9px] font-black px-1.5 py-0.5 rounded border border-emerald-250 animate-pulse">
+                      ✨ Pre-registro
+                    </span>
+                  )}
+                </div>
+              </div>
+
               <div className="space-y-1">
                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">Nombre Completo</label>
                 <Input
