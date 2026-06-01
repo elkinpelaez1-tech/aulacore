@@ -104,6 +104,16 @@ export default function JoinOnboardingPage() {
     setUserRole(selectedRole);
     setUserName(fullName);
     
+    // Save onboarding details for personalization in the student dashboard
+    if (selectedRole === 'estudiante') {
+      localStorage.setItem('aulacore-onboarding-student', JSON.stringify({
+        fullName,
+        nationalId,
+        email,
+        registrationDate: new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })
+      }));
+    }
+    
     // Redirect to main Dashboard
     router.push('/dashboard');
   };

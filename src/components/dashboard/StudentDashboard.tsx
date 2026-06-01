@@ -15,6 +15,7 @@ import {
   Award, 
   BookOpen, 
   AlertCircle, 
+  CheckCircle,
   ChevronRight,
   Target,
   BrainCircuit,
@@ -54,11 +55,30 @@ const SUBJECT_PERFORMANCE = [
   { subject: 'Lenguaje', score: 4.2, fill: '#3b82f6' },
   { subject: 'Ciencias', score: 3.5, fill: '#f59e0b' },
   { subject: 'Física', score: 2.8, fill: '#ef4444' }, // En riesgo
-];
-
-export function StudentDashboard() {
+];export function StudentDashboard() {
   const { userName } = useRole();
   const firstName = (userName && typeof userName === 'string') ? userName.split(' ')[0] : 'Alejandro';
+
+  const [onboardingStudent, setOnboardingStudent] = React.useState<{
+    fullName: string;
+    nationalId: string;
+    email: string;
+    registrationDate: string;
+  } | null>(null);
+
+  React.useEffect(() => {
+    const stored = localStorage.getItem('aulacore-onboarding-student');
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        if (parsed && parsed.fullName === userName) {
+          setOnboardingStudent(parsed);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  }, [userName]);
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-10">
@@ -70,8 +90,11 @@ export function StudentDashboard() {
         <StudentProfileCard 
           className="h-full" 
           studentName={userName || undefined}
-          email={userName ? `${userName.toLowerCase().replace(/\s+/g, '.')}@aulacore.edu.co` : undefined}
-          studentId={userName ? `TI. 102${userName.length}4050` : undefined}
+          email={onboardingStudent?.email || (userName ? `${userName.toLowerCase().replace(/\s+/g, '.')}@aulacore.edu.co` : undefined)}
+          studentId={onboardingStudent?.nationalId || (userName ? `TI. 102${userName.length}4050` : undefined)}
+          grade={onboardingStudent ? "10° - A (Matrícula Inteligente)" : "11° - B (Media Académica)"}
+          birthDate={onboardingStudent ? `Matriculado el ${onboardingStudent.registrationDate}` : "15 de Mayo de 2008 (18 años)"}
+          parentName={onboardingStudent ? "Pendiente de Sincronización" : "María Fernanda Ruiz (Madre)"}
         />
 
         {/* GPA & Progress Card */}
@@ -82,34 +105,47 @@ export function StudentDashboard() {
           <CardContent className="p-8 flex flex-col justify-between h-full relative z-10">
             <div>
               <div className="flex items-center gap-2 mb-2">
-                <Badge className="bg-emerald-500/20 text-emerald-300 border-none hover:bg-emerald-500/30">
-                  Sobresaliente
+                <Badge className={cn(
+                  "border-none",
+                  onboardingStudent 
+                    ? "bg-blue-500/20 text-blue-300 hover:bg-blue-500/30" 
+                    : "bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30"
+                )}>
+                  {onboardingStudent ? "Nuevo Ingreso" : "Sobresaliente"}
                 </Badge>
                 <Badge className="bg-white/10 text-slate-300 border-none">
-                  Grado 11°
+                  {onboardingStudent ? "Grado 10°" : "Grado 11°"}
                 </Badge>
               </div>
               <h2 className="text-3xl font-black mb-1">¡Hola, {firstName}!</h2>
-              <p className="text-indigo-200 font-medium">Estás a un 85% de lograr tu meta del periodo.</p>
+              <p className="text-indigo-200 font-medium font-semibold">
+                {onboardingStudent 
+                  ? "Te damos la bienvenida al Colegio Anglo-Colombiano. Tu expediente está activo."
+                  : "Estás a un 85% de lograr tu meta del periodo."}
+              </p>
             </div>
             
             <div className="mt-8 flex items-end gap-10">
               <div>
                 <p className="text-sm text-indigo-300 font-bold uppercase tracking-wider mb-1">Promedio General</p>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-5xl font-black text-white">4.5</span>
+                  <span className="text-5xl font-black text-white">
+                    {onboardingStudent ? "10.0" : "4.5"}
+                  </span>
                   <span className="text-emerald-400 font-bold flex items-center text-sm">
-                    <TrendingUp className="w-4 h-4 mr-1" /> +0.3
+                    <TrendingUp className="w-4 h-4 mr-1" /> {onboardingStudent ? "Nuevo" : "+0.3"}
                   </span>
                 </div>
               </div>
               
               <div className="flex-1 max-w-xs">
                 <div className="flex justify-between text-xs font-bold text-indigo-200 mb-2">
-                  <span>Progreso de Meta (4.8)</span>
-                  <span>85%</span>
+                  <span>
+                    {onboardingStudent ? "Progreso de Matrícula" : "Progreso de Meta (4.8)"}
+                  </span>
+                  <span>100%</span>
                 </div>
-                <Progress value={85} className="h-2.5 bg-indigo-950/50" />
+                <Progress value={100} className="h-2.5 bg-indigo-950/50" />
               </div>
             </div>
           </CardContent>
@@ -158,7 +194,7 @@ export function StudentDashboard() {
         <Card className="border-slate-200 shadow-sm">
           <CardHeader>
             <CardTitle className="text-base font-bold text-slate-800">Desempeño por Materia</CardTitle>
-            <p className="text-sm text-slate-500 font-medium">Periodo Actual</p>
+            <p className="text-sm text-slate-550 font-medium">Periodo Actual</p>
           </CardHeader>
           <CardContent>
              <div className="h-[200px] w-full">
@@ -178,19 +214,32 @@ export function StudentDashboard() {
                 </BarChart>
               </ResponsiveContainer>
             </div>
-            {/* Risk Alert */}
-            <div className="mt-4 bg-rose-50 border border-rose-100 rounded-lg p-3 flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-rose-500 shrink-0 mt-0.5" />
-              <div>
-                <h4 className="text-sm font-bold text-rose-800 mb-1">Riesgo en Física</h4>
-                <p className="text-xs text-rose-600 font-medium leading-tight">
-                  Tu promedio actual es 2.8. El Tutor IA sugiere repasar "Cinemática" antes de la evaluación final.
-                </p>
-                <Button variant="link" className="p-0 h-auto text-xs font-bold text-rose-700 mt-2">
-                  Ver Plan de Recuperación <ChevronRight className="w-3 h-3 ml-1" />
-                </Button>
+            
+            {/* Conditional Alert Card */}
+            {onboardingStudent ? (
+              <div className="mt-4 bg-emerald-50 border border-emerald-100 rounded-lg p-3 flex items-start gap-3">
+                <CheckCircle className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="text-sm font-bold text-emerald-800 mb-1">¡Expediente Validado!</h4>
+                  <p className="text-xs text-emerald-600 font-medium leading-tight">
+                    Tu proceso de matrícula digital se encuentra al 100% y tu credencial RFID ha sido vinculada con éxito.
+                  </p>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="mt-4 bg-rose-50 border border-rose-100 rounded-lg p-3 flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-rose-500 shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="text-sm font-bold text-rose-800 mb-1">Riesgo en Física</h4>
+                  <p className="text-xs text-rose-600 font-medium leading-tight">
+                    Tu promedio actual es 2.8. El Tutor IA sugiere repasar "Cinemática" antes de la evaluación final.
+                  </p>
+                  <Button variant="link" className="p-0 h-auto text-xs font-bold text-rose-700 mt-2">
+                    Ver Plan de Recuperación <ChevronRight className="w-3 h-3 ml-1" />
+                  </Button>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -200,13 +249,12 @@ export function StudentDashboard() {
         
         {/* Timeline */}
         <div className="col-span-1 lg:col-span-1">
-          <StudentTimeline />
+          <StudentTimeline isNewOnboarding={!!onboardingStudent} />
         </div>
 
         {/* Próximas Entregas (Mini Curriculum View) */}
         <StudentScheduleWidget />
       </div>
-
     </div>
   );
 }

@@ -74,7 +74,40 @@ const MOCK_EVENTS: TimelineEvent[] = [
   }
 ];
 
-export function StudentTimeline() {
+export interface StudentTimelineProps {
+  isNewOnboarding?: boolean;
+}
+
+const ONBOARDING_EVENTS: TimelineEvent[] = [
+  {
+    id: 'onb-1',
+    date: 'Hoy, Reciente',
+    type: 'commitment',
+    title: 'Matrícula Digital Completada',
+    description: 'Sincronización segura de expediente escolar, firma de compromisos y asignación de cursos.',
+    author: 'Sistema AulaCore'
+  },
+  {
+    id: 'onb-2',
+    date: 'Hoy',
+    type: 'recognition',
+    title: 'Calibración RFID',
+    description: 'Portería biométrica vinculada al código RFID del wearable del estudiante con 100% de éxito.',
+    author: 'Portería Inteligente'
+  },
+  {
+    id: 'onb-3',
+    date: 'Hoy',
+    type: 'observation',
+    title: 'Creación de Expediente',
+    description: 'Bóveda cifrada y firma digital del acudiente integradas para resguardo legal.',
+    author: 'AulaCore Vault'
+  }
+];
+
+export function StudentTimeline({ isNewOnboarding }: StudentTimelineProps) {
+  const events = isNewOnboarding ? ONBOARDING_EVENTS : MOCK_EVENTS;
+
   return (
     <Card className="border-slate-200 shadow-sm col-span-1 md:col-span-2 lg:col-span-1 flex flex-col h-full">
       <CardHeader className="border-b border-slate-100 bg-slate-50/50 pb-4">
@@ -89,8 +122,8 @@ export function StudentTimeline() {
       <CardContent className="p-0 flex-1 overflow-hidden">
         <ScrollArea className="h-[400px] w-full p-6">
           <div className="relative border-l-2 border-slate-200 ml-3 space-y-8 pb-4">
-            {MOCK_EVENTS.map((event) => {
-              const styles = EVENT_STYLES[event.type];
+            {events.map((event) => {
+              const styles = EVENT_STYLES[event.type] || EVENT_STYLES.observation;
               const Icon = styles.icon;
 
               return (

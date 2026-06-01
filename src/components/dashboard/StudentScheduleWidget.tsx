@@ -37,7 +37,10 @@ export function StudentScheduleWidget() {
 
   useEffect(() => {
     async function loadData() {
-      if (!user) return;
+      if (!user) {
+        setLoading(false);
+        return;
+      }
       try {
         const mockCourseId = 'cccccccc-10aa-1111-2222-333333333333';
         const mockPeriodId = '33333333-3333-3333-2222-333333333333';
