@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { MOCK_STUDENTS, StudentMockData } from '@/lib/data/mock-students';
 import { StudentMetricsPanel } from './StudentMetricsPanel';
 import { StudentCard } from './StudentCard';
@@ -12,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 export function StudentIntelligenceGrid() {
+  const router = useRouter();
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
   const [searchTerm, setSearchTerm] = useState('');
   
@@ -23,6 +25,27 @@ export function StudentIntelligenceGrid() {
 
   const [selectedStudent, setSelectedStudent] = useState<StudentMockData | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
+  // Toast / Notificaciones
+  const [toastMsg, setToastMsg] = useState('');
+
+  const handleShareLink = () => {
+    const magicLink = typeof window !== 'undefined' ? `${window.location.origin}/join/pre-registro-2026` : 'https://aulacore.edu.co/join/pre-registro-2026';
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(magicLink).then(() => {
+        setToastMsg('🔗 ¡Enlace Mágico de Pre-registro copiado! Compártelo con los acudientes.');
+        setTimeout(() => setToastMsg(''), 4000);
+      }).catch(() => {
+        alert(`Copiar enlace: ${magicLink}`);
+      });
+    } else {
+      alert(`Copiar enlace: ${magicLink}`);
+    }
+  };
+
+  const handleNewEnrollment = () => {
+    router.push('/configuracion/matricula');
+  };
 
   // Derived filter options
   const campuses = Array.from(new Set(MOCK_STUDENTS.map(s => s.campus)));
@@ -87,11 +110,18 @@ export function StudentIntelligenceGrid() {
           </div>
           
           <div className="flex flex-wrap items-center gap-2">
-            <Button variant="outline" className="text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-indigo-600 transition-colors">
+            <Button 
+              onClick={handleShareLink}
+              variant="outline" 
+              className="text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-indigo-600 transition-colors cursor-pointer"
+            >
               <LinkIcon className="w-4 h-4 mr-2" />
               Compartir Link
             </Button>
-            <Button className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm hover:shadow-md transition-all">
+            <Button 
+              onClick={handleNewEnrollment}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm hover:shadow-md transition-all cursor-pointer"
+            >
               <Plus className="w-4 h-4 mr-2" />
               Nueva Matrícula
             </Button>
@@ -248,6 +278,14 @@ export function StudentIntelligenceGrid() {
         isOpen={isDrawerOpen} 
         onOpenChange={setIsDrawerOpen} 
       />
+
+      {/* Premium Toast Notification */}
+      {toastMsg && (
+        <div className="fixed bottom-6 right-6 bg-slate-900 border border-slate-800 text-white text-xs font-semibold px-4 py-3.5 rounded-xl shadow-xl z-[9999] flex items-center gap-2.5 animate-in fade-in slide-in-from-bottom-5 duration-300">
+          <div className="w-4.5 h-4.5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">✓</div>
+          <span>{toastMsg}</span>
+        </div>
+      )}
 
     </div>
   );
