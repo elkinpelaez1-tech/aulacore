@@ -378,6 +378,23 @@ export default function JoinOnboardingPage() {
         )}
 
       </div>
+
+      {/* Email Dispatch Simulation Toast */}
+      {formSubmitted && onboardingComplete && (
+        <div className="fixed bottom-4 left-4 bg-slate-900/95 border border-slate-850 text-white rounded-2xl shadow-2xl p-4 max-w-sm z-50 animate-in slide-in-from-left-5 fade-in duration-500">
+          <div className="flex items-center gap-2 mb-2 pb-1.5 border-b border-slate-800/80">
+            <Mail className="w-4 h-4 text-emerald-400" />
+            <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Simulador de Correo AulaCore</span>
+          </div>
+          <div className="space-y-1 text-xs select-none">
+            <p className="text-slate-400 font-bold"><span className="text-indigo-400">Para:</span> {email}</p>
+            <p className="text-slate-400 font-bold"><span className="text-indigo-400">Asunto:</span> ✨ Pre-registro Confirmado - Colegio Anglo-Colombiano</p>
+            <div className="mt-2 p-2 bg-slate-950 border border-slate-850 rounded-xl text-[10px] text-slate-300 font-medium leading-relaxed">
+              ¡Hola <strong>{fullName}</strong>! Tu pre-registro para <strong>{gradeLevel}</strong> ha sido recibido con éxito en nuestro sistema y está listo para ser oficializado por Secretaría. ¡Bienvenido(a)!
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

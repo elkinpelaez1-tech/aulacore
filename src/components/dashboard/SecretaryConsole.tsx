@@ -21,7 +21,8 @@ import {
   Eye,
   Check,
   AlertCircle,
-  Sparkles
+  Sparkles,
+  Mail
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -101,6 +102,9 @@ export function SecretaryConsole({
   const [detectPreReg, setDetectPreReg] = useState(false);
   const [preRegAlert, setPreRegAlert] = useState('');
 
+  // Simulador de Correo Electrónico
+  const [simulatedEmail, setSimulatedEmail] = useState<{ to: string, subject: string, studentName: string, grade: string } | null>(null);
+
   useEffect(() => {
     let list = [...DEFAULT_PRE_REGISTRATIONS];
     const saved = localStorage.getItem('aulacore-pre-registrations');
@@ -155,6 +159,16 @@ export function SecretaryConsole({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Disparar simulador de correo saliente
+    setSimulatedEmail({
+      to: newEmail || 'estudiante@aulacore.edu.co',
+      subject: '🎉 ¡Matrícula Oficial Confirmada! - Colegio Anglo-Colombiano',
+      studentName: newName,
+      grade: newGrade
+    });
+    // Auto-dismiss del toast tras 8 segundos
+    setTimeout(() => setSimulatedEmail(null), 8000);
+
     // Remove matching student from the pending pre-registrations queue
     const matched = preRegistrations.find(p => p.nationalId === documentoId || p.fullName.toLowerCase() === newName.toLowerCase());
     if (matched) {
@@ -865,6 +879,33 @@ export function SecretaryConsole({
         </div>
 
       </div>
+
+      {/* Simulador de Correo Saliente en Asiento de Matrícula */}
+      {simulatedEmail && (
+        <div className="fixed bottom-6 right-6 bg-slate-900 border border-slate-800 text-white rounded-2xl shadow-2xl p-5 max-w-sm z-[99999] flex flex-col gap-3 animate-in slide-in-from-bottom-10 fade-in duration-500">
+          <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+            <div className="flex items-center gap-2">
+              <Mail className="w-4 h-4 text-emerald-400" />
+              <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Simulador de Correo AulaCore</span>
+            </div>
+            <button 
+              onClick={() => setSimulatedEmail(null)}
+              className="text-slate-500 hover:text-white text-xs font-bold transition cursor-pointer border-none bg-transparent"
+            >
+              ✕
+            </button>
+          </div>
+          <div className="space-y-1 text-xs select-none">
+            <p className="text-slate-400 font-bold"><span className="text-indigo-400">Para:</span> {simulatedEmail.to}</p>
+            <p className="text-slate-400 font-bold"><span className="text-indigo-400">Asunto:</span> {simulatedEmail.subject}</p>
+            <div className="mt-2 p-3 bg-slate-950 border border-slate-850 rounded-xl text-[10px] text-slate-300 font-medium leading-relaxed">
+              <p className="mb-2">¡Hola <strong>{simulatedEmail.studentName}</strong>!</p>
+              <p className="mb-2">Nos complace informarte que tu matrícula en el grado <strong>{simulatedEmail.grade}</strong> ha sido **oficialmente asentada** por la Secretaría del Colegio.</p>
+              <p>Tu expediente digital y portería RFID ya se encuentran completamente activos. ¡Te deseamos un excelente ciclo escolar!</p>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
