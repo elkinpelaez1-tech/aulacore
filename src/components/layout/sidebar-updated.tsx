@@ -7,12 +7,14 @@ import { ChevronRight, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { NAVIGATION_MENUS, UserRole } from '@/lib/navigation';
+import { useAuth } from '@/providers/auth-provider';
 
 interface SidebarProps {
   userRole: UserRole;
 }
 
 export function Sidebar({ userRole }: SidebarProps) {
+  const { signOut } = useAuth();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const menuItems = NAVIGATION_MENUS[userRole];
@@ -117,8 +119,9 @@ export function Sidebar({ userRole }: SidebarProps) {
       {/* Footer */}
       <div className="px-4 py-4 border-t border-slate-800 bg-slate-950/10">
         <Button
+          onClick={signOut}
           variant="ghost"
-          className="w-full justify-start gap-3 px-4 py-2.5 h-10 text-slate-350 hover:bg-slate-800/40 hover:text-slate-100 rounded-lg font-semibold transition"
+          className="w-full justify-start gap-3 px-4 py-2.5 h-10 text-slate-350 hover:bg-slate-800/40 hover:text-slate-100 rounded-lg font-semibold transition cursor-pointer"
         >
           <LogOut className="w-5 h-5 text-slate-400" />
           <span className="text-sm font-semibold">Cerrar Sesión</span>

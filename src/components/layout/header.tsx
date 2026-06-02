@@ -11,8 +11,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useAuth } from '@/providers/auth-provider';
 
 export function Header() {
+  const { signOut } = useAuth();
   return (
     <header className="bg-white border-b border-slate-200 sticky top-0 z-40">
       <div className="flex items-center justify-between px-6 py-4">
@@ -58,7 +60,7 @@ export function Header() {
               <DropdownMenuItem>Perfil</DropdownMenuItem>
               <DropdownMenuItem>Configuración</DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-red-600">
+              <DropdownMenuItem className="text-red-600 cursor-pointer font-medium" onClick={signOut}>
                 Cerrar Sesión
               </DropdownMenuItem>
             </DropdownMenuContent>
