@@ -577,6 +577,88 @@ export function SecretaryConsole({
             </CardContent>
           </Card>
 
+          {/* Grid de 2 columnas para Personal y Agenda */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+            {/* CONTROL DE PERSONAL DOCENTE (SOLO ASISTENCIA ADMINISTRATIVA) */}
+            <Card className="border-slate-200 shadow-sm bg-white rounded-2xl select-none">
+              <CardHeader className="p-4 border-b border-slate-100 bg-slate-50/50">
+                <CardTitle className="text-sm font-black text-slate-800 flex items-center gap-2">
+                  <UserCheck className="w-4.5 h-4.5 text-orange-600" />
+                  Control de Asistencia de Personal
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4 space-y-4">
+                
+                {/* Resumen numérico */}
+                <div className="grid grid-cols-4 gap-2 bg-slate-50/50 border border-slate-150 rounded-xl p-2.5 text-center">
+                  <div>
+                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block">Presente</span>
+                    <strong className="text-sm font-black text-emerald-600 mt-0.5 block">{staffAttendance.present}</strong>
+                  </div>
+                  <div className="border-l border-slate-150">
+                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block">Ausente</span>
+                    <strong className="text-sm font-black text-rose-600 mt-0.5 block">{staffAttendance.absent}</strong>
+                  </div>
+                  <div className="border-l border-slate-150">
+                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block">Permiso</span>
+                    <strong className="text-sm font-black text-purple-600 mt-0.5 block">{staffAttendance.excused}</strong>
+                  </div>
+                  <div className="border-l border-slate-150">
+                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block">Incap.</span>
+                    <strong className="text-sm font-black text-blue-600 mt-0.5 block">{staffAttendance.medical}</strong>
+                  </div>
+                </div>
+
+                {/* Lista Personal */}
+                <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                  {staffLogs.map((log) => (
+                    <div key={log.id} className="p-2 border border-slate-100 rounded-xl bg-slate-50/30 flex items-center justify-between text-xs hover:border-slate-200 transition-colors">
+                      <div>
+                        <h5 className="font-extrabold text-slate-700 leading-tight">{log.name}</h5>
+                        <span className="text-[9.5px] text-slate-450 font-bold block mt-0.5">{log.role}</span>
+                      </div>
+                      <div className="text-right">
+                        <span className={cn(
+                          "text-[8.5px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded border inline-block shadow-3xs",
+                          log.status === 'Presente' && "bg-emerald-50 text-emerald-700 border-emerald-250",
+                          log.status === 'Incapacidad' && "bg-blue-50 text-blue-700 border-blue-250"
+                        )}>
+                          {log.status}
+                        </span>
+                        {log.time && <span className="text-[9.5px] text-slate-450 font-bold block mt-0.5">{log.time}</span>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+              </CardContent>
+            </Card>
+
+            {/* AGENDA INSTITUCIONAL SIMPLE */}
+            <Card className="border-slate-200 shadow-sm bg-white rounded-2xl select-none">
+              <CardHeader className="p-4 border-b border-slate-100 bg-slate-50/50">
+                <CardTitle className="text-sm font-black text-slate-800 flex items-center gap-2">
+                  <Calendar className="w-4.5 h-4.5 text-orange-600" />
+                  Agenda Institucional
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4 space-y-3">
+                <div className="space-y-2.5">
+                  {calendarEvents.map((ev) => (
+                    <div key={ev.id} className="p-2.5 border border-slate-150 rounded-xl bg-slate-50/60 flex items-start gap-2.5">
+                      <Clock className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" />
+                      <div className="overflow-hidden">
+                        <span className="text-[8.5px] font-black text-indigo-650 uppercase tracking-wider block">{ev.date}</span>
+                        <h5 className="font-bold text-slate-850 text-xs mt-0.5 leading-snug">{ev.title}</h5>
+                        <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mt-1">{ev.type}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
         </div>
 
         {/* COLUMNA DERECHA (MATRÍCULA RÁPIDA, GESTIÓN DOCUMENTAL, PERSONAL Y AGENDA) */}
@@ -777,85 +859,6 @@ export function SecretaryConsole({
                 💡 Haz clic sobre el estado de cualquier documento en la lista para rotar su estado de validación.
               </p>
 
-            </CardContent>
-          </Card>
-
-          {/* CONTROL DE PERSONAL DOCENTE (SOLO ASISTENCIA ADMINISTRATIVA) */}
-          <Card className="border-slate-200 shadow-sm bg-white rounded-2xl select-none">
-            <CardHeader className="p-4 border-b border-slate-100 bg-slate-50/50">
-              <CardTitle className="text-sm font-black text-slate-800 flex items-center gap-2">
-                <UserCheck className="w-4.5 h-4.5 text-orange-600" />
-                Control de Asistencia de Personal
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-4 space-y-4">
-              
-              {/* Resumen numérico */}
-              <div className="grid grid-cols-4 gap-2 bg-slate-50/50 border border-slate-150 rounded-xl p-2.5 text-center">
-                <div>
-                  <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block">Presente</span>
-                  <strong className="text-sm font-black text-emerald-600 mt-0.5 block">{staffAttendance.present}</strong>
-                </div>
-                <div className="border-l border-slate-150">
-                  <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block">Ausente</span>
-                  <strong className="text-sm font-black text-rose-600 mt-0.5 block">{staffAttendance.absent}</strong>
-                </div>
-                <div className="border-l border-slate-150">
-                  <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block">Permiso</span>
-                  <strong className="text-sm font-black text-purple-600 mt-0.5 block">{staffAttendance.excused}</strong>
-                </div>
-                <div className="border-l border-slate-150">
-                  <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block">Incap.</span>
-                  <strong className="text-sm font-black text-blue-600 mt-0.5 block">{staffAttendance.medical}</strong>
-                </div>
-              </div>
-
-              {/* Lista Personal */}
-              <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-                {staffLogs.map((log) => (
-                  <div key={log.id} className="p-2 border border-slate-100 rounded-xl bg-slate-50/30 flex items-center justify-between text-xs hover:border-slate-200 transition-colors">
-                    <div>
-                      <h5 className="font-extrabold text-slate-700 leading-tight">{log.name}</h5>
-                      <span className="text-[9.5px] text-slate-450 font-bold block mt-0.5">{log.role}</span>
-                    </div>
-                    <div className="text-right">
-                      <span className={cn(
-                        "text-[8.5px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded border inline-block shadow-3xs",
-                        log.status === 'Presente' && "bg-emerald-50 text-emerald-700 border-emerald-250",
-                        log.status === 'Incapacidad' && "bg-blue-50 text-blue-700 border-blue-250"
-                      )}>
-                        {log.status}
-                      </span>
-                      {log.time && <span className="text-[9.5px] text-slate-450 font-bold block mt-0.5">{log.time}</span>}
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-            </CardContent>
-          </Card>
-
-          {/* AGENDA INSTITUCIONAL SIMPLE */}
-          <Card className="border-slate-200 shadow-sm bg-white rounded-2xl select-none">
-            <CardHeader className="p-4 border-b border-slate-100 bg-slate-50/50">
-              <CardTitle className="text-sm font-black text-slate-800 flex items-center gap-2">
-                <Calendar className="w-4.5 h-4.5 text-orange-600" />
-                Agenda Institucional
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-4 space-y-3">
-              <div className="space-y-2.5">
-                {calendarEvents.map((ev) => (
-                  <div key={ev.id} className="p-2.5 border border-slate-150 rounded-xl bg-slate-50/60 flex items-start gap-2.5">
-                    <Clock className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" />
-                    <div className="overflow-hidden">
-                      <span className="text-[8.5px] font-black text-indigo-650 uppercase tracking-wider block">{ev.date}</span>
-                      <h5 className="font-bold text-slate-850 text-xs mt-0.5 leading-snug">{ev.title}</h5>
-                      <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mt-1">{ev.type}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
             </CardContent>
           </Card>
 
