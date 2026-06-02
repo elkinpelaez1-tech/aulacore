@@ -241,11 +241,13 @@ export function PrintPreviewModal({ isOpen, onClose, evaluation, onSaveAndPublis
                     </div>
 
                     <div className="font-mono text-right shrink-0 flex flex-col items-end">
-                      {/* Premium Vector Mock QR Code */}
-                      <div className="w-16 h-16 border border-slate-350 p-1 rounded-lg bg-white flex items-center justify-center">
-                        <svg width="48" height="48" viewBox="0 0 29 29" shapeRendering="crispEdges" className="text-black fill-current">
-                          <path d="M0 0h7v7H0zM22 0h7v7h-7zM0 22h7v7H0zM2 2h3v3H2zM24 2h3v3h-3zM2 24h3v3H2zM9 0h1v1H9zM12 0h2v1h-2zM15 0h2v1h-2zM18 0h3v1h-3zM9 2h1v1H9zM13 2h2v1h-2zM17 2h1v1h-1zM20 2h1v1H20zM9 4h2v1H9zM12 4h1v1h-1zM15 4h1v1h-1zM18 4h3v1h-3zM9 6h1v1H9zM11 6h1v1h-1zM13 6h4v1h-4zM18 6h1v1h-1zM20 6h1v1H20zM0 9h1v2H0zM2 9h4v1H2zM9 9h2v1H9zM13 9h3v1h-3zM18 9h1v1h-1zM20 9h2v1h-2zM23 9h2v1h-2zM26 9h3v1h-3z" />
-                        </svg>
+                      {/* Premium Dynamic QR Code */}
+                      <div className="w-16 h-16 border border-slate-350 p-1 rounded-lg bg-white flex items-center justify-center overflow-hidden">
+                        <img 
+                          src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(qrValidationUrl)}`}
+                          alt="Verificación QR" 
+                          className="w-full h-full object-contain"
+                        />
                       </div>
                       <span className="text-[8px] font-bold text-slate-400 mt-1 uppercase tracking-wider">{examCode}</span>
                     </div>
@@ -382,10 +384,12 @@ export function PrintPreviewModal({ isOpen, onClose, evaluation, onSaveAndPublis
                       </div>
 
                       <div className="text-right flex flex-col items-end shrink-0 justify-center">
-                        <div className="w-14 h-14 border border-slate-350 p-1 bg-white rounded-lg flex items-center justify-center">
-                          <svg width="44" height="44" viewBox="0 0 29 29" shapeRendering="crispEdges" className="text-black fill-current">
-                            <path d="M0 0h7v7H0zM22 0h7v7h-7zM0 22h7v7H0zM2 2h3v3H2zM24 2h3v3h-3zM2 24h3v3H2zM9 0h1v1H9zM12 0h2v1h-2zM15 0h2v1h-2zM18 0h3v1h-3zM9 2h1v1H9zM13 2h2v1h-2z" />
-                          </svg>
+                        <div className="w-14 h-14 border border-slate-350 p-1 bg-white rounded-lg flex items-center justify-center overflow-hidden">
+                          <img 
+                            src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(qrValidationUrl)}`}
+                            alt="Verificación QR" 
+                            className="w-full h-full object-contain"
+                          />
                         </div>
                         <span className="text-[7.5px] font-bold text-slate-400 mt-1 tracking-widest">{examCode}</span>
                       </div>
@@ -550,10 +554,12 @@ export function PrintPreviewModal({ isOpen, onClose, evaluation, onSaveAndPublis
               </div>
 
               <div className="font-mono text-right shrink-0 flex flex-col items-end">
-                <div className="w-12 h-12 border border-black p-0.5 bg-white flex items-center justify-center">
-                  <svg width="40" height="40" viewBox="0 0 29 29" shapeRendering="crispEdges" className="text-black fill-current">
-                    <path d="M0 0h7v7H0zM22 0h7v7h-7zM0 22h7v7H0zM2 2h3v3H2zM24 2h3v3h-3zM2 24h3v3H2zM9 0h1v1H9zM12 0h2v1h-2zM15 0h2v1h-2z" />
-                  </svg>
+                <div className="w-12 h-12 border border-black p-0.5 bg-white flex items-center justify-center overflow-hidden">
+                  <img 
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(qrValidationUrl)}`}
+                    alt="Verificación QR" 
+                    className="w-full h-full object-contain"
+                  />
                 </div>
                 <span className="text-[7.5px] font-bold text-slate-700 mt-0.5 uppercase tracking-wider">{examCode}</span>
               </div>
@@ -672,10 +678,12 @@ export function PrintPreviewModal({ isOpen, onClose, evaluation, onSaveAndPublis
                 </div>
 
                 <div className="text-right flex flex-col items-end shrink-0 justify-center">
-                  <div className="w-12 h-12 border border-black p-0.5 bg-white rounded-lg flex items-center justify-center">
-                    <svg width="36" height="36" viewBox="0 0 29 29" shapeRendering="crispEdges" className="text-black fill-current">
-                      <path d="M0 0h7v7H0zM22 0h7v7h-7zM0 22h7v7H0zM2 2h3v3H2zM24 2h3v3h-3z" />
-                    </svg>
+                  <div className="w-12 h-12 border border-black p-0.5 bg-white rounded-lg flex items-center justify-center overflow-hidden">
+                    <img 
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(qrValidationUrl)}`}
+                      alt="Verificación QR" 
+                      className="w-full h-full object-contain"
+                    />
                   </div>
                   <span className="text-[7px] font-bold text-slate-700 mt-0.5 tracking-widest">{examCode}</span>
                 </div>

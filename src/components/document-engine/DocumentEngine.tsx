@@ -596,8 +596,12 @@ export function DocumentEngine({
             <div className="border-t-2 border-slate-900 pt-6 mt-8 flex flex-col md:flex-row items-stretch justify-between gap-6 print:mt-4 print:pt-4">
               {/* QR validation block */}
               <div className="flex items-center gap-4 bg-slate-50 p-3 rounded-lg border border-slate-200 max-w-sm shrink-0 print:border-slate-300 print:bg-white">
-                <div className="w-16 h-16 bg-white border border-slate-200 rounded flex items-center justify-center p-1 shadow-sm shrink-0 print:w-14 print:h-14">
-                  <QrCode className="w-full h-full text-slate-800" />
+                <div className="w-16 h-16 bg-white border border-slate-200 rounded flex items-center justify-center p-1 shadow-sm shrink-0 print:w-14 print:h-14 overflow-hidden">
+                  <img 
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(`https://aulacore.edu.co/verify/${verificationCode}`)}`}
+                    alt="Validación QR"
+                    className="w-full h-full object-contain"
+                  />
                 </div>
                 <div className="space-y-0.5">
                   <span className="text-[9px] font-black text-slate-900 uppercase tracking-wider block">Validación Pública QR</span>

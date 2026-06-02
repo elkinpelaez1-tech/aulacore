@@ -59,25 +59,17 @@ export function MagicLinkGeneratorModal({ onClose, onGenerate }: MagicLinkGenera
   };
 
   const handleDownloadQr = () => {
-    const svg = document.getElementById('generator-qr-svg');
-    if (!svg) return;
-
-    const svgSerializer = new XMLSerializer();
-    const svgString = svgSerializer.serializeToString(svg);
-    const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
-    const DOMURL = window.URL || window.webkitURL || window;
-    const svgUrl = DOMURL.createObjectURL(svgBlob);
-
-    const image = new Image();
-    image.onload = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = 300;
-      canvas.height = 300;
-      const context = canvas.getContext('2d');
-      if (context) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 300;
+    canvas.height = 300;
+    const context = canvas.getContext('2d');
+    if (context) {
+      const img = new Image();
+      img.crossOrigin = 'anonymous'; // critical for CORS
+      img.onload = () => {
         context.fillStyle = '#ffffff';
         context.fillRect(0, 0, 300, 300);
-        context.drawImage(image, 25, 25, 250, 250);
+        context.drawImage(img, 0, 0, 300, 300);
         const pngUrl = canvas.toDataURL('image/png');
         const downloadLink = document.createElement('a');
         downloadLink.href = pngUrl;
@@ -85,10 +77,9 @@ export function MagicLinkGeneratorModal({ onClose, onGenerate }: MagicLinkGenera
         document.body.appendChild(downloadLink);
         downloadLink.click();
         document.body.removeChild(downloadLink);
-      }
-      DOMURL.revokeObjectURL(svgUrl);
-    };
-    image.src = svgUrl;
+      };
+      img.src = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(generatedLinkUrl)}`;
+    }
   };
 
   return (
@@ -199,22 +190,14 @@ export function MagicLinkGeneratorModal({ onClose, onGenerate }: MagicLinkGenera
               <h3 className="text-lg font-black text-slate-800 mb-1">¡Enlace Generado!</h3>
               <p className="text-sm text-slate-500 mb-4">El flujo de {linkType} está listo y ha sido copiado al portapapeles.</p>
 
-              {/* High fidelity SVG QR Code mockup for demo presentation */}
-              <div className="w-32 h-32 bg-white border border-slate-200 rounded-xl p-2.5 flex items-center justify-center shadow-sm mx-auto mb-6">
-                <svg id="generator-qr-svg" width="100%" height="100%" viewBox="0 0 100 100" className="text-slate-800">
-                  <rect x="0" y="0" width="20" height="20" fill="currentColor" />
-                  <rect x="5" y="5" width="10" height="10" fill="white" />
-                  <rect x="80" y="0" width="20" height="20" fill="currentColor" />
-                  <rect x="85" y="5" width="10" height="10" fill="white" />
-                  <rect x="0" y="80" width="20" height="20" fill="currentColor" />
-                  <rect x="5" y="85" width="10" height="10" fill="white" />
-                  <rect x="30" y="10" width="10" height="15" fill="currentColor" />
-                  <rect x="50" y="25" width="15" height="10" fill="currentColor" />
-                  <rect x="40" y="45" width="20" height="20" fill="currentColor" />
-                  <rect x="70" y="70" width="10" height="15" fill="currentColor" />
-                  <rect x="30" y="80" width="15" height="10" fill="currentColor" />
-                  <rect x="80" y="40" width="10" height="10" fill="currentColor" />
-                </svg>
+              {/* High fidelity real scannable QR Code for live client presentation */}
+              <div className="w-32 h-32 bg-white border border-slate-200 rounded-xl p-2 flex items-center justify-center shadow-sm mx-auto mb-6 overflow-hidden">
+                <img 
+                  id="generator-qr-img"
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(generatedLinkUrl)}`} 
+                  alt="Enlace Mágico QR" 
+                  className="w-full h-full object-contain select-none"
+                />
               </div>
 
               <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 p-3 rounded-xl mb-6">

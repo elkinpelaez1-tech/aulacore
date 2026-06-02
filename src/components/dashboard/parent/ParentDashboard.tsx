@@ -858,11 +858,17 @@ export function ParentDashboard({ userName }: ParentDashboardProps) {
                       <p className="text-xs text-slate-500 mt-1">Bitácora exacta de ingresos y egresos controlada por RFID institucional.</p>
                     </div>
                     
-                    {/* Carnet Digital RFID Mock */}
+                    {/* Carnet Digital RFID Real QR Code */}
                     <div className="bg-gradient-to-br from-indigo-650 to-indigo-850 text-white rounded-2xl p-4 border border-indigo-600 shadow-sm shrink-0 w-full sm:w-60 select-none relative overflow-hidden flex items-center gap-3">
                       <div className="absolute top-0 right-0 w-20 h-20 bg-white/5 rounded-full blur-xl -mr-5 -mt-5" />
-                      <QrCode className="w-10 h-10 text-indigo-200 shrink-0" />
-                      <div>
+                      <div className="w-12 h-12 bg-white rounded-lg p-0.5 flex items-center justify-center overflow-hidden shrink-0 shadow-[0_2px_8px_rgba(0,0,0,0.15)]">
+                        <img 
+                          src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(`https://aulacore.edu.co/verify/student-${activeChild.id}`)}`} 
+                          alt="Carnet QR" 
+                          className="w-full h-full object-contain select-none"
+                        />
+                      </div>
+                      <div className="min-w-0 flex-1">
                         <span className="text-[9px] font-black text-indigo-300 uppercase tracking-widest block">Credencial RFID Activa</span>
                         <h4 className="text-xs font-extrabold tracking-tight truncate mt-0.5">{activeChild.name}</h4>
                         <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded mt-1 inline-block">Sincronizado</span>

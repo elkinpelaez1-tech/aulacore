@@ -29,26 +29,18 @@ export function OnboardingLinksPanel({ magicLinks, onAddLink }: OnboardingLinksP
     window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
   };
 
-  const handleDownloadQr = (svgId: string, name: string) => {
-    const svg = document.getElementById(svgId);
-    if (!svg) return;
-
-    const svgSerializer = new XMLSerializer();
-    const svgString = svgSerializer.serializeToString(svg);
-    const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
-    const DOMURL = window.URL || window.webkitURL || window;
-    const svgUrl = DOMURL.createObjectURL(svgBlob);
-
-    const image = new Image();
-    image.onload = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = 300;
-      canvas.height = 300;
-      const context = canvas.getContext('2d');
-      if (context) {
+  const handleDownloadQr = (url: string, name: string) => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 300;
+    canvas.height = 300;
+    const context = canvas.getContext('2d');
+    if (context) {
+      const img = new Image();
+      img.crossOrigin = 'anonymous'; // critical for CORS
+      img.onload = () => {
         context.fillStyle = '#ffffff';
         context.fillRect(0, 0, 300, 300);
-        context.drawImage(image, 25, 25, 250, 250);
+        context.drawImage(img, 0, 0, 300, 300);
         const pngUrl = canvas.toDataURL('image/png');
         const downloadLink = document.createElement('a');
         downloadLink.href = pngUrl;
@@ -56,10 +48,9 @@ export function OnboardingLinksPanel({ magicLinks, onAddLink }: OnboardingLinksP
         document.body.appendChild(downloadLink);
         downloadLink.click();
         document.body.removeChild(downloadLink);
-      }
-      DOMURL.revokeObjectURL(svgUrl);
-    };
-    image.src = svgUrl;
+      };
+      img.src = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(url)}`;
+    }
   };
 
   return (
@@ -136,26 +127,16 @@ export function OnboardingLinksPanel({ magicLinks, onAddLink }: OnboardingLinksP
 
                 {isQrActive && (
                   <div className="mb-4 p-4 bg-slate-50 border border-slate-200 rounded-xl flex flex-col items-center justify-center animate-in zoom-in-95 duration-200">
-                    <div className="w-32 h-32 bg-white border border-slate-200 rounded-lg p-2 flex items-center justify-center shadow-sm">
-                      {/* Simple SVG QR Code mockup */}
-                      <svg id={`qr-svg-${link.id}`} width="100%" height="100%" viewBox="0 0 100 100" className="text-slate-800">
-                        <rect x="0" y="0" width="20" height="20" fill="currentColor" />
-                        <rect x="5" y="5" width="10" height="10" fill="white" />
-                        <rect x="80" y="0" width="20" height="20" fill="currentColor" />
-                        <rect x="85" y="5" width="10" height="10" fill="white" />
-                        <rect x="0" y="80" width="20" height="20" fill="currentColor" />
-                        <rect x="5" y="85" width="10" height="10" fill="white" />
-                        <rect x="30" y="10" width="10" height="15" fill="currentColor" />
-                        <rect x="50" y="25" width="15" height="10" fill="currentColor" />
-                        <rect x="40" y="45" width="20" height="20" fill="currentColor" />
-                        <rect x="70" y="70" width="10" height="15" fill="currentColor" />
-                        <rect x="30" y="80" width="15" height="10" fill="currentColor" />
-                        <rect x="80" y="40" width="10" height="10" fill="currentColor" />
-                      </svg>
+                    <div className="w-32 h-32 bg-white border border-slate-200 rounded-lg p-1.5 flex items-center justify-center shadow-sm overflow-hidden">
+                      <img 
+                        src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(link.url)}`} 
+                        alt="Enlace Mágico QR" 
+                        className="w-full h-full object-contain select-none"
+                      />
                     </div>
                     <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mt-2">Escanea el código para acceder</p>
                     <button
-                      onClick={() => handleDownloadQr(`qr-svg-${link.id}`, link.name)}
+                      onClick={() => handleDownloadQr(link.url, link.name)}
                       className="mt-2.5 text-[9px] font-black text-indigo-700 bg-white border border-indigo-200/80 px-2 py-1 rounded-lg shadow-2xs hover:shadow-xs transition duration-200 flex items-center gap-1 cursor-pointer select-none"
                     >
                       <Download className="w-3 h-3 text-indigo-500" /> Descargar PNG
