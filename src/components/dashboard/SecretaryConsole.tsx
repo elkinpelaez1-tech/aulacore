@@ -612,8 +612,8 @@ export function SecretaryConsole({
                     <div className="flex justify-between items-start">
                       <div>
                         <h4 className="font-extrabold text-slate-850 text-xs leading-snug">{student.fullName}</h4>
-                        <span className="text-[10px] text-slate-450 font-bold block mt-0.5">ID: {student.nationalId}</span>
-                        <span className="text-[10px] text-slate-450 font-bold block">{student.email}</span>
+                        <span className="text-[10px] text-slate-400 font-bold block mt-0.5">ID: {student.nationalId}</span>
+                        <span className="text-[10px] text-slate-400 font-bold block">{student.email}</span>
                       </div>
                       <span className={cn(
                         "text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded border shadow-3xs shrink-0",
@@ -628,7 +628,7 @@ export function SecretaryConsole({
                     </div>
                     
                     <div className="flex justify-between items-center pt-2 border-t border-slate-100 text-[10px] font-bold">
-                      <span className="text-slate-450">Registrado: {student.registrationDate}</span>
+                      <span className="text-slate-400">Registrado: {student.registrationDate}</span>
                       <button
                         type="button"
                         onClick={() => handleLoadPreRegistration(student)}

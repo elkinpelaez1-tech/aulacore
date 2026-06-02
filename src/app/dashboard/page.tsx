@@ -593,8 +593,8 @@ export default function DashboardPage() {
                                 {student.fullName}
                               </h4>
                             </div>
-                            <span className="text-[10px] text-slate-450 font-bold block">Documento: {student.nationalId}</span>
-                            <span className="text-[10px] text-slate-450 font-bold block truncate max-w-[180px]" title={student.email}>
+                            <span className="text-[10px] text-slate-400 font-bold block">Documento: {student.nationalId}</span>
+                            <span className="text-[10px] text-slate-400 font-bold block truncate max-w-[180px]" title={student.email}>
                               {student.email}
                             </span>
                           </div>
