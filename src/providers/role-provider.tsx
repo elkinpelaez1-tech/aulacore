@@ -63,14 +63,19 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
     : (customDemoName || localName || 'Usuario');
 
   const setUserRole = (role: UserRole) => {
-    // Nombres realistas por rol para simulación local
+    // Nombres realistas por rol para simulación local o recuperados de localStorage
     let name = 'Dr. Ramírez';
-    if (role === 'rector') name = 'Dr. Ramírez';
-    else if (role === 'director_grupo') name = 'Lic. Martínez';
-    else if (role === 'docente') name = 'Prof. Gómez';
-    else if (role === 'secretaria') name = 'Dra. Elena Toro';
-    else if (role === 'padre_familia') name = 'Carlos Ortiz';
-    else if (role === 'estudiante') name = 'Tomas Villa';
+    const savedCustomName = localStorage.getItem(`aulacore-profile-name-${role}`);
+    if (savedCustomName) {
+      name = savedCustomName;
+    } else {
+      if (role === 'rector') name = 'Dr. Ramírez';
+      else if (role === 'director_grupo') name = 'Lic. Martínez';
+      else if (role === 'docente') name = 'Prof. Gómez';
+      else if (role === 'secretaria') name = 'Dra. Elena Toro';
+      else if (role === 'padre_familia') name = 'Carlos Ortiz';
+      else if (role === 'estudiante') name = 'Tomas Villa';
+    }
 
     if (isAuthenticated) {
       setActiveRole(role);
@@ -93,6 +98,7 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem('aulacore-user-name', name);
     setCustomDemoName(name);
     localStorage.setItem('aulacore-demo-name', name);
+    localStorage.setItem(`aulacore-profile-name-${userRole}`, name);
   };
 
   // Se considera montado cuando cargó el cliente local para evitar errores de hidratación

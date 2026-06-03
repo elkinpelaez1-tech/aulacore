@@ -78,13 +78,38 @@ interface HeaderProps {
 
 export function Header({ userName, userRole }: HeaderProps) {
   const router = useRouter();
-  const { userRole: activeRole, setUserRole } = useRole();
+  const { userRole: activeRole, setUserRole, setUserName } = useRole();
   const { signOut, roles, user } = useAuth();
   
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [profileName, setProfileName] = useState(userName);
+  const [profileEmail, setProfileEmail] = useState('');
+  
   const [activePeriod, setActivePeriod] = useState('Periodo 1');
   const [isPeriodModalOpen, setIsPeriodModalOpen] = useState(false);
   const [dynamicPeriods, setDynamicPeriods] = useState<AcademicPeriodConfig[]>([]);
+
+  // Sync profile details with current simulated/real active role
+  useEffect(() => {
+    if (isProfileOpen) {
+      const savedName = localStorage.getItem(`aulacore-profile-name-${activeRole}`) || userName;
+      setProfileName(savedName);
+      
+      let defaultEmail = `${activeRole}@aulacore.com`;
+      if (activeRole === 'rector' && user?.email) {
+        defaultEmail = user.email;
+      }
+      const savedEmail = localStorage.getItem(`aulacore-profile-email-${activeRole}`) || defaultEmail;
+      setProfileEmail(savedEmail);
+    }
+  }, [isProfileOpen, activeRole, userName, user]);
+
+  const handleSaveProfile = () => {
+    localStorage.setItem(`aulacore-profile-name-${activeRole}`, profileName);
+    localStorage.setItem(`aulacore-profile-email-${activeRole}`, profileEmail);
+    setUserName(profileName);
+    setIsProfileOpen(false);
+  };
 
   // Cargar periodos dinámicos en el cliente
   useEffect(() => {
@@ -274,10 +299,10 @@ export function Header({ userName, userRole }: HeaderProps) {
                   activeRole === 'padre_familia' && "bg-gradient-to-br from-rose-500 to-rose-600 shadow-rose-500/20",
                   activeRole === 'estudiante' && "bg-gradient-to-br from-cyan-400 to-cyan-500 shadow-cyan-500/20"
                 )}>
-                  {userName.charAt(0)}
+                  {profileName.charAt(0)}
                 </div>
                 <div>
-                  <DialogTitle className="text-lg font-black text-slate-800 tracking-tight">{userName}</DialogTitle>
+                  <DialogTitle className="text-lg font-black text-slate-800 tracking-tight">{profileName}</DialogTitle>
                   <DialogDescription className="text-xs font-semibold text-indigo-600 uppercase tracking-widest mt-1">
                     {ROLE_DISPLAY_NAMES[activeRole]}
                   </DialogDescription>
@@ -285,13 +310,31 @@ export function Header({ userName, userRole }: HeaderProps) {
               </DialogHeader>
 
               <div className="py-4 space-y-4 text-xs font-semibold text-slate-600">
+                {/* Formulario de Edición */}
+                <div className="space-y-3">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Nombre Completo</label>
+                    <Input 
+                      type="text"
+                      value={profileName}
+                      onChange={(e) => setProfileName(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 font-bold text-slate-800 text-xs shadow-sm focus:bg-white focus:ring-2 focus:ring-blue-100"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Correo Electrónico</label>
+                    <Input 
+                      type="email"
+                      value={profileEmail}
+                      onChange={(e) => setProfileEmail(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 font-bold text-slate-800 text-xs shadow-sm focus:bg-white focus:ring-2 focus:ring-blue-100"
+                    />
+                  </div>
+                </div>
+
                 <div className="space-y-2">
                   <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Detalles de la Cuenta</h4>
                   <div className="bg-slate-50 border border-slate-150 rounded-xl p-3 space-y-2.5">
-                    <div className="flex justify-between items-center">
-                      <span className="text-slate-400">Correo Electrónico</span>
-                      <span className="text-slate-800 font-bold">{user?.email || `${userName.toLowerCase().replace(/\s+/g, '')}@aulacore.edu.co`}</span>
-                    </div>
                     <div className="flex justify-between items-center">
                       <span className="text-slate-400">Institución Activa</span>
                       <span className="text-slate-800 font-bold">Colegio AulaCore Central</span>
@@ -303,23 +346,17 @@ export function Header({ userName, userRole }: HeaderProps) {
                   </div>
                 </div>
 
+                {/* Rol Autorizado (IAM) */}
                 <div className="space-y-2">
-                  <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Roles Autorizados (IAM)</h4>
+                  <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Rol Autorizado (IAM)</h4>
                   <div className="flex flex-wrap gap-1.5">
-                    {roles && roles.length > 0 ? (
-                      roles.map((r) => (
-                        <span key={r} className="bg-slate-100 border border-slate-200 text-slate-700 font-bold px-2.5 py-1 rounded-lg text-[9px] uppercase tracking-wide">
-                          {ROLE_DISPLAY_NAMES[r]}
-                        </span>
-                      ))
-                    ) : (
-                      <span className="bg-slate-100 border border-slate-200 text-slate-700 font-bold px-2.5 py-1 rounded-lg text-[9px] uppercase tracking-wide">
-                        {ROLE_DISPLAY_NAMES[activeRole]}
-                      </span>
-                    )}
+                    <span className="bg-blue-50 border border-blue-100 text-blue-700 font-bold px-2.5 py-1 rounded-lg text-[9px] uppercase tracking-wide">
+                      {ROLE_DISPLAY_NAMES[activeRole]}
+                    </span>
                   </div>
                 </div>
 
+                {/* Estado de Seguridad */}
                 <div className="space-y-2">
                   <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Estado de Seguridad</h4>
                   <div className="bg-slate-50 border border-slate-150 rounded-xl p-3 space-y-2.5">
@@ -331,7 +368,9 @@ export function Header({ userName, userRole }: HeaderProps) {
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-slate-400">Acceso Horario</span>
-                      <span className="text-slate-800 font-bold">Ilimitado (Directivo)</span>
+                      <span className="text-slate-800 font-bold">
+                        {activeRole === 'rector' || activeRole === 'secretaria' || activeRole === 'coordinador' ? 'Ilimitado (Directivo)' : 'Restringido a Horario'}
+                      </span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-slate-400">Dispositivo Autorizado</span>
@@ -341,9 +380,19 @@ export function Header({ userName, userRole }: HeaderProps) {
                 </div>
               </div>
 
-              <DialogFooter className="pt-2">
-                <Button onClick={() => setIsProfileOpen(false)} className="w-full bg-slate-900 hover:bg-slate-800 text-white font-black text-xs uppercase tracking-wider py-2.5 rounded-xl cursor-pointer">
-                  Aceptar
+              <DialogFooter className="pt-2 flex gap-2">
+                <Button 
+                  onClick={() => setIsProfileOpen(false)} 
+                  variant="outline"
+                  className="flex-1 border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs uppercase tracking-wider py-2.5 rounded-xl cursor-pointer"
+                >
+                  Cancelar
+                </Button>
+                <Button 
+                  onClick={handleSaveProfile} 
+                  className="flex-1 bg-indigo-600 hover:bg-indigo-750 text-white font-black text-xs uppercase tracking-wider py-2.5 rounded-xl cursor-pointer shadow-sm"
+                >
+                  Guardar Cambios
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -394,11 +443,8 @@ export function Header({ userName, userRole }: HeaderProps) {
               <DropdownMenuItem onClick={() => setIsProfileOpen(true)} className="cursor-pointer font-medium text-slate-700">
                 Perfil
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => router.push('/configuracion')} className="cursor-pointer font-medium text-slate-700">
-                Configuración
-              </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-red-650 cursor-pointer font-medium" onClick={signOut}>
+              <DropdownMenuItem className="text-red-655 cursor-pointer font-medium" onClick={signOut}>
                 Cerrar Sesión
               </DropdownMenuItem>
             </DropdownMenuContent>
