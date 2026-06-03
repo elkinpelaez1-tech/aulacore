@@ -235,6 +235,11 @@ export const NAVIGATION_MENUS: Record<UserRole, NavItem[]> = {
       href: '/documentos',
       icon: FileText,
     },
+    {
+      label: 'Configuración',
+      href: '/configuracion',
+      icon: Settings,
+    },
   ],
 
   padre_familia: [

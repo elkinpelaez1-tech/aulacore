@@ -17,6 +17,15 @@ import { useRole } from '@/providers/role-provider';
 import { useAuth } from '@/providers/auth-provider';
 import { cn } from '@/lib/utils';
 import { PeriodConfigModal, AcademicPeriodConfig } from '@/components/dashboard/PeriodConfigModal';
+import { useRouter } from 'next/navigation';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
 
 export interface RoleScopePermissions {
   role_scope: 'global' | 'institution_supervisor' | 'course' | 'subject' | 'administrative' | 'family' | 'student';
@@ -68,9 +77,11 @@ interface HeaderProps {
 }
 
 export function Header({ userName, userRole }: HeaderProps) {
+  const router = useRouter();
   const { userRole: activeRole, setUserRole } = useRole();
-  const { signOut, roles } = useAuth();
+  const { signOut, roles, user } = useAuth();
   
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [activePeriod, setActivePeriod] = useState('Periodo 1');
   const [isPeriodModalOpen, setIsPeriodModalOpen] = useState(false);
   const [dynamicPeriods, setDynamicPeriods] = useState<AcademicPeriodConfig[]>([]);
@@ -250,6 +261,94 @@ export function Header({ userName, userRole }: HeaderProps) {
             }} 
           />
 
+          <Dialog open={isProfileOpen} onOpenChange={setIsProfileOpen}>
+            <DialogContent className="max-w-md bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-2xl p-6">
+              <DialogHeader className="flex flex-col items-center text-center space-y-2 pb-4 border-b border-slate-100">
+                <div className={cn(
+                  "w-16 h-16 rounded-full flex items-center justify-center text-white text-2xl font-black shadow-lg",
+                  activeRole === 'rector' && "bg-gradient-to-br from-blue-500 to-blue-600 shadow-blue-500/20",
+                  activeRole === 'coordinador' && "bg-gradient-to-br from-indigo-500 to-indigo-600 shadow-indigo-500/20",
+                  activeRole === 'director_grupo' && "bg-gradient-to-br from-purple-500 to-purple-600 shadow-purple-500/20",
+                  activeRole === 'docente' && "bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-emerald-500/20",
+                  activeRole === 'secretaria' && "bg-gradient-to-br from-amber-500 to-amber-600 shadow-amber-500/20",
+                  activeRole === 'padre_familia' && "bg-gradient-to-br from-rose-500 to-rose-600 shadow-rose-500/20",
+                  activeRole === 'estudiante' && "bg-gradient-to-br from-cyan-400 to-cyan-500 shadow-cyan-500/20"
+                )}>
+                  {userName.charAt(0)}
+                </div>
+                <div>
+                  <DialogTitle className="text-lg font-black text-slate-800 tracking-tight">{userName}</DialogTitle>
+                  <DialogDescription className="text-xs font-semibold text-indigo-600 uppercase tracking-widest mt-1">
+                    {ROLE_DISPLAY_NAMES[activeRole]}
+                  </DialogDescription>
+                </div>
+              </DialogHeader>
+
+              <div className="py-4 space-y-4 text-xs font-semibold text-slate-600">
+                <div className="space-y-2">
+                  <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Detalles de la Cuenta</h4>
+                  <div className="bg-slate-50 border border-slate-150 rounded-xl p-3 space-y-2.5">
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-400">Correo Electrónico</span>
+                      <span className="text-slate-800 font-bold">{user?.email || `${userName.toLowerCase().replace(/\s+/g, '')}@aulacore.edu.co`}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-400">Institución Activa</span>
+                      <span className="text-slate-800 font-bold">Colegio AulaCore Central</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-400">Identificador de Usuario</span>
+                      <span className="font-mono text-slate-500 text-[10px]">{user?.id ? user.id.slice(0, 18).toUpperCase() + '...' : 'AC-USER-DEMO-2026'}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Roles Autorizados (IAM)</h4>
+                  <div className="flex flex-wrap gap-1.5">
+                    {roles && roles.length > 0 ? (
+                      roles.map((r) => (
+                        <span key={r} className="bg-slate-100 border border-slate-200 text-slate-700 font-bold px-2.5 py-1 rounded-lg text-[9px] uppercase tracking-wide">
+                          {ROLE_DISPLAY_NAMES[r]}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="bg-slate-100 border border-slate-200 text-slate-700 font-bold px-2.5 py-1 rounded-lg text-[9px] uppercase tracking-wide">
+                        {ROLE_DISPLAY_NAMES[activeRole]}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Estado de Seguridad</h4>
+                  <div className="bg-slate-50 border border-slate-150 rounded-xl p-3 space-y-2.5">
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-400">Doble Factor (MFA)</span>
+                      <span className="text-emerald-700 flex items-center gap-1 font-bold">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Activo (Biométrico)
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-400">Acceso Horario</span>
+                      <span className="text-slate-800 font-bold">Ilimitado (Directivo)</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-400">Dispositivo Autorizado</span>
+                      <span className="text-slate-800 font-bold">Chrome - Windows (Verificado)</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <DialogFooter className="pt-2">
+                <Button onClick={() => setIsProfileOpen(false)} className="w-full bg-slate-900 hover:bg-slate-800 text-white font-black text-xs uppercase tracking-wider py-2.5 rounded-xl cursor-pointer">
+                  Aceptar
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
           {/* Notifications */}
           <Button
             variant="ghost"
@@ -292,10 +391,14 @@ export function Header({ userName, userRole }: HeaderProps) {
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel>Mi Cuenta</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Perfil</DropdownMenuItem>
-              <DropdownMenuItem>Configuración</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setIsProfileOpen(true)} className="cursor-pointer font-medium text-slate-700">
+                Perfil
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push('/configuracion')} className="cursor-pointer font-medium text-slate-700">
+                Configuración
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-red-600 cursor-pointer font-medium" onClick={signOut}>
+              <DropdownMenuItem className="text-red-650 cursor-pointer font-medium" onClick={signOut}>
                 Cerrar Sesión
               </DropdownMenuItem>
             </DropdownMenuContent>
