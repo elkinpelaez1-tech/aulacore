@@ -123,7 +123,7 @@ export function GroupDirectorCard({ director }: Props) {
                     </div>
                     <div className="bg-emerald-100/50 border border-emerald-200 p-2 rounded-md">
                       <p className="text-[10px] font-bold text-emerald-600">10:30 - 12:30</p>
-                      <p className="text-xs font-bold text-slate-800">Biología</p>
+                      <p className="text-xs font-bold text-slate-800">Ciencias Naturales y Educación Ambiental</p>
                       <p className="text-[10px] text-slate-500">Laboratorio</p>
                     </div>
                   </div>
@@ -131,7 +131,7 @@ export function GroupDirectorCard({ director }: Props) {
                   <div className="p-2 space-y-2">
                     <div className="bg-amber-100/50 border border-amber-200 p-2 rounded-md">
                       <p className="text-[10px] font-bold text-amber-600">08:00 - 10:00</p>
-                      <p className="text-xs font-bold text-slate-800">Lenguaje</p>
+                      <p className="text-xs font-bold text-slate-800">Lengua Castellana</p>
                       <p className="text-[10px] text-slate-500">Aula 301</p>
                     </div>
                   </div>
@@ -144,7 +144,7 @@ export function GroupDirectorCard({ director }: Props) {
                     </div>
                     <div className="bg-rose-100/50 border border-rose-200 p-2 rounded-md">
                       <p className="text-[10px] font-bold text-rose-600">10:30 - 12:30</p>
-                      <p className="text-xs font-bold text-slate-800">Educación Física</p>
+                      <p className="text-xs font-bold text-slate-800">Educación Física, Recreación y Deportes</p>
                       <p className="text-[10px] text-slate-500">Cancha Principal</p>
                     </div>
                   </div>
@@ -152,7 +152,7 @@ export function GroupDirectorCard({ director }: Props) {
                   <div className="p-2 space-y-2">
                     <div className="bg-amber-100/50 border border-amber-200 p-2 rounded-md">
                       <p className="text-[10px] font-bold text-amber-600">08:00 - 10:00</p>
-                      <p className="text-xs font-bold text-slate-800">Lenguaje</p>
+                      <p className="text-xs font-bold text-slate-800">Lengua Castellana</p>
                       <p className="text-[10px] text-slate-500">Aula 301</p>
                     </div>
                   </div>

@@ -171,7 +171,7 @@ const MOCK_CHILDREN: ChildData[] = [
     ],
     highlightedSubjects: [
       { name: 'Lengua Castellana', score: 4.8, type: 'destacada' },
-      { name: 'Física', score: 3.8, type: 'regular' },
+      { name: 'Ciencias Naturales y Educación Ambiental', score: 3.8, type: 'regular' },
       { name: 'Matemáticas', score: 3.2, type: 'seguimiento' },
     ],
     attendanceDetail: {
@@ -200,14 +200,14 @@ const MOCK_CHILDREN: ChildData[] = [
         comments: 'Pedro necesita reforzar las bases de trigonometría y álgebra lineal.'
       },
       {
-        subject: 'Física',
+        subject: 'Ciencias Naturales y Educación Ambiental',
         teacher: 'Prof. Gómez',
         average: 3.8,
         recentGrades: [
-          { name: 'Práctica Óptica', score: 3.5, date: '24 May' },
-          { name: 'Evaluación Movimiento', score: 4.0, date: '18 May' },
+          { name: 'Práctica de Laboratorio', score: 3.5, date: '24 May' },
+          { name: 'Evaluación de Ecosistemas', score: 4.0, date: '18 May' },
         ],
-        comments: 'Buen desempeño, tiene aptitud para el modelado matemático básico.'
+        comments: 'Buen desempeño, tiene gran interés en los ecosistemas y la preservación ambiental.'
       },
       {
         subject: 'Lengua Castellana',
@@ -223,7 +223,7 @@ const MOCK_CHILDREN: ChildData[] = [
     evaluations: [
       { id: 'ev-1', subject: 'Matemáticas', name: 'Evaluación Acumulativa de Trigonometría', date: '2026-06-01', status: 'Pendiente' },
       { id: 'ev-2', subject: 'Lengua Castellana', name: 'Exposición de Literatura Contemporánea', date: '2026-06-03', status: 'Pendiente' },
-      { id: 'ev-3', subject: 'Física', name: 'Examen Escrito de Termodinámica', date: '2026-05-25', status: 'Presentada', score: 4.0, comments: 'Excelente manejo conceptual.' },
+      { id: 'ev-3', subject: 'Ciencias Naturales y Educación Ambiental', name: 'Examen de Ecosistemas', date: '2026-05-25', status: 'Presentada', score: 4.0, comments: 'Excelente manejo conceptual.' },
       { id: 'ev-4', subject: 'Matemáticas', name: 'Quiz Rápido de Ecuaciones', date: '2026-05-22', status: 'Presentada', score: 3.0, comments: 'Revisar propiedades distributivas.' }
     ],
     messages: [
@@ -254,17 +254,17 @@ const MOCK_CHILDREN: ChildData[] = [
       { id: 'circ-2', title: 'Convocatoria a Escuela de Padres de Familia P2', content: 'Charla magistral sobre pautas de crianza en la era digital y entrega parcial de notas.', date: '22 May', requiresSignature: false, signed: true }
     ],
     behaviorLogs: [
-      { id: 'beh-1', type: 'Llamado de Atención', description: 'Uso inoportuno de dispositivo móvil durante la explicación de Física.', date: '2026-05-27', observer: 'Prof. Gómez', status: 'Registrado' },
+      { id: 'beh-1', type: 'Llamado de Atención', description: 'Uso inoportuno de dispositivo móvil durante la explicación de Ciencias Naturales.', date: '2026-05-27', observer: 'Prof. Gómez', status: 'Registrado' },
       { id: 'beh-2', type: 'Felicitación', description: 'Liderazgo destacado en la organización del foro de literatura escolar.', date: '2026-05-15', observer: 'Lic. Carlos Martínez', status: 'Registrado' },
       { id: 'beh-3', type: 'Compromiso', description: 'Acuerdo de mejora de asistencia y puntualidad firmado presencialmente.', date: '2026-05-10', observer: 'Coord. Convivencia', status: 'Activo' }
     ],
     recentActivity: [
       { id: 'act-1', type: 'nota', title: 'Calificación Registrada', description: 'Lengua Castellana: 4.8 en Ensayo Crítico.', date: 'Hoy', time: '10:30 AM', badgeText: 'Nota Alta', badgeStyle: 'bg-emerald-50 text-emerald-700 border-emerald-250' },
-      { id: 'act-2', type: 'comunicacion', title: 'Mensaje Recibido', description: 'Lic. Carlos Martínez solicitó programar un plan de acompañamiento.', date: 'Hoy', time: '08:30 AM', badgeText: 'Mensaje', badgeStyle: 'bg-indigo-50 text-indigo-700 border-indigo-250' },
+      { id: 'act-2', type: 'comunicacion', title: 'Mensaje Recibido', description: 'Lic. Carlos Martínez solicited programar un plan de acompañamiento.', date: 'Hoy', time: '08:30 AM', badgeText: 'Mensaje', badgeStyle: 'bg-indigo-50 text-indigo-700 border-indigo-250' },
       { id: 'act-3', type: 'asistencia', title: 'Registro RFID', description: 'Ingreso a portería registrado a las 06:55 AM.', date: 'Hoy', time: '06:55 AM', badgeText: 'A tiempo', badgeStyle: 'bg-emerald-50 text-emerald-700 border-emerald-250' },
-      { id: 'act-4', type: 'observacion', title: 'Llamado de Atención', description: 'Registrado por uso de móvil en clase de Física.', date: 'Ayer', time: '11:15 AM', badgeText: 'Comportamiento', badgeStyle: 'bg-rose-50 text-rose-700 border-rose-250' },
+      { id: 'act-4', type: 'observacion', title: 'Llamado de Atención', description: 'Registrado por uso de móvil en clase de Ciencias Naturales.', date: 'Ayer', time: '11:15 AM', badgeText: 'Comportamiento', badgeStyle: 'bg-rose-50 text-rose-700 border-rose-250' },
       { id: 'act-5', type: 'asistencia', title: 'Registro de Retardo', description: 'Ingreso tardío registrado a las 07:12 AM.', date: 'Hace 2 días', time: '07:12 AM', badgeText: 'Retardo', badgeStyle: 'bg-amber-50 text-amber-700 border-amber-250' },
-      { id: 'act-6', type: 'evaluacion', title: 'Evaluación Presentada', description: 'Física: Examen Escrito de Termodinámica. Calificación: 4.0.', date: 'Hace 4 días', time: '02:00 PM', badgeText: 'Evaluado', badgeStyle: 'bg-blue-50 text-blue-700 border-blue-250' }
+      { id: 'act-6', type: 'evaluacion', title: 'Evaluación Presentada', description: 'Ciencias Naturales y Educación Ambiental: Examen de Ecosistemas. Calificación: 4.0.', date: 'Hace 4 días', time: '02:00 PM', badgeText: 'Evaluado', badgeStyle: 'bg-blue-50 text-blue-700 border-blue-250' }
     ]
   },
   {
@@ -295,8 +295,8 @@ const MOCK_CHILDREN: ChildData[] = [
     ],
     highlightedSubjects: [
       { name: 'Matemáticas', score: 4.9, type: 'destacada' },
-      { name: 'Ciencias Sociales', score: 5.0, type: 'destacada' },
-      { name: 'Ciencias Naturales', score: 4.5, type: 'regular' },
+      { name: 'Ciencias Sociales, Historia, Geografía, Constitución Política y Democracia', score: 5.0, type: 'destacada' },
+      { name: 'Ciencias Naturales y Educación Ambiental', score: 4.5, type: 'regular' },
     ],
     attendanceDetail: {
       totalDays: 45,
@@ -324,7 +324,7 @@ const MOCK_CHILDREN: ChildData[] = [
         comments: 'Brillante lógica matemática y participación entusiasta en clases.'
       },
       {
-        subject: 'Ciencias Naturales',
+        subject: 'Ciencias Naturales y Educación Ambiental',
         teacher: 'Dra. Diana Reyes',
         average: 4.5,
         recentGrades: [
@@ -334,7 +334,7 @@ const MOCK_CHILDREN: ChildData[] = [
         comments: 'Muestra gran interés por los ecosistemas y la preservación ambiental.'
       },
       {
-        subject: 'Ciencias Sociales',
+        subject: 'Ciencias Sociales, Historia, Geografía, Constitución Política y Democracia',
         teacher: 'Lic. Carlos Martínez',
         average: 5.0,
         recentGrades: [
@@ -346,9 +346,9 @@ const MOCK_CHILDREN: ChildData[] = [
     ],
     evaluations: [
       { id: 'ev-1', subject: 'Matemáticas', name: 'Taller Escrito de Geometría Plana', date: '2026-06-02', status: 'Pendiente' },
-      { id: 'ev-2', subject: 'Ciencias Naturales', name: 'Presentación de Maqueta de Ecosistema', date: '2026-06-04', status: 'Pendiente' },
+      { id: 'ev-2', subject: 'Ciencias Naturales y Educación Ambiental', name: 'Presentación de Maqueta de Ecosistema', date: '2026-06-04', status: 'Pendiente' },
       { id: 'ev-3', subject: 'Matemáticas', name: 'Evaluación de Operaciones Fraccionarias', date: '2026-05-20', status: 'Presentada', score: 5.0, comments: 'Resolución perfecta.' },
-      { id: 'ev-4', subject: 'Ciencias Naturales', name: 'Examen de Clasificación Taxonómica', date: '2026-05-15', status: 'Presentada', score: 4.5, comments: 'Dominio absoluto de la temática.' }
+      { id: 'ev-4', subject: 'Ciencias Naturales y Educación Ambiental', name: 'Examen de Clasificación Taxonómica', date: '2026-05-15', status: 'Presentada', score: 4.5, comments: 'Dominio absoluto de la temática.' }
     ],
     messages: [
       {
@@ -363,7 +363,7 @@ const MOCK_CHILDREN: ChildData[] = [
       }
     ],
     circulars: [
-      { id: 'circ-1', title: 'Salida al Jardín Botánico Escolar', content: 'Práctica vivencial de Ciencias Naturales sobre flora andina el 8 de Junio.', date: '29 May', requiresSignature: true, signed: false },
+      { id: 'circ-1', title: 'Salida al Jardín Botánico Escolar', content: 'Práctica vivencial de Ciencias Naturales y Educación Ambiental sobre flora andina el 8 de Junio.', date: '29 May', requiresSignature: true, signed: false },
       { id: 'circ-2', title: 'Clausura Deportiva Semestral Primaria', content: 'Cronograma de encuentros deportivos y premiación de olimpiadas.', date: '25 May', requiresSignature: false, signed: true }
     ],
     behaviorLogs: [
@@ -371,7 +371,7 @@ const MOCK_CHILDREN: ChildData[] = [
       { id: 'beh-2', type: 'Felicitación', description: 'Liderazgo destacado en la campaña de reciclaje y cuidado de plantas del salón.', date: '2026-05-18', observer: 'Dra. Diana Reyes', status: 'Registrado' }
     ],
     recentActivity: [
-      { id: 'act-1', type: 'nota', title: 'Calificación Excelente', description: 'Ciencias Naturales: 4.5 en Taller de Vertebrados.', date: 'Hoy', time: '11:15 AM', badgeText: 'Sobresaliente', badgeStyle: 'bg-emerald-50 text-emerald-700 border-emerald-250' },
+      { id: 'act-1', type: 'nota', title: 'Calificación Excelente', description: 'Ciencias Naturales y Educación Ambiental: 4.5 en Taller de Vertebrados.', date: 'Hoy', time: '11:15 AM', badgeText: 'Sobresaliente', badgeStyle: 'bg-emerald-50 text-emerald-700 border-emerald-250' },
       { id: 'act-2', type: 'asistencia', title: 'Ingreso Escolar', description: 'Entrada registrada por RFID a las 06:48 AM.', date: 'Hoy', time: '06:48 AM', badgeText: 'A tiempo', badgeStyle: 'bg-emerald-50 text-emerald-700 border-emerald-250' },
       { id: 'act-3', type: 'nota', title: 'Nota Perfecta', description: 'Matemáticas: 5.0 en Taller de Fraccionarios.', date: 'Ayer', time: '09:40 AM', badgeText: 'Excelente', badgeStyle: 'bg-emerald-100 text-emerald-800 border-emerald-350' },
       { id: 'act-4', type: 'observacion', title: 'Felicitación Registrada', description: 'Excelente comportamiento cívico y orden ejemplar.', date: 'Hace 3 días', time: '03:10 PM', badgeText: 'Cívico', badgeStyle: 'bg-purple-50 text-purple-700 border-purple-250' },

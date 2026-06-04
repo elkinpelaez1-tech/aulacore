@@ -36,11 +36,15 @@ const MOCK_COURSES_FALLBACK = [
 
 const MOCK_SUBJECTS_FALLBACK = [
   { id: 'sub-mat', name: 'Matemáticas' },
-  { id: 'sub-cie', name: 'Ciencias Naturales' },
-  { id: 'sub-fis', name: 'Física' },
   { id: 'sub-len', name: 'Lengua Castellana' },
-  { id: 'sub-bio', name: 'Biología' },
-  { id: 'sub-his', name: 'Historia' },
+  { id: 'sub-ing', name: 'Inglés' },
+  { id: 'sub-nat', name: 'Ciencias Naturales y Educación Ambiental' },
+  { id: 'sub-soc', name: 'Ciencias Sociales, Historia, Geografía, Constitución Política y Democracia' },
+  { id: 'sub-art', name: 'Educación Artística y Cultural' },
+  { id: 'sub-eti', name: 'Educación Ética y en Valores Humanos' },
+  { id: 'sub-edf', name: 'Educación Física, Recreación y Deportes' },
+  { id: 'sub-rel', name: 'Educación Religiosa' },
+  { id: 'sub-tec', name: 'Tecnología e Informática' },
 ];
 
 const MOCK_TEACHERS_FALLBACK = [
@@ -76,15 +80,15 @@ const MOCK_SCHEDULES_FALLBACK: Record<string, EnrichedSchedule[]> = {
       academic_year_id: '1',
       academic_period_id: '1',
       course_id: 'c-10-A',
-      subject_id: 'sub-fis',
+      subject_id: 'sub-tec',
       teacher_id: 't-3',
       day_of_week: 1,
       start_time: '08:30:00',
       end_time: '10:00:00',
-      classroom: 'Laboratorio Física',
+      classroom: 'Aula de Cómputo',
       status: 'active',
       created_at: null,
-      curriculum_subjects: { name: 'Física' },
+      curriculum_subjects: { name: 'Tecnología e Informática' },
       profiles: { first_name: 'Jorge', last_name: 'Ruiz' }
     },
     {
@@ -110,15 +114,15 @@ const MOCK_SCHEDULES_FALLBACK: Record<string, EnrichedSchedule[]> = {
       academic_year_id: '1',
       academic_period_id: '1',
       course_id: 'c-10-A',
-      subject_id: 'sub-bio',
+      subject_id: 'sub-nat',
       teacher_id: 't-4',
       day_of_week: 3,
       start_time: '10:15:00',
       end_time: '11:45:00',
-      classroom: 'Laboratorio Biología',
+      classroom: 'Laboratorio Ciencias',
       status: 'active',
       created_at: null,
-      curriculum_subjects: { name: 'Biología' },
+      curriculum_subjects: { name: 'Ciencias Naturales y Educación Ambiental' },
       profiles: { first_name: 'Elena', last_name: 'Díaz' }
     }
   ],
@@ -129,7 +133,7 @@ const MOCK_SCHEDULES_FALLBACK: Record<string, EnrichedSchedule[]> = {
       academic_year_id: '1',
       academic_period_id: '1',
       course_id: 'c-10-B',
-      subject_id: 'sub-cie',
+      subject_id: 'sub-nat',
       teacher_id: 't-5',
       day_of_week: 2,
       start_time: '08:30:00',
@@ -137,7 +141,7 @@ const MOCK_SCHEDULES_FALLBACK: Record<string, EnrichedSchedule[]> = {
       classroom: 'Aula 102',
       status: 'active',
       created_at: null,
-      curriculum_subjects: { name: 'Ciencias Naturales' },
+      curriculum_subjects: { name: 'Ciencias Naturales y Educación Ambiental' },
       profiles: { first_name: 'Marta', last_name: 'Pérez' }
     }
   ],

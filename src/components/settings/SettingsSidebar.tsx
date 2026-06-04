@@ -37,7 +37,7 @@ const MENU_GROUPS = [
   {
     label: 'Operaciones Inteligentes',
     items: [
-      { name: 'Mallas Curriculares', href: '/configuracion/mallas', icon: Settings2 },
+      { name: 'Configuración Académica', href: '/configuracion/mallas', icon: Settings2 },
       { name: 'Dispositivos RFID', href: '/configuracion/rfid', icon: Activity },
       { name: 'Integraciones B2B', href: '/configuracion/integraciones', icon: Users },
       { name: 'Facturación y Pagos', href: '/configuracion/facturacion', icon: CreditCard },

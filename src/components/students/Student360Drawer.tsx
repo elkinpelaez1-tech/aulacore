@@ -352,10 +352,16 @@ Admisiones y Matriculas AulaCore
       [],
       ['CALIFICACIONES PERIODO 3 (GPA REAL)'],
       ['Asignatura', 'Nota', 'Estado'],
-      ['Matematicas', student.gpa < 3.2 ? '2.4' : '4.2', student.gpa < 3.2 ? 'Bajo' : 'Alto'],
-      ['Fisica / Quimica', student.gpa < 3.2 ? '2.6' : '4.5', student.gpa < 3.2 ? 'Bajo' : 'Alto'],
-      ['Lengua Castellana', student.gpa < 3.2 ? '3.5' : '4.8', student.gpa < 3.2 ? 'Basico' : 'Superior'],
-      ['Ciencias Sociales', student.gpa < 3.2 ? '3.2' : '4.1', student.gpa < 3.2 ? 'Basico' : 'Alto'],
+      ['Matemáticas', student.gpa < 3.2 ? '2.4' : '4.5', student.gpa < 3.2 ? 'Bajo' : 'Alto'],
+      ['Lengua Castellana', student.gpa < 3.2 ? '3.5' : '4.2', student.gpa < 3.2 ? 'Básico' : 'Superior'],
+      ['Inglés', student.gpa < 3.2 ? '3.0' : '4.7', student.gpa < 3.2 ? 'Básico' : 'Alto'],
+      ['Ciencias Naturales y Educación Ambiental', student.gpa < 3.2 ? '2.6' : '4.1', student.gpa < 3.2 ? 'Bajo' : 'Alto'],
+      ['Ciencias Sociales, Historia, Geografía, Constitución Política y Democracia', student.gpa < 3.2 ? '3.2' : '3.8', student.gpa < 3.2 ? 'Básico' : 'Alto'],
+      ['Educación Artística y Cultural', student.gpa < 3.2 ? '3.8' : '4.4', student.gpa < 3.2 ? 'Básico' : 'Alto'],
+      ['Educación Ética y en Valores Humanos', student.gpa < 3.2 ? '4.0' : '4.6', student.gpa < 3.2 ? 'Básico' : 'Alto'],
+      ['Educación Física, Recreación y Deportes', student.gpa < 3.2 ? '3.5' : '4.3', student.gpa < 3.2 ? 'Básico' : 'Alto'],
+      ['Educación Religiosa', student.gpa < 3.2 ? '3.8' : '4.0', student.gpa < 3.2 ? 'Básico' : 'Alto'],
+      ['Tecnología e Informática', student.gpa < 3.2 ? '3.1' : '4.8', student.gpa < 3.2 ? 'Básico' : 'Alto'],
       [],
       ['REGISTROS DE ASISTENCIA BIOMETRICA RFID'],
       ['Fecha', 'Hora', 'Direccion', 'Dispositivo', 'Estado'],
@@ -626,10 +632,16 @@ Admisiones y Matriculas AulaCore
 
                     <div className="space-y-3">
                       {[
-                        { name: 'Matemáticas', score: student.gpa < 3.2 ? 2.4 : 4.2, status: student.gpa < 3.2 ? 'Bajo' : 'Alto' },
-                        { name: 'Física / Química', score: student.gpa < 3.2 ? 2.6 : 4.5, status: student.gpa < 3.2 ? 'Bajo' : 'Alto' },
-                        { name: 'Lengua Castellana', score: student.gpa < 3.2 ? 3.5 : 4.8, status: student.gpa < 3.2 ? 'Básico' : 'Superior' },
-                        { name: 'Ciencias Sociales', score: student.gpa < 3.2 ? 3.2 : 4.1, status: student.gpa < 3.2 ? 'Básico' : 'Alto' },
+                        { name: 'Matemáticas', score: student.gpa < 3.2 ? 2.4 : 4.5, status: student.gpa < 3.2 ? 'Bajo' : 'Alto' },
+                        { name: 'Lengua Castellana', score: student.gpa < 3.2 ? 3.5 : 4.2, status: student.gpa < 3.2 ? 'Básico' : 'Superior' },
+                        { name: 'Inglés', score: student.gpa < 3.2 ? 3.0 : 4.7, status: student.gpa < 3.2 ? 'Básico' : 'Alto' },
+                        { name: 'Ciencias Naturales y Educación Ambiental', score: student.gpa < 3.2 ? 2.6 : 4.1, status: student.gpa < 3.2 ? 'Bajo' : 'Alto' },
+                        { name: 'Ciencias Sociales, Historia, Geografía, Constitución Política y Democracia', score: student.gpa < 3.2 ? 3.2 : 3.8, status: student.gpa < 3.2 ? 'Básico' : 'Alto' },
+                        { name: 'Educación Artística y Cultural', score: student.gpa < 3.2 ? 3.8 : 4.4, status: student.gpa < 3.2 ? 'Básico' : 'Alto' },
+                        { name: 'Educación Ética y en Valores Humanos', score: student.gpa < 3.2 ? 4.0 : 4.6, status: student.gpa < 3.2 ? 'Básico' : 'Alto' },
+                        { name: 'Educación Física, Recreación y Deportes', score: student.gpa < 3.2 ? 3.5 : 4.3, status: student.gpa < 3.2 ? 'Básico' : 'Alto' },
+                        { name: 'Educación Religiosa', score: student.gpa < 3.2 ? 3.8 : 4.0, status: student.gpa < 3.2 ? 'Básico' : 'Alto' },
+                        { name: 'Tecnología e Informática', score: student.gpa < 3.2 ? 3.1 : 4.8, status: student.gpa < 3.2 ? 'Básico' : 'Alto' },
                       ].map(sub => (
                         <div key={sub.name} className="flex items-center justify-between p-3 bg-slate-50 border border-slate-100 rounded-xl">
                           <div>

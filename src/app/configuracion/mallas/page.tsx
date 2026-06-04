@@ -121,6 +121,7 @@ const SEED_CURRICULUMS: CurriculumDetails[] = [
 
 export default function CurriculumOperationsHubPage() {
   const [curriculums, setCurriculums] = useState<CurriculumDetails[]>(SEED_CURRICULUMS);
+  const [activeTab, setActiveTab] = useState<'mallas' | 'areas' | 'asignaturas' | 'intensidad'>('mallas');
   
   // Drawer state
   const [drawerOpen, setDrawerOpen] = useState(false);

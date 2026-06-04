@@ -27,9 +27,9 @@ import { cn } from '@/lib/utils';
 // Mock data tailored for the Teacher Analytics tab
 const DEPARTMENT_COMPLIANCE_DATA = [
   { name: 'Matemáticas', rate: 96.2, color: '#fb923c' },   // orange-450
-  { name: 'Ciencias', rate: 94.5, color: '#f97316' },      // orange-500
-  { name: 'Lenguaje', rate: 98.0, color: '#ea580c' },      // orange-600
-  { name: 'Sociales', rate: 90.5, color: '#c2410c' }       // orange-700
+  { name: 'Ciencias Naturales', rate: 94.5, color: '#f97316' },      // orange-500
+  { name: 'Lengua Castellana', rate: 98.0, color: '#ea580c' },      // orange-600
+  { name: 'Ciencias Sociales', rate: 90.5, color: '#c2410c' }       // orange-700
 ];
 
 export function DocentesAnalyticsTab() {
@@ -221,8 +221,8 @@ export function DocentesAnalyticsTab() {
               <p className="text-xs font-semibold text-slate-400 mt-0.5">Diagnóstico ejecutivo para la toma de decisiones Rectoral</p>
             </div>
             
-            <p className="text-sm text-slate-600 font-normal leading-relaxed max-w-4xl">
-              El desempeño operativo docente registra un sobresaliente <strong className="text-orange-900 font-bold">94.8%</strong> en el cumplimiento global de planeaciones curriculares. El departamento de <strong className="text-slate-800 font-bold">Lenguaje</strong> lidera con un <strong className="text-orange-700 font-semibold">98.0%</strong> de avance, mientras que <strong className="text-orange-850 font-bold">Sociales</strong> presenta el menor índice relativo con un <strong className="text-orange-600 font-semibold">90.5%</strong> debido a la reciente reestructuración temática de competencias ciudadanas. Asimismo, la cobertura pedagógica de clases garantiza estabilidad absoluta al mantenerse en <strong className="text-emerald-600 font-semibold">99.2%</strong>.
+            <p className="text-sm text-slate-650 font-normal leading-relaxed max-w-4xl">
+              El desempeño operativo docente registra un sobresaliente <strong className="text-orange-900 font-bold">94.8%</strong> en el cumplimiento global de planeaciones curriculares. El departamento de <strong className="text-slate-800 font-bold">Lengua Castellana</strong> lidera con un <strong className="text-orange-700 font-semibold">98.0%</strong> de avance, mientras que <strong className="text-orange-850 font-bold">Ciencias Sociales</strong> presenta el menor índice relativo con un <strong className="text-orange-600 font-semibold">90.5%</strong> debido a la reciente reestructuración temática de competencias ciudadanas. Asimismo, la cobertura pedagógica de clases garantiza estabilidad absoluta al mantenerse en <strong className="text-emerald-600 font-semibold">99.2%</strong>.
             </p>
 
             <div className="flex flex-wrap items-center gap-3 pt-1">
@@ -392,9 +392,9 @@ Modulo: Planeaciones de Clase y Syllabus
 Accion: Alerta Informativa Manual de Rectoría
 
 DOCENTES NOTIFICADOS Y ALERTADOS:
-1. Lic. Carlos M. (Grado 9º - Matematicas)
-2. Lic. Liliana G. (Grado 10º - Fisica)
-3. Lic. Sandra P. (Grado 8º - Ciencias)
+1. Lic. Carlos M. (Grado 9º - Matemáticas)
+2. Lic. Liliana G. (Grado 10º - Tecnología e Informática)
+3. Lic. Sandra P. (Grado 8º - Ciencias Naturales)
 
 Mensaje Enviado: "Atencion docente: Recuerde que el plazo limite para la carga de planeaciones del Periodo 4 finaliza esta semana. Favor ingresar a su panel AulaCore."
 ==================================================
@@ -417,8 +417,8 @@ Mensaje Enviado: "Atencion docente: Recuerde que el plazo limite para la carga d
                       () => {
                         const csvContent = "\uFEFF" + [
                           ["Docente Reemplazado", "Asignatura", "Docente de Reemplazo", "Fecha", "Modulo/Bloque", "Estado"],
-                          ["Lic. Carlos M.", "Matematicas 9-B", "Lic. Sandra P.", "2026-05-28", "Bloque 2 (10:00 - 11:30)", "Completado"],
-                          ["Lic. Liliana G.", "Fisica 10-A", "Lic. Juan K.", "2026-05-28", "Bloque 4 (14:00 - 15:30)", "Pendiente"],
+                          ["Lic. Carlos M.", "Matemáticas 9-B", "Lic. Sandra P.", "2026-05-28", "Bloque 2 (10:00 - 11:30)", "Completado"],
+                          ["Lic. Liliana G.", "Tecnología e Informática 10-A", "Lic. Juan K.", "2026-05-28", "Bloque 4 (14:00 - 15:30)", "Pendiente"],
                           ["Lic. Sandra P.", "Ciencias 8-B", "Lic. Carlos M.", "2026-05-28", "Bloque 1 (08:00 - 09:30)", "Completado"]
                         ].map(row => row.map(cell => `"${cell}"`).join(",")).join("\n");
 

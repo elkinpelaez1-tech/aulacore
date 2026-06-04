@@ -37,7 +37,7 @@ CREATE TABLE public.student_ai_insights (
   
   -- Alertas Predictivas
   risk_level VARCHAR(20), -- 'low', 'medium', 'high'
-  critical_subjects TEXT[], -- ej: ['Física', 'Matemáticas']
+  critical_subjects TEXT[], -- ej: ['Tecnología e Informática', 'Matemáticas']
   
   -- Recomendaciones JSONB
   ai_study_plan JSONB, 

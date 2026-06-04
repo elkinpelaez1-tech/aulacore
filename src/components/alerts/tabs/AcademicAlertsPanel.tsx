@@ -25,7 +25,7 @@ export function AcademicAlertsPanel({ onIntervene }: AcademicAlertsPanelProps) {
 
   const subjects = [
     { name: 'Matemáticas', failCount: 18, riskLevel: 'Alto', color: 'text-rose-600 bg-rose-50' },
-    { name: 'Física', failCount: 12, riskLevel: 'Alto', color: 'text-rose-600 bg-rose-50' },
+    { name: 'Tecnología e Informática', failCount: 12, riskLevel: 'Alto', color: 'text-rose-600 bg-rose-50' },
     { name: 'Química', failCount: 9, riskLevel: 'Medio', color: 'text-amber-600 bg-amber-50' },
     { name: 'Español', failCount: 4, riskLevel: 'Bajo', color: 'text-emerald-600 bg-emerald-50' },
   ];
@@ -192,7 +192,7 @@ export function AcademicAlertsPanel({ onIntervene }: AcademicAlertsPanelProps) {
                 <div>
                   <h5 className="text-xs font-black text-slate-200">Ajuste de Syllabus</h5>
                   <p className="text-[10px] text-slate-400 mt-1 font-semibold leading-relaxed">
-                    Aplazar el examen parcial de Física de 10-A un periodo de 5 días para equilibrar cobertura curricular.
+                    Aplazar el examen parcial de Tecnología e Informática de 10-A un periodo de 5 días para equilibrar cobertura curricular.
                   </p>
                 </div>
               </div>

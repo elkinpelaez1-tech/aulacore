@@ -269,7 +269,7 @@ export default function EvaluacionesIAPage() {
               options = ['Metáfora', 'Hipérbole', 'Símil o Comparación', 'Personificación'];
               correctAnswer = 'Metáfora';
             }
-          } else if (subject === 'Física') {
+          } else if (subject === 'Ciencias Naturales y Educación Ambiental') {
             if (pt === 'seleccion_multiple') {
               text = `Un móvil se desplaza a una velocidad constante de 72 km/h. ¿Cuál es su velocidad equivalente medida en metros por segundo (m/s)?`;
               options = ['20 m/s', '15 m/s', '30 m/s', '10 m/s'];
@@ -802,9 +802,9 @@ export default function EvaluacionesIAPage() {
                         className="w-full text-xs font-bold text-slate-705 bg-slate-55 border border-slate-200 rounded-xl p-2.5 cursor-pointer outline-none focus:border-indigo-400"
                       >
                         <option value="Matemáticas">Matemáticas</option>
-                        <option value="Biología">Biología</option>
+                        <option value="Tecnología e Informática">Tecnología e Informática</option>
                         <option value="Lengua Castellana">Lengua Castellana</option>
-                        <option value="Física">Física</option>
+                        <option value="Ciencias Naturales y Educación Ambiental">Ciencias Naturales y Educación Ambiental</option>
                       </select>
                     </div>
                     <div className="space-y-1.5">

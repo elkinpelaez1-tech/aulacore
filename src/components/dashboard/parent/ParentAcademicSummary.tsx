@@ -68,7 +68,7 @@ export function ParentAcademicSummary() {
 
             <div>
               <div className="flex justify-between text-xs font-bold mb-1.5">
-                <span className="text-blue-700">Lenguaje</span>
+                <span className="text-blue-700">Lengua Castellana</span>
                 <span className="text-blue-700">4.2</span>
               </div>
               <Progress value={84} className="h-2 bg-blue-100 [&_[data-slot=progress-indicator]]:bg-blue-500" />
@@ -76,7 +76,7 @@ export function ParentAcademicSummary() {
 
             <div>
               <div className="flex justify-between text-xs font-bold mb-1.5">
-                <span className="text-rose-700">Física (En Riesgo)</span>
+                <span className="text-rose-700">Tecnología e Informática (En Riesgo)</span>
                 <span className="text-rose-700">2.8</span>
               </div>
               <Progress value={56} className="h-2 bg-rose-100 [&_[data-slot=progress-indicator]]:bg-rose-500" />

@@ -158,7 +158,7 @@ export const INITIAL_EVALUATIONS: Evaluation[] = [
   {
     id: 'eval-2',
     title: 'Parcial de Estructura Celular y Mitosis',
-    subject: 'Biología',
+    subject: 'Ciencias Naturales y Educación Ambiental',
     course: '9-A',
     grade: '9',
     campus: 'Sede Principal',

@@ -56,20 +56,20 @@ const SUBJECTS_DATA = [
     ]
   },
   {
-    id: 'physics',
-    name: 'Física',
+    id: 'technology',
+    name: 'Tecnología e Informática',
     score: 2.8,
     trend: 'down',
     status: 'riesgo',
     attendance: 85,
     competencies: [
-      { name: 'Vectores y Cinemática', status: 'risk' },
-      { name: 'Interpretación Gráfica', status: 'in_progress' },
+      { name: 'Algoritmia y Lógica', status: 'risk' },
+      { name: 'Sistemas Mecatrónicos', status: 'in_progress' },
     ],
-    teacherFeedback: 'Es vital que asistas a tutorías. Hay vacíos en la interpretación gráfica de velocidad vs tiempo.',
+    teacherFeedback: 'Es vital que asistas a tutorías. Hay vacíos en la comprensión de estructuras condicionales y bucles en programación.',
     activities: [
-      { name: 'Taller Vectores', type: 'Evaluación Formativa', weight: 40, score: 3.0, date: '10 May' },
-      { name: 'Parcial Cinemática', type: 'Evaluación Sumativa', weight: 60, score: 2.5, date: '24 May' },
+      { name: 'Taller Algoritmos', type: 'Evaluación Formativa', weight: 40, score: 3.0, date: '10 May' },
+      { name: 'Parcial Programación', type: 'Evaluación Sumativa', weight: 60, score: 2.5, date: '24 May' },
     ]
   }
 ];

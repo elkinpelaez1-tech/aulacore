@@ -507,7 +507,7 @@ METRICAS DEL CURSO:
 - Estudiantes en Alerta Critica: 3
 
 ESTRATEGIAS DE INTERVENCION PROPUESTAS:
-1. Tutoria y nivelacion obligatoria en Matematicas y Lenguaje.
+1. Tutoria y nivelacion obligatoria en Matematicas y Lengua Castellana.
 2. Citacion a padres de familia para los 3 casos de inasistencia recurrente.
 3. Acompanamiento psicopedagogico semanal con orientacion escolar.
 4. Adaptacion curricular y flexibilizacion de entregas de actividades.

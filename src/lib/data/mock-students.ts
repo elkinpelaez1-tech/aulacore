@@ -72,7 +72,7 @@ export const MOCK_STUDENTS: StudentMockData[] = [
     avatarUrl: 'https://i.pravatar.cc/150?u=s102',
     guardianName: 'Sandra Martínez',
     alerts: [
-      { id: 'a1', type: 'academico', message: 'Riesgo de pérdida en Matemáticas y Física' }
+      { id: 'a1', type: 'academico', message: 'Riesgo de pérdida en Matemáticas y Tecnología e Informática' }
     ]
   },
   {

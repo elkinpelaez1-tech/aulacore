@@ -195,7 +195,7 @@ export default function DashboardPage() {
 
   // 3. Planilla de Notas (Docente)
   const [gradesList, setGradesList] = useState<GradeRecord[]>(MOCK_GRADES);
-  const [selectedSubject, setSelectedSubject] = useState<'Matemáticas' | 'Física'>('Matemáticas');
+  const [selectedSubject, setSelectedSubject] = useState<'Matemáticas' | 'Ciencias Naturales y Educación Ambiental'>('Matemáticas');
   const [newGradeValue, setNewGradeValue] = useState<Record<string, string>>({});
 
   const handleUpdateGrade = (studentId: string, noteType: 'exams' | 'homeworks' | 'participation', index: number, value: string) => {
@@ -1123,11 +1123,11 @@ export default function DashboardPage() {
                       <div className="border border-slate-150 p-4 rounded-xl bg-slate-50/30 hover:bg-slate-50 hover:shadow-md transition-all duration-300 flex flex-col justify-between space-y-3">
                         <div className="space-y-1">
                           <div className="flex items-center justify-between">
-                            <span className="text-xs font-bold text-slate-900">Física Mecánica</span>
+                            <span className="text-xs font-bold text-slate-900">Ciencias Naturales y Educación Ambiental</span>
                             <span className="text-xs bg-emerald-100 text-emerald-800 font-extrabold uppercase px-2 py-0.5 rounded-full">En Proceso</span>
                           </div>
                           <p className="text-xs text-slate-400 font-semibold">Curso: 10-A | Docente: Prof. Gómez</p>
-                          <p className="text-xs text-slate-600 font-medium">Laboratorio recuperatorio de cinemática y leyes de Newton.</p>
+                          <p className="text-xs text-slate-600 font-medium">Laboratorio recuperatorio de biología y ecosistemas.</p>
                         </div>
                         <div className="space-y-1">
                           <div className="flex justify-between items-center text-xs font-semibold text-slate-500">
@@ -1675,7 +1675,7 @@ export default function DashboardPage() {
                   failuresCount: 3,
                   compromises: [
                     'Asistir diariamente a las monitorías académicas los días martes y jueves en jornada de la tarde.',
-                    'Entregar bitácora de repaso firmada por el acudiente (Sara Gómez) en cada clase de Física/Álgebra.',
+                    'Entregar bitácora de repaso firmada por el acudiente (Sara Gómez) en cada clase de Ciencias Naturales/Álgebra.',
                     'Desarrollar el taller remedial práctico asignado por el Prof. Gómez con fecha límite del 12 de junio.'
                   ],
                   parentName: 'Sara Gómez'
@@ -1928,13 +1928,13 @@ export default function DashboardPage() {
                     Matemáticas
                   </button>
                   <button 
-                    onClick={() => setSelectedSubject('Física')}
+                    onClick={() => setSelectedSubject('Ciencias Naturales y Educación Ambiental')}
                     className={cn(
                       "text-xs font-bold px-3 py-1.5 rounded-md cursor-pointer transition border-none outline-none",
-                      selectedSubject === 'Física' ? "bg-white text-emerald-955 shadow-sm font-black" : "text-white hover:bg-white/10 bg-transparent"
+                      selectedSubject === 'Ciencias Naturales y Educación Ambiental' ? "bg-white text-emerald-955 shadow-sm font-black" : "text-white hover:bg-white/10 bg-transparent"
                     )}
                   >
-                    Física
+                    Ciencias Naturales
                   </button>
                 </div>
               </div>

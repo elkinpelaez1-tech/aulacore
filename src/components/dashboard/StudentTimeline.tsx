@@ -53,7 +53,7 @@ const MOCK_EVENTS: TimelineEvent[] = [
     date: 'Hoy, 10:30 AM',
     type: 'recognition',
     title: 'Participación Destacada',
-    description: 'Excelente aporte en el debate sobre Filosofía Moderna. Demostró pensamiento crítico.',
+    description: 'Excelente aporte en el debate sobre Derechos Constitucionales y Democracia. Demostró pensamiento crítico.',
     author: 'Prof. Ana Martínez'
   },
   {

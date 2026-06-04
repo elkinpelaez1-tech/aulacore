@@ -24,9 +24,9 @@ export function SchedulePreviewWidget({ role, title = 'Planeación de Horarios p
       <CardContent className="p-5 flex-1 flex flex-col">
         <div className="space-y-4 mb-4 flex-1">
           {[
-            { subject: 'Matemáticas Avanzadas', teacher: 'Prof. Gómez', time: 'Lunes, 08:00 AM', room: 'Aula 301' },
-            { subject: 'Física y Fluidos', teacher: 'Prof. Gómez', time: 'Martes, 10:00 AM', room: 'Laboratorio' },
-            { subject: 'Humanidades', teacher: 'Lic. Martínez', time: 'Miércoles, 09:00 AM', room: 'Aula 302' },
+            { subject: 'Matemáticas', teacher: 'Prof. Gómez', time: 'Lunes, 08:00 AM', room: 'Aula 301' },
+            { subject: 'Ciencias Naturales y Educación Ambiental', teacher: 'Prof. Gómez', time: 'Martes, 10:00 AM', room: 'Laboratorio' },
+            { subject: 'Lengua Castellana', teacher: 'Lic. Martínez', time: 'Miércoles, 09:00 AM', room: 'Aula 302' },
           ].map((item, i) => (
             <div key={i} className="flex justify-between items-center p-3 border border-slate-100 rounded-lg hover:border-slate-300 transition-colors bg-slate-50/50">
               <div className="space-y-1">

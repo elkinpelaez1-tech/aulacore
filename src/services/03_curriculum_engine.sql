@@ -26,7 +26,7 @@ CREATE TABLE public.curriculum_areas (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Asignaturas (ej. Álgebra, Física, dependientes de un Área)
+-- Asignaturas (ej. Álgebra, Tecnología e Informática, dependientes de un Área)
 CREATE TABLE public.curriculum_subjects (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   area_id UUID REFERENCES public.curriculum_areas(id) ON DELETE CASCADE,

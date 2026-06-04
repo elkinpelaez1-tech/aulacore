@@ -32,7 +32,7 @@ export function ParentAlertsPanel() {
                   <span className="text-[10px] font-bold text-rose-500 uppercase">Alta Prioridad</span>
                 </div>
                 <p className="text-xs text-slate-600 font-medium mt-1 leading-relaxed">
-                  Alejandro tiene promedio de 2.8 en Física. Se requiere atención inmediata antes del cierre de periodo.
+                  Alejandro tiene promedio de 2.8 en Tecnología e Informática. Se requiere atención inmediata antes del cierre de periodo.
                 </p>
                 <Button variant="link" className="p-0 h-auto text-xs font-bold text-rose-700 mt-2">
                   Agendar Tutoría

@@ -52,9 +52,9 @@ const ACADEMIC_TREND = [
 
 const SUBJECT_PERFORMANCE = [
   { subject: 'Matemáticas', score: 4.8, fill: '#10b981' },
-  { subject: 'Lenguaje', score: 4.2, fill: '#3b82f6' },
-  { subject: 'Ciencias', score: 3.5, fill: '#f59e0b' },
-  { subject: 'Física', score: 2.8, fill: '#ef4444' }, // En riesgo
+  { subject: 'Lengua Castellana', score: 4.2, fill: '#3b82f6' },
+  { subject: 'Ciencias Naturales', score: 3.5, fill: '#f59e0b' },
+  { subject: 'Tecnología', score: 2.8, fill: '#ef4444' }, // En riesgo
 ];export function StudentDashboard() {
   const { userName } = useRole();
   const firstName = (userName && typeof userName === 'string') ? userName.split(' ')[0] : 'Alejandro';
@@ -230,9 +230,9 @@ const SUBJECT_PERFORMANCE = [
               <div className="mt-4 bg-rose-50 border border-rose-100 rounded-lg p-3 flex items-start gap-3">
                 <AlertCircle className="w-5 h-5 text-rose-500 shrink-0 mt-0.5" />
                 <div>
-                  <h4 className="text-sm font-bold text-rose-800 mb-1">Riesgo en Física</h4>
+                  <h4 className="text-sm font-bold text-rose-800 mb-1">Riesgo en Tecnología</h4>
                   <p className="text-xs text-rose-600 font-medium leading-tight">
-                    Tu promedio actual es 2.8. El Tutor IA sugiere repasar "Cinemática" antes de la evaluación final.
+                    Tu promedio actual es 2.8. El Tutor IA sugiere repasar "Lógica y Diagramas de Flujo" antes de la evaluación final.
                   </p>
                   <Button variant="link" className="p-0 h-auto text-xs font-bold text-rose-700 mt-2">
                     Ver Plan de Recuperación <ChevronRight className="w-3 h-3 ml-1" />

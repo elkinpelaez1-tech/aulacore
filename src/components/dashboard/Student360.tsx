@@ -297,7 +297,7 @@ const MOCK_FULL_PROFILES: Record<string, StudentFullProfile & {
       { id: '5', record_date: '2026-05-22', status: 'present', academic_period_id: '22222222-2222-2222-2222-333333333333' }
     ],
     behavior: [
-      { id: '1', observation_type: 'mild_negative', description: 'Uso reiterado y no autorizado de distractores tecnológicos (teléfono inteligente) durante las clases explicativas de física.', commitments: 'Estudiante se compromete a almacenar el celular apagado en el casillero institucional.', created_at: '2026-05-24', teacher_name: 'Prof. Gómez' }
+      { id: '1', observation_type: 'mild_negative', description: 'Uso reiterado y no autorizado de distractores tecnológicos (teléfono inteligente) durante las clases explicativas de Tecnología e Informática.', commitments: 'Estudiante se compromete a almacenar el celular apagado en el casillero institucional.', created_at: '2026-05-24', teacher_name: 'Prof. Gómez' }
     ],
     alerts: [
       { id: '1', category: 'academic', risk_level: 'medium', description: 'Calificaciones del Periodo 2 por debajo del estándar mínimo de aprobación (3.00) en Matemáticas (2.80) e Informe de Ciencias (2.90).', status: 'in_progress', academic_period_id: '22222222-2222-2222-2222-333333333333' }

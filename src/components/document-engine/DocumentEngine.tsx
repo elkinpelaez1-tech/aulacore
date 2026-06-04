@@ -401,7 +401,7 @@ export function DocumentEngine({
                       <tbody className="divide-y divide-slate-200">
                         {(metadataPayload.grades || [
                           {subject: 'Matemáticas', exams: [4.2, 4.5], homeworks: [4.0, 4.6], participation: [5.0], finalGrade: 4.40},
-                          {subject: 'Ciencias Naturales', exams: [3.8, 4.0], homeworks: [3.5, 3.8], participation: [4.5], finalGrade: 3.85},
+                          {subject: 'Ciencias Naturales y Educación Ambiental', exams: [3.8, 4.0], homeworks: [3.5, 3.8], participation: [4.5], finalGrade: 3.85},
                           {subject: 'Inglés', exams: [4.8, 5.0], homeworks: [4.8, 4.8], participation: [5.0], finalGrade: 4.86}
                         ]).map((grade: any, idx: number) => (
                           <tr key={idx} className="hover:bg-slate-50/50">
@@ -441,7 +441,7 @@ export function DocumentEngine({
                           <th className="p-3 pl-4">Estudiante</th>
                           <th className="p-3 text-center">Matemáticas</th>
                           <th className="p-3 text-center">Inglés</th>
-                          <th className="p-3 text-center">Ciencias</th>
+                          <th className="p-3 text-center">Ciencias Naturales</th>
                           <th className="p-3 text-center">Asistencia</th>
                           <th className="p-3 text-right pr-4">Estado Final</th>
                         </tr>
@@ -484,7 +484,7 @@ export function DocumentEngine({
 
                   <div className="border border-slate-200 rounded-xl p-5 space-y-5 bg-slate-50/50">
                     {[
-                      {type: 'mild_negative', title: 'Falta Leve', date: '2026-05-24', reported: 'Prof. Gómez', desc: 'Uso reiterado de distractores móviles durante explicaciones de física.'},
+                      {type: 'mild_negative', title: 'Falta Leve', date: '2026-05-24', reported: 'Prof. Gómez', desc: 'Uso reiterado de distractores móviles durante explicaciones de Tecnología e Informática.'},
                       {type: 'positive', title: 'Anotación Sobresaliente', date: '2026-05-20', reported: 'Prof. Gómez', desc: 'Excelente monitoría académica voluntaria a compañeros con dificultades de Álgebra.'}
                     ].map((obs, idx) => (
                       <div key={idx} className="border-l-2 border-slate-900 pl-4 space-y-1">
@@ -556,7 +556,7 @@ export function DocumentEngine({
                     <div className="space-y-2">
                       <span className="text-[9px] font-black text-slate-450 uppercase tracking-wide block">Diagnóstico de Orientación Trimestral</span>
                       <p className="text-xs text-slate-655 font-medium leading-relaxed bg-white border p-3 rounded-lg shadow-inner">
-                        Dificultad de aprendizaje consolidada y niveles elevados de ansiedad escolar ante evaluaciones escritas. Se derivó formalmente a Terapia Ocupacional externa. Se mantiene plan de ajuste razonable (PIAR) activo en el aula de Matemáticas y Física.
+                        Dificultad de aprendizaje consolidada y niveles elevados de ansiedad escolar ante evaluaciones escritas. Se derivó formalmente a Terapia Ocupacional externa. Se mantiene plan de ajuste razonable (PIAR) activo en el aula de Matemáticas y Tecnología e Informática.
                       </p>
                     </div>
                   </div>

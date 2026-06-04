@@ -29,7 +29,7 @@ export const MOCK_STUDENTS: Student[] = [
     behaviorScore: 7.2,
     academicRisk: 'Alto',
     dropoutRisk: 'Medio',
-    warningReason: 'Rendimiento deficiente en Matemáticas y Física; inasistencias injustificadas',
+    warningReason: 'Rendimiento deficiente en Matemáticas y Tecnología e Informática; inasistencias injustificadas',
     parentsName: 'Mateo García',
     parentsPhone: '+57 312 444 5678',
   },
@@ -116,7 +116,7 @@ export const MOCK_TEACHERS: Teacher[] = [
     id: 'prof-01',
     name: 'Lic. Martínez',
     email: 'martinez@aulacore.edu.co',
-    subjects: ['Lengua Castellana', 'Literatura'],
+    subjects: ['Lengua Castellana'],
     assignedGroup: '10-A',
     status: 'Activo',
   },
@@ -124,14 +124,14 @@ export const MOCK_TEACHERS: Teacher[] = [
     id: 'prof-02',
     name: 'Prof. Gómez',
     email: 'gomez@aulacore.edu.co',
-    subjects: ['Matemáticas', 'Física'],
+    subjects: ['Matemáticas', 'Ciencias Naturales y Educación Ambiental'],
     status: 'Activo',
   },
   {
     id: 'prof-03',
     name: 'Dra. Diana Reyes',
     email: 'reyes@aulacore.edu.co',
-    subjects: ['Biología', 'Química'],
+    subjects: ['Ciencias Naturales y Educación Ambiental'],
     status: 'Activo',
   },
   {
@@ -174,7 +174,7 @@ export const MOCK_BEHAVIOR: BehaviorRecord[] = [
     studentName: 'Juan García',
     date: '2026-05-18',
     type: 'Leve',
-    description: 'Uso de teléfono móvil durante la explicación de Física de manera reiterada.',
+    description: 'Uso de teléfono móvil durante la explicación de Tecnología e Informática de manera reiterada.',
     observerName: 'Prof. Gómez',
     status: 'Resuelto',
   },
@@ -200,7 +200,7 @@ export const MOCK_BEHAVIOR: BehaviorRecord[] = [
   }
 ];
 
-// 6. Planilla de Notas de Evaluaciones (Física y Matemáticas por Prof. Gómez)
+// 6. Planilla de Notas de Evaluaciones (Ciencias Naturales y Matemáticas por Prof. Gómez)
 export const MOCK_GRADES: GradeRecord[] = [
   {
     id: 'grd-01',
@@ -233,7 +233,7 @@ export const MOCK_GRADES: GradeRecord[] = [
     id: 'grd-04',
     studentId: 'est-01',
     studentName: 'Sofía Ortiz',
-    subject: 'Física',
+    subject: 'Ciencias Naturales y Educación Ambiental',
     period: '2026-I',
     notes: { exams: [9.0, 9.2], homeworks: [9.5, 9.5], participation: [10.0] },
     finalGrade: 9.3,
@@ -242,7 +242,7 @@ export const MOCK_GRADES: GradeRecord[] = [
     id: 'grd-05',
     studentId: 'est-02',
     studentName: 'Juan García',
-    subject: 'Física',
+    subject: 'Ciencias Naturales y Educación Ambiental',
     period: '2026-I',
     notes: { exams: [5.0, 4.5], homeworks: [6.0, 5.5], participation: [5.0] },
     finalGrade: 5.2,

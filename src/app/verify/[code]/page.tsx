@@ -114,7 +114,7 @@ export default function DocumentVerificationPage() {
                 failuresCount: 3,
                 compromises: [
                   'Asistir diariamente a las monitorías académicas los días martes y jueves en jornada de la tarde.',
-                  'Entregar bitácora de repaso firmada por el acudiente (Sara Gómez) en cada clase de Física/Álgebra.',
+                  'Entregar bitácora de repaso firmada por el acudiente (Sara Gómez) en cada clase de Ciencias Naturales/Álgebra.',
                   'Desarrollar el taller remedial práctico asignado por el Prof. Gómez con fecha límite del 12 de junio.'
                 ],
                 parentName: 'Sara Gómez'

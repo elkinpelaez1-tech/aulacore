@@ -358,7 +358,7 @@ export function AcademicAnalyticsTab() {
                           <span className="text-right text-emerald-650 font-bold">72%</span>
                         </div>
                         <div className="px-4 py-3 grid grid-cols-4 font-semibold text-slate-600 items-center">
-                          <span className="text-slate-800 font-bold">Física Mecánica 10º</span>
+                          <span className="text-slate-800 font-bold">Tecnología e Informática 10º</span>
                           <span>Lic. Liliana G.</span>
                           <span className="text-center text-amber-600 font-bold">3 / 10 ses.</span>
                           <span className="text-right text-indigo-600 font-bold">55%</span>
@@ -429,7 +429,7 @@ DETALLE DE ACCIONES APLICADAS EN LA MALLA:
                           ["Programa", "Coordinador", "Progreso", "Efectividad"],
                           ["Refuerzo Algebra 9", "Lic. Sandra P.", "8 / 10 ses.", "68%"],
                           ["Comprension Lectora 7", "Lic. Carlos M.", "Completado", "72%"],
-                          ["Fisica Mecanica 10", "Lic. Liliana G.", "3 / 10 ses.", "55%"]
+                          ["Tecnología e Informática 10", "Lic. Liliana G.", "3 / 10 ses.", "55%"]
                         ].map(row => row.map(cell => `"${cell}"`).join(",")).join("\n");
 
                         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });

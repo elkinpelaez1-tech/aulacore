@@ -42,7 +42,7 @@ export function ParentMessagesCenter() {
               </div>
               <div className="bg-slate-100 rounded-2xl rounded-bl-sm px-4 py-2.5">
                 <p className="text-sm text-slate-700 font-medium leading-relaxed">
-                  Buenos días, Sra. María Fernanda. Quería felicitar el desempeño de Alejandro en Matemáticas. Sin embargo, me preocupa un poco su rendimiento en Física. ¿Podríamos programar una breve llamada esta semana?
+                  Buenos días, Sra. María Fernanda. Quería felicitar el desempeño de Alejandro en Matemáticas. Sin embargo, me preocupa un poco su rendimiento en Tecnología e Informática. ¿Podríamos programar una breve llamada esta semana?
                 </p>
                 <p className="text-[10px] font-bold text-slate-400 text-right mt-1">08:30 AM</p>
               </div>

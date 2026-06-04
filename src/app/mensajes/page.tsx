@@ -59,10 +59,10 @@ const CHAT_PARTNERS: ChatPartner[] = [
   {
     id: 'c-3',
     name: 'Prof. Ana Martínez',
-    role: 'Docente de Filosofía',
+    role: 'Docente de Educación Ética y en Valores Humanos',
     avatar: 'https://i.pravatar.cc/150?img=47',
     status: 'online',
-    initialMessage: 'Buen día. Recuerden que mañana cerramos la nota del foro de Epistemología.'
+    initialMessage: 'Buen día. Recuerden que mañana cerramos la nota del foro de Epistemología y Cuidado Ético.'
   }
 ];
 

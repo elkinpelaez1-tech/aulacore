@@ -786,7 +786,18 @@ export default function DocentesPage() {
                   <div className="md:col-span-2">
                     <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 block">Áreas del Conocimiento Dominantes</label>
                     <div className="flex flex-wrap gap-2">
-                      {['Matemáticas', 'Física', 'Química', 'Ciencias Naturales', 'Lenguaje y Literatura', 'Ciencias Sociales', 'Inglés', 'Filosofía', 'Tecnología'].map(area => {
+                      {[
+                        'Matemáticas',
+                        'Lengua Castellana',
+                        'Inglés',
+                        'Ciencias Naturales y Educación Ambiental',
+                        'Ciencias Sociales, Historia, Geografía, Constitución Política y Democracia',
+                        'Educación Artística y Cultural',
+                        'Educación Ética y en Valores Humanos',
+                        'Educación Física, Recreación y Deportes',
+                        'Educación Religiosa',
+                        'Tecnología e Informática'
+                      ].map(area => {
                         const isSelected = formData.domainAreas.includes(area);
                         
                         return (
@@ -867,11 +878,16 @@ export default function DocentesPage() {
                       onChange={(e) => handleInputChange('subjectArea', e.target.value)}
                       className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 outline-none focus:border-indigo-500 focus:bg-white transition-all shadow-sm"
                     >
-                      <option value="Matemáticas">Matemáticas & Estadística</option>
-                      <option value="Humanidades">Humanidades & Lengua Castellana</option>
-                      <option value="Ciencias">Ciencias Naturales & Educación Ambiental</option>
-                      <option value="Sociales">Ciencias Sociales & Filosofía</option>
-                      <option value="Ingles">Lenguas Extranjeras (Inglés)</option>
+                      <option value="Matemáticas">Matemáticas</option>
+                      <option value="Lengua Castellana">Lengua Castellana</option>
+                      <option value="Inglés">Inglés</option>
+                      <option value="Ciencias Naturales y Educación Ambiental">Ciencias Naturales y Educación Ambiental</option>
+                      <option value="Ciencias Sociales, Historia, Geografía, Constitución Política y Democracia">Ciencias Sociales, Historia, Geografía, Constitución Política y Democracia</option>
+                      <option value="Educación Artística y Cultural">Educación Artística y Cultural</option>
+                      <option value="Educación Ética y en Valores Humanos">Educación Ética y en Valores Humanos</option>
+                      <option value="Educación Física, Recreación y Deportes">Educación Física, Recreación y Deportes</option>
+                      <option value="Educación Religiosa">Educación Religiosa</option>
+                      <option value="Tecnología e Informática">Tecnología e Informática</option>
                     </select>
                   </div>
 

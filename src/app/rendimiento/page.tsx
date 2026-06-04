@@ -17,11 +17,11 @@ import { cn } from '@/lib/utils';
 
 const SKILLS_DATA = [
   { subject: 'Matemáticas', score: 95, avg: 75, fullMark: 100 },
-  { subject: 'Ciencias', score: 85, avg: 70, fullMark: 100 },
-  { subject: 'Lectura', score: 90, avg: 80, fullMark: 100 },
-  { subject: 'Arte', score: 75, avg: 85, fullMark: 100 },
-  { subject: 'Física', score: 55, avg: 65, fullMark: 100 },
-  { subject: 'Deportes', score: 100, avg: 90, fullMark: 100 },
+  { subject: 'Ciencias Naturales', score: 85, avg: 70, fullMark: 100 },
+  { subject: 'Lengua Castellana', score: 90, avg: 80, fullMark: 100 },
+  { subject: 'Educación Artística', score: 75, avg: 85, fullMark: 100 },
+  { subject: 'Tecnología e Informática', score: 55, avg: 65, fullMark: 100 },
+  { subject: 'Educación Física', score: 100, avg: 90, fullMark: 100 },
 ];
 
 const COMPARATIVE_DATA = [

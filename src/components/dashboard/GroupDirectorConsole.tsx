@@ -166,7 +166,7 @@ const MOCK_BEHAVIORAL_TIMELINE: behavioralTimelineLog[] = [
     studentName: 'Mateo Gómez',
     studentId: 'est-03',
     observation_type: 'mild_negative',
-    description: 'Uso reiterado de distractores móviles durante explicaciones de cinemática en física. Se le llamó la atención de forma respetuosa.',
+    description: 'Uso reiterado de distractores móviles durante explicaciones de programación en Tecnología e Informática. Se le llamó la atención de forma respetuosa.',
     commitments: 'El estudiante entregará el teléfono móvil apagado a su acudiente o al casillero escolar al inicio de cada jornada.',
     created_at: '2026-05-24',
     teacherName: 'Prof. Gómez'
@@ -937,7 +937,7 @@ export default function GroupDirectorConsole() {
               </span>
             </h4>
             <p className="text-xs text-slate-500 font-semibold mt-0.5">
-              También tienes asignaciones de enseñanza directa para Matemáticas y Física en este período.
+              También tienes asignaciones de enseñanza directa para Matemáticas y Tecnología e Informática en este período.
             </p>
           </div>
         </div>
@@ -948,7 +948,7 @@ export default function GroupDirectorConsole() {
             <span className="text-slate-500 font-semibold">15 pendientes</span>
           </div>
           <div className="text-xs bg-slate-105 border border-slate-200 px-3 py-1.5 rounded-lg text-slate-700 font-extrabold">
-            <span>Física 10-A: </span>
+            <span>Tecnología e Informática 10-A: </span>
             <span className="text-slate-500 font-semibold">Sin calificar</span>
           </div>
           <Button
