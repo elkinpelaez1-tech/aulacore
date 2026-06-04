@@ -280,202 +280,207 @@ function LoginContent() {
   return (
     <main className="min-h-screen bg-slate-900 flex flex-col lg:flex-row font-sans">
       
-      {/* 🏛️ COLUMNA IZQUIERDA: Ecosistema AulaCore (60% Desktop Only) */}
-      <section className="hidden lg:flex lg:w-[60%] bg-[#030712] relative overflow-hidden flex-col justify-between p-10 text-white border-r border-slate-800/40 select-none">
+      {/* 🏛️ COLUMNA IZQUIERDA: Ecosistema AulaCore (58% Desktop Only) */}
+      <section className="hidden lg:flex lg:w-[58%] bg-[#030712] relative overflow-hidden flex-col justify-center items-center p-10 text-white border-r border-slate-800/40 select-none">
         
         {/* Glows abstractos */}
         <div className="absolute top-[-30%] left-[-20%] w-[90%] h-[90%] bg-blue-600/5 rounded-full blur-3xl animate-pulse pointer-events-none" />
         <div className="absolute bottom-[-20%] right-[-10%] w-[70%] h-[70%] bg-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
 
-        {/* Header Logo */}
-        <div className="flex items-center gap-3 relative z-10">
-          <div className="w-8 h-8 rounded-lg bg-blue-600/10 flex items-center justify-center p-1.5 backdrop-blur-md border border-blue-500/25 shadow-inner">
-            <img 
-              src="/logo-aulacore.png" 
-              alt="AulaCore Logo" 
-              className="w-full h-full object-contain"
-            />
-          </div>
-          <span className="font-extrabold text-sm tracking-widest bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-100 to-slate-350">
-            AULACORE
-          </span>
-        </div>
-
-        {/* Ecosistema Content Panel */}
-        <div className="flex-1 flex flex-col justify-center gap-8 py-4 relative z-10">
+        {/* Centered container for visual balance */}
+        <div className="w-full max-w-[920px] h-full flex flex-col justify-between relative z-10">
           
-          {/* 1. CAROUSEL BANNER (240px) */}
-          <div className="relative w-full h-[240px] rounded-2xl overflow-hidden border border-slate-800 bg-slate-950/40 backdrop-blur-md group transition-all duration-300 shadow-2xl">
-            {/* Background image loaded dynamically with overlay */}
-            <div 
-              className="absolute inset-0 bg-cover bg-center transition-all duration-700 transform scale-100 group-hover:scale-102"
-              style={{ backgroundImage: `url(${currentBanner.imageUrl})` }}
-            />
-            <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/85 to-transparent" />
+          {/* Header Logo */}
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-blue-600/10 flex items-center justify-center p-1.5 backdrop-blur-md border border-blue-500/25 shadow-inner">
+              <img 
+                src="/logo-aulacore.png" 
+                alt="AulaCore Logo" 
+                className="w-full h-full object-contain"
+              />
+            </div>
+            <span className="font-extrabold text-sm tracking-widest bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-100 to-slate-350">
+              AULACORE
+            </span>
+          </div>
+
+          {/* Ecosistema Content Panel */}
+          <div className="flex-1 flex flex-col justify-center gap-8 py-6">
             
-            {/* Carousel navigation arrows */}
-            <button 
-              type="button"
-              onClick={handlePrevBanner}
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-slate-900/60 hover:bg-slate-950 border border-slate-700/50 flex items-center justify-center text-slate-300 hover:text-white transition cursor-pointer z-20"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <button 
-              type="button"
-              onClick={handleNextBanner}
-              className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-slate-900/60 hover:bg-slate-950 border border-slate-700/50 flex items-center justify-center text-slate-300 hover:text-white transition cursor-pointer z-20"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
+            {/* 1. CAROUSEL BANNER (240px) */}
+            <div className="relative w-full h-[240px] rounded-2xl overflow-hidden border border-slate-800 bg-slate-950/40 backdrop-blur-md group transition-all duration-300 shadow-2xl">
+              {/* Background image loaded dynamically with overlay */}
+              <div 
+                className="absolute inset-0 bg-cover bg-center transition-all duration-700 transform scale-100 group-hover:scale-102"
+                style={{ backgroundImage: `url(${currentBanner.imageUrl})` }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/85 to-transparent" />
+              
+              {/* Carousel navigation arrows */}
+              <button 
+                type="button"
+                onClick={handlePrevBanner}
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-slate-900/60 hover:bg-slate-950 border border-slate-700/50 flex items-center justify-center text-slate-300 hover:text-white transition cursor-pointer z-20"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <button 
+                type="button"
+                onClick={handleNextBanner}
+                className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-slate-900/60 hover:bg-slate-950 border border-slate-700/50 flex items-center justify-center text-slate-300 hover:text-white transition cursor-pointer z-20"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
 
-            {/* Inner Content Area */}
-            <div className="absolute inset-0 flex flex-col justify-between p-6 pl-12 pr-12 relative z-10">
-              <div className="space-y-2 max-w-[85%]">
-                <span className="text-[9px] font-black tracking-widest text-indigo-400 bg-indigo-550/10 border border-indigo-500/20 px-2.5 py-0.5 rounded-full uppercase leading-none inline-block">
-                  Eventos & Alianzas
-                </span>
-                <h2 className="text-xl font-black tracking-tight leading-tight text-white pt-1">
-                  {currentBanner.title}
-                </h2>
-                <p className="text-xs text-slate-300 leading-relaxed font-semibold">
-                  {currentBanner.subtitle}
-                </p>
-              </div>
-
-              <div className="flex items-center justify-between pt-4 border-t border-slate-800/40">
-                <div className="flex items-center gap-4 text-[10px] font-bold text-slate-400">
-                  {currentBanner.date && (
-                    <span className="flex items-center gap-1.5">
-                      <Calendar className="w-3.5 h-3.5 text-indigo-400" />
-                      {currentBanner.date}
-                    </span>
-                  )}
-                  {currentBanner.location && (
-                    <span className="flex items-center gap-1.5">
-                      <MapPin className="w-3.5 h-3.5 text-indigo-400" />
-                      {currentBanner.location}
-                    </span>
-                  )}
+              {/* Inner Content Area */}
+              <div className="absolute inset-0 flex flex-col justify-between p-6 pl-12 pr-12 relative z-10">
+                <div className="space-y-2 max-w-[85%]">
+                  <span className="text-[9px] font-black tracking-widest text-indigo-400 bg-indigo-550/10 border border-indigo-500/20 px-2.5 py-0.5 rounded-full uppercase leading-none inline-block">
+                    Eventos & Alianzas
+                  </span>
+                  <h2 className="text-xl font-black tracking-tight leading-tight text-white pt-1">
+                    {currentBanner.title}
+                  </h2>
+                  <p className="text-xs text-slate-300 leading-relaxed font-semibold">
+                    {currentBanner.subtitle}
+                  </p>
                 </div>
 
-                <a 
-                  href={currentBanner.buttonUrl}
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs px-4 py-2 rounded-lg flex items-center gap-1.5 transition shadow-md shadow-blue-500/10 cursor-pointer"
-                >
-                  {currentBanner.buttonText}
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </a>
-              </div>
-            </div>
-
-            {/* Bottom dots indicators */}
-            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-20">
-              {CAROUSEL_BANNERS.map((_, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={() => setBannerIndex(idx)}
-                  className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${bannerIndex === idx ? "bg-white w-4" : "bg-slate-600 hover:bg-slate-450"}`}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* 2. GRID DE TARJETAS DEL ECOSISTEMA (4 Tarjetas) */}
-          <div className="space-y-3">
-            <h3 className="text-sm font-black text-slate-200 tracking-wider uppercase">
-              Ecosistema AulaCore
-            </h3>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-              {ECOSISTEMA_CARDS.map((card) => (
-                <div 
-                  key={card.id}
-                  className="bg-slate-950/30 border border-slate-800/80 rounded-xl overflow-hidden hover:border-slate-700 transition flex flex-col justify-between h-[185px] hover:shadow-lg group"
-                >
-                  <div className="relative h-[80px] bg-cover bg-center shrink-0" style={{ backgroundImage: `url(${card.imageUrl})` }}>
-                    <div className="absolute inset-0 bg-slate-950/60" />
-                    {card.flagUrl && (
-                      <span className="absolute top-2.5 left-3 text-lg leading-none filter drop-shadow">
-                        {card.flagUrl}
+                <div className="flex items-center justify-between pt-4 border-t border-slate-800/40">
+                  <div className="flex items-center gap-4 text-[10px] font-bold text-slate-400">
+                    {currentBanner.date && (
+                      <span className="flex items-center gap-1.5">
+                        <Calendar className="w-3.5 h-3.5 text-indigo-400" />
+                        {currentBanner.date}
+                      </span>
+                    )}
+                    {currentBanner.location && (
+                      <span className="flex items-center gap-1.5">
+                        <MapPin className="w-3.5 h-3.5 text-indigo-400" />
+                        {currentBanner.location}
                       </span>
                     )}
                   </div>
 
-                  <div className="p-3.5 flex-1 flex flex-col justify-between gap-2.5">
-                    <div>
-                      <h4 className="text-xs font-black text-white leading-tight truncate-2-lines">
-                        {card.title}
-                      </h4>
-                      <p className="text-[10px] text-slate-400 font-semibold leading-snug line-clamp-2 mt-1">
-                        {card.descShort}
-                      </p>
+                  <a 
+                    href={currentBanner.buttonUrl}
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs px-4 py-2 rounded-lg flex items-center gap-1.5 transition shadow-md shadow-blue-500/10 cursor-pointer"
+                  >
+                    {currentBanner.buttonText}
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </a>
+                </div>
+              </div>
+
+              {/* Bottom dots indicators */}
+              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-20">
+                {CAROUSEL_BANNERS.map((_, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setBannerIndex(idx)}
+                    className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${bannerIndex === idx ? "bg-white w-4" : "bg-slate-600 hover:bg-slate-450"}`}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* 2. GRID DE TARJETAS DEL ECOSISTEMA (4 Tarjetas) */}
+            <div className="space-y-3">
+              <h3 className="text-sm font-black text-slate-200 tracking-wider uppercase">
+                Ecosistema AulaCore
+              </h3>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+                {ECOSISTEMA_CARDS.map((card) => (
+                  <div 
+                    key={card.id}
+                    className="bg-slate-950/30 border border-slate-800/80 rounded-xl overflow-hidden hover:border-slate-700 transition flex flex-col justify-between h-[160px] hover:shadow-lg group"
+                  >
+                    <div className="relative h-[65px] bg-cover bg-center shrink-0" style={{ backgroundImage: `url(${card.imageUrl})` }}>
+                      <div className="absolute inset-0 bg-slate-950/60" />
+                      {card.flagUrl && (
+                        <span className="absolute top-2 left-2 text-md leading-none filter drop-shadow">
+                          {card.flagUrl}
+                        </span>
+                      )}
                     </div>
 
-                    <a 
-                      href={card.buttonUrl}
-                      className="text-[10px] font-black text-indigo-400 hover:text-indigo-300 flex items-center gap-1 group-hover:translate-x-0.5 transition-all cursor-pointer mt-auto"
-                    >
-                      {card.buttonText}
-                      <ChevronRight className="w-3 h-3" />
-                    </a>
+                    <div className="p-3 flex-1 flex flex-col justify-between gap-1.5">
+                      <div>
+                        <h4 className="text-[11px] font-black text-white leading-tight truncate-2-lines">
+                          {card.title}
+                        </h4>
+                        <p className="text-[9px] text-slate-400 font-semibold leading-snug line-clamp-2 mt-0.5">
+                          {card.descShort}
+                        </p>
+                      </div>
+
+                      <a 
+                        href={card.buttonUrl}
+                        className="text-[9px] font-black text-indigo-400 hover:text-indigo-300 flex items-center gap-1 group-hover:translate-x-0.5 transition-all cursor-pointer mt-auto"
+                      >
+                        {card.buttonText}
+                        <ChevronRight className="w-3 h-3" />
+                      </a>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* 3. BENEFICIOS AULACORE (100px) */}
-        <div className="border-t border-slate-800/60 pt-6 pb-2 flex items-center justify-between gap-6 text-slate-400">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-450 shrink-0">
-              <ShieldCheck className="w-4.5 h-4.5" />
-            </div>
-            <div>
-              <span className="text-[11px] font-black text-slate-200 block">Seguridad Avanzada</span>
-              <p className="text-[9px] font-semibold text-slate-500 leading-none mt-0.5">Aislamiento y políticas RLS estrictas.</p>
+                ))}
+              </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-450 shrink-0">
-              <Cloud className="w-4.5 h-4.5" />
+          {/* 3. BENEFICIOS AULACORE (100px) */}
+          <div className="border-t border-slate-800/60 pt-6 pb-2 flex items-center justify-between gap-6 text-slate-400">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-450 shrink-0">
+                <ShieldCheck className="w-4.5 h-4.5" />
+              </div>
+              <div>
+                <span className="text-[11px] font-black text-slate-200 block">Seguridad Avanzada</span>
+                <p className="text-[9px] font-semibold text-slate-500 leading-none mt-0.5">Aislamiento y políticas RLS estrictas.</p>
+              </div>
             </div>
-            <div>
-              <span className="text-[11px] font-black text-slate-200 block">Plataforma en la Nube</span>
-              <p className="text-[9px] font-semibold text-slate-500 leading-none mt-0.5">Acceso 24/7 de alta disponibilidad.</p>
+
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-450 shrink-0">
+                <Cloud className="w-4.5 h-4.5" />
+              </div>
+              <div>
+                <span className="text-[11px] font-black text-slate-200 block">Plataforma en la Nube</span>
+                <p className="text-[9px] font-semibold text-slate-500 leading-none mt-0.5">Acceso 24/7 de alta disponibilidad.</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-450 shrink-0">
+                <BrainCircuit className="w-4.5 h-4.5" />
+              </div>
+              <div>
+                <span className="text-[11px] font-black text-slate-200 block">Inteligencia Predictiva</span>
+                <p className="text-[9px] font-semibold text-slate-500 leading-none mt-0.5">Modelos de IA aplicados a la educación.</p>
+              </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-450 shrink-0">
-              <BrainCircuit className="w-4.5 h-4.5" />
-            </div>
-            <div>
-              <span className="text-[11px] font-black text-slate-200 block">Inteligencia Predictiva</span>
-              <p className="text-[9px] font-semibold text-slate-500 leading-none mt-0.5">Modelos de IA aplicados a la educación.</p>
+          {/* Footer legal block */}
+          <div className="flex items-center justify-between text-[10px] text-slate-500 border-t border-slate-800/30 pt-4 font-semibold">
+            <span>&copy; {new Date().getFullYear()} AulaCore S.A.S. Todos los derechos reservados.</span>
+            <div className="flex gap-4">
+              <a href="https://aulacore.org/terminos" className="hover:text-slate-400">Términos de uso</a>
+              <span>|</span>
+              <a href="https://aulacore.org/privacidad" className="hover:text-slate-400">Política de privacidad</a>
+              <span>|</span>
+              <a href="https://aulacore.org/soporte" className="hover:text-slate-400">Soporte</a>
             </div>
           </div>
-        </div>
 
-        {/* Footer legal block */}
-        <div className="flex items-center justify-between text-[10px] text-slate-500 border-t border-slate-800/30 pt-4 font-semibold">
-          <span>&copy; {new Date().getFullYear()} AulaCore S.A.S. Todos los derechos reservados.</span>
-          <div className="flex gap-4">
-            <a href="https://aulacore.org/terminos" className="hover:text-slate-400">Términos de uso</a>
-            <span>|</span>
-            <a href="https://aulacore.org/privacidad" className="hover:text-slate-400">Política de privacidad</a>
-            <span>|</span>
-            <a href="https://aulacore.org/soporte" className="hover:text-slate-400">Soporte</a>
-          </div>
         </div>
 
       </section>
 
-      {/* 🔐 COLUMNA DERECHA: Formulario de Login (40% Desktop/Tablet/Mobile) */}
-      <section className="flex-1 lg:w-[40%] bg-white flex flex-col justify-between p-8 sm:p-12 overflow-y-auto min-h-screen">
+      {/* 🔐 COLUMNA DERECHA: Formulario de Login (42% Desktop/Tablet/Mobile) */}
+      <section className="flex-1 lg:w-[42%] bg-white flex flex-col justify-between p-8 sm:p-12 overflow-y-auto min-h-screen">
         
         {/* Top Spacer or Mobile Header */}
         <div className="lg:hidden flex items-center justify-center gap-2 mb-6">
