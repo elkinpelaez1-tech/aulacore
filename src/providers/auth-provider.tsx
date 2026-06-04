@@ -207,18 +207,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async () => {
     setLoading(true);
+    // Limpiar localStorage de inmediato para evitar bloqueos
+    localStorage.removeItem('aulacore-user-role');
+    localStorage.removeItem('aulacore-user-name');
+    localStorage.removeItem('aulacore-demo-name');
+    
     try {
-      await supabase.auth.signOut();
-      localStorage.removeItem('aulacore-user-role');
-      localStorage.removeItem('aulacore-user-name');
-      // Forzar una recarga dura para limpiar cachés del App Router y re-evaluar las cookies en el servidor
-      window.location.href = '/login';
+      // Ejecutar signOut en segundo plano para no demorar al cliente si la red falla
+      supabase.auth.signOut().catch(err => {
+        console.error('Error en signOut de Supabase en segundo plano:', err);
+      });
     } catch (err) {
-      console.error('Error cerrando sesión:', err);
-      window.location.href = '/login';
-    } finally {
-      setLoading(false);
+      console.error('Error llamando a signOut:', err);
     }
+    
+    // Redirigir inmediatamente
+    window.location.href = '/login';
   };
 
   const isAuthenticated = !!user;
