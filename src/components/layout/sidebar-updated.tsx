@@ -92,26 +92,36 @@ export function Sidebar({ userRole }: SidebarProps) {
             : (pathname === item.href || pathname.startsWith(item.href + '/'));
 
           return (
-            <Link key={item.href} href={item.href}>
-              <Button
-                variant={isActive ? 'default' : 'ghost'}
-                className={cn(
-                  'w-full justify-start gap-3 px-4 py-2.5 h-10 transition-all duration-200 rounded-lg font-semibold text-slate-300',
-                  isActive
-                    ? 'bg-gradient-to-r from-blue-600 to-indigo-650 text-white shadow-md shadow-blue-500/10 transform-gpu scale-100'
-                    : 'hover:bg-slate-800/40 hover:text-slate-100'
-                )}
-              >
-                <Icon className={cn("w-5 h-5 flex-shrink-0 transition-colors duration-200", isActive ? "text-white" : "text-slate-400")} />
-                <span className="flex-1 text-left text-sm font-semibold truncate">{item.label}</span>
-                {item.badge && (
-                  <span className="bg-red-500 text-white text-[10px] rounded-full px-2 py-0.5 font-bold shadow-sm">
-                    {item.badge}
+            <div key={item.href} className="space-y-1.5">
+              {item.header && (
+                <div className="pt-4 pb-1">
+                  <div className="h-px bg-slate-800 my-2" />
+                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 px-4">
+                    {item.header}
                   </span>
-                )}
-                {isActive && <ChevronRight className="w-4 h-4 flex-shrink-0 opacity-80" />}
-              </Button>
-            </Link>
+                </div>
+              )}
+              <Link href={item.href}>
+                <Button
+                  variant={isActive ? 'default' : 'ghost'}
+                  className={cn(
+                    'w-full justify-start gap-3 px-4 py-2.5 h-10 transition-all duration-200 rounded-lg font-semibold text-slate-300',
+                    isActive
+                      ? 'bg-gradient-to-r from-blue-600 to-indigo-650 text-white shadow-md shadow-blue-500/10 transform-gpu scale-100'
+                      : 'hover:bg-slate-800/40 hover:text-slate-100'
+                  )}
+                >
+                  <Icon className={cn("w-5 h-5 flex-shrink-0 transition-colors duration-200", isActive ? "text-white" : "text-slate-400")} />
+                  <span className="flex-1 text-left text-sm font-semibold truncate">{item.label}</span>
+                  {item.badge && (
+                    <span className="bg-red-500 text-white text-[10px] rounded-full px-2 py-0.5 font-bold shadow-sm">
+                      {item.badge}
+                    </span>
+                  )}
+                  {isActive && <ChevronRight className="w-4 h-4 flex-shrink-0 opacity-80" />}
+                </Button>
+              </Link>
+            </div>
           );
         })}
       </nav>

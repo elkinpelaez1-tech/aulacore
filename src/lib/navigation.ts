@@ -25,6 +25,7 @@ export interface NavItem {
   href: string;
   icon: typeof LayoutDashboard;
   badge?: string;
+  header?: string;
 }
 
 export interface NavMenu {
@@ -75,6 +76,12 @@ export const NAVIGATION_MENUS: Record<UserRole, NavItem[]> = {
       label: 'Evaluaciones IA',
       href: '/evaluaciones',
       icon: BrainCircuit,
+    },
+    {
+      label: 'Proyecto Educativo (PEI)',
+      href: '/pei',
+      icon: Target,
+      header: 'Gestión Institucional',
     },
     {
       label: 'Configuración',
@@ -132,6 +139,12 @@ export const NAVIGATION_MENUS: Record<UserRole, NavItem[]> = {
       icon: BrainCircuit,
     },
     {
+      label: 'Proyecto Educativo (PEI)',
+      href: '/pei',
+      icon: Target,
+      header: 'Gestión Institucional',
+    },
+    {
       label: 'Alertas',
       href: '/alertas',
       icon: Bell,
@@ -168,6 +181,12 @@ export const NAVIGATION_MENUS: Record<UserRole, NavItem[]> = {
       label: 'Alertas',
       href: '/alertas',
       icon: AlertCircle,
+    },
+    {
+      label: 'Proyecto Educativo (PEI)',
+      href: '/pei',
+      icon: Target,
+      header: 'Gestión Institucional',
     },
     {
       label: 'Reportes',
@@ -212,6 +231,12 @@ export const NAVIGATION_MENUS: Record<UserRole, NavItem[]> = {
       href: '/asistencia',
       icon: QrCode,
     },
+    {
+      label: 'Proyecto Educativo (PEI)',
+      href: '/pei',
+      icon: Target,
+      header: 'Gestión Institucional',
+    },
   ],
 
   secretaria: [
@@ -234,6 +259,12 @@ export const NAVIGATION_MENUS: Record<UserRole, NavItem[]> = {
       label: 'Documentos',
       href: '/documentos',
       icon: FileText,
+    },
+    {
+      label: 'Proyecto Educativo (PEI)',
+      href: '/pei',
+      icon: Target,
+      header: 'Gestión Institucional',
     },
     {
       label: 'Configuración',
