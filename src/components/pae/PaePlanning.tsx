@@ -7,7 +7,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@
 import { 
   DollarSign, MapPin, Building, ShieldCheck, 
   Users, Utensils, Plus, Eye, Download, 
-  AlertCircle, Camera, Check 
+  AlertCircle, Camera, Check, X 
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -45,6 +45,64 @@ export function PaePlanning({
   const [activeSubTab, setActiveSubTab] = useState<'resources' | 'prioritisation' | 'diagnostics' | 'operators' | 'team' | 'menus'>('resources');
 
   const canEdit = userRole === 'rector' || userRole === 'secretaria' || userRole === 'coordinador';
+
+  // Operator Edit form state
+  const [isEditOperatorModalOpen, setIsEditOperatorModalOpen] = useState(false);
+  const [opId, setOpId] = useState('');
+  const [opName, setOpName] = useState('');
+  const [opNit, setOpNit] = useState('');
+  const [opRep, setOpRep] = useState('');
+  const [opContract, setOpContract] = useState('');
+  const [opStart, setOpStart] = useState('');
+  const [opEnd, setOpEnd] = useState('');
+  const [opPoliciesText, setOpPoliciesText] = useState('');
+  const [opActive, setOpActive] = useState(true);
+
+  const handleOpenEditOperator = (op: any) => {
+    setOpId(op.id);
+    setOpName(op.operator_name);
+    setOpNit(op.nit);
+    setOpRep(op.representative);
+    setOpContract(op.contract_number);
+    setOpStart(op.start_date);
+    setOpEnd(op.end_date);
+    setOpPoliciesText(op.policies ? op.policies.join('\n') : '');
+    setOpActive(op.is_active ?? true);
+    setIsEditOperatorModalOpen(true);
+  };
+
+  const handleSaveEditedOperator = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!opName.trim() || !opNit.trim() || !opRep.trim() || !opContract.trim() || !opStart || !opEnd) {
+      alert('Por favor, complete todos los campos obligatorios.');
+      return;
+    }
+
+    const updatedPolicies = opPoliciesText
+      .split('\n')
+      .map(p => p.trim())
+      .filter(p => p.length > 0);
+
+    const updated = operators.map(o => 
+      o.id === opId
+        ? {
+            ...o,
+            operator_name: opName,
+            nit: opNit,
+            representative: opRep,
+            contract_number: opContract,
+            start_date: opStart,
+            end_date: opEnd,
+            policies: updatedPolicies,
+            is_active: opActive
+          }
+        : o
+    );
+
+    onSaveOperators(updated);
+    setIsEditOperatorModalOpen(false);
+    alert('✓ Información del contratista actualizada correctamente.');
+  };
 
   // --- RESOURCES HANDLERS & MOCK NEW RESOURCE ---
   const handleAddResource = () => {
@@ -366,7 +424,16 @@ export function PaePlanning({
                     Ficha del Contratista Operador
                   </CardTitle>
                 </div>
-                <div>
+                <div className="flex items-center gap-3">
+                  {canEdit && (
+                    <Button 
+                      variant="outline" 
+                      onClick={() => handleOpenEditOperator(op)}
+                      className="h-8 text-xs font-bold border-slate-250 hover:bg-slate-50 rounded-xl cursor-pointer"
+                    >
+                      Editar Contratista
+                    </Button>
+                  )}
                   <span className={cn(
                     "text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full border",
                     op.is_active ? "bg-emerald-50 text-emerald-800 border-emerald-200" : "bg-slate-100 text-slate-500 border-slate-200"
@@ -523,6 +590,134 @@ export function PaePlanning({
         </div>
       )}
 
+      {/* --- MODAL EDIT OPERATOR --- */}
+      {isEditOperatorModalOpen && (
+        <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4">
+          <div onClick={() => setIsEditOperatorModalOpen(false)} className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm transition-opacity" />
+          <Card className="inline-block transform overflow-hidden rounded-3xl bg-white border border-slate-200 text-left align-bottom shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:align-middle relative z-10 w-full">
+            <form onSubmit={handleSaveEditedOperator}>
+              <div className="bg-white px-6 pt-6 pb-4 space-y-4">
+                <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+                  <h3 className="text-base font-black text-slate-900 tracking-tight flex items-center gap-2">
+                    <ShieldCheck className="w-5 h-5 text-indigo-600" />
+                    Editar Contratista Operador PAE
+                  </h3>
+                  <button type="button" onClick={() => setIsEditOperatorModalOpen(false)} className="text-slate-400 hover:text-slate-650 outline-none border-none bg-transparent cursor-pointer">
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                <div className="space-y-4 text-xs font-semibold text-slate-700">
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-450 uppercase tracking-widest block mb-1.5">Nombre del Operador *</label>
+                    <input
+                      type="text"
+                      required
+                      value={opName}
+                      onChange={(e) => setOpName(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 outline-none focus:bg-white focus:border-indigo-500 transition-all font-semibold"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-450 uppercase tracking-widest block mb-1.5">NIT *</label>
+                      <input
+                        type="text"
+                        required
+                        value={opNit}
+                        onChange={(e) => setOpNit(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 outline-none focus:bg-white focus:border-indigo-500 transition-all font-semibold"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-450 uppercase tracking-widest block mb-1.5">Representante Legal *</label>
+                      <input
+                        type="text"
+                        required
+                        value={opRep}
+                        onChange={(e) => setOpRep(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 outline-none focus:bg-white focus:border-indigo-500 transition-all font-semibold"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-450 uppercase tracking-widest block mb-1.5">Número de Contrato *</label>
+                      <input
+                        type="text"
+                        required
+                        value={opContract}
+                        onChange={(e) => setOpContract(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 outline-none focus:bg-white focus:border-indigo-500 transition-all font-semibold"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-450 uppercase tracking-widest block mb-2">Estado del Contrato</label>
+                      <div className="flex gap-4 pt-1 font-bold">
+                        <label className="flex items-center gap-1.5 cursor-pointer">
+                          <input type="radio" name="opAct" checked={opActive} onChange={() => setOpActive(true)} className="w-4 h-4 cursor-pointer" />
+                          Activo
+                        </label>
+                        <label className="flex items-center gap-1.5 cursor-pointer">
+                          <input type="radio" name="opAct" checked={!opActive} onChange={() => setOpActive(false)} className="w-4 h-4 cursor-pointer" />
+                          Inactivo
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-450 uppercase tracking-widest block mb-1.5">Vigencia desde *</label>
+                      <input
+                        type="date"
+                        required
+                        value={opStart}
+                        onChange={(e) => setOpStart(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 outline-none focus:bg-white focus:border-indigo-500 transition-all font-semibold"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-450 uppercase tracking-widest block mb-1.5">Vigencia hasta *</label>
+                      <input
+                        type="date"
+                        required
+                        value={opEnd}
+                        onChange={(e) => setOpEnd(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 outline-none focus:bg-white focus:border-indigo-500 transition-all font-semibold"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-450 uppercase tracking-widest block mb-1.5">Pólizas Constituidas (Una por línea)</label>
+                    <textarea
+                      rows={3}
+                      value={opPoliciesText}
+                      onChange={(e) => setOpPoliciesText(e.target.value)}
+                      placeholder="Ej. Póliza de Calidad - Suramericana No. 45102&#10;Póliza de Cumplimiento - Seguros del Estado No. 90291"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 outline-none focus:bg-white focus:border-indigo-500 transition-all font-semibold resize-none"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-slate-50 px-6 py-4 flex justify-end gap-2 border-t border-slate-100">
+                <Button type="button" onClick={() => setIsEditOperatorModalOpen(false)} className="px-4 py-2 bg-white border border-slate-200 text-slate-655 rounded-xl text-xs font-semibold uppercase tracking-wider hover:bg-slate-100 cursor-pointer h-9">
+                  Cancelar
+                </Button>
+                <Button type="submit" className="px-5 py-2 bg-indigo-600 text-white rounded-xl text-xs font-semibold uppercase tracking-wider hover:bg-indigo-700 shadow-sm cursor-pointer h-9 border-none">
+                  Guardar Cambios
+                </Button>
+              </div>
+            </form>
+          </Card>
+        </div>
+      )}
+
     </div>
   );
 }
+
