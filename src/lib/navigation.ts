@@ -16,6 +16,7 @@ import {
   Target,
   FileBadge,
   ClipboardList,
+  Utensils,
 } from 'lucide-react';
 
 export type UserRole = 'rector' | 'coordinador' | 'director_grupo' | 'docente' | 'secretaria' | 'padre_familia' | 'estudiante';
@@ -84,6 +85,11 @@ export const NAVIGATION_MENUS: Record<UserRole, NavItem[]> = {
       header: 'Gestión Institucional',
     },
     {
+      label: 'Programa Alimentación (PAE)',
+      href: '/pae',
+      icon: Utensils,
+    },
+    {
       label: 'Configuración',
       href: '/configuracion',
       icon: Settings,
@@ -145,6 +151,11 @@ export const NAVIGATION_MENUS: Record<UserRole, NavItem[]> = {
       header: 'Gestión Institucional',
     },
     {
+      label: 'Programa Alimentación (PAE)',
+      href: '/pae',
+      icon: Utensils,
+    },
+    {
       label: 'Alertas',
       href: '/alertas',
       icon: Bell,
@@ -187,6 +198,11 @@ export const NAVIGATION_MENUS: Record<UserRole, NavItem[]> = {
       href: '/pei',
       icon: Target,
       header: 'Gestión Institucional',
+    },
+    {
+      label: 'Programa Alimentación (PAE)',
+      href: '/pae',
+      icon: Utensils,
     },
     {
       label: 'Reportes',
@@ -237,6 +253,11 @@ export const NAVIGATION_MENUS: Record<UserRole, NavItem[]> = {
       icon: Target,
       header: 'Gestión Institucional',
     },
+    {
+      label: 'Programa Alimentación (PAE)',
+      href: '/pae',
+      icon: Utensils,
+    },
   ],
 
   secretaria: [
@@ -265,6 +286,11 @@ export const NAVIGATION_MENUS: Record<UserRole, NavItem[]> = {
       href: '/pei',
       icon: Target,
       header: 'Gestión Institucional',
+    },
+    {
+      label: 'Programa Alimentación (PAE)',
+      href: '/pae',
+      icon: Utensils,
     },
     {
       label: 'Configuración',
