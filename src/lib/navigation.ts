@@ -17,6 +17,7 @@ import {
   FileBadge,
   ClipboardList,
   Utensils,
+  Database,
 } from 'lucide-react';
 
 export type UserRole = 'rector' | 'coordinador' | 'director_grupo' | 'docente' | 'secretaria' | 'padre_familia' | 'estudiante';
@@ -90,6 +91,11 @@ export const NAVIGATION_MENUS: Record<UserRole, NavItem[]> = {
       icon: Utensils,
     },
     {
+      label: 'Centro de Migración',
+      href: '/migracion',
+      icon: Database,
+    },
+    {
       label: 'Configuración',
       href: '/configuracion',
       icon: Settings,
@@ -154,6 +160,11 @@ export const NAVIGATION_MENUS: Record<UserRole, NavItem[]> = {
       label: 'Programa Alimentación (PAE)',
       href: '/pae',
       icon: Utensils,
+    },
+    {
+      label: 'Centro de Migración',
+      href: '/migracion',
+      icon: Database,
     },
     {
       label: 'Alertas',
@@ -291,6 +302,11 @@ export const NAVIGATION_MENUS: Record<UserRole, NavItem[]> = {
       label: 'Programa Alimentación (PAE)',
       href: '/pae',
       icon: Utensils,
+    },
+    {
+      label: 'Centro de Migración',
+      href: '/migracion',
+      icon: Database,
     },
     {
       label: 'Configuración',
