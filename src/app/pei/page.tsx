@@ -186,80 +186,148 @@ export default function PeiPage() {
     }
 
     async function loadPeiData() {
+      // 1. Cargar datos locales de inmediato (evita pantallas de carga largas y da fallback instantáneo)
+      const savedIdentity = localStorage.getItem('aulacore-pei-identity');
+      const savedModel = localStorage.getItem('aulacore-pei-model');
+      const savedGovernment = localStorage.getItem('aulacore-pei-government');
+      const savedManual = localStorage.getItem('aulacore-pei-manual');
+      const savedProjects = localStorage.getItem('aulacore-pei-projects');
+      const savedConvocatorias = localStorage.getItem('aulacore-pei-convocatorias');
+      const savedMeetings = localStorage.getItem('aulacore-pei-meetings');
+      const savedActas = localStorage.getItem('aulacore-pei-actas');
+
+      if (savedIdentity) setIdentity(JSON.parse(savedIdentity));
+      else localStorage.setItem('aulacore-pei-identity', JSON.stringify(SEED_IDENTITY));
+
+      if (savedModel) setModel(JSON.parse(savedModel));
+      else localStorage.setItem('aulacore-pei-model', JSON.stringify(SEED_MODEL));
+
+      if (savedGovernment) setGovernment(JSON.parse(savedGovernment));
+      else localStorage.setItem('aulacore-pei-government', JSON.stringify(SEED_GOVERNMENT));
+
+      if (savedManual) setManualVersions(JSON.parse(savedManual));
+      else localStorage.setItem('aulacore-pei-manual', JSON.stringify(SEED_MANUAL_VERSIONS));
+
+      if (savedProjects) setProjects(JSON.parse(savedProjects));
+      else localStorage.setItem('aulacore-pei-projects', JSON.stringify(SEED_PROJECTS));
+
+      if (savedConvocatorias) setConvocatorias(JSON.parse(savedConvocatorias));
+      else {
+        localStorage.setItem('aulacore-pei-convocatorias', JSON.stringify(SEED_CONVOCATORIAS));
+        setConvocatorias(SEED_CONVOCATORIAS);
+      }
+
+      if (savedMeetings) setMeetings(JSON.parse(savedMeetings));
+      else {
+        localStorage.setItem('aulacore-pei-meetings', JSON.stringify(SEED_MEETINGS));
+        setMeetings(SEED_MEETINGS);
+      }
+
+      if (savedActas) setActas(JSON.parse(savedActas));
+      else {
+        localStorage.setItem('aulacore-pei-actas', JSON.stringify(SEED_ACTAS));
+        setActas(SEED_ACTAS);
+      }
+
       try {
         setLoading(true);
 
-        // Intentar consultar Supabase en caliente
-        const { data: identityDb } = await supabase.from('pei_identity').select('*').limit(1).maybeSingle();
-        const { data: modelDb } = await supabase.from('pei_pedagogical_model').select('*').limit(1).maybeSingle();
-        const { data: governmentDb } = await supabase.from('pei_school_government').select('*').order('created_at', { ascending: true });
-        const { data: manualDb } = await supabase.from('pei_manual_versions').select('*').order('created_at', { ascending: false });
-        const { data: projectsDb } = await supabase.from('pei_projects').select('*').order('created_at', { ascending: true });
-        const { data: convocatoriasDb } = await supabase.from('pei_gov_convocatorias').select('*').order('created_at', { ascending: false });
-        const { data: meetingsDb } = await supabase.from('pei_gov_meetings').select('*').order('created_at', { ascending: false });
-        const { data: actasDb } = await supabase.from('pei_gov_actas').select('*').order('created_at', { ascending: false });
+        // Definir helper de timeout para las peticiones a Supabase (2 segundos máx)
+        const withTimeout = <T,>(promise: PromiseLike<T>, ms = 2000): Promise<T> => {
+          return Promise.race([
+            Promise.resolve(promise),
+            new Promise<never>((_, reject) =>
+              setTimeout(() => reject(new Error('Supabase query timed out')), ms)
+            )
+          ]);
+        };
 
-        // Sincronización con base de datos remota
-        if (identityDb) setIdentity({
-          mission: identityDb.mission,
-          vision: identityDb.vision,
-          principles: identityDb.principles,
-          values: identityDb.values,
-          studentProfile: identityDb.student_profile,
-          teacherProfile: identityDb.teacher_profile,
-          graduateProfile: identityDb.graduate_profile
-        });
-        if (modelDb) setModel({
-          modelType: modelDb.model_type,
-          description: modelDb.description
-        });
-        if (governmentDb && governmentDb.length > 0) setGovernment(governmentDb);
-        if (manualDb && manualDb.length > 0) setManualVersions(manualDb);
-        if (projectsDb && projectsDb.length > 0) setProjects(projectsDb);
-        if (convocatoriasDb && convocatoriasDb.length > 0) setConvocatorias(convocatoriasDb);
-        if (meetingsDb && meetingsDb.length > 0) setMeetings(meetingsDb);
-        if (actasDb && actasDb.length > 0) setActas(actasDb);
+        // Realizar las consultas de Supabase en paralelo y con timeout
+        const [
+          identityRes,
+          modelRes,
+          governmentRes,
+          manualRes,
+          projectsRes,
+          convocatoriasRes,
+          meetingsRes,
+          actasRes
+        ] = await Promise.all([
+          withTimeout(supabase.from('pei_identity').select('*').limit(1).maybeSingle()),
+          withTimeout(supabase.from('pei_pedagogical_model').select('*').limit(1).maybeSingle()),
+          withTimeout(supabase.from('pei_school_government').select('*').order('created_at', { ascending: true })),
+          withTimeout(supabase.from('pei_manual_versions').select('*').order('created_at', { ascending: false })),
+          withTimeout(supabase.from('pei_projects').select('*').order('created_at', { ascending: true })),
+          withTimeout(supabase.from('pei_gov_convocatorias').select('*').order('created_at', { ascending: false })),
+          withTimeout(supabase.from('pei_gov_meetings').select('*').order('created_at', { ascending: false })),
+          withTimeout(supabase.from('pei_gov_actas').select('*').order('created_at', { ascending: false }))
+        ]);
 
-        // Cargar desde LocalStorage para persistencia local de demostración
-        const savedIdentity = localStorage.getItem('aulacore-pei-identity');
-        const savedModel = localStorage.getItem('aulacore-pei-model');
-        const savedGovernment = localStorage.getItem('aulacore-pei-government');
-        const savedManual = localStorage.getItem('aulacore-pei-manual');
-        const savedProjects = localStorage.getItem('aulacore-pei-projects');
-        const savedConvocatorias = localStorage.getItem('aulacore-pei-convocatorias');
-        const savedMeetings = localStorage.getItem('aulacore-pei-meetings');
-        const savedActas = localStorage.getItem('aulacore-pei-actas');
+        const identityDb = identityRes.data;
+        const modelDb = modelRes.data;
+        const governmentDb = governmentRes.data;
+        const manualDb = manualRes.data;
+        const projectsDb = projectsRes.data;
+        const convocatoriasDb = convocatoriasRes.data;
+        const meetingsDb = meetingsRes.data;
+        const actasDb = actasRes.data;
 
-        if (savedIdentity && !identityDb) setIdentity(JSON.parse(savedIdentity));
-        if (savedModel && !modelDb) setModel(JSON.parse(savedModel));
-        if (savedGovernment && (!governmentDb || governmentDb.length === 0)) setGovernment(JSON.parse(savedGovernment));
-        if (savedManual && (!manualDb || manualDb.length === 0)) setManualVersions(JSON.parse(savedManual));
-        if (savedProjects && (!projectsDb || projectsDb.length === 0)) setProjects(JSON.parse(savedProjects));
-        if (savedConvocatorias && (!convocatoriasDb || convocatoriasDb.length === 0)) setConvocatorias(JSON.parse(savedConvocatorias));
-        if (savedMeetings && (!meetingsDb || meetingsDb.length === 0)) setMeetings(JSON.parse(savedMeetings));
-        if (savedActas && (!actasDb || actasDb.length === 0)) setActas(JSON.parse(savedActas));
-
-        // Inicializar LocalStorage si está vacío
-        if (!savedIdentity) localStorage.setItem('aulacore-pei-identity', JSON.stringify(SEED_IDENTITY));
-        if (!savedModel) localStorage.setItem('aulacore-pei-model', JSON.stringify(SEED_MODEL));
-        if (!savedGovernment) localStorage.setItem('aulacore-pei-government', JSON.stringify(SEED_GOVERNMENT));
-        if (!savedManual) localStorage.setItem('aulacore-pei-manual', JSON.stringify(SEED_MANUAL_VERSIONS));
-        if (!savedProjects) localStorage.setItem('aulacore-pei-projects', JSON.stringify(SEED_PROJECTS));
-        if (!savedConvocatorias) {
-          localStorage.setItem('aulacore-pei-convocatorias', JSON.stringify(SEED_CONVOCATORIAS));
-          setConvocatorias(SEED_CONVOCATORIAS);
+        // Si la base de datos respondió correctamente, actualizar los estados y el LocalStorage
+        if (identityDb) {
+          const formattedIdentity = {
+            mission: identityDb.mission,
+            vision: identityDb.vision,
+            principles: identityDb.principles,
+            values: identityDb.values,
+            studentProfile: identityDb.student_profile,
+            teacherProfile: identityDb.teacher_profile,
+            graduateProfile: identityDb.graduate_profile
+          };
+          setIdentity(formattedIdentity);
+          localStorage.setItem('aulacore-pei-identity', JSON.stringify(formattedIdentity));
         }
-        if (!savedMeetings) {
-          localStorage.setItem('aulacore-pei-meetings', JSON.stringify(SEED_MEETINGS));
-          setMeetings(SEED_MEETINGS);
+
+        if (modelDb) {
+          const formattedModel = {
+            modelType: modelDb.model_type,
+            description: modelDb.description
+          };
+          setModel(formattedModel);
+          localStorage.setItem('aulacore-pei-model', JSON.stringify(formattedModel));
         }
-        if (!savedActas) {
-          localStorage.setItem('aulacore-pei-actas', JSON.stringify(SEED_ACTAS));
-          setActas(SEED_ACTAS);
+
+        if (governmentDb && governmentDb.length > 0) {
+          setGovernment(governmentDb);
+          localStorage.setItem('aulacore-pei-government', JSON.stringify(governmentDb));
+        }
+
+        if (manualDb && manualDb.length > 0) {
+          setManualVersions(manualDb);
+          localStorage.setItem('aulacore-pei-manual', JSON.stringify(manualDb));
+        }
+
+        if (projectsDb && projectsDb.length > 0) {
+          setProjects(projectsDb);
+          localStorage.setItem('aulacore-pei-projects', JSON.stringify(projectsDb));
+        }
+
+        if (convocatoriasDb && convocatoriasDb.length > 0) {
+          setConvocatorias(convocatoriasDb);
+          localStorage.setItem('aulacore-pei-convocatorias', JSON.stringify(convocatoriasDb));
+        }
+
+        if (meetingsDb && meetingsDb.length > 0) {
+          setMeetings(meetingsDb);
+          localStorage.setItem('aulacore-pei-meetings', JSON.stringify(meetingsDb));
+        }
+
+        if (actasDb && actasDb.length > 0) {
+          setActas(actasDb);
+          localStorage.setItem('aulacore-pei-actas', JSON.stringify(actasDb));
         }
 
       } catch (err) {
-        console.warn('Supabase fetch failed in PEI page. Utilizing LocalStorage cache.');
+        console.warn('Supabase fetch failed or timed out in PEI page. Utilizing LocalStorage cache.', err);
       } finally {
         setLoading(false);
       }
