@@ -42,14 +42,84 @@ const SEED_MODEL = {
 };
 
 const SEED_GOVERNMENT = [
-  { id: 'gov-1', body_type: 'Rector', member_name: 'Dr. Ramón Ramírez', role_title: 'Rector de la Institución', period: '2026' },
-  { id: 'gov-2', body_type: 'Consejo Directivo', member_name: 'Dr. Ramón Ramírez', role_title: 'Presidente', period: '2026' },
-  { id: 'gov-3', body_type: 'Consejo Directivo', member_name: 'Dra. Diana Carolina Reyes', role_title: 'Representante de Docentes', period: '2026' },
-  { id: 'gov-4', body_type: 'Consejo Académico', member_name: 'Lic. Carlos Martínez', role_title: 'Representante de Humanidades', period: '2026' },
-  { id: 'gov-5', body_type: 'Consejo Estudiantil', member_name: 'Mateo Gómez', role_title: 'Representante Grado Décimo', period: '2026' },
-  { id: 'gov-6', body_type: 'Personero', member_name: 'Alejandro Ortiz', role_title: 'Personero de Estudiantes', period: '2026' },
-  { id: 'gov-7', body_type: 'Contralor Escolar', member_name: 'Sofía Ramírez', role_title: 'Contralora Escolar', period: '2026' },
-  { id: 'gov-8', body_type: 'Consejo de Padres', member_name: 'Carlos Ortiz', role_title: 'Representante Grado Décimo A', period: '2026' }
+  { id: 'gov-1', body_type: 'Rector', member_name: 'Dr. Ramón Ramírez', role_title: 'Rector de la Institución', period: '2026', document_number: '1010202030', email: 'ramon.ramirez@aulacore.edu.co', phone: '+573001234567' },
+  { id: 'gov-2', body_type: 'Consejo Directivo', member_name: 'Dr. Ramón Ramírez', role_title: 'Presidente', period: '2026', document_number: '1010202030', email: 'ramon.ramirez@aulacore.edu.co', phone: '+573001234567' },
+  { id: 'gov-3', body_type: 'Consejo Directivo', member_name: 'Dra. Diana Carolina Reyes', role_title: 'Representante de Docentes', period: '2026', document_number: '52190180', email: 'diana.reyes@aulacore.edu.co', phone: '+573123456789' },
+  { id: 'gov-4', body_type: 'Consejo Académico', member_name: 'Lic. Carlos Martínez', role_title: 'Representante de Humanidades', period: '2026', document_number: '79820300', email: 'carlos.martinez@aulacore.edu.co', phone: '+573104567890' },
+  { id: 'gov-5', body_type: 'Consejo Estudiantil', member_name: 'Mateo Gómez', role_title: 'Representante Grado Décimo', period: '2026', document_number: '1000123456', email: 'mateo.gomez@aulacore.edu.co', phone: '+573157890123' },
+  { id: 'gov-6', body_type: 'Personero', member_name: 'Alejandro Ortiz', role_title: 'Personero de Estudiantes', period: '2026', document_number: '1000987654', email: 'alejandro.ortiz@aulacore.edu.co', phone: '+573204561234' },
+  { id: 'gov-7', body_type: 'Contralor Escolar', member_name: 'Sofía Ramírez', role_title: 'Contralora Escolar', period: '2026', document_number: '1000543210', email: 'sofia.ramirez@aulacore.edu.co', phone: '+573183214321' },
+  { id: 'gov-8', body_type: 'Consejo de Padres', member_name: 'Carlos Ortiz', role_title: 'Representante Grado Décimo A', period: '2026', document_number: '19820300', email: 'carlos.ortiz@parent.aulacore.com', phone: '+573111223344' }
+];
+
+const SEED_CONVOCATORIAS = [
+  {
+    id: 'conv-1',
+    title: 'Primera Sesión Ordinaria de Consejo Directivo',
+    body_type: 'Consejo Directivo',
+    meeting_date: '2026-02-10',
+    meeting_time: '08:00',
+    location: 'Sala de Juntas Rectoría',
+    description: 'Revisión y aprobación del presupuesto anual 2026 e informe de gestión del periodo anterior.',
+    status: 'Realizada',
+    recipients: [
+      { name: 'Dr. Ramón Ramírez', email: 'ramon.ramirez@aulacore.edu.co', phone: '+573001234567', status: 'Enviado' },
+      { name: 'Dra. Diana Carolina Reyes', email: 'diana.reyes@aulacore.edu.co', phone: '+573123456789', status: 'Enviado' }
+    ],
+    sent_at: '2026-02-09T08:00:00.000Z',
+    attachments: ['/evidencias/orden_dia_cd_001.pdf']
+  },
+  {
+    id: 'conv-2',
+    title: 'Planeación Curricular Segundo Trimestre',
+    body_type: 'Consejo Académico',
+    meeting_date: '2026-06-15',
+    meeting_time: '14:00',
+    location: 'Biblioteca Principal',
+    description: 'Ajustes de mallas curriculares según la Ley 115 e integración del modelo Constructivista.',
+    status: 'Enviada',
+    recipients: [
+      { name: 'Lic. Carlos Martínez', email: 'carlos.martinez@aulacore.edu.co', phone: '+573104567890', status: 'Enviado' }
+    ],
+    sent_at: '2026-06-05T08:45:00.000Z',
+    attachments: []
+  }
+];
+
+const SEED_MEETINGS = [
+  {
+    id: 'meet-1',
+    convocatoria_id: 'conv-1',
+    title: 'Primera Sesión Ordinaria de Consejo Directivo',
+    body_type: 'Consejo Directivo',
+    meeting_date: '2026-02-10',
+    meeting_time: '08:00',
+    location: 'Sala de Juntas Rectoría',
+    description: 'Revisión y aprobación del presupuesto anual 2026 e informe de gestión del periodo anterior.',
+    status: 'Realizada',
+    decisions: 'Se aprueba por unanimidad el presupuesto institucional de 2026. Se acuerda iniciar cotización para renovación del Aula de Tecnología en Marzo.',
+    attendance: [
+      { member_id: 'gov-1', name: 'Dr. Ramón Ramírez', role_title: 'Presidente', attended: true },
+      { member_id: 'gov-3', name: 'Dra. Diana Carolina Reyes', role_title: 'Representante de Docentes', attended: true }
+    ],
+    evidences: ['/evidencias/presupuesto_aprobado_2026.xlsx', '/evidencias/cotizacion_aulas.pdf']
+  }
+];
+
+const SEED_ACTAS = [
+  {
+    id: 'acta-1',
+    meeting_id: 'meet-1',
+    acta_number: 'Acta No. CD-001-2026',
+    content: 'En la ciudad de Bogotá D.C., siendo las 08:00 AM del 10 de Febrero de 2026, se reunieron en la Sala de Juntas los integrantes del Consejo Directivo. El Rector Ramón Ramírez abrió la sesión explicando el orden del día. Se discutió el balance de gastos del año anterior y las metas financieras 2026. Tras someter a votación, se aprobó el rubro de infraestructura tecnológica.',
+    pdf_url: '/actas/acta-cd-001-2026.pdf',
+    evidences: ['/evidencias/anexo_firmas.jpg'],
+    status: 'Firmada',
+    signers: [
+      { name: 'Dr. Ramón Ramírez', role_title: 'Presidente', signed: true, signed_at: '2026-02-10T11:00:00Z' },
+      { name: 'Dra. Diana Carolina Reyes', role_title: 'Representante de Docentes', signed: true, signed_at: '2026-02-10T11:15:00Z' }
+    ]
+  }
 ];
 
 const SEED_MANUAL_VERSIONS = [
@@ -102,6 +172,9 @@ export default function PeiPage() {
   const [government, setGovernment] = useState<any[]>(SEED_GOVERNMENT);
   const [manualVersions, setManualVersions] = useState<any[]>(SEED_MANUAL_VERSIONS);
   const [projects, setProjects] = useState<any[]>(SEED_PROJECTS);
+  const [convocatorias, setConvocatorias] = useState<any[]>([]);
+  const [meetings, setMeetings] = useState<any[]>([]);
+  const [actas, setActas] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -122,6 +195,9 @@ export default function PeiPage() {
         const { data: governmentDb } = await supabase.from('pei_school_government').select('*').order('created_at', { ascending: true });
         const { data: manualDb } = await supabase.from('pei_manual_versions').select('*').order('created_at', { ascending: false });
         const { data: projectsDb } = await supabase.from('pei_projects').select('*').order('created_at', { ascending: true });
+        const { data: convocatoriasDb } = await supabase.from('pei_gov_convocatorias').select('*').order('created_at', { ascending: false });
+        const { data: meetingsDb } = await supabase.from('pei_gov_meetings').select('*').order('created_at', { ascending: false });
+        const { data: actasDb } = await supabase.from('pei_gov_actas').select('*').order('created_at', { ascending: false });
 
         // Sincronización con base de datos remota
         if (identityDb) setIdentity({
@@ -140,6 +216,9 @@ export default function PeiPage() {
         if (governmentDb && governmentDb.length > 0) setGovernment(governmentDb);
         if (manualDb && manualDb.length > 0) setManualVersions(manualDb);
         if (projectsDb && projectsDb.length > 0) setProjects(projectsDb);
+        if (convocatoriasDb && convocatoriasDb.length > 0) setConvocatorias(convocatoriasDb);
+        if (meetingsDb && meetingsDb.length > 0) setMeetings(meetingsDb);
+        if (actasDb && actasDb.length > 0) setActas(actasDb);
 
         // Cargar desde LocalStorage para persistencia local de demostración
         const savedIdentity = localStorage.getItem('aulacore-pei-identity');
@@ -147,12 +226,18 @@ export default function PeiPage() {
         const savedGovernment = localStorage.getItem('aulacore-pei-government');
         const savedManual = localStorage.getItem('aulacore-pei-manual');
         const savedProjects = localStorage.getItem('aulacore-pei-projects');
+        const savedConvocatorias = localStorage.getItem('aulacore-pei-convocatorias');
+        const savedMeetings = localStorage.getItem('aulacore-pei-meetings');
+        const savedActas = localStorage.getItem('aulacore-pei-actas');
 
         if (savedIdentity && !identityDb) setIdentity(JSON.parse(savedIdentity));
         if (savedModel && !modelDb) setModel(JSON.parse(savedModel));
         if (savedGovernment && (!governmentDb || governmentDb.length === 0)) setGovernment(JSON.parse(savedGovernment));
         if (savedManual && (!manualDb || manualDb.length === 0)) setManualVersions(JSON.parse(savedManual));
         if (savedProjects && (!projectsDb || projectsDb.length === 0)) setProjects(JSON.parse(savedProjects));
+        if (savedConvocatorias && (!convocatoriasDb || convocatoriasDb.length === 0)) setConvocatorias(JSON.parse(savedConvocatorias));
+        if (savedMeetings && (!meetingsDb || meetingsDb.length === 0)) setMeetings(JSON.parse(savedMeetings));
+        if (savedActas && (!actasDb || actasDb.length === 0)) setActas(JSON.parse(savedActas));
 
         // Inicializar LocalStorage si está vacío
         if (!savedIdentity) localStorage.setItem('aulacore-pei-identity', JSON.stringify(SEED_IDENTITY));
@@ -160,6 +245,18 @@ export default function PeiPage() {
         if (!savedGovernment) localStorage.setItem('aulacore-pei-government', JSON.stringify(SEED_GOVERNMENT));
         if (!savedManual) localStorage.setItem('aulacore-pei-manual', JSON.stringify(SEED_MANUAL_VERSIONS));
         if (!savedProjects) localStorage.setItem('aulacore-pei-projects', JSON.stringify(SEED_PROJECTS));
+        if (!savedConvocatorias) {
+          localStorage.setItem('aulacore-pei-convocatorias', JSON.stringify(SEED_CONVOCATORIAS));
+          setConvocatorias(SEED_CONVOCATORIAS);
+        }
+        if (!savedMeetings) {
+          localStorage.setItem('aulacore-pei-meetings', JSON.stringify(SEED_MEETINGS));
+          setMeetings(SEED_MEETINGS);
+        }
+        if (!savedActas) {
+          localStorage.setItem('aulacore-pei-actas', JSON.stringify(SEED_ACTAS));
+          setActas(SEED_ACTAS);
+        }
 
       } catch (err) {
         console.warn('Supabase fetch failed in PEI page. Utilizing LocalStorage cache.');
@@ -237,9 +334,84 @@ export default function PeiPage() {
         body_type: m.body_type,
         member_name: m.member_name,
         role_title: m.role_title,
-        period: m.period
+        period: m.period,
+        document_number: m.document_number || '',
+        email: m.email || '',
+        phone: m.phone || ''
       }));
       await supabase.from('pei_school_government').insert(payload);
+    } catch (e) {}
+  };
+
+  // Handler para guardar Convocatorias
+  const handleSaveConvocatorias = async (updatedData: any[]) => {
+    setConvocatorias(updatedData);
+    localStorage.setItem('aulacore-pei-convocatorias', JSON.stringify(updatedData));
+    try {
+      await supabase.from('pei_gov_convocatorias').delete().eq('institution_id', '11111111-1111-1111-1111-111111111111');
+      const payload = updatedData.map(c => ({
+        id: c.id.startsWith('conv-') ? undefined : c.id,
+        institution_id: '11111111-1111-1111-1111-111111111111',
+        title: c.title,
+        body_type: c.body_type,
+        meeting_date: c.meeting_date,
+        meeting_time: c.meeting_time.includes(':') && c.meeting_time.split(':').length === 2 ? `${c.meeting_time}:00` : c.meeting_time,
+        location: c.location,
+        description: c.description,
+        attachments: c.attachments,
+        status: c.status,
+        recipients: c.recipients,
+        sent_at: c.sent_at,
+        calendar_event_id: c.calendar_event_id || null
+      }));
+      await supabase.from('pei_gov_convocatorias').insert(payload);
+    } catch (e) {}
+  };
+
+  // Handler para guardar Reuniones
+  const handleSaveMeetings = async (updatedData: any[]) => {
+    setMeetings(updatedData);
+    localStorage.setItem('aulacore-pei-meetings', JSON.stringify(updatedData));
+    try {
+      await supabase.from('pei_gov_meetings').delete().eq('institution_id', '11111111-1111-1111-1111-111111111111');
+      const payload = updatedData.map(m => ({
+        id: m.id.startsWith('meet-') ? undefined : m.id,
+        institution_id: '11111111-1111-1111-1111-111111111111',
+        convocatoria_id: m.convocatoria_id && m.convocatoria_id.startsWith('conv-') ? null : m.convocatoria_id,
+        title: m.title,
+        body_type: m.body_type,
+        meeting_date: m.meeting_date,
+        meeting_time: m.meeting_time.includes(':') && m.meeting_time.split(':').length === 2 ? `${m.meeting_time}:00` : m.meeting_time,
+        location: m.location,
+        description: m.description,
+        attendance: m.attendance,
+        status: m.status,
+        decisions: m.decisions,
+        evidences: m.evidences,
+        calendar_event_id: m.calendar_event_id || null
+      }));
+      await supabase.from('pei_gov_meetings').insert(payload);
+    } catch (e) {}
+  };
+
+  // Handler para guardar Actas
+  const handleSaveActas = async (updatedData: any[]) => {
+    setActas(updatedData);
+    localStorage.setItem('aulacore-pei-actas', JSON.stringify(updatedData));
+    try {
+      await supabase.from('pei_gov_actas').delete().eq('institution_id', '11111111-1111-1111-1111-111111111111');
+      const payload = updatedData.map(a => ({
+        id: a.id.startsWith('acta-') ? undefined : a.id,
+        institution_id: '11111111-1111-1111-1111-111111111111',
+        meeting_id: a.meeting_id && a.meeting_id.startsWith('meet-') ? null : a.meeting_id,
+        acta_number: a.acta_number,
+        content: a.content,
+        pdf_url: a.pdf_url,
+        evidences: a.evidences,
+        signers: a.signers,
+        status: a.status
+      }));
+      await supabase.from('pei_gov_actas').insert(payload);
     } catch (e) {}
   };
 
@@ -405,6 +577,12 @@ export default function PeiPage() {
                 userRole={userRole} 
                 members={government} 
                 onSave={handleSaveGovernment} 
+                convocatorias={convocatorias}
+                onSaveConvocatorias={handleSaveConvocatorias}
+                meetings={meetings}
+                onSaveMeetings={handleSaveMeetings}
+                actas={actas}
+                onSaveActas={handleSaveActas}
               />
             )}
 
