@@ -250,11 +250,11 @@ export default function JoinOnboardingPage() {
                     onChange={(e) => setGradeLevel(e.target.value)}
                     className="w-full px-3 py-2.5 bg-slate-850 border border-slate-800 focus:border-indigo-500 rounded-xl text-xs font-semibold text-slate-200 focus:outline-none cursor-pointer"
                   >
-                    <option value="Preescolar">Preescolar</option>
-                    <option value="Primaria">Primaria</option>
-                    <option value="Bachillerato">Bachillerato (Sexto a Noveno)</option>
-                    <option value="Media Técnica">Media Técnica (Décimo y Undécimo)</option>
-                    <option value="Otras">Otras</option>
+                    <option value="Preescolar" className="bg-slate-900 text-white">Preescolar</option>
+                    <option value="Primaria" className="bg-slate-900 text-white">Primaria</option>
+                    <option value="Bachillerato" className="bg-slate-900 text-white">Bachillerato (Sexto a Noveno)</option>
+                    <option value="Media Técnica" className="bg-slate-900 text-white">Media Técnica (Décimo y Undécimo)</option>
+                    <option value="Otras" className="bg-slate-900 text-white">Otras</option>
                   </select>
                 </div>
               )}
