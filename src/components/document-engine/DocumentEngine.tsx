@@ -96,6 +96,26 @@ export function DocumentEngine({
     return 'sha256:' + Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
   });
 
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, onClose]);
+
+  const handleBackdropClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
   if (!isOpen) return null;
 
   // --- CONFIGURACIÓN DE PLANTILLA DE AULACORE (TEMPLATE LAYER) ---
@@ -241,7 +261,10 @@ export function DocumentEngine({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 print:p-0 print:bg-white print:relative print:inset-auto">
+    <div 
+      onClick={handleBackdropClick}
+      className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex justify-center items-start p-4 md:py-12 print:p-0 print:bg-white print:relative print:inset-auto"
+    >
       {/* Container Card */}
       <Card className="w-full max-w-4xl bg-white shadow-2xl rounded-2xl overflow-hidden border border-slate-200 transition-all duration-300 animate-fade-in print:shadow-none print:border-none print:rounded-none print:max-w-none print:w-full">
         {/* TOP BUTTONS - Hidden during printing */}
