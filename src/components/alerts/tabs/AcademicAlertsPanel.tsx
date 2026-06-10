@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { GraduationCap, Search, BookOpen, Clock, CheckCircle2, User, ChevronRight, AlertTriangle, Calendar } from 'lucide-react';
+import { GraduationCap, Search, BookOpen, Clock, CheckCircle2, User, ChevronRight, AlertTriangle, Calendar, X, Sparkles } from 'lucide-react';
 import { MOCK_STUDENTS, StudentMockData } from '@/lib/data/mock-students';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,6 +17,26 @@ export function AcademicAlertsPanel({ onIntervene }: AcademicAlertsPanelProps) {
   const [loadingStudentId, setLoadingStudentId] = useState<string | null>(null);
   const [toast, setToast] = useState<{ title: string; message: string } | null>(null);
 
+  // Modal states
+  const [activeStudent, setActiveStudent] = useState<StudentMockData | null>(null);
+  const [isTutorModalOpen, setIsTutorModalOpen] = useState(false);
+  const [isPiarModalOpen, setIsPiarModalOpen] = useState(false);
+
+  // Form states for Tutoría
+  const [tutorSubject, setTutorSubject] = useState('Matemáticas');
+  const [tutorTeacher, setTutorTeacher] = useState('Carlos Martínez');
+  const [tutorDate, setTutorDate] = useState('');
+  const [tutorTime, setTutorTime] = useState('14:00');
+  const [tutorMode, setTutorMode] = useState('Presencial');
+  const [tutorNotes, setTutorNotes] = useState('');
+
+  // Form states for PIAR
+  const [piarGoals, setPiarGoals] = useState('Ajuste de evaluaciones, tiempos extendidos y apoyo visual.');
+  const [piarStrategies, setPiarStrategies] = useState('Uso de material concreto, simplificación de instrucciones escritas y tutorías semanales.');
+  const [piarSupport, setPiarSupport] = useState('Psicoorientadora');
+  const [piarFrequency, setPiarFrequency] = useState('Quincenal');
+  const [piarStartDate, setPiarStartDate] = useState('');
+
   const academicRiskStudents = MOCK_STUDENTS.filter(s => {
     const matchesSearch = s.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRisk = s.gpa < 3.5 || s.academicRisk === 'Alto' || s.academicRisk === 'Medio';
@@ -30,20 +50,84 @@ export function AcademicAlertsPanel({ onIntervene }: AcademicAlertsPanelProps) {
     { name: 'Español', failCount: 4, riskLevel: 'Bajo', color: 'text-emerald-600 bg-emerald-50' },
   ];
 
-  const handleAction = (studentId: string, actionType: 'tutor' | 'piar', name: string) => {
-    setLoadingStudentId(studentId + '-' + actionType);
-    
+  const handleScheduleTutor = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!activeStudent) return;
+
+    setLoadingStudentId(activeStudent.id + '-tutor');
+    setIsTutorModalOpen(false);
+
     setTimeout(() => {
       setLoadingStudentId(null);
+
+      const newTutoria = {
+        studentId: activeStudent.id,
+        studentName: activeStudent.name,
+        subject: tutorSubject,
+        teacher: tutorTeacher,
+        date: tutorDate || new Date().toLocaleDateString('es-ES'),
+        time: tutorTime,
+        mode: tutorMode,
+        notes: tutorNotes
+      };
+
+      const existingTutoriasStr = localStorage.getItem('aulacore-scheduled-tutorias');
+      let tutoriasList = [];
+      if (existingTutoriasStr) {
+        try {
+          tutoriasList = JSON.parse(existingTutoriasStr);
+        } catch (err) {}
+      }
+      tutoriasList.push(newTutoria);
+      localStorage.setItem('aulacore-scheduled-tutorias', JSON.stringify(tutoriasList));
+
       setToast({
-        title: actionType === 'tutor' ? 'Tutoría Agendada' : 'Plan PIAR Creado',
-        message: actionType === 'tutor'
-          ? `Sesión de refuerzo de Matemáticas agendada con éxito para ${name}.`
-          : `Plan individual de ajuste razonable (PIAR) iniciado para ${name}.`
+        title: 'Tutoría Agendada',
+        message: `Tutoría de ${tutorSubject} agendada para ${activeStudent.name}.`
       });
-      
-      setTimeout(() => setToast(null), 3000);
-    }, 1000);
+
+      setTutorNotes('');
+      setTimeout(() => setToast(null), 4000);
+    }, 1200);
+  };
+
+  const handleCreatePiar = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!activeStudent) return;
+
+    setLoadingStudentId(activeStudent.id + '-piar');
+    setIsPiarModalOpen(false);
+
+    setTimeout(() => {
+      setLoadingStudentId(null);
+
+      const newPiar = {
+        studentId: activeStudent.id,
+        studentName: activeStudent.name,
+        goals: piarGoals,
+        strategies: piarStrategies,
+        support: piarSupport,
+        frequency: piarFrequency,
+        startDate: piarStartDate || new Date().toLocaleDateString('es-ES')
+      };
+
+      const existingPiarsStr = localStorage.getItem('aulacore-student-piar-plans');
+      let piarsList = [];
+      if (existingPiarsStr) {
+        try {
+          piarsList = JSON.parse(existingPiarsStr);
+        } catch (err) {}
+      }
+      piarsList.push(newPiar);
+      localStorage.setItem('aulacore-student-piar-plans', JSON.stringify(piarsList));
+
+      setToast({
+        title: 'Plan PIAR Creado',
+        message: `Plan individual de ajuste razonable (PIAR) iniciado para ${activeStudent.name}.`
+      });
+
+      setTimeout(() => setToast(null), 4000);
+    }, 1200);
   };
 
   return (
@@ -127,9 +211,12 @@ export function AcademicAlertsPanel({ onIntervene }: AcademicAlertsPanelProps) {
                       <Button 
                         size="sm"
                         variant="outline"
-                        onClick={() => handleAction(student.id, 'tutor', student.name)}
+                        onClick={() => {
+                          setActiveStudent(student);
+                          setIsTutorModalOpen(true);
+                        }}
                         disabled={loadingStudentId !== null}
-                        className="bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900 text-[10px] font-bold h-8 rounded-lg"
+                        className="bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900 text-[10px] font-bold h-8 rounded-lg cursor-pointer"
                       >
                         {isTutorLoading ? (
                           <span className="flex items-center gap-1"><Clock className="w-3 h-3 animate-spin" /> Agendando...</span>
@@ -140,9 +227,12 @@ export function AcademicAlertsPanel({ onIntervene }: AcademicAlertsPanelProps) {
                       
                       <Button 
                         size="sm"
-                        onClick={() => handleAction(student.id, 'piar', student.name)}
+                        onClick={() => {
+                          setActiveStudent(student);
+                          setIsPiarModalOpen(true);
+                        }}
                         disabled={loadingStudentId !== null}
-                        className="bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-bold h-8 rounded-lg shadow-sm"
+                        className="bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-bold h-8 rounded-lg shadow-sm cursor-pointer"
                       >
                         {isPiarLoading ? (
                           <span className="flex items-center gap-1"><Clock className="w-3 h-3 animate-spin" /> Creando...</span>
@@ -215,6 +305,229 @@ export function AcademicAlertsPanel({ onIntervene }: AcademicAlertsPanelProps) {
           <div className="space-y-0.5">
             <h4 className="text-xs font-black text-slate-800 tracking-tight">{toast.title}</h4>
             <p className="text-[11px] font-semibold text-slate-500 leading-relaxed">{toast.message}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Agendar Tutoría */}
+      {isTutorModalOpen && activeStudent && (
+        <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4">
+          <div onClick={() => setIsTutorModalOpen(false)} className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm transition-opacity animate-in fade-in duration-200" />
+          <div className="inline-block transform overflow-hidden rounded-3xl bg-white border border-slate-200 text-left align-bottom shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:align-middle relative z-10 w-full animate-in zoom-in-95 duration-250">
+            <form onSubmit={handleScheduleTutor}>
+              <div className="bg-slate-50 border-b border-slate-200 px-6 py-4 flex justify-between items-center">
+                <div>
+                  <h3 className="text-base font-black text-slate-900 tracking-tight flex items-center gap-2">
+                    <Calendar className="w-5 h-5 text-indigo-600 animate-bounce" />
+                    Agendar Tutoría de Refuerzo
+                  </h3>
+                  <p className="text-[11px] text-slate-550 font-semibold mt-0.5">Estudiante: <span className="text-indigo-650 font-bold">{activeStudent.name}</span> ({activeStudent.group})</p>
+                </div>
+                <button type="button" onClick={() => setIsTutorModalOpen(false)} className="text-slate-400 hover:text-slate-650 outline-none border-none bg-transparent cursor-pointer">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="px-6 py-4 space-y-4 text-xs font-semibold text-slate-705">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-slate-450 uppercase tracking-widest block mb-1">Materia de Refuerzo</label>
+                    <select
+                      value={tutorSubject}
+                      onChange={e => setTutorSubject(e.target.value)}
+                      className="w-full border border-slate-200 rounded-lg px-3 py-2 text-xs font-semibold text-slate-700 bg-slate-50 outline-none hover:border-indigo-300 transition-colors cursor-pointer h-10"
+                    >
+                      <option value="Matemáticas">Matemáticas</option>
+                      <option value="Tecnología e Informática">Tecnología e Informática</option>
+                      <option value="Química">Química</option>
+                      <option value="Español">Español</option>
+                      <option value="Física">Física</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-slate-450 uppercase tracking-widest block mb-1">Docente Asignado</label>
+                    <select
+                      value={tutorTeacher}
+                      onChange={e => setTutorTeacher(e.target.value)}
+                      className="w-full border border-slate-200 rounded-lg px-3 py-2 text-xs font-semibold text-slate-700 bg-slate-50 outline-none hover:border-indigo-300 transition-colors cursor-pointer h-10"
+                    >
+                      <option value="Carlos Martínez">Carlos Martínez</option>
+                      <option value="Lucía Gómez">Lucía Gómez</option>
+                      <option value="Marta Pérez">Marta Pérez</option>
+                      <option value="Jorge Ruiz">Jorge Ruiz</option>
+                      <option value="Elena Díaz">Elena Díaz</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-slate-450 uppercase tracking-widest block mb-1">Fecha de la Sesión</label>
+                    <Input 
+                      type="date"
+                      required
+                      value={tutorDate}
+                      onChange={e => setTutorDate(e.target.value)}
+                      className="bg-slate-50 border-slate-200 h-10 font-bold"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-slate-450 uppercase tracking-widest block mb-1">Hora Programada</label>
+                    <Input 
+                      type="time"
+                      required
+                      value={tutorTime}
+                      onChange={e => setTutorTime(e.target.value)}
+                      className="bg-slate-50 border-slate-200 h-10 font-bold"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-450 uppercase tracking-widest block mb-1">Modalidad de Tutoría</label>
+                  <div className="grid grid-cols-2 gap-2 bg-slate-100 p-1 rounded-xl text-[10px] font-black uppercase">
+                    <button
+                      type="button"
+                      onClick={() => setTutorMode('Presencial')}
+                      className={cn(
+                        "py-2 rounded-lg cursor-pointer transition-all border-none outline-none",
+                        tutorMode === 'Presencial' ? "bg-white text-indigo-750 font-extrabold shadow-sm" : "text-slate-500 hover:bg-slate-200/50"
+                      )}
+                    >
+                      Presencial
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setTutorMode('Virtual (Google Meet)')}
+                      className={cn(
+                        "py-2 rounded-lg cursor-pointer transition-all border-none outline-none",
+                        tutorMode === 'Virtual (Google Meet)' ? "bg-white text-indigo-750 font-extrabold shadow-sm" : "text-slate-500 hover:bg-slate-200/50"
+                      )}
+                    >
+                      Virtual (Meet)
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-450 uppercase tracking-widest block mb-1">Notas y Foco Académico</label>
+                  <textarea
+                    rows={3}
+                    placeholder="Ej. Reforzar fracciones y operaciones aritméticas básicas para el examen bimestral..."
+                    value={tutorNotes}
+                    onChange={e => setTutorNotes(e.target.value)}
+                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 bg-slate-50 outline-none hover:border-indigo-300 focus:bg-white transition-all resize-none"
+                  />
+                </div>
+              </div>
+
+              <div className="bg-slate-50 px-6 py-4 flex justify-end gap-2 border-t border-slate-200">
+                <Button type="button" variant="outline" onClick={() => setIsTutorModalOpen(false)} className="h-9 px-4 rounded-xl border-slate-250 text-slate-700 hover:bg-slate-50 font-bold cursor-pointer">
+                  Cancelar
+                </Button>
+                <Button type="submit" className="h-9 px-5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold uppercase tracking-wider border-none cursor-pointer">
+                  Agendar Tutoría
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Crear Plan PIAR */}
+      {isPiarModalOpen && activeStudent && (
+        <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4">
+          <div onClick={() => setIsPiarModalOpen(false)} className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm transition-opacity animate-in fade-in duration-200" />
+          <div className="inline-block transform overflow-hidden rounded-3xl bg-white border border-slate-200 text-left align-bottom shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:align-middle relative z-10 w-full animate-in zoom-in-95 duration-250">
+            <form onSubmit={handleCreatePiar}>
+              <div className="bg-slate-50 border-b border-slate-200 px-6 py-4 flex justify-between items-center">
+                <div>
+                  <h3 className="text-base font-black text-slate-900 tracking-tight flex items-center gap-2">
+                    <Sparkles className="w-5 h-5 text-indigo-655 animate-pulse" />
+                    Crear Plan PIAR (Inclusión)
+                  </h3>
+                  <p className="text-[11px] text-slate-500 font-semibold mt-0.5">Estudiante: <span className="text-indigo-600 font-bold">{activeStudent.name}</span> ({activeStudent.group})</p>
+                </div>
+                <button type="button" onClick={() => setIsPiarModalOpen(false)} className="text-slate-400 hover:text-slate-650 outline-none border-none bg-transparent cursor-pointer">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="px-6 py-4 space-y-4 text-xs font-semibold text-slate-705">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-450 uppercase tracking-widest block mb-1">Objetivos Curriculares Flexibles</label>
+                  <textarea
+                    rows={2}
+                    required
+                    value={piarGoals}
+                    onChange={e => setPiarGoals(e.target.value)}
+                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 bg-slate-50 outline-none hover:border-indigo-300 focus:bg-white transition-all resize-none"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-450 uppercase tracking-widest block mb-1">Estrategias y Ajustes de Apoyo</label>
+                  <textarea
+                    rows={2}
+                    required
+                    value={piarStrategies}
+                    onChange={e => setPiarStrategies(e.target.value)}
+                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 bg-slate-50 outline-none hover:border-indigo-300 focus:bg-white transition-all resize-none"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-slate-450 uppercase tracking-widest block mb-1">Profesional de Apoyo</label>
+                    <select
+                      value={piarSupport}
+                      onChange={e => setPiarSupport(e.target.value)}
+                      className="w-full border border-slate-200 rounded-lg px-3 py-2 text-xs font-semibold text-slate-700 bg-slate-50 outline-none hover:border-indigo-300 transition-colors cursor-pointer h-10"
+                    >
+                      <option value="Psicoorientadora">Psicoorientadora</option>
+                      <option value="Docente de Apoyo">Docente de Apoyo</option>
+                      <option value="Terapista Ocupacional">Terapista Ocupacional</option>
+                      <option value="Fonoaudióloga">Fonoaudióloga</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-slate-450 uppercase tracking-widest block mb-1">Frecuencia de Monitoreo</label>
+                    <select
+                      value={piarFrequency}
+                      onChange={e => setPiarFrequency(e.target.value)}
+                      className="w-full border border-slate-200 rounded-lg px-3 py-2 text-xs font-semibold text-slate-700 bg-slate-50 outline-none hover:border-indigo-300 transition-colors cursor-pointer h-10"
+                    >
+                      <option value="Semanal">Semanal</option>
+                      <option value="Quincenal">Quincenal</option>
+                      <option value="Mensual">Mensual</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-450 uppercase tracking-widest block mb-1">Fecha de Inicio de Plan</label>
+                  <Input 
+                    type="date"
+                    required
+                    value={piarStartDate}
+                    onChange={e => setPiarStartDate(e.target.value)}
+                    className="bg-slate-50 border-slate-200 h-10 font-bold"
+                  />
+                </div>
+              </div>
+
+              <div className="bg-slate-50 px-6 py-4 flex justify-end gap-2 border-t border-slate-200">
+                <Button type="button" variant="outline" onClick={() => setIsPiarModalOpen(false)} className="h-9 px-4 rounded-xl border-slate-250 text-slate-700 hover:bg-slate-50 font-bold cursor-pointer">
+                  Cancelar
+                </Button>
+                <Button type="submit" className="h-9 px-5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold uppercase tracking-wider border-none cursor-pointer">
+                  Crear Plan
+                </Button>
+              </div>
+            </form>
           </div>
         </div>
       )}
