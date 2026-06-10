@@ -162,7 +162,7 @@ export function SecretaryConsole({
     // Disparar simulador de correo saliente
     setSimulatedEmail({
       to: newEmail || 'estudiante@aulacore.edu.co',
-      subject: '🎉 ¡Matrícula Oficial Confirmada! - Colegio Anglo-Colombiano',
+      subject: '🎉 ¡Matrícula Oficial Confirmada! - Colegio Demo AulaCore',
       studentName: newName,
       grade: newGrade
     });

@@ -154,7 +154,7 @@ export default function JoinOnboardingPage() {
             AulaCore Auto-Onboarding
           </span>
           <h1 className="text-xl font-black text-white mt-1 tracking-tight">
-            Colegio Anglo-Colombiano
+            Colegio Demo AulaCore
           </h1>
         </div>
 
@@ -388,7 +388,7 @@ export default function JoinOnboardingPage() {
           </div>
           <div className="space-y-1 text-xs select-none">
             <p className="text-slate-400 font-bold"><span className="text-indigo-400">Para:</span> {email}</p>
-            <p className="text-slate-400 font-bold"><span className="text-indigo-400">Asunto:</span> ✨ Pre-registro Confirmado - Colegio Anglo-Colombiano</p>
+            <p className="text-slate-400 font-bold"><span className="text-indigo-400">Asunto:</span> ✨ Pre-registro Confirmado - Colegio Demo AulaCore</p>
             <div className="mt-2 p-2 bg-slate-950 border border-slate-850 rounded-xl text-[10px] text-slate-300 font-medium leading-relaxed">
               ¡Hola <strong>{fullName}</strong>! Tu pre-registro para <strong>{gradeLevel}</strong> ha sido recibido con éxito en nuestro sistema y está listo para ser oficializado por Secretaría. ¡Bienvenido(a)!
             </div>

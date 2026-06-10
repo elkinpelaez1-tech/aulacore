@@ -311,7 +311,7 @@ export function downloadBoletinPDF(studentName: string, grade: string, gpa: numb
           <path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5" />
         </svg>
         <div class="header-text">
-          <h1>Colegio Anglo-Colombiano</h1>
+          <h1>Colegio Demo AulaCore</h1>
           <p>Informe Oficial de Rendimiento Académico</p>
         </div>
       </div>
@@ -563,7 +563,7 @@ export function downloadCertificadoMatriculaPDF(studentName: string, grade: stri
           <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
           <path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5" />
         </svg>
-        <h1>Colegio Anglo-Colombiano</h1>
+        <h1>Colegio Demo AulaCore</h1>
         <p>Oficina de Admisiones y Registro Académico</p>
       </div>
 
@@ -573,7 +573,7 @@ export function downloadCertificadoMatriculaPDF(studentName: string, grade: stri
 
       <div class="cert-body">
         <p>
-          La suscrita Secretaria General de la Oficina de Registro Académico del <span class="highlight">COLEGIO ANGLO-COLOMBIANO</span>, en uso de sus facultades legales y estatutarias,
+          La suscrita Secretaria General de la Oficina de Registro Académico del <span class="highlight">COLEGIO DEMO AULACORE</span>, en uso de sus facultades legales y estatutarias,
         </p>
         
         <p style="text-align: center; text-indent: 0; font-weight: 900; font-size: 16px; margin: 30px 0; color: #0f172a; letter-spacing: 1px;">
@@ -865,7 +865,7 @@ export function downloadPaeResourcePDF(resource: any) {
           <path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5" />
         </svg>
         <div class="header-text">
-          <h1>Colegio Anglo-Colombiano</h1>
+          <h1>Colegio Demo AulaCore</h1>
           <p>Oficina de Planeación y Programa PAE</p>
         </div>
       </div>
@@ -910,7 +910,7 @@ export function downloadPaeResourcePDF(resource: any) {
 
       <div class="cert-body">
         <p>
-          La Dirección General del <span class="highlight">COLEGIO ANGLO-COLOMBIANO</span>, en coordinación con el Comité de Alimentación Escolar (CAE), hace constar el registro y la asignación presupuestaria correspondiente a los recursos del Programa de Alimentación Escolar (PAE) para la vigencia del año escolar actual, proveniente de la fuente <span class="highlight">${resource.source_name}</span>.
+          La Dirección General del <span class="highlight">COLEGIO DEMO AULACORE</span>, en coordinación con el Comité de Alimentación Escolar (CAE), hace constar el registro y la asignación presupuestaria correspondiente a los recursos del Programa de Alimentación Escolar (PAE) para la vigencia del año escolar actual, proveniente de la fuente <span class="highlight">${resource.source_name}</span>.
         </p>
 
         <p>
@@ -1188,7 +1188,7 @@ export function downloadPaeMenuPDF(menu: any) {
           <path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5" />
         </svg>
         <div class="header-text">
-          <h1>Colegio Anglo-Colombiano</h1>
+          <h1>Colegio Demo AulaCore</h1>
           <p>Servicio de Alimentación Escolar (PAE)</p>
         </div>
       </div>
@@ -1261,7 +1261,7 @@ export function downloadPaeMenuPDF(menu: any) {
       </div>
 
       <div class="footer">
-        Colegio Anglo-Colombiano &bull; Código Criptográfico: ${hash} &bull; Validado por el CAE Institucional
+        Colegio Demo AulaCore &bull; Código Criptográfico: ${hash} &bull; Validado por el CAE Institucional
       </div>
 
       <script>
@@ -1454,7 +1454,7 @@ export function downloadPaeCommitteePDF(meeting: any) {
           <path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5" />
         </svg>
         <div class="header-text">
-          <h1>Colegio Anglo-Colombiano</h1>
+          <h1>Colegio Demo AulaCore</h1>
           <p>Comités de Alimentación Escolar (CAE)</p>
         </div>
       </div>
@@ -1516,7 +1516,7 @@ export function downloadPaeCommitteePDF(meeting: any) {
       </div>
 
       <div class="footer">
-        Colegio Anglo-Colombiano &bull; Código Criptográfico: ${hash} &bull; Documento verificado ante la Secretaría de Educación
+        Colegio Demo AulaCore &bull; Código Criptográfico: ${hash} &bull; Documento verificado ante la Secretaría de Educación
       </div>
 
       <script>
@@ -1693,7 +1693,7 @@ export function downloadPaeMesaPDF(mesa: any) {
           <path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5" />
         </svg>
         <div class="header-text">
-          <h1>Colegio Anglo-Colombiano</h1>
+          <h1>Colegio Demo AulaCore</h1>
           <p>Mesa Pública de Participación Ciudadana (PAE)</p>
         </div>
       </div>
@@ -1754,7 +1754,7 @@ export function downloadPaeMesaPDF(mesa: any) {
       </div>
 
       <div class="footer">
-        Colegio Anglo-Colombiano &bull; Código Criptográfico: ${hash} &bull; Documento Generado Electrónicamente &bull; Ley 2046
+        Colegio Demo AulaCore &bull; Código Criptográfico: ${hash} &bull; Documento Generado Electrónicamente &bull; Ley 2046
       </div>
 
       <script>
@@ -1932,7 +1932,7 @@ export function downloadPaePurchasePDF(purchase: any) {
           <path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5" />
         </svg>
         <div class="header-text">
-          <h1>Colegio Anglo-Colombiano</h1>
+          <h1>Colegio Demo AulaCore</h1>
           <p>Oficina del Programa PAE y Control Contable</p>
         </div>
       </div>
@@ -1995,7 +1995,7 @@ export function downloadPaePurchasePDF(purchase: any) {
       </div>
 
       <div class="footer">
-        Colegio Anglo-Colombiano &bull; Código Criptográfico: ${hash} &bull; Registro Transparencia PAE
+        Colegio Demo AulaCore &bull; Código Criptográfico: ${hash} &bull; Registro Transparencia PAE
       </div>
 
       <script>
@@ -2190,7 +2190,7 @@ export function downloadPaeVisitPDF(visit: any) {
           <path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5" />
         </svg>
         <div class="header-text">
-          <h1>Colegio Anglo-Colombiano</h1>
+          <h1>Colegio Demo AulaCore</h1>
           <p>Vigilancia y Supervisión Sanitaria PAE</p>
         </div>
       </div>
@@ -2246,7 +2246,7 @@ export function downloadPaeVisitPDF(visit: any) {
       </div>
 
       <div class="footer">
-        Colegio Anglo-Colombiano &bull; Código Criptográfico: ${hash} &bull; Radicado ante la Entidad Territorial Certificada (ETC)
+        Colegio Demo AulaCore &bull; Código Criptográfico: ${hash} &bull; Radicado ante la Entidad Territorial Certificada (ETC)
       </div>
 
       <script>

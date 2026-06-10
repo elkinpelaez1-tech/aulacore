@@ -212,7 +212,7 @@ export default function MatriculaPage() {
           motherPhone: '+57 301 234 5678',
           fatherName: 'Ramón Pelaez',
           fatherPhone: '+57 312 987 6543',
-          previousSchool: 'Colegio Anglo-Colombiano',
+          previousSchool: 'Colegio Demo AulaCore',
           lastCompletedGrade: targetGrade,
           sisbenLevel: 'C1 - C18 (Vulnerable)',
           stratum: '2',

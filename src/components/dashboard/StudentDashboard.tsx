@@ -120,7 +120,7 @@ const SUBJECT_PERFORMANCE = [
               <h2 className="text-3xl font-black mb-1">¡Hola, {firstName}!</h2>
               <p className="text-indigo-200 font-medium font-semibold">
                 {onboardingStudent 
-                  ? "Te damos la bienvenida al Colegio Anglo-Colombiano. Tu expediente está activo."
+                  ? "Te damos la bienvenida al Colegio Demo AulaCore. Tu expediente está activo."
                   : "Estás a un 85% de lograr tu meta del periodo."}
               </p>
             </div>
