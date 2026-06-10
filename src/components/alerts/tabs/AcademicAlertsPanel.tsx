@@ -340,19 +340,19 @@ export function AcademicAlertsPanel({ onIntervene }: AcademicAlertsPanelProps) {
                 {scheduledTutorias.map((tut, idx) => (
                   <div key={`tut-${idx}`} className="bg-slate-50 border border-slate-100 rounded-2xl p-3.5 space-y-1.5 shadow-sm hover:border-indigo-150 transition-colors">
                     <div className="flex justify-between items-center">
-                      <span className="text-[8px] font-black uppercase px-2 py-0.5 rounded bg-indigo-50 text-indigo-700">
+                      <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-indigo-50 text-indigo-700">
                         Tutoría: {tut.subject}
                       </span>
-                      <span className="text-[8px] font-black text-slate-400">
+                      <span className="text-[10px] font-black text-slate-400">
                         {tut.date} • {tut.time}
                       </span>
                     </div>
-                    <p className="text-xs font-black text-slate-800">{tut.studentName}</p>
-                    <p className="text-[10px] font-semibold text-slate-550">
+                    <p className="text-sm font-black text-slate-800">{tut.studentName}</p>
+                    <p className="text-[11px] font-semibold text-slate-600">
                       Docente: {tut.teacher} • <span className="italic">{tut.mode}</span>
                     </p>
                     {tut.notes && (
-                      <p className="text-[10px] text-slate-450 border-t border-slate-105 pt-1.5 mt-1.5 font-semibold truncate" title={tut.notes}>
+                      <p className="text-[11px] text-slate-500 border-t border-slate-105 pt-1.5 mt-1.5 font-semibold truncate" title={tut.notes}>
                         Nota: {tut.notes}
                       </p>
                     )}
@@ -362,18 +362,18 @@ export function AcademicAlertsPanel({ onIntervene }: AcademicAlertsPanelProps) {
                 {activePiars.map((piar, idx) => (
                   <div key={`piar-${idx}`} className="bg-slate-50 border border-slate-100 rounded-2xl p-3.5 space-y-1.5 shadow-sm hover:border-emerald-150 transition-colors">
                     <div className="flex justify-between items-center">
-                      <span className="text-[8px] font-black uppercase px-2 py-0.5 rounded bg-emerald-50 text-emerald-700">
+                      <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-emerald-50 text-emerald-700">
                         Plan PIAR (Inclusión)
                       </span>
-                      <span className="text-[8px] font-black text-slate-400">
+                      <span className="text-[10px] font-black text-slate-400">
                         Inicio: {piar.startDate}
                       </span>
                     </div>
-                    <p className="text-xs font-black text-slate-800">{piar.studentName}</p>
-                    <p className="text-[10px] font-semibold text-slate-550">
+                    <p className="text-sm font-black text-slate-800">{piar.studentName}</p>
+                    <p className="text-[11px] font-semibold text-slate-600">
                       Apoyo: {piar.support} • Monitoreo: {piar.frequency}
                     </p>
-                    <p className="text-[10px] text-slate-450 border-t border-slate-105 pt-1.5 mt-1.5 font-semibold truncate" title={piar.strategies}>
+                    <p className="text-[11px] text-slate-500 border-t border-slate-105 pt-1.5 mt-1.5 font-semibold truncate" title={piar.strategies}>
                       Estrategia: {piar.strategies}
                     </p>
                   </div>
