@@ -4,6 +4,7 @@ export interface AttachedDocument {
   type: string;
   status: 'Validado' | 'Pendiente' | 'Rechazado';
   size: string;
+  url?: string;
 }
 
 export interface PendingApproval {

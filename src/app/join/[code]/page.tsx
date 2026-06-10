@@ -8,6 +8,7 @@ import {
   GraduationCap, 
   Sparkles, 
   ShieldCheck, 
+  ShieldAlert,
   Check, 
   Loader2, 
   Calendar, 
@@ -19,12 +20,17 @@ import {
   FileText
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/lib/supabase';
 
 export default function JoinOnboardingPage() {
   const params = useParams();
   const router = useRouter();
   const { setUserRole, setUserName } = useRole();
   const code = (params?.code as string) || '';
+
+  // Onboarding activation details if act- prefix
+  const [onboardingData, setOnboardingData] = useState<any>(null);
+  const [errorText, setErrorText] = useState<string | null>(null);
 
   // Detect onboarding flow type based on prefix
   const [flowType, setFlowType] = useState<'student' | 'teacher' | 'parent'>('student');
@@ -45,33 +51,67 @@ export default function JoinOnboardingPage() {
   const [onboardingComplete, setOnboardingComplete] = useState(false);
 
   useEffect(() => {
-    // Determine target flow based on URL code prefix
-    const lowerCode = code.toLowerCase();
-    if (lowerCode.startsWith('mat') || lowerCode.startsWith('join')) {
-      setFlowType('student');
-      setSelectedRole('estudiante');
-      setFlowName('Matrícula Escolar Inteligente');
-      setFlowDesc('Auto-onboarding digital, registro de expediente y asignación RFID.');
-    } else if (lowerCode.startsWith('doc') || lowerCode.startsWith('t-') || lowerCode.startsWith('xyz')) {
-      setFlowType('teacher');
-      setSelectedRole('docente');
-      setFlowName('Invitación de Incorporación Docente');
-      setFlowDesc('Vinculación de plan curricular, asignación de cursos y firma digital.');
-    } else if (lowerCode.startsWith('act') || lowerCode.startsWith('upd') || lowerCode.startsWith('bac')) {
-      setFlowType('parent');
-      setSelectedRole('padre_familia');
-      setFlowName('Actualización y Consentimiento Familiar');
-      setFlowDesc('Actualización de datos de acudiente, firma digital de circulares y semáforo RFID.');
-    } else {
-      // Fallback
-      setFlowType('student');
-      setSelectedRole('estudiante');
-      setFlowName('Matrícula Escolar Inteligente');
-      setFlowDesc('Auto-onboarding digital, registro de expediente y asignación RFID.');
-    }
+    const fetchOnboardingDetails = async () => {
+      const lowerCode = code.toLowerCase();
+      if (lowerCode.startsWith('act-')) {
+        const onboardingId = code.substring(4);
+        try {
+          const { data, error } = await supabase
+            .from('teacher_onboardings')
+            .select('*')
+            .eq('id', onboardingId)
+            .single();
+
+          if (error || !data) {
+            setErrorText('Código de activación inválido, expirado o ya utilizado.');
+            return;
+          }
+
+          setOnboardingData(data);
+          setFullName(data.full_name);
+          setEmail(data.email);
+          setNationalId(data.document_id);
+          
+          const roles = data.selected_roles && data.selected_roles.length > 0
+            ? data.selected_roles
+            : ['docente'];
+          const primaryRole = roles.includes('director_grupo') ? 'director_grupo' : 'docente';
+          setSelectedRole(primaryRole as UserRole);
+          
+          setFlowType('teacher');
+          setFlowName('Activación de Cuenta Docente Real');
+          setFlowDesc('Tu solicitud de onboarding ha sido aprobada por la Coordinación Académica. Configura tus datos biométricos y accede a tu consola.');
+        } catch (err) {
+          console.error('Error fetching onboarding details:', err);
+          setErrorText('Ocurrió un error al verificar tu código de activación.');
+        }
+      } else if (lowerCode.startsWith('mat') || lowerCode.startsWith('join')) {
+        setFlowType('student');
+        setSelectedRole('estudiante');
+        setFlowName('Matrícula Escolar Inteligente');
+        setFlowDesc('Auto-onboarding digital, registro de expediente y asignación RFID.');
+      } else if (lowerCode.startsWith('doc') || lowerCode.startsWith('t-') || lowerCode.startsWith('xyz')) {
+        setFlowType('teacher');
+        setSelectedRole('docente');
+        setFlowName('Invitación de Incorporación Docente');
+        setFlowDesc('Vinculación de plan curricular, asignación de cursos y firma digital.');
+      } else if (lowerCode.startsWith('act') || lowerCode.startsWith('upd') || lowerCode.startsWith('bac')) {
+        setFlowType('parent');
+        setSelectedRole('padre_familia');
+        setFlowName('Actualización y Consentimiento Familiar');
+        setFlowDesc('Actualización de datos de acudiente, firma digital de circulares y semáforo RFID.');
+      } else {
+        setFlowType('student');
+        setSelectedRole('estudiante');
+        setFlowName('Matrícula Escolar Inteligente');
+        setFlowDesc('Auto-onboarding digital, registro de expediente y asignación RFID.');
+      }
+    };
+
+    fetchOnboardingDetails();
   }, [code]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!fullName.trim() || !nationalId.trim() || !email.trim()) return;
 
@@ -84,6 +124,21 @@ export default function JoinOnboardingPage() {
       { p: 75, text: 'Calibrando base de datos Supabase e IA predictiva de alertas...' },
       { p: 100, text: '¡Registro exitoso! Cuenta AulaCore configurada correctamente.' }
     ];
+
+    if (code.toLowerCase().startsWith('act-')) {
+      const onboardingId = code.substring(4);
+      try {
+        await supabase
+          .from('teacher_onboardings')
+          .update({
+            status: 'activated',
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', onboardingId);
+      } catch (err) {
+        console.error('Error updating onboarding status in Supabase:', err);
+      }
+    }
 
     let currentStep = 0;
     const interval = setInterval(() => {
@@ -100,10 +155,25 @@ export default function JoinOnboardingPage() {
     }, 900);
   };
 
-  const handleEnterDashboard = () => {
+  const handleEnterDashboard = async () => {
     // Dynamically set local state role and name to allow Rector-style showcase!
     setUserRole(selectedRole);
     setUserName(fullName);
+    
+    if (code.toLowerCase().startsWith('act-')) {
+      const onboardingId = code.substring(4);
+      try {
+        await supabase
+          .from('teacher_onboardings')
+          .update({
+            status: 'first_access',
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', onboardingId);
+      } catch (err) {
+        console.error('Error updating onboarding status to first_access:', err);
+      }
+    }
     
     // Save onboarding details for personalization in the student dashboard
     if (selectedRole === 'estudiante') {
@@ -159,7 +229,27 @@ export default function JoinOnboardingPage() {
         </div>
 
         {/* Dynamic step states */}
-        {!formSubmitted ? (
+        {errorText ? (
+          <div className="p-8 text-center space-y-6 animate-in zoom-in-95">
+            <div className="w-16 h-16 bg-rose-500/10 border border-rose-500/20 text-rose-500 rounded-full flex items-center justify-center mx-auto shadow-inner animate-bounce">
+              <ShieldAlert className="w-8 h-8" />
+            </div>
+            
+            <div className="space-y-1">
+              <h3 className="text-lg font-black text-slate-100 mb-1">Error de Activación</h3>
+              <p className="text-xs text-slate-400 font-semibold leading-relaxed px-6">
+                {errorText}
+              </p>
+            </div>
+
+            <button
+              onClick={() => router.push('/')}
+              className="w-full bg-slate-800 hover:bg-slate-700 text-white font-extrabold py-3 rounded-xl transition text-xs cursor-pointer border-none outline-none shadow-sm active:scale-95"
+            >
+              Volver al Inicio
+            </button>
+          </div>
+        ) : !formSubmitted ? (
           /* STEP 1: Registration Form */
           <div className="p-6 space-y-6">
             <div className="text-center">
@@ -236,8 +326,9 @@ export default function JoinOnboardingPage() {
                     required
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
+                    disabled={!!onboardingData}
                     placeholder="Ej. Juan Carlos Ospina"
-                    className="w-full pl-10 pr-4 py-2.5 bg-slate-850 border border-slate-800 focus:border-indigo-500 rounded-xl text-xs font-semibold text-slate-200 placeholder:text-slate-500 focus:outline-none"
+                    className="w-full pl-10 pr-4 py-2.5 bg-slate-850 border border-slate-800 focus:border-indigo-500 rounded-xl text-xs font-semibold text-slate-200 placeholder:text-slate-500 focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed"
                   />
                 </div>
               </div>
@@ -268,8 +359,9 @@ export default function JoinOnboardingPage() {
                     required
                     value={nationalId}
                     onChange={(e) => setNationalId(e.target.value)}
+                    disabled={!!onboardingData}
                     placeholder="Ej. CC / TI 1023456789"
-                    className="w-full pl-10 pr-4 py-2.5 bg-slate-850 border border-slate-800 focus:border-indigo-500 rounded-xl text-xs font-semibold text-slate-200 placeholder:text-slate-500 focus:outline-none"
+                    className="w-full pl-10 pr-4 py-2.5 bg-slate-850 border border-slate-800 focus:border-indigo-500 rounded-xl text-xs font-semibold text-slate-200 placeholder:text-slate-500 focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed"
                   />
                 </div>
               </div>
@@ -283,8 +375,9 @@ export default function JoinOnboardingPage() {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    disabled={!!onboardingData}
                     placeholder="Ej. jc.ospina@aulacore.edu.co"
-                    className="w-full pl-10 pr-4 py-2.5 bg-slate-850 border border-slate-800 focus:border-indigo-500 rounded-xl text-xs font-semibold text-slate-200 placeholder:text-slate-500 focus:outline-none"
+                    className="w-full pl-10 pr-4 py-2.5 bg-slate-850 border border-slate-800 focus:border-indigo-500 rounded-xl text-xs font-semibold text-slate-200 placeholder:text-slate-500 focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed"
                   />
                 </div>
               </div>
@@ -300,7 +393,7 @@ export default function JoinOnboardingPage() {
                 type="submit"
                 className="w-full mt-4 bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold py-3 rounded-xl transition shadow shadow-indigo-600/20 text-xs cursor-pointer border-none outline-none flex items-center justify-center gap-1.5"
               >
-                Completar Registro Seguro <ArrowRight className="w-4 h-4" />
+                {onboardingData ? 'Activar mi Cuenta Docente' : 'Completar Registro Seguro'} <ArrowRight className="w-4 h-4" />
               </button>
             </form>
           </div>

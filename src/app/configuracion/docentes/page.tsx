@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
+import { uploadOnboardingFile, submitOnboarding, TeacherOnboardingData } from '@/lib/services/teacher-onboarding';
 
 interface TeacherFormData {
   // Step 1: Identity
@@ -16,7 +17,9 @@ interface TeacherFormData {
   email: string;
   phone: string;
   fotoUploaded: boolean;
+  fotoUrl?: string;
   signatureDataUrl: string;
+  signatureUrl?: string;
 
   // Step 2: Academic Profile
   profession: string;
@@ -37,11 +40,17 @@ interface TeacherFormData {
 
   // Step 4: Documents (Dropbox)
   cvUploaded: boolean;
+  cvUrl?: string;
   diplomaUploaded: boolean;
+  diplomaUrl?: string;
   escalafonUploaded: boolean;
+  escalafonUrl?: string;
   backgroundCheckUploaded: boolean;
+  backgroundCheckUrl?: string;
   certificationsUploaded: boolean;
+  certificationsUrl?: string;
   identityDocUploaded: boolean;
+  identityDocUrl?: string;
 
   // Step 5: Horario (Availability)
   selectedSlots: string[]; // E.g. "Lunes-0", "Martes-1"
@@ -67,7 +76,9 @@ const INITIAL_FORM_STATE: TeacherFormData = {
   email: '',
   phone: '',
   fotoUploaded: false,
+  fotoUrl: '',
   signatureDataUrl: '',
+  signatureUrl: '',
   profession: '',
   degree: 'Licenciatura',
   specialization: '',
@@ -75,18 +86,24 @@ const INITIAL_FORM_STATE: TeacherFormData = {
   phd: '',
   experienceYears: '1',
   domainAreas: [],
-  sede: 'Sede Principal',
+  sede: 'Sede Principal (Bachillerato)',
   jornada: 'Única',
-  academicLevel: 'Bachillerato',
+  academicLevel: 'Básica Secundaria (6° - 9°)',
   subjectArea: 'Matemáticas',
   subjects: [],
   courses: [],
   cvUploaded: false,
+  cvUrl: '',
   diplomaUploaded: false,
+  diplomaUrl: '',
   escalafonUploaded: false,
+  escalafonUrl: '',
   backgroundCheckUploaded: false,
+  backgroundCheckUrl: '',
   certificationsUploaded: false,
+  certificationsUrl: '',
   identityDocUploaded: false,
+  identityDocUrl: '',
   selectedSlots: [],
   selectedRoles: ['docente'],
   notifEmail: true,
@@ -124,6 +141,18 @@ export default function DocentesPage() {
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving'>('saved');
   const [uploadedFiles, setUploadedFiles] = useState<Record<string, { name: string; size: string; progress: number }>>({});
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
+
+  // Input refs for file uploads
+  const fotoInputRef = useRef<HTMLInputElement>(null);
+  const cvInputRef = useRef<HTMLInputElement>(null);
+  const diplomaInputRef = useRef<HTMLInputElement>(null);
+  const escalafonInputRef = useRef<HTMLInputElement>(null);
+  const backgroundCheckInputRef = useRef<HTMLInputElement>(null);
+  const certificationsInputRef = useRef<HTMLInputElement>(null);
+  const identityDocInputRef = useRef<HTMLInputElement>(null);
+
+  const [submitting, setSubmitting] = useState<boolean>(false);
+  const [uploadErrors, setUploadErrors] = useState<Record<string, string>>({});
 
   // Canvas drawing ref
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -375,88 +404,155 @@ export default function DocentesPage() {
     handleInputChange('signatureDataUrl', dataUrl);
   };
 
-  // Dropbox file simulation
-  const handleSimulateUpload = (field: keyof TeacherFormData, fileName: string, size: string) => {
+  // Real file upload to Supabase Storage
+  const handleRealUpload = async (field: keyof TeacherFormData, file: File) => {
+    if (!formData.documentId) {
+      alert('Por favor ingrese el Documento de Identidad (Cédula) antes de cargar archivos.');
+      return;
+    }
+
     setUploadedFiles(prev => ({
       ...prev,
-      [field]: { name: fileName, size, progress: 15 }
+      [field]: { name: file.name, size: `${(file.size / (1024 * 1024)).toFixed(1)} MB`, progress: 10 }
     }));
 
-    let progressVal = 15;
-    const interval = setInterval(() => {
-      progressVal += 20;
-      if (progressVal >= 100) {
-        clearInterval(interval);
-        setUploadedFiles(prev => ({
-          ...prev,
-          [field]: { name: fileName, size, progress: 100 }
-        }));
-        handleInputChange(field, true);
+    let progressVal = 10;
+    const progressInterval = setInterval(() => {
+      progressVal += 15;
+      if (progressVal >= 90) {
+        clearInterval(progressInterval);
       } else {
-        setUploadedFiles(prev => ({
-          ...prev,
-          [field]: { name: fileName, size, progress: progressVal }
-        }));
+        setUploadedFiles(prev => {
+          if (!prev[field]) return prev;
+          return {
+            ...prev,
+            [field]: { ...prev[field], progress: progressVal }
+          };
+        });
       }
-    }, 120);
+    }, 150);
+
+    try {
+      const folder = field === 'fotoUploaded' ? 'photos' : 'documents';
+      const urlField = field.replace('Uploaded', 'Url') as keyof TeacherFormData;
+      const fileName = file.name;
+
+      const publicUrl = await uploadOnboardingFile(file, folder, formData.documentId, fileName);
+
+      clearInterval(progressInterval);
+      setUploadedFiles(prev => ({
+        ...prev,
+        [field]: { name: file.name, size: `${(file.size / (1024 * 1024)).toFixed(1)} MB`, progress: 100 }
+      }));
+
+      setFormData(prev => {
+        const updated = {
+          ...prev,
+          [field]: true,
+          [urlField]: publicUrl
+        };
+        autoSave(updated, step);
+        return updated;
+      });
+      
+      setUploadErrors(prev => ({ ...prev, [field]: '' }));
+    } catch (err: any) {
+      clearInterval(progressInterval);
+      console.error(`Error uploading ${field}:`, err);
+      setUploadErrors(prev => ({ ...prev, [field]: err.message || 'Error al subir archivo' }));
+      setUploadedFiles(prev => {
+        const copy = { ...prev };
+        delete copy[field];
+        return copy;
+      });
+    }
   };
 
   const handleDeleteFile = (field: keyof TeacherFormData) => {
+    const urlField = field.replace('Uploaded', 'Url') as keyof TeacherFormData;
     setUploadedFiles(prev => {
       const copy = { ...prev };
       delete copy[field];
       return copy;
     });
-    handleInputChange(field, false);
+    setFormData(prev => {
+      const updated = {
+        ...prev,
+        [field]: false,
+        [urlField]: ''
+      };
+      autoSave(updated, step);
+      return updated;
+    });
   };
 
   // Submit dynamic database save
-  const handleSubmitOnboarding = () => {
-    const newDocenteApproval = {
-      id: 'app-' + Date.now(),
-      name: formData.fullName || 'Docente Aspirante',
-      email: formData.email || 'docente.nuevo@aulacore.edu.co',
-      type: 'Docente' as const,
-      submittedAt: 'Hace unos instantes',
-      status: 'pending_approval' as const,
-      documentStatus: 'Revisión Manual' as const,
-      autoAssignedCourse: `${formData.sede} &bull; ${formData.jornada}`,
-      documents: [
-        { id: 'd-10', name: uploadedFiles['cvUploaded']?.name || 'Hoja_de_Vida.pdf', type: 'PDF', status: 'Pendiente' as const, size: uploadedFiles['cvUploaded']?.size || '2.8 MB' },
-        { id: 'd-11', name: uploadedFiles['diplomaUploaded']?.name || 'Diploma_Licenciatura.pdf', type: 'PDF', status: 'Pendiente' as const, size: uploadedFiles['diplomaUploaded']?.size || '1.9 MB' },
-        { id: 'd-12', name: uploadedFiles['backgroundCheckUploaded']?.name || 'Antecedentes_Certificado.pdf', type: 'PDF', status: 'Pendiente' as const, size: uploadedFiles['backgroundCheckUploaded']?.size || '1.2 MB' }
-      ],
-      riskScore: 3, // Very low risk
-      // OCR Data preloaded
-      ocrExtractedData: {
-        fullname: formData.fullName,
-        documentNumber: formData.documentId,
-        academicLevel: formData.degree,
-        roles: formData.selectedRoles.join(', '),
-        weeklyHours: formData.selectedSlots.length * 2,
-        sede: formData.sede,
-        domainAreas: formData.domainAreas.join(', ')
-      },
-      documentConfidenceScore: 97,
-      smartFlags: ["Firma digital verificada", "Ficha horaria optimizada", "Acceso RFID habilitado"]
-    };
-
-    const savedApprovals = localStorage.getItem('aulacore-pending-approvals');
-    let approvalsList = [];
-    if (savedApprovals) {
-      try {
-        approvalsList = JSON.parse(savedApprovals);
-      } catch (e) {
-        console.error(e);
-      }
+  const handleSubmitOnboarding = async () => {
+    if (!formData.fullName || !formData.documentId || !formData.email || !formData.phone) {
+      alert('Por favor, complete todos los campos obligatorios en el Paso 1: Identidad (Nombre, Documento, Correo y Teléfono).');
+      setStep(1);
+      return;
     }
-    approvalsList.unshift(newDocenteApproval);
-    localStorage.setItem('aulacore-pending-approvals', JSON.stringify(approvalsList));
 
-    // Reset and close
-    localStorage.removeItem('aulacore-docente-draft');
-    localStorage.removeItem('aulacore-docente-draft-step');
-    setIsSubmitted(true);
+    setSubmitting(true);
+    try {
+      let finalSignatureUrl = '';
+      if (formData.signatureDataUrl) {
+        try {
+          const byteString = atob(formData.signatureDataUrl.split(',')[1]);
+          const mimeString = formData.signatureDataUrl.split(',')[0].split(':')[1].split(';')[0];
+          const ab = new ArrayBuffer(byteString.length);
+          const ia = new Uint8Array(ab);
+          for (let i = 0; i < byteString.length; i++) {
+            ia[i] = byteString.charCodeAt(i);
+          }
+          const blob = new Blob([ab], { type: mimeString });
+          const file = new File([blob], 'signature.png', { type: 'image/png' });
+          finalSignatureUrl = await uploadOnboardingFile(file, 'signatures', formData.documentId, 'signature.png');
+        } catch (sigErr) {
+          console.error("Error uploading signature file:", sigErr);
+        }
+      }
+
+      const payload: TeacherOnboardingData = {
+        institution_id: '11111111-1111-1111-1111-111111111111',
+        full_name: formData.fullName,
+        document_id: formData.documentId,
+        email: formData.email,
+        phone: formData.phone,
+        profession: formData.profession || undefined,
+        degree: formData.degree || undefined,
+        experience_years: formData.experienceYears || undefined,
+        domain_areas: formData.domainAreas,
+        sede: formData.sede,
+        jornada: formData.jornada,
+        academic_level: formData.academicLevel,
+        subject_area: formData.subjectArea,
+        selected_slots: formData.selectedSlots,
+        selected_roles: formData.selectedRoles,
+        foto_url: formData.fotoUrl || undefined,
+        cv_url: formData.cvUrl || undefined,
+        diploma_url: formData.diplomaUrl || undefined,
+        escalafon_url: formData.escalafonUrl || undefined,
+        background_check_url: formData.backgroundCheckUrl || undefined,
+        certifications_url: formData.certificationsUrl || undefined,
+        identity_doc_url: formData.identityDocUrl || undefined,
+        signature_url: finalSignatureUrl || undefined,
+        status: 'pending_approval'
+      };
+
+      await submitOnboarding(payload);
+
+      // Reset and close
+      localStorage.removeItem('aulacore-docente-draft');
+      localStorage.removeItem('aulacore-docente-draft-step');
+      setIsSubmitted(true);
+    } catch (err: any) {
+      console.error('Error enviando onboarding a Supabase:', err);
+      alert('Error al enviar la solicitud: ' + (err.message || err));
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const STEPS_DATA = [
@@ -686,25 +782,67 @@ export default function DocentesPage() {
 
                   {/* Foto profesional dropzone */}
                   <div className="md:col-span-2 border border-dashed border-slate-250 rounded-2xl p-6 bg-slate-50/50 hover:bg-slate-50 flex flex-col items-center justify-center text-center transition-all cursor-pointer relative overflow-hidden">
+                    <input 
+                      type="file" 
+                      ref={fotoInputRef} 
+                      className="hidden" 
+                      accept="image/*" 
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleRealUpload('fotoUploaded', file);
+                      }} 
+                    />
                     {formData.fotoUploaded ? (
                       <div className="flex flex-col items-center animate-in zoom-in-95 duration-200">
-                        <CheckCircle2 className="w-10 h-10 text-emerald-500 mb-2" />
-                        <h4 className="text-xs font-bold text-slate-700">Foto_Profesional.jpg cargada</h4>
+                        {formData.fotoUrl ? (
+                          <img 
+                            src={formData.fotoUrl} 
+                            alt="Foto profesional" 
+                            className="w-24 h-24 rounded-full object-cover border-2 border-indigo-500 mb-2 shadow"
+                          />
+                        ) : (
+                          <CheckCircle2 className="w-10 h-10 text-emerald-500 mb-2" />
+                        )}
+                        <h4 className="text-xs font-bold text-slate-700">Fotografía Profesional cargada</h4>
                         <button 
-                          onClick={() => handleInputChange('fotoUploaded', false)}
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteFile('fotoUploaded');
+                          }}
                           className="text-[10px] font-black text-rose-600 bg-rose-50 px-2 py-1 rounded mt-2 hover:bg-rose-100 cursor-pointer"
                         >
                           Eliminar
                         </button>
                       </div>
+                    ) : uploadedFiles['fotoUploaded'] ? (
+                      <div className="w-full max-w-xs space-y-1.5 py-4">
+                        <div className="flex justify-between text-[9px] font-bold text-indigo-700 uppercase tracking-widest">
+                          <span>Subiendo fotografía...</span>
+                          <span>{uploadedFiles['fotoUploaded'].progress}%</span>
+                        </div>
+                        <div className="w-full h-1 bg-slate-200 rounded-full overflow-hidden">
+                          <div className="bg-indigo-600 h-full transition-all duration-150" style={{ width: `${uploadedFiles['fotoUploaded'].progress}%` }}></div>
+                        </div>
+                      </div>
                     ) : (
                       <button 
-                        onClick={() => handleInputChange('fotoUploaded', true)}
+                        type="button"
+                        onClick={() => {
+                          if (!formData.documentId) {
+                            alert('Por favor ingrese el Documento de Identidad (Cédula) antes de cargar la fotografía.');
+                            return;
+                          }
+                          fotoInputRef.current?.click();
+                        }}
                         className="flex flex-col items-center cursor-pointer bg-transparent border-0"
                       >
                         <CloudUpload className="w-10 h-10 text-indigo-500 mb-2 animate-bounce" />
                         <h4 className="text-xs font-bold text-slate-700">Fotografía Profesional (Fondo Blanco)</h4>
-                        <p className="text-[10px] text-slate-400 font-semibold mt-1">Arrastra tu foto o haz clic para subir de tu galería</p>
+                        <p className="text-[10px] text-slate-400 font-semibold mt-1">Haz clic para seleccionar o subir desde tu galería</p>
+                        {uploadErrors['fotoUploaded'] && (
+                          <p className="text-[10px] text-rose-500 mt-1 font-bold">{uploadErrors['fotoUploaded']}</p>
+                        )}
                       </button>
                     )}
                   </div>
@@ -925,12 +1063,12 @@ export default function DocentesPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
                   {[
-                    { label: 'Hoja de Vida Única Actualizada', field: 'cvUploaded', type: 'HV_AndresGomez.pdf', size: '2.8 MB' },
-                    { label: 'Título de Grado / Acta de Licenciatura', field: 'diplomaUploaded', type: 'Diploma_Profesional.pdf', size: '1.9 MB' },
-                    { label: 'Resolución de Escalafón Docente', field: 'escalafonUploaded', type: 'Escalafon_MinEdu.pdf', size: '1.4 MB' },
-                    { label: 'Certificado Judicial & Antecedentes (Máx. 30 días)', field: 'backgroundCheckUploaded', type: 'Antecedentes.pdf', size: '1.2 MB' },
-                    { label: 'Certificaciones Laborales Anteriores', field: 'certificationsUploaded', type: 'Certificaciones_Historico.pdf', size: '3.4 MB' },
-                    { label: 'Cédula de Ciudadanía (Ambas caras)', field: 'identityDocUploaded', type: 'Cedula_Identidad.pdf', size: '1.7 MB' },
+                    { label: 'Hoja de Vida Única Actualizada', field: 'cvUploaded', ref: cvInputRef, type: 'HV_AndresGomez.pdf', size: '2.8 MB' },
+                    { label: 'Título de Grado / Acta de Licenciatura', field: 'diplomaUploaded', ref: diplomaInputRef, type: 'Diploma_Profesional.pdf', size: '1.9 MB' },
+                    { label: 'Resolución de Escalafón Docente', field: 'escalafonUploaded', ref: escalafonInputRef, type: 'Escalafon_MinEdu.pdf', size: '1.4 MB' },
+                    { label: 'Certificado Judicial & Antecedentes (Máx. 30 días)', field: 'backgroundCheckUploaded', ref: backgroundCheckInputRef, type: 'Antecedentes.pdf', size: '1.2 MB' },
+                    { label: 'Certificaciones Laborales Anteriores', field: 'certificationsUploaded', ref: certificationsInputRef, type: 'Certificaciones_Historico.pdf', size: '3.4 MB' },
+                    { label: 'Cédula de Ciudadanía (Ambas caras)', field: 'identityDocUploaded', ref: identityDocInputRef, type: 'Cedula_Identidad.pdf', size: '1.7 MB' },
                   ].map(doc => {
                     const isUploaded = formData[doc.field as keyof TeacherFormData];
                     const loader = uploadedFiles[doc.field];
@@ -944,6 +1082,16 @@ export default function DocentesPage() {
                           loader ? "bg-indigo-50/20 border-indigo-300" : "bg-slate-50/50 border-slate-250 hover:bg-slate-50"
                         )}
                       >
+                        <input
+                          type="file"
+                          ref={doc.ref}
+                          className="hidden"
+                          accept=".pdf,image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handleRealUpload(doc.field as keyof TeacherFormData, file);
+                          }}
+                        />
                         <div className="flex items-start justify-between gap-3 mb-3">
                           <div>
                             <h4 className="text-xs font-bold text-slate-800">{doc.label}</h4>
@@ -960,6 +1108,7 @@ export default function DocentesPage() {
                             <div className="flex items-center gap-2">
                               <span className="text-[9px] font-bold text-emerald-600 bg-emerald-100 px-1.5 py-0.5 rounded uppercase">Verificado</span>
                               <button 
+                                type="button"
                                 onClick={() => handleDeleteFile(doc.field as keyof TeacherFormData)}
                                 className="text-rose-500 hover:bg-rose-50 p-1 rounded-md transition-colors cursor-pointer"
                               >
@@ -970,7 +1119,7 @@ export default function DocentesPage() {
                         ) : loader ? (
                           <div className="space-y-1.5">
                             <div className="flex justify-between text-[9px] font-bold text-indigo-700 uppercase tracking-widest">
-                              <span>Subiendo a dropbox...</span>
+                              <span>Subiendo archivo...</span>
                               <span>{loader.progress}%</span>
                             </div>
                             <div className="w-full h-1 bg-slate-200 rounded-full overflow-hidden">
@@ -978,12 +1127,24 @@ export default function DocentesPage() {
                             </div>
                           </div>
                         ) : (
-                          <button 
-                            onClick={() => handleSimulateUpload(doc.field as keyof TeacherFormData, doc.type, doc.size)}
-                            className="w-full bg-white border border-slate-200 hover:border-indigo-300 hover:text-indigo-600 text-slate-650 text-[11px] font-bold py-2.5 rounded-xl transition-all cursor-pointer shadow-sm text-center"
-                          >
-                            + Cargar Soporte
-                          </button>
+                          <div>
+                            <button 
+                              type="button"
+                              onClick={() => {
+                                if (!formData.documentId) {
+                                  alert('Por favor ingrese el Documento de Identidad (Cédula) antes de cargar documentos.');
+                                  return;
+                                }
+                                doc.ref.current?.click();
+                              }}
+                              className="w-full bg-white border border-slate-200 hover:border-indigo-300 hover:text-indigo-600 text-slate-650 text-[11px] font-bold py-2.5 rounded-xl transition-all cursor-pointer shadow-sm text-center"
+                            >
+                              + Cargar Soporte
+                            </button>
+                            {uploadErrors[doc.field] && (
+                              <p className="text-[9px] text-rose-500 mt-1 text-center font-semibold">{uploadErrors[doc.field]}</p>
+                            )}
+                          </div>
                         )}
                       </div>
                     );
@@ -1466,9 +1627,18 @@ export default function DocentesPage() {
             ) : (
               <button
                 onClick={handleSubmitOnboarding}
-                className="px-8 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-1 shadow-lg shadow-emerald-600/10 hover:-translate-y-0.5 active:scale-95 cursor-pointer"
+                disabled={submitting}
+                className={cn(
+                  "px-8 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-1 shadow-lg shadow-emerald-600/10 hover:-translate-y-0.5 active:scale-95 cursor-pointer",
+                  submitting && "opacity-50 cursor-not-allowed active:scale-100"
+                )}
               >
-                Enviar Onboarding <CheckCircle2 className="w-4 h-4" />
+                {submitting ? 'Enviando...' : 'Enviar Onboarding'} 
+                {submitting ? (
+                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                ) : (
+                  <CheckCircle2 className="w-4 h-4" />
+                )}
               </button>
             )}
           </div>

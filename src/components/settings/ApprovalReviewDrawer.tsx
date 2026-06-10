@@ -126,9 +126,21 @@ export function ApprovalReviewDrawer({
                     >
                       {doc.status}
                     </button>
-                    <button className="text-slate-400 hover:text-indigo-600 transition-colors cursor-pointer" title="Previsualizar documento">
-                      <Eye className="w-4 h-4" />
-                    </button>
+                    {doc.url ? (
+                      <a 
+                        href={doc.url} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="text-slate-400 hover:text-indigo-600 transition-colors cursor-pointer flex items-center justify-center p-1 rounded hover:bg-slate-100" 
+                        title="Ver documento"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </a>
+                    ) : (
+                      <button className="text-slate-400 hover:text-indigo-650 transition-colors cursor-pointer" title="Previsualizar documento">
+                        <Eye className="w-4 h-4" />
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}
