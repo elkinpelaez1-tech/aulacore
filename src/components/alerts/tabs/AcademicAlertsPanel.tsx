@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { GraduationCap, Search, BookOpen, Clock, CheckCircle2, User, ChevronRight, AlertTriangle, Calendar, X, Sparkles } from 'lucide-react';
 import { MOCK_STUDENTS, StudentMockData } from '@/lib/data/mock-students';
 import { Button } from '@/components/ui/button';
@@ -36,6 +36,33 @@ export function AcademicAlertsPanel({ onIntervene }: AcademicAlertsPanelProps) {
   const [piarSupport, setPiarSupport] = useState('Psicoorientadora');
   const [piarFrequency, setPiarFrequency] = useState('Quincenal');
   const [piarStartDate, setPiarStartDate] = useState('');
+
+  // Load scheduled items from localStorage on mount/update
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [scheduledTutorias, setScheduledTutorias] = useState<any[]>([]);
+  const [activePiars, setActivePiars] = useState<any[]>([]);
+
+  useEffect(() => {
+    const loadData = () => {
+      if (typeof window !== 'undefined') {
+        const tuts = localStorage.getItem('aulacore-scheduled-tutorias');
+        if (tuts) {
+          try {
+            setScheduledTutorias(JSON.parse(tuts));
+          } catch (e) {}
+        }
+        const piars = localStorage.getItem('aulacore-student-piar-plans');
+        if (piars) {
+          try {
+            setActivePiars(JSON.parse(piars));
+          } catch (e) {}
+        }
+      }
+    };
+    loadData();
+    window.addEventListener('storage', loadData);
+    return () => window.removeEventListener('storage', loadData);
+  }, [refreshTrigger]);
 
   const academicRiskStudents = MOCK_STUDENTS.filter(s => {
     const matchesSearch = s.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -80,6 +107,7 @@ export function AcademicAlertsPanel({ onIntervene }: AcademicAlertsPanelProps) {
       }
       tutoriasList.push(newTutoria);
       localStorage.setItem('aulacore-scheduled-tutorias', JSON.stringify(tutoriasList));
+      setRefreshTrigger(prev => prev + 1);
 
       setToast({
         title: 'Tutoría Agendada',
@@ -120,6 +148,7 @@ export function AcademicAlertsPanel({ onIntervene }: AcademicAlertsPanelProps) {
       }
       piarsList.push(newPiar);
       localStorage.setItem('aulacore-student-piar-plans', JSON.stringify(piarsList));
+      setRefreshTrigger(prev => prev + 1);
 
       setToast({
         title: 'Plan PIAR Creado',
@@ -254,44 +283,104 @@ export function AcademicAlertsPanel({ onIntervene }: AcademicAlertsPanelProps) {
           </div>
         </div>
 
-        {/* Academic Recommendations Card */}
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 text-white flex flex-col justify-between">
-          <div>
-            <div className="flex items-center gap-2 mb-4 text-indigo-400">
-              <AlertTriangle className="w-5 h-5" />
-              <h3 className="text-xs font-black text-indigo-200 uppercase tracking-widest">Plan Curricular AulaCore AI</h3>
-            </div>
-            
-            <p className="text-[11px] text-slate-400 leading-relaxed font-semibold">
-              El análisis predictivo arroja una correlación del 82% entre la baja nota en Matemáticas del curso 9-B y las ausencias no justificadas de los días martes.
-            </p>
+        {/* Right column container */}
+        <div className="space-y-6">
+          {/* Academic Recommendations Card */}
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 text-white flex flex-col justify-between min-h-[380px]">
+            <div>
+              <div className="flex items-center gap-2 mb-4 text-indigo-400">
+                <AlertTriangle className="w-5 h-5" />
+                <h3 className="text-xs font-black text-indigo-200 uppercase tracking-widest">Plan Curricular AulaCore AI</h3>
+              </div>
+              
+              <p className="text-[11px] text-slate-400 leading-relaxed font-semibold">
+                El análisis predictivo arroja una correlación del 82% entre la baja nota en Matemáticas del curso 9-B y las ausencias no justificadas de los días martes.
+              </p>
 
-            <div className="mt-6 space-y-4">
-              <div className="flex gap-3 bg-white/5 p-4 rounded-xl border border-white/5">
-                <div className="w-1.5 h-auto bg-indigo-500 rounded-full shrink-0"></div>
-                <div>
-                  <h5 className="text-xs font-black text-slate-200">Refuerzo Prioritario</h5>
-                  <p className="text-[10px] text-slate-400 mt-1 font-semibold leading-relaxed">
-                    Priorizar tutoría en Álgebra para los cursos 9-A y 9-B de forma sincrónica los días miércoles.
-                  </p>
+              <div className="mt-6 space-y-4">
+                <div className="flex gap-3 bg-white/5 p-4 rounded-xl border border-white/5">
+                  <div className="w-1.5 h-auto bg-indigo-500 rounded-full shrink-0"></div>
+                  <div>
+                    <h5 className="text-xs font-black text-slate-200">Refuerzo Prioritario</h5>
+                    <p className="text-[10px] text-slate-400 mt-1 font-semibold leading-relaxed">
+                      Priorizar tutoría en Álgebra para los cursos 9-A y 9-B de forma sincrónica los días miércoles.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 bg-white/5 p-4 rounded-xl border border-white/5">
+                  <div className="w-1.5 h-auto bg-amber-500 rounded-full shrink-0"></div>
+                  <div>
+                    <h5 className="text-xs font-black text-slate-200">Ajuste de Syllabus</h5>
+                    <p className="text-[10px] text-slate-400 mt-1 font-semibold leading-relaxed">
+                      Aplazar el examen parcial de Tecnología e Informática de 10-A un periodo de 5 días para equilibrar cobertura curricular.
+                    </p>
+                  </div>
                 </div>
               </div>
-
-              <div className="flex gap-3 bg-white/5 p-4 rounded-xl border border-white/5">
-                <div className="w-1.5 h-auto bg-amber-500 rounded-full shrink-0"></div>
-                <div>
-                  <h5 className="text-xs font-black text-slate-200">Ajuste de Syllabus</h5>
-                  <p className="text-[10px] text-slate-400 mt-1 font-semibold leading-relaxed">
-                    Aplazar el examen parcial de Tecnología e Informática de 10-A un periodo de 5 días para equilibrar cobertura curricular.
-                  </p>
-                </div>
-              </div>
             </div>
+
+            <button className="w-full mt-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white rounded-xl shadow-md transition-all">
+              Ver recomendaciones completas
+            </button>
           </div>
 
-          <button className="w-full mt-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white rounded-xl shadow-md transition-all">
-            Ver recomendaciones completas
-          </button>
+          {/* Control de Citaciones y Planes */}
+          <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4">
+            <h4 className="text-xs font-black text-slate-800 uppercase tracking-widest flex items-center gap-1.5 border-b border-slate-100 pb-3">
+              <Calendar className="w-4 h-4 text-indigo-600" /> Control de Citaciones y Planes
+            </h4>
+
+            {scheduledTutorias.length === 0 && activePiars.length === 0 ? (
+              <p className="text-[11px] font-semibold text-slate-450 text-center py-6">
+                No hay tutorías agendadas ni planes PIAR activos para el período actual.
+              </p>
+            ) : (
+              <div className="space-y-3 max-h-[320px] overflow-y-auto pr-1 scrollbar-hide">
+                {scheduledTutorias.map((tut, idx) => (
+                  <div key={`tut-${idx}`} className="bg-slate-50 border border-slate-100 rounded-2xl p-3.5 space-y-1.5 shadow-sm hover:border-indigo-150 transition-colors">
+                    <div className="flex justify-between items-center">
+                      <span className="text-[8px] font-black uppercase px-2 py-0.5 rounded bg-indigo-50 text-indigo-700">
+                        Tutoría: {tut.subject}
+                      </span>
+                      <span className="text-[8px] font-black text-slate-400">
+                        {tut.date} • {tut.time}
+                      </span>
+                    </div>
+                    <p className="text-xs font-black text-slate-800">{tut.studentName}</p>
+                    <p className="text-[10px] font-semibold text-slate-550">
+                      Docente: {tut.teacher} • <span className="italic">{tut.mode}</span>
+                    </p>
+                    {tut.notes && (
+                      <p className="text-[10px] text-slate-450 border-t border-slate-105 pt-1.5 mt-1.5 font-semibold truncate" title={tut.notes}>
+                        Nota: {tut.notes}
+                      </p>
+                    )}
+                  </div>
+                ))}
+
+                {activePiars.map((piar, idx) => (
+                  <div key={`piar-${idx}`} className="bg-slate-50 border border-slate-100 rounded-2xl p-3.5 space-y-1.5 shadow-sm hover:border-emerald-150 transition-colors">
+                    <div className="flex justify-between items-center">
+                      <span className="text-[8px] font-black uppercase px-2 py-0.5 rounded bg-emerald-50 text-emerald-700">
+                        Plan PIAR (Inclusión)
+                      </span>
+                      <span className="text-[8px] font-black text-slate-400">
+                        Inicio: {piar.startDate}
+                      </span>
+                    </div>
+                    <p className="text-xs font-black text-slate-800">{piar.studentName}</p>
+                    <p className="text-[10px] font-semibold text-slate-550">
+                      Apoyo: {piar.support} • Monitoreo: {piar.frequency}
+                    </p>
+                    <p className="text-[10px] text-slate-450 border-t border-slate-105 pt-1.5 mt-1.5 font-semibold truncate" title={piar.strategies}>
+                      Estrategia: {piar.strategies}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
       </div>
