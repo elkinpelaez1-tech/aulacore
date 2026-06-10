@@ -59,6 +59,15 @@ export function PaeTracking({
   const [value, setValue] = useState(1000000);
   const [purchaseDate, setPurchaseDate] = useState(new Date().toISOString().split('T')[0]);
 
+  // Visit form state
+  const [isVisitModalOpen, setIsVisitModalOpen] = useState(false);
+  const [controlType, setControlType] = useState<'Supervisión' | 'Interventoría'>('Supervisión');
+  const [controlDate, setControlDate] = useState(new Date().toISOString().split('T')[0]);
+  const [inspectorName, setInspectorName] = useState('');
+  const [scorePercentage, setScorePercentage] = useState(90);
+  const [findings, setFindings] = useState('');
+  const [actionPlan, setActionPlan] = useState('');
+
   const canEdit = userRole === 'rector' || userRole === 'secretaria' || userRole === 'coordinador';
 
   // Calculate percentages
@@ -72,6 +81,40 @@ export function PaeTracking({
     setValue(1500000);
     setPurchaseDate(new Date().toISOString().split('T')[0]);
     setIsPurchaseModalOpen(true);
+  };
+
+  const handleOpenAddVisit = () => {
+    setControlType('Supervisión');
+    setControlDate(new Date().toISOString().split('T')[0]);
+    setInspectorName('');
+    setScorePercentage(90);
+    setFindings('');
+    setActionPlan('');
+    setIsVisitModalOpen(true);
+  };
+
+  const handleSaveVisit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!canEdit) return;
+    if (!inspectorName.trim() || !findings.trim()) {
+      alert('Por favor complete todos los campos requeridos.');
+      return;
+    }
+
+    const newVisit: Visit = {
+      id: 'vis-' + Date.now(),
+      control_type: controlType,
+      control_date: controlDate,
+      inspector_name: inspectorName,
+      score_percentage: scorePercentage,
+      findings: findings,
+      action_plan: actionPlan
+    };
+
+    const updated = [...visits, newVisit];
+    onSaveVisits(updated);
+    setIsVisitModalOpen(false);
+    alert('✓ Visita de interventoría registrada correctamente.');
   };
 
   const handleSavePurchase = (e: React.FormEvent) => {
@@ -126,12 +169,19 @@ export function PaeTracking({
       {/* --- SUBTAB: SUPERVISION --- */}
       {activeSubTab === 'supervision' && (
         <Card className="border-slate-200 shadow-md bg-white rounded-3xl overflow-hidden">
-          <CardHeader className="bg-slate-50 border-b border-slate-200 px-6 py-4">
-            <CardTitle className="text-base font-black text-slate-955 flex items-center gap-2">
-              <ShieldCheck className="w-5 h-5 text-indigo-600" />
-              Visitas de Interventoría de la Secretaría y Entes de Control
-            </CardTitle>
-            <p className="text-xs text-slate-500 font-semibold mt-0.5">Historial de inspecciones oficiales recibidas para auditar el cumplimiento del operador.</p>
+          <CardHeader className="bg-slate-50 border-b border-slate-200 px-6 py-4 flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="text-base font-black text-slate-955 flex items-center gap-2">
+                <ShieldCheck className="w-5 h-5 text-indigo-600" />
+                Visitas de Interventoría de la Secretaría y Entes de Control
+              </CardTitle>
+              <p className="text-xs text-slate-500 font-semibold mt-0.5">Historial de inspecciones oficiales recibidas para auditar el cumplimiento del operador.</p>
+            </div>
+            {canEdit && (
+              <Button onClick={handleOpenAddVisit} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs h-9 px-4 rounded-xl flex items-center gap-1.5 shadow-md border-none cursor-pointer">
+                <Plus className="w-4 h-4" /> Registrar Visita
+              </Button>
+            )}
           </CardHeader>
           <CardContent className="p-0">
             <Table>
@@ -349,6 +399,107 @@ export function PaeTracking({
                 </Button>
                 <Button type="submit" className="px-5 py-2 bg-indigo-600 text-white rounded-xl text-xs font-semibold uppercase tracking-wider hover:bg-indigo-700 shadow-sm cursor-pointer h-9 border-none">
                   Guardar Compra
+                </Button>
+              </div>
+            </form>
+          </Card>
+        </div>
+      )}
+
+      {/* --- MODAL ADD VISIT --- */}
+      {isVisitModalOpen && (
+        <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4">
+          <div onClick={() => setIsVisitModalOpen(false)} className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm transition-opacity" />
+          <Card className="inline-block transform overflow-hidden rounded-3xl bg-white border border-slate-200 text-left align-bottom shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-md sm:align-middle relative z-10 w-full">
+            <form onSubmit={handleSaveVisit}>
+              <div className="bg-white px-6 pt-6 pb-4 space-y-4">
+                <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+                  <h3 className="text-base font-black text-slate-900 tracking-tight flex items-center gap-2">
+                    <ShieldCheck className="w-5 h-5 text-indigo-600" />
+                    Registrar Visita de Interventoría
+                  </h3>
+                  <button type="button" onClick={() => setIsVisitModalOpen(false)} className="text-slate-400 hover:text-slate-650 outline-none border-none bg-transparent cursor-pointer">
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                <div className="space-y-4 text-xs font-semibold text-slate-700">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-450 uppercase tracking-widest block mb-1.5">Tipo de Control *</label>
+                      <select
+                        value={controlType}
+                        onChange={(e) => setControlType(e.target.value as 'Supervisión' | 'Interventoría')}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 outline-none focus:bg-white focus:border-indigo-500 transition-all font-semibold text-slate-900"
+                      >
+                        <option value="Supervisión" className="bg-white text-slate-900">Supervisión</option>
+                        <option value="Interventoría" className="bg-white text-slate-900">Interventoría</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-450 uppercase tracking-widest block mb-1.5">Fecha Visita *</label>
+                      <input
+                        type="date"
+                        value={controlDate}
+                        onChange={(e) => setControlDate(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 outline-none focus:bg-white text-slate-900"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-450 uppercase tracking-widest block mb-1.5">Inspector / Entidad *</label>
+                    <input
+                      type="text"
+                      placeholder="Ej. Secretaría de Educación Municipal"
+                      value={inspectorName}
+                      onChange={(e) => setInspectorName(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 outline-none focus:bg-white focus:border-indigo-500 transition-all font-semibold text-slate-900"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-450 uppercase tracking-widest block mb-1.5">Calificación Obtenida (0 - 100%) *</label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={scorePercentage}
+                      onChange={(e) => setScorePercentage(parseFloat(e.target.value) || 0)}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 outline-none focus:bg-white focus:border-indigo-500 transition-all font-semibold text-slate-900"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-450 uppercase tracking-widest block mb-1.5">Detalle de Hallazgos *</label>
+                    <textarea
+                      placeholder="Describa los hallazgos principales de la inspección..."
+                      value={findings}
+                      onChange={(e) => setFindings(e.target.value)}
+                      rows={3}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 outline-none focus:bg-white focus:border-indigo-500 transition-all font-semibold resize-none text-slate-900"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-450 uppercase tracking-widest block mb-1.5">Plan de Acción / Medidas Correctivas</label>
+                    <textarea
+                      placeholder="Ej. Reemplazar licuadora, mejorar cadena de frío..."
+                      value={actionPlan}
+                      onChange={(e) => setActionPlan(e.target.value)}
+                      rows={2}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 outline-none focus:bg-white focus:border-indigo-500 transition-all font-semibold resize-none text-slate-900"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-slate-50 px-6 py-4 flex justify-end gap-2 border-t border-slate-100">
+                <Button type="button" onClick={() => setIsVisitModalOpen(false)} className="px-4 py-2 bg-white border border-slate-200 text-slate-655 rounded-xl text-xs font-semibold uppercase tracking-wider hover:bg-slate-100 cursor-pointer h-9">
+                  Cancelar
+                </Button>
+                <Button type="submit" className="px-5 py-2 bg-indigo-600 text-white rounded-xl text-xs font-semibold uppercase tracking-wider hover:bg-indigo-700 shadow-sm cursor-pointer h-9 border-none">
+                  Guardar Visita
                 </Button>
               </div>
             </form>
