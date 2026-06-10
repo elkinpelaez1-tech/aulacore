@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MOCK_COURSES, CourseMockData } from '@/lib/data/mock-courses';
 import { CourseMetricsPanel } from './CourseMetricsPanel';
 import { CourseCard } from './CourseCard';
@@ -23,10 +23,40 @@ export function CourseIntelligenceGrid() {
   const [selectedCourse, setSelectedCourse] = useState<CourseMockData | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
+  // Courses state with local cache persistence
+  const [courses, setCourses] = useState<CourseMockData[]>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('aulacore-courses-list');
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    }
+    return MOCK_COURSES;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('aulacore-courses-list', JSON.stringify(courses));
+  }, [courses]);
+
+  // Modal States for Nuevo Curso
+  const [isNewCourseModalOpen, setIsNewCourseModalOpen] = useState(false);
+  const [newCourseName, setNewCourseName] = useState('');
+  const [newCourseLevel, setNewCourseLevel] = useState<'Preescolar' | 'Primaria' | 'Bachillerato' | 'Media Técnica'>('Bachillerato');
+  const [newCourseShift, setNewCourseShift] = useState<'Mañana' | 'Tarde' | 'Única'>('Mañana');
+  const [newCourseCampus, setNewCourseCampus] = useState('Sede Principal');
+  const [newDirectorName, setNewDirectorName] = useState('');
+  const [newDirectorEmail, setNewDirectorEmail] = useState('');
+  const [newDirectorPhone, setNewDirectorPhone] = useState('');
+  const [newTotalStudents, setNewTotalStudents] = useState(30);
+
   // Derived filter options
-  const campuses = Array.from(new Set(MOCK_COURSES.map(c => c.campus)));
-  const levels = Array.from(new Set(MOCK_COURSES.map(c => c.level)));
-  const shifts = Array.from(new Set(MOCK_COURSES.map(c => c.shift)));
+  const campuses = Array.from(new Set(courses.map(c => c.campus)));
+  const levels = Array.from(new Set(courses.map(c => c.level)));
+  const shifts = Array.from(new Set(courses.map(c => c.shift)));
 
   const handleCourseClick = (course: CourseMockData) => {
     setSelectedCourse(course);
@@ -50,7 +80,7 @@ export function CourseIntelligenceGrid() {
   };
 
   // Apply filters
-  const filteredCourses = MOCK_COURSES.filter(c => {
+  const filteredCourses = courses.filter(c => {
     const matchesSearch = c.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           c.director.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCampus = campusFilter === 'Todas' || c.campus === campusFilter;
@@ -59,6 +89,57 @@ export function CourseIntelligenceGrid() {
 
     return matchesSearch && matchesCampus && matchesLevel && matchesShift;
   });
+
+  const handleCreateCourse = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCourseName.trim() || !newDirectorName.trim()) return;
+
+    const total = Number(newTotalStudents) || 30;
+    const boys = Math.floor(total / 2);
+    const girls = total - boys;
+
+    const newCourse: CourseMockData = {
+      id: `c-${newCourseName.toLowerCase().replace(/ /g, '-')}-${Date.now()}`,
+      name: newCourseName,
+      level: newCourseLevel,
+      shift: newCourseShift,
+      campus: newCourseCampus,
+      director: {
+        id: `d-${Date.now()}`,
+        name: newDirectorName,
+        email: newDirectorEmail || `${newDirectorName.toLowerCase().replace(/ /g, '.')}@aulacore.edu`,
+        phone: newDirectorPhone || '+573001234500'
+      },
+      metrics: {
+        totalStudents: total,
+        boys: boys,
+        girls: girls,
+        diverse: 0,
+        averageGpa: 4.0,
+        averageAttendance: 95,
+        activeAlerts: 0,
+        studentsAtRisk: 0
+      },
+      academicRisk: 'Bajo',
+      behaviorRisk: 'Bajo',
+      students: []
+    };
+
+    setCourses([...courses, newCourse]);
+    setIsNewCourseModalOpen(false);
+
+    // Reset fields
+    setNewCourseName('');
+    setNewCourseLevel('Bachillerato');
+    setNewCourseShift('Mañana');
+    setNewCourseCampus('Sede Principal');
+    setNewDirectorName('');
+    setNewDirectorEmail('');
+    setNewDirectorPhone('');
+    setNewTotalStudents(30);
+
+    alert(`✓ Curso ${newCourseName} creado exitosamente.`);
+  };
 
   return (
     <div className="space-y-8">
@@ -81,7 +162,7 @@ export function CourseIntelligenceGrid() {
           </div>
           
           <div className="flex flex-wrap items-center gap-2">
-            <Button className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm hover:shadow-md transition-all">
+            <Button onClick={() => setIsNewCourseModalOpen(true)} className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm hover:shadow-md transition-all cursor-pointer">
               <Plus className="w-4 h-4 mr-2" />
               Nuevo Curso
             </Button>
@@ -224,6 +305,145 @@ export function CourseIntelligenceGrid() {
         isOpen={isDrawerOpen} 
         onOpenChange={setIsDrawerOpen} 
       />
+
+      {/* Nuevo Curso Modal */}
+      {isNewCourseModalOpen && (
+        <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4">
+          <div onClick={() => setIsNewCourseModalOpen(false)} className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm transition-opacity" />
+          <div className="inline-block transform overflow-hidden rounded-3xl bg-white border border-slate-200 text-left align-bottom shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:align-middle relative z-10 w-full animate-in zoom-in-95 duration-200">
+            <form onSubmit={handleCreateCourse}>
+              <div className="bg-slate-50 border-b border-slate-200 px-6 py-4 flex justify-between items-center">
+                <div>
+                  <h3 className="text-base font-black text-slate-900 tracking-tight flex items-center gap-2">
+                    <Plus className="w-5 h-5 text-indigo-600 animate-bounce" />
+                    Crear Nuevo Curso
+                  </h3>
+                  <p className="text-[11px] text-slate-500 font-semibold mt-0.5">Registre un nuevo curso y asigne su director de grupo.</p>
+                </div>
+                <button type="button" onClick={() => setIsNewCourseModalOpen(false)} className="text-slate-400 hover:text-slate-650 outline-none border-none bg-transparent cursor-pointer">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="px-6 py-4 space-y-4 text-xs font-semibold text-slate-700">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-slate-450 uppercase tracking-widest block mb-1">Nombre del Curso</label>
+                    <Input 
+                      required
+                      placeholder="Ej. 10-C, 8-B"
+                      value={newCourseName}
+                      onChange={e => setNewCourseName(e.target.value)}
+                      className="bg-slate-50 border-slate-200 font-bold"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-slate-450 uppercase tracking-widest block mb-1">Nivel Académico</label>
+                    <select
+                      value={newCourseLevel}
+                      onChange={e => setNewCourseLevel(e.target.value as any)}
+                      className="w-full border border-slate-200 rounded-lg px-3 py-2 text-xs font-semibold text-slate-700 bg-slate-50 outline-none hover:border-indigo-300 transition-colors cursor-pointer h-10"
+                    >
+                      <option value="Preescolar">Preescolar</option>
+                      <option value="Primaria">Primaria</option>
+                      <option value="Bachillerato">Bachillerato</option>
+                      <option value="Media Técnica">Media Técnica</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-slate-450 uppercase tracking-widest block mb-1">Sede Escolar</label>
+                    <select
+                      value={newCourseCampus}
+                      onChange={e => setNewCourseCampus(e.target.value)}
+                      className="w-full border border-slate-200 rounded-lg px-3 py-2 text-xs font-semibold text-slate-700 bg-slate-50 outline-none hover:border-indigo-300 transition-colors cursor-pointer h-10"
+                    >
+                      <option value="Sede Principal">Sede Principal</option>
+                      <option value="Sede Campestre">Sede Campestre</option>
+                      <option value="Sede Norte">Sede Norte</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-slate-450 uppercase tracking-widest block mb-1">Jornada</label>
+                    <select
+                      value={newCourseShift}
+                      onChange={e => setNewCourseShift(e.target.value as any)}
+                      className="w-full border border-slate-200 rounded-lg px-3 py-2 text-xs font-semibold text-slate-700 bg-slate-50 outline-none hover:border-indigo-300 transition-colors cursor-pointer h-10"
+                    >
+                      <option value="Mañana">Mañana</option>
+                      <option value="Tarde">Tarde</option>
+                      <option value="Única">Única</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="border-t border-slate-100 pt-4 space-y-3">
+                  <h4 className="text-[10px] font-black text-slate-450 uppercase tracking-widest block">Información del Director de Grupo</h4>
+                  
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-slate-450 uppercase tracking-widest block mb-1">Nombre del Director</label>
+                    <Input 
+                      required
+                      placeholder="Ej. Patricia Restrepo"
+                      value={newDirectorName}
+                      onChange={e => setNewDirectorName(e.target.value)}
+                      className="bg-slate-50 border-slate-200"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black text-slate-450 uppercase tracking-widest block mb-1">Correo Electrónico</label>
+                      <Input 
+                        type="email"
+                        placeholder="Ej. p.restrepo@aulacore.edu"
+                        value={newDirectorEmail}
+                        onChange={e => setNewDirectorEmail(e.target.value)}
+                        className="bg-slate-50 border-slate-200"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black text-slate-450 uppercase tracking-widest block mb-1">Teléfono de Contacto</label>
+                      <Input 
+                        placeholder="Ej. +57 300 999 8888"
+                        value={newDirectorPhone}
+                        onChange={e => setNewDirectorPhone(e.target.value)}
+                        className="bg-slate-50 border-slate-200"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-450 uppercase tracking-widest block mb-1">Cantidad de Estudiantes</label>
+                  <Input 
+                    type="number"
+                    min="1"
+                    max="50"
+                    value={newTotalStudents}
+                    onChange={e => setNewTotalStudents(Number(e.target.value))}
+                    className="bg-slate-50 border-slate-200"
+                  />
+                </div>
+              </div>
+
+              <div className="bg-slate-50 px-6 py-4 flex justify-end gap-2 border-t border-slate-200">
+                <Button type="button" variant="outline" onClick={() => setIsNewCourseModalOpen(false)} className="h-9 px-4 rounded-xl border-slate-250 text-slate-700 hover:bg-slate-50 font-bold cursor-pointer">
+                  Cancelar
+                </Button>
+                <Button type="submit" className="h-9 px-5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold uppercase tracking-wider border-none cursor-pointer">
+                  Guardar Curso
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
     </div>
   );
