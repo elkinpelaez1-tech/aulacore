@@ -10,6 +10,7 @@ import {
   Info, CalendarDays 
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { downloadPaeCommitteePDF, downloadPaeMesaPDF } from '@/lib/utils/PdfGenerator';
 
 interface CommitteeMeeting {
   id: string;
@@ -219,7 +220,7 @@ export function PaeCommittees({
                     </TableCell>
                     <TableCell className="pr-6 text-right">
                       {meet.acta_pdf_url ? (
-                        <Button variant="ghost" className="h-8 text-xs font-bold text-indigo-650 hover:bg-indigo-50" onClick={() => alert(`✓ Descargando acta del comité: ${meet.acta_pdf_url}`)}>
+                        <Button variant="ghost" className="h-8 text-xs font-bold text-indigo-650 hover:bg-indigo-50" onClick={() => downloadPaeCommitteePDF(meet)}>
                           Ver Acta
                         </Button>
                       ) : (
@@ -275,7 +276,7 @@ export function PaeCommittees({
                     </TableCell>
                     <TableCell className="pr-6 text-right">
                       {mesa.acta_pdf_url ? (
-                        <Button variant="ghost" className="h-8 text-xs font-bold text-indigo-650 hover:bg-indigo-50" onClick={() => alert(`✓ Descargando acta de la mesa pública: ${mesa.acta_pdf_url}`)}>
+                        <Button variant="ghost" className="h-8 text-xs font-bold text-indigo-650 hover:bg-indigo-50" onClick={() => downloadPaeMesaPDF(mesa)}>
                           Ver Acta
                         </Button>
                       ) : (

@@ -10,6 +10,7 @@ import {
   AlertCircle, Camera, Check, X 
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { downloadPaeResourcePDF, downloadPaeMenuPDF } from '@/lib/utils/PdfGenerator';
 
 interface PaePlanningProps {
   userRole: string;
@@ -244,7 +245,7 @@ export function PaePlanning({
                     <TableCell className="text-center font-bold text-slate-500 text-xs">{res.allocation_date}</TableCell>
                     <TableCell className="text-xs text-slate-600 font-semibold">{res.support_document}</TableCell>
                     <TableCell className="pr-6 text-right">
-                      <Button variant="ghost" className="h-8 text-indigo-600 font-bold text-xs px-3 hover:bg-indigo-50" onClick={() => alert(`✓ Descargando soporte PDF: ${res.pdf_url}`)}>
+                      <Button variant="ghost" className="h-8 text-indigo-600 font-bold text-xs px-3 hover:bg-indigo-50" onClick={() => downloadPaeResourcePDF(res)}>
                         <Download className="w-3.5 h-3.5 mr-1" /> PDF
                       </Button>
                     </TableCell>
@@ -570,7 +571,7 @@ export function PaePlanning({
                 <div className="pt-2 space-y-2">
                   <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Descargas Soporte Técnicos (MEN)</span>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <Button variant="outline" className="justify-between text-xs font-bold rounded-xl h-10 border-slate-250 text-slate-700 bg-white" onClick={() => alert(`✓ Descargando Minuta Patrón PDF: ${m.minuta_pdf_url}`)}>
+                    <Button variant="outline" className="justify-between text-xs font-bold rounded-xl h-10 border-slate-250 text-slate-700 bg-white" onClick={() => downloadPaeMenuPDF(m)}>
                       <span>Minuta Patrón</span>
                       <Download className="w-4 h-4 text-indigo-650" />
                     </Button>

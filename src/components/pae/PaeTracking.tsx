@@ -10,6 +10,7 @@ import {
   AlertCircle, CheckCircle2, X 
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { downloadPaePurchasePDF, downloadPaeVisitPDF } from '@/lib/utils/PdfGenerator';
 
 interface LocalPurchase {
   id: string;
@@ -167,7 +168,7 @@ export function PaeTracking({
                         {v.findings}
                       </TableCell>
                       <TableCell className="pr-6 text-right">
-                        <Button variant="ghost" className="h-8 text-xs font-bold text-indigo-650 hover:bg-indigo-50" onClick={() => alert('✓ Visualizando acta oficial firmada de interventoría.')}>
+                        <Button variant="ghost" className="h-8 text-xs font-bold text-indigo-650 hover:bg-indigo-50" onClick={() => downloadPaeVisitPDF(v)}>
                           Ver Acta
                         </Button>
                       </TableCell>
@@ -254,7 +255,7 @@ export function PaeTracking({
                           ${pur.purchase_value.toLocaleString('co-CO', { minimumFractionDigits: 2 })}
                         </TableCell>
                         <TableCell className="pr-6 text-right">
-                          <Button variant="ghost" className="h-8 text-[11px] font-black text-indigo-650 hover:bg-indigo-50" onClick={() => alert(`✓ Descargando factura digital de soporte: ${pur.invoice_pdf}`)}>
+                          <Button variant="ghost" className="h-8 text-[11px] font-black text-indigo-650 hover:bg-indigo-50" onClick={() => downloadPaePurchasePDF(pur)}>
                             Factura
                           </Button>
                         </TableCell>
