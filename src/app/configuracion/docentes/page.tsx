@@ -494,6 +494,11 @@ export default function DocentesPage() {
       return;
     }
 
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      alert('Error de Envío: Las variables de entorno de Supabase (NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY) no están configuradas en tu Vercel. Por favor agrégalas en el panel del proyecto.');
+      return;
+    }
+
     setSubmitting(true);
     try {
       let finalSignatureUrl = '';
@@ -660,6 +665,17 @@ export default function DocentesPage() {
         </div>
       </div>
 
+      {/* Supabase Config Warning */}
+      {(!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) && (
+        <div className="bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-2xl flex items-start gap-2.5 text-xs font-semibold shadow-sm animate-in fade-in">
+          <AlertTriangle className="w-5 h-5 text-rose-500 shrink-0 mt-0.5 animate-pulse" />
+          <div>
+            <strong className="block text-rose-900 mb-0.5">Advertencia: Falta configuración de Supabase en Vercel</strong>
+            Asegúrate de agregar las variables de entorno <code className="bg-rose-100 px-1 py-0.5 rounded font-bold font-mono">NEXT_PUBLIC_SUPABASE_URL</code> y <code className="bg-rose-100 px-1 py-0.5 rounded font-bold font-mono">NEXT_PUBLIC_SUPABASE_ANON_KEY</code> en tu panel de proyectos de Vercel. De lo contrario, los archivos cargados y el registro del docente no se guardarán en Supabase y el envío se quedará en estado de carga infinito.
+          </div>
+        </div>
+      )}
+
       {/* Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 flex-1 items-start">
         
@@ -781,7 +797,17 @@ export default function DocentesPage() {
                   </div>
 
                   {/* Foto profesional dropzone */}
-                  <div className="md:col-span-2 border border-dashed border-slate-250 rounded-2xl p-6 bg-slate-50/50 hover:bg-slate-50 flex flex-col items-center justify-center text-center transition-all cursor-pointer relative overflow-hidden">
+                  <div 
+                    onClick={() => {
+                      if (formData.fotoUploaded || uploadedFiles['fotoUploaded']) return;
+                      if (!formData.documentId) {
+                        alert('Por favor ingrese el Documento de Identidad (Cédula) antes de cargar la fotografía.');
+                        return;
+                      }
+                      fotoInputRef.current?.click();
+                    }}
+                    className="md:col-span-2 border border-dashed border-slate-250 rounded-2xl p-6 bg-slate-50/50 hover:bg-slate-50 flex flex-col items-center justify-center text-center transition-all cursor-pointer relative overflow-hidden"
+                  >
                     <input 
                       type="file" 
                       ref={fotoInputRef} 
@@ -826,24 +852,14 @@ export default function DocentesPage() {
                         </div>
                       </div>
                     ) : (
-                      <button 
-                        type="button"
-                        onClick={() => {
-                          if (!formData.documentId) {
-                            alert('Por favor ingrese el Documento de Identidad (Cédula) antes de cargar la fotografía.');
-                            return;
-                          }
-                          fotoInputRef.current?.click();
-                        }}
-                        className="flex flex-col items-center cursor-pointer bg-transparent border-0"
-                      >
+                      <div className="flex flex-col items-center bg-transparent border-0 select-none">
                         <CloudUpload className="w-10 h-10 text-indigo-500 mb-2 animate-bounce" />
                         <h4 className="text-xs font-bold text-slate-700">Fotografía Profesional (Fondo Blanco)</h4>
                         <p className="text-[10px] text-slate-400 font-semibold mt-1">Haz clic para seleccionar o subir desde tu galería</p>
                         {uploadErrors['fotoUploaded'] && (
                           <p className="text-[10px] text-rose-500 mt-1 font-bold">{uploadErrors['fotoUploaded']}</p>
                         )}
-                      </button>
+                      </div>
                     )}
                   </div>
                 </div>
