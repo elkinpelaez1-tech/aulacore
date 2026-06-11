@@ -235,7 +235,7 @@ export default function DashboardPage() {
           new_grade: numVal,
           changed_by: '44444444-4444-4444-4444-444444444444', // Profesor Gómez
           change_reason: 'Actualización ordinaria de planilla docente'
-        }).then(({ error }) => {
+        }).then(({ error }: any) => {
           if (error) console.error('Error escribiendo log de auditoría:', error);
           else console.log('Audit log registrado en Supabase.');
         });

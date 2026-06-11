@@ -22,6 +22,12 @@ import {
   resendInvitation,
   TeacherOnboardingData 
 } from '@/lib/services/teacher-onboarding';
+import {
+  listStudentOnboardings,
+  approveStudentOnboarding,
+  rejectStudentOnboarding,
+  StudentOnboardingData
+} from '@/lib/services/student-onboarding';
 
 interface Toast {
   id: string;
@@ -29,14 +35,18 @@ interface Toast {
   message: string;
 }
 
+type UnifiedOnboardingData = 
+  | (TeacherOnboardingData & { onboardingType: 'Docente' })
+  | (StudentOnboardingData & { onboardingType: 'Estudiante' });
+
 export default function AutomatizacionPage() {
   const [magicLinks, setMagicLinks] = useState<MagicLink[]>(INITIAL_LINKS);
   const [pendingApprovals, setPendingApprovals] = useState<PendingApproval[]>([]);
-  const [allSubmissions, setAllSubmissions] = useState<TeacherOnboardingData[]>([]);
+  const [allSubmissions, setAllSubmissions] = useState<UnifiedOnboardingData[]>([]);
   const [metrics, setMetrics] = useState(INITIAL_METRICS);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [selectedLogsSubmission, setSelectedLogsSubmission] = useState<TeacherOnboardingData | null>(null);
+  const [selectedLogsSubmission, setSelectedLogsSubmission] = useState<any | null>(null);
 
   const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
     const id = Math.random().toString();
@@ -80,30 +90,88 @@ export default function AutomatizacionPage() {
     };
   };
 
+  const mapStudentToApproval = (s: StudentOnboardingData): PendingApproval => {
+    const docs: AttachedDocument[] = [];
+    if (s.foto_student_url) {
+      docs.push({ id: 'fotoStudent', name: 'Foto_Estudiante.jpg', type: 'IMG', status: 'Pendiente', size: '1.2 MB', url: s.foto_student_url });
+    }
+    if (s.eps_card_url) {
+      docs.push({ id: 'epsCard', name: 'Certificado_EPS.pdf', type: 'PDF', status: 'Pendiente', size: '2.4 MB', url: s.eps_card_url });
+    }
+    if (s.identity_doc_url) {
+      docs.push({ id: 'identityDoc', name: 'Documento_Identidad.pdf', type: 'PDF', status: 'Pendiente', size: '1.8 MB', url: s.identity_doc_url });
+    }
+    if (s.notes_cert_url) {
+      docs.push({ id: 'notesCert', name: 'Certificado_Notas.pdf', type: 'PDF', status: 'Pendiente', size: '3.1 MB', url: s.notes_cert_url });
+    }
+    if (s.paz_salvo_url) {
+      docs.push({ id: 'pazSalvo', name: 'Paz_y_Salvo.pdf', type: 'PDF', status: 'Pendiente', size: '1.1 MB', url: s.paz_salvo_url });
+    }
+    if (s.medical_cert_url) {
+      docs.push({ id: 'medicalCert', name: 'Certificado_Medico.pdf', type: 'PDF', status: 'Pendiente', size: '1.6 MB', url: s.medical_cert_url });
+    }
+
+    return {
+      id: s.id!,
+      name: s.student_name,
+      email: `${s.student_name.toLowerCase().replace(/\s+/g, '') || 'estudiante'}@aulacore.edu.co`,
+      type: 'Estudiante',
+      submittedAt: s.created_at ? new Date(s.created_at).toLocaleDateString() : 'Reciente',
+      status: 'pending_approval',
+      documentStatus: docs.length > 0 ? 'Revisión Manual' : 'Faltante',
+      documents: docs,
+      riskScore: 5
+    };
+  };
+
   const loadSubmissions = async () => {
     setLoading(true);
     try {
-      const submissions = await listOnboardingSubmissions();
-      setAllSubmissions(submissions);
+      const teacherSubs = await listOnboardingSubmissions();
+      const studentSubs = await listStudentOnboardings();
 
-      // Filter to map only the 'pending_approval' candidates into the approval queue
-      const pending = submissions
+      const teachersWithType = teacherSubs.map(t => ({ ...t, onboardingType: 'Docente' as const }));
+      const studentsWithType = studentSubs.map(s => ({ ...s, onboardingType: 'Estudiante' as const }));
+      
+      const combined = [...teachersWithType, ...studentsWithType].sort((a, b) => {
+        return new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime();
+      });
+      setAllSubmissions(combined);
+
+      // Filter and map pending candidates for the queue
+      const pendingTeachers = teacherSubs
         .filter(t => t.status === 'pending_approval')
         .map(mapOnboardingToApproval);
-      setPendingApprovals(pending);
+
+      const pendingStudents = studentSubs
+        .filter(s => s.status === 'pending_approval')
+        .map(mapStudentToApproval);
+
+      const pendingCombined = [...pendingTeachers, ...pendingStudents];
+      setPendingApprovals(pendingCombined);
 
       // Update KPIs dynamically
-      const approvedCount = submissions.filter(t => 
+      const approvedTeachersCount = teacherSubs.filter(t => 
         ['invited', 'email_sent', 'activated', 'first_access'].includes(t.status || '')
       ).length;
 
+      const approvedStudentsCount = studentSubs.filter(s => 
+        ['invited', 'email_sent', 'activated', 'first_access'].includes(s.status || '')
+      ).length;
+
+      const totalApproved = approvedTeachersCount + approvedStudentsCount;
+      const totalCount = teacherSubs.length + studentSubs.length;
+
+      const totalActivated = teacherSubs.filter(t => t.status === 'activated' || t.status === 'first_access').length +
+                             studentSubs.filter(s => s.status === 'activated' || s.status === 'first_access').length;
+
       setMetrics({
-        profilesAutoGenerated: approvedCount,
-        hoursSavedEstimated: approvedCount * 2,
-        completionRate: submissions.length > 0 
-          ? Math.round((submissions.filter(t => t.status === 'activated' || t.status === 'first_access').length / submissions.length) * 100)
+        profilesAutoGenerated: totalApproved,
+        hoursSavedEstimated: totalApproved * 2,
+        completionRate: totalCount > 0 
+          ? Math.round((totalActivated / totalCount) * 100)
           : 0,
-        pendingInterventions: pending.length
+        pendingInterventions: pendingCombined.length
       });
     } catch (err: any) {
       console.error('Error fetching onboardings:', err);
@@ -126,12 +194,28 @@ export default function AutomatizacionPage() {
     showToast('Aprobando candidato...', 'info');
     try {
       const institutionId = '11111111-1111-1111-1111-111111111111'; // Default active institution
-      const result = await approveOnboarding(id, institutionId);
-      if (result.success) {
-        showToast(`Docente aprobado con éxito. Cuenta Auth creada en Supabase.`, 'success');
-        await loadSubmissions();
+      const approval = pendingApprovals.find(p => p.id === id);
+      if (!approval) {
+        showToast('Solicitud no encontrada en la cola', 'error');
+        return;
+      }
+
+      if (approval.type === 'Docente') {
+        const result = await approveOnboarding(id, institutionId);
+        if (result.success) {
+          showToast(`Docente aprobado con éxito. Cuenta Auth creada en Supabase.`, 'success');
+          await loadSubmissions();
+        } else {
+          showToast(`Error al aprobar: ${result.error}`, 'error');
+        }
       } else {
-        showToast(`Error al aprobar: ${result.error}`, 'error');
+        const result = await approveStudentOnboarding(id, institutionId);
+        if (result.success) {
+          showToast(`Estudiante matriculado con éxito. Perfiles de acceso creados.`, 'success');
+          await loadSubmissions();
+        } else {
+          showToast(`Error al matricular: ${result.error}`, 'error');
+        }
       }
     } catch (err: any) {
       console.error(err);
@@ -142,10 +226,24 @@ export default function AutomatizacionPage() {
   const handleReject = async (id: string, notes?: string) => {
     showToast('Rechazando candidato...', 'info');
     try {
-      const success = await rejectOnboarding(id);
-      if (success) {
-        showToast('Solicitud de onboarding rechazada.', 'error');
-        await loadSubmissions();
+      const approval = pendingApprovals.find(p => p.id === id);
+      if (!approval) {
+        showToast('Solicitud no encontrada', 'error');
+        return;
+      }
+
+      if (approval.type === 'Docente') {
+        const success = await rejectOnboarding(id);
+        if (success) {
+          showToast('Solicitud de onboarding de docente rechazada.', 'error');
+          await loadSubmissions();
+        }
+      } else {
+        const success = await rejectStudentOnboarding(id);
+        if (success) {
+          showToast('Solicitud de matrícula de estudiante rechazada.', 'error');
+          await loadSubmissions();
+        }
       }
     } catch (err: any) {
       console.error(err);
@@ -305,25 +403,68 @@ export default function AutomatizacionPage() {
                 </tr>
               ) : (
                 allSubmissions.map((sub) => {
+                  const isStudent = sub.onboardingType === 'Estudiante';
+                  const teacherSub = !isStudent ? (sub as TeacherOnboardingData) : null;
+                  const studentSub = isStudent ? (sub as StudentOnboardingData) : null;
+
+                  const name = studentSub ? studentSub.student_name : (teacherSub?.full_name || '');
+                  const email = studentSub 
+                    ? `${studentSub.student_name.toLowerCase().replace(/\s+/g, '') || 'estudiante'}@aulacore.edu.co` 
+                    : (teacherSub?.email || '');
+                  const docId = studentSub ? studentSub.student_id : (teacherSub?.document_id || '');
+                  const photoUrl = studentSub ? studentSub.foto_student_url : teacherSub?.foto_url;
+                  
+                  const assignment = studentSub 
+                    ? `Matrícula: ${studentSub.tipo_matricula || 'Ordinaria'}` 
+                    : (teacherSub?.subject_area || 'Por definir');
+                  const assignmentDetails = `${sub.sede || 'Sede Principal'} • ${sub.jornada || 'N/A'}`;
+
+                  const supports = studentSub 
+                    ? [
+                        { label: 'EPS', url: studentSub.eps_card_url, title: 'Carnet EPS' },
+                        { label: 'Documento', url: studentSub.identity_doc_url, title: 'Documento de Identidad' },
+                        { label: 'Notas', url: studentSub.notes_cert_url, title: 'Certificado de Notas' },
+                        { label: 'Paz y Salvo', url: studentSub.paz_salvo_url, title: 'Paz y Salvo' },
+                        { label: 'Médico', url: studentSub.medical_cert_url, title: 'Certificado Médico' }
+                      ].filter(d => d.url)
+                    : [
+                        { label: 'HV', url: teacherSub?.cv_url, title: 'Ver Hoja de Vida' },
+                        { label: 'Diploma', url: teacherSub?.diploma_url, title: 'Ver Diploma' },
+                        { label: 'CC', url: teacherSub?.identity_doc_url, title: 'Ver Cédula' }
+                      ].filter(d => d.url);
+
+                  const emailLogs = teacherSub?.email_logs || [];
+                  const hasEmailLogs = !isStudent && emailLogs.length > 0;
+                  const hasActivationLink = !isStudent && !!teacherSub?.activation_link;
+                  const canResend = !isStudent && ['invited', 'email_sent'].includes(sub.status || '');
+
                   return (
                     <tr key={sub.id} className="hover:bg-slate-50/50 transition-colors">
-                      {/* Docente basic info */}
+                      {/* Candidate basic info */}
                       <td className="p-4">
                         <div className="flex items-center gap-3">
-                          {sub.foto_url ? (
+                          {photoUrl ? (
                             <img 
-                              src={sub.foto_url} 
-                              alt={sub.full_name} 
+                              src={photoUrl} 
+                              alt={name} 
                               className="w-8 h-8 rounded-full object-cover border border-indigo-200 shadow-sm"
                             />
                           ) : (
                             <div className="w-8 h-8 rounded-full bg-indigo-50 text-indigo-700 font-black flex items-center justify-center border border-indigo-100 text-[10px] uppercase">
-                              {sub.full_name.substring(0, 2)}
+                              {name ? name.substring(0, 2) : 'ON'}
                             </div>
                           )}
                           <div>
-                            <p className="font-extrabold text-slate-800 leading-tight">{sub.full_name}</p>
-                            <p className="text-[10px] text-slate-400 font-semibold">{sub.email} &bull; C.C. {sub.document_id}</p>
+                            <div className="flex items-center gap-1.5">
+                              <p className="font-extrabold text-slate-800 leading-tight">{name}</p>
+                              <span className={cn(
+                                "px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider",
+                                isStudent ? "bg-purple-100 text-purple-800 border border-purple-200" : "bg-indigo-100 text-indigo-800 border border-indigo-200"
+                              )}>
+                                {sub.onboardingType}
+                              </span>
+                            </div>
+                            <p className="text-[10px] text-slate-400 font-semibold mt-0.5">{email} &bull; C.C. {docId}</p>
                           </div>
                         </div>
                       </td>
@@ -331,8 +472,8 @@ export default function AutomatizacionPage() {
                       {/* proposed assignment */}
                       <td className="p-4">
                         <div>
-                          <p className="text-slate-800 font-extrabold">{sub.subject_area || 'Por definir'}</p>
-                          <p className="text-[10px] text-slate-400 font-semibold">{sub.sede} &bull; {sub.jornada}</p>
+                          <p className="text-slate-800 font-extrabold">{assignment}</p>
+                          <p className="text-[10px] text-slate-400 font-semibold">{assignmentDetails}</p>
                         </div>
                       </td>
 
@@ -352,33 +493,31 @@ export default function AutomatizacionPage() {
                           sub.status === 'first_access' && "bg-emerald-500 text-white shadow-sm",
                           sub.status === 'rejected' && "bg-rose-100 text-rose-800 border border-rose-250"
                         )}>
-                          {sub.status === 'pending_approval' ? 'Pendiente Coordinador' :
+                          {sub.status === 'pending_approval' ? 'Pendiente Aprobación' :
                            sub.status === 'invited' ? 'Invitado a Activar' :
                            sub.status === 'email_sent' ? 'Invitación Enviada' :
                            sub.status === 'activated' ? 'Cuenta Activada' :
-                           sub.status === 'first_access' ? 'Primer Acceso Exitoso' : 'Rechazado'}
+                           sub.status === 'first_access' ? 'Primer Acceso Exitoso' : 
+                           sub.status === 'rejected' ? 'Rechazado' : sub.status}
                         </span>
                       </td>
 
                       {/* Supports grid */}
                       <td className="p-4">
                         <div className="flex flex-wrap gap-1.5">
-                          {sub.cv_url && (
-                            <a href={sub.cv_url} target="_blank" rel="noopener noreferrer" className="bg-slate-100 hover:bg-slate-200 border border-slate-200 text-[9px] font-bold text-slate-600 px-1.5 py-0.5 rounded-md flex items-center gap-0.5 shadow-sm transition-all" title="Ver Hoja de Vida">
-                              <FileText className="w-2.5 h-2.5" /> HV
+                          {supports.map((doc, idx) => (
+                            <a 
+                              key={idx} 
+                              href={doc.url} 
+                              target="_blank" 
+                              rel="noopener noreferrer" 
+                              className="bg-slate-100 hover:bg-slate-200 border border-slate-200 text-[9px] font-bold text-slate-600 px-1.5 py-0.5 rounded-md flex items-center gap-0.5 shadow-sm transition-all" 
+                              title={doc.title}
+                            >
+                              <FileText className="w-2.5 h-2.5" /> {doc.label}
                             </a>
-                          )}
-                          {sub.diploma_url && (
-                            <a href={sub.diploma_url} target="_blank" rel="noopener noreferrer" className="bg-slate-100 hover:bg-slate-200 border border-slate-200 text-[9px] font-bold text-slate-600 px-1.5 py-0.5 rounded-md flex items-center gap-0.5 shadow-sm transition-all" title="Ver Diploma">
-                              <FileText className="w-2.5 h-2.5" /> Diploma
-                            </a>
-                          )}
-                          {sub.identity_doc_url && (
-                            <a href={sub.identity_doc_url} target="_blank" rel="noopener noreferrer" className="bg-slate-100 hover:bg-slate-200 border border-slate-200 text-[9px] font-bold text-slate-600 px-1.5 py-0.5 rounded-md flex items-center gap-0.5 shadow-sm transition-all" title="Ver Cédula">
-                              <FileText className="w-2.5 h-2.5" /> CC
-                            </a>
-                          )}
-                          {(!sub.cv_url && !sub.diploma_url && !sub.identity_doc_url) && (
+                          ))}
+                          {supports.length === 0 && (
                             <span className="text-[10px] text-slate-400 font-semibold italic">Sin soportes</span>
                           )}
                         </div>
@@ -387,32 +526,32 @@ export default function AutomatizacionPage() {
                       {/* Actions */}
                       <td className="p-4 text-center">
                         <div className="flex items-center justify-center gap-2">
-                          {sub.activation_link && (
+                          {hasActivationLink && (
                             <button 
-                              onClick={() => copyToClipboard(sub.activation_link!)}
-                              className="p-1.5 border border-slate-200 hover:bg-slate-100 rounded-lg text-slate-600 transition-all cursor-pointer shadow-sm animate-fade-in"
+                              onClick={() => copyToClipboard(teacherSub!.activation_link!)}
+                              className="p-1.5 border border-slate-200 hover:bg-slate-100 rounded-lg text-slate-650 transition-all cursor-pointer shadow-sm"
                               title="Copiar Link de Activación"
                             >
                               <Copy className="w-3.5 h-3.5" />
                             </button>
                           )}
-                          {['invited', 'email_sent'].includes(sub.status || '') && (
+                          {canResend && (
                             <button 
                               onClick={() => handleResend(sub.id!)}
-                              className="p-1.5 border border-slate-200 hover:bg-slate-100 rounded-lg text-indigo-650 transition-all cursor-pointer shadow-sm animate-fade-in"
+                              className="p-1.5 border border-slate-200 hover:bg-slate-100 rounded-lg text-indigo-650 transition-all cursor-pointer shadow-sm"
                               title="Reenviar Correo de Activación"
                             >
                               <Mail className="w-3.5 h-3.5" />
                             </button>
                           )}
-                          {sub.email_logs && Array.isArray(sub.email_logs) && sub.email_logs.length > 0 && (
+                          {hasEmailLogs && (
                             <button 
                               onClick={() => setSelectedLogsSubmission(sub)}
                               className="p-1.5 border border-slate-200 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 rounded-lg text-slate-650 transition-all cursor-pointer shadow-sm text-[10px] font-bold flex items-center gap-1"
                               title="Ver bitácora de correos"
                             >
                               <span>📬 Logs</span> 
-                              <span className="bg-indigo-100 text-indigo-800 rounded px-1 text-[9px] font-black">{sub.email_logs.length}</span>
+                              <span className="bg-indigo-100 text-indigo-800 rounded px-1 text-[9px] font-black">{emailLogs.length}</span>
                             </button>
                           )}
                         </div>

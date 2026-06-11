@@ -60,7 +60,7 @@ export default function PublicPaePage() {
           withTimeout(supabase.from('pae_local_purchases').select('*')),
           withTimeout(supabase.from('pae_committees').select('*').eq('committee_type', 'CAE')),
           withTimeout(supabase.from('pae_mesas_publicas').select('*'))
-        ]);
+        ]) as any[];
 
         if (opDb.data) setOperator(opDb.data);
         if (menuDb.data) setMenu(menuDb.data.menu_details);

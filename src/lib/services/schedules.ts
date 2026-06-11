@@ -48,7 +48,7 @@ export async function checkScheduleConflict(
     return (sStart < tEnd && sEnd > tStart);
   };
 
-  const conflicts = overlapping.filter(schedule => 
+  const conflicts = (overlapping || []).filter((schedule: any) => 
     isOverlapping(schedule.start_time, schedule.end_time, startTime, endTime)
   );
 

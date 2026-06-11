@@ -174,7 +174,7 @@ export default function PaePage() {
           `)
         );
 
-        const [studentsRes] = await Promise.all([studentsQuery]);
+        const [studentsRes] = await Promise.all([studentsQuery]) as [any];
 
         if (studentsRes.data) {
           const formattedStudents = studentsRes.data.map((s: any) => ({
@@ -206,7 +206,7 @@ export default function PaePage() {
           withTimeout(supabase.from('pae_daily_deliveries').select('*')),
           withTimeout(supabase.from('pae_daily_attendance').select('*')),
           withTimeout(supabase.from('pae_controls').select('*'))
-        ]);
+        ]) as any[];
 
         if (resDb.data && resDb.data.length > 0) {
           setResources(resDb.data);

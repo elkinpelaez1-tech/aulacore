@@ -63,7 +63,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         avatar_url: currentUser.user_metadata?.avatar_url || '',
       };
 
-      const userRoles = (rolesData?.map((r) => r.role) || []) as UserRole[];
+      const userRoles = (rolesData?.map((r: any) => r.role) || []) as UserRole[];
 
       setProfile(userProfile);
       setRoles(userRoles);
@@ -148,7 +148,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     initializeAuth();
 
     // Suscribirse a cambios del estado de auth
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: any, newSession: any) => {
       if (!isMounted) return;
 
       console.log(`Evento de Auth detectado: ${event}`);
@@ -214,7 +214,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     try {
       // Ejecutar signOut en segundo plano para no demorar al cliente si la red falla
-      supabase.auth.signOut().catch(err => {
+      supabase.auth.signOut().catch((err: any) => {
         console.error('Error en signOut de Supabase en segundo plano:', err);
       });
     } catch (err) {

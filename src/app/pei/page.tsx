@@ -261,7 +261,7 @@ export default function PeiPage() {
           withTimeout(supabase.from('pei_gov_convocatorias').select('*').order('created_at', { ascending: false })),
           withTimeout(supabase.from('pei_gov_meetings').select('*').order('created_at', { ascending: false })),
           withTimeout(supabase.from('pei_gov_actas').select('*').order('created_at', { ascending: false }))
-        ]);
+        ]) as any[];
 
         const identityDb = identityRes.data;
         const modelDb = modelRes.data;

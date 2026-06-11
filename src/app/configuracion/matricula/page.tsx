@@ -4,10 +4,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   UserPlus, ArrowLeft, ArrowRight, CheckCircle2, CloudUpload, 
   Trash2, FileText, Sparkles, Check, RefreshCw, Smartphone, 
-  MapPin, Calendar, Heart, Shield, Award, ClipboardCheck
+  MapPin, Calendar, Heart, Shield, Award, ClipboardCheck, AlertTriangle
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
+import { uploadStudentFile, submitStudentOnboarding, StudentOnboardingData } from '@/lib/services/student-onboarding';
+
 
 // TypeScript schema interfaces for enrollment form
 interface StudentFormData {
@@ -53,11 +55,17 @@ interface StudentFormData {
 
   // Step 6: Document details (uploaded state)
   fotoStudentUploaded: boolean;
+  fotoStudentUrl?: string;
   epsCardUploaded: boolean;
+  epsCardUrl?: string;
   identityDocUploaded: boolean;
+  identityDocUrl?: string;
   notesCertUploaded: boolean;
+  notesCertUrl?: string;
   pazSalvoUploaded: boolean;
+  pazSalvoUrl?: string;
   medicalCertUploaded: boolean;
+  medicalCertUrl?: string;
 
   // Step 7: Consents & Signatures
   consentHabeasData: boolean;
@@ -65,6 +73,7 @@ interface StudentFormData {
   consentSIEE: boolean;
   consentInstitutional: boolean;
   signatureDataUrl: string; // Base64 signature path
+  signatureUrl?: string;
 }
 
 const INITIAL_FORM_STATE: StudentFormData = {
@@ -99,16 +108,23 @@ const INITIAL_FORM_STATE: StudentFormData = {
   physicalRestrictions: '',
   medicalObservations: '',
   fotoStudentUploaded: false,
+  fotoStudentUrl: '',
   epsCardUploaded: false,
+  epsCardUrl: '',
   identityDocUploaded: false,
+  identityDocUrl: '',
   notesCertUploaded: false,
+  notesCertUrl: '',
   pazSalvoUploaded: false,
+  pazSalvoUrl: '',
   medicalCertUploaded: false,
+  medicalCertUrl: '',
   consentHabeasData: false,
   consentManual: false,
   consentSIEE: false,
   consentInstitutional: false,
   signatureDataUrl: '',
+  signatureUrl: '',
 };
 
 export default function MatriculaPage() {
@@ -120,6 +136,16 @@ export default function MatriculaPage() {
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving'>('saved');
   const [uploadedFiles, setUploadedFiles] = useState<Record<string, { name: string; size: string; progress: number }>>({});
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
+  const [submitting, setSubmitting] = useState<boolean>(false);
+  const [uploadErrors, setUploadErrors] = useState<Record<string, string>>({});
+
+  // Input refs for file uploads
+  const fotoStudentInputRef = useRef<HTMLInputElement>(null);
+  const epsCardInputRef = useRef<HTMLInputElement>(null);
+  const identityDocInputRef = useRef<HTMLInputElement>(null);
+  const notesCertInputRef = useRef<HTMLInputElement>(null);
+  const pazSalvoInputRef = useRef<HTMLInputElement>(null);
+  const medicalCertInputRef = useRef<HTMLInputElement>(null);
 
   // --- ESTADOS DE PRE-REGISTRO Y AUTOCOMPLETADO ---
   const [preRegistrations, setPreRegistrations] = useState<any[]>([]);
@@ -338,95 +364,189 @@ export default function MatriculaPage() {
     handleInputChange('signatureDataUrl', dataUrl);
   };
 
-  // Dropbox Dropzone Simulated File Upload
-  const handleSimulateUpload = (docField: keyof StudentFormData, fileName: string, size: string) => {
-    // 1. Initialize file loader state
+  // Real file upload to Supabase Storage for student documents
+  const handleRealUpload = async (field: keyof StudentFormData, file: File) => {
+    if (!formData.studentId) {
+      alert('Por favor ingrese el Documento de Identidad del Estudiante antes de cargar archivos.');
+      return;
+    }
+
     setUploadedFiles(prev => ({
       ...prev,
-      [docField]: { name: fileName, size, progress: 10 }
+      [field]: { name: file.name, size: `${(file.size / (1024 * 1024)).toFixed(1)} MB`, progress: 10 }
     }));
 
-    // 2. Simulate progressive upload speed
-    let prog = 10;
-    const timer = setInterval(() => {
-      prog += 25;
-      if (prog >= 100) {
-        clearInterval(timer);
-        setUploadedFiles(prev => ({
-          ...prev,
-          [docField]: { name: fileName, size, progress: 100 }
-        }));
-        handleInputChange(docField, true);
+    let progressVal = 10;
+    const progressInterval = setInterval(() => {
+      progressVal += 15;
+      if (progressVal >= 90) {
+        clearInterval(progressInterval);
       } else {
-        setUploadedFiles(prev => ({
-          ...prev,
-          [docField]: { name: fileName, size, progress: prog }
-        }));
+        setUploadedFiles(prev => {
+          if (!prev[field]) return prev;
+          return {
+            ...prev,
+            [field]: { ...prev[field], progress: progressVal }
+          };
+        });
       }
     }, 150);
+
+    try {
+      const folder = field === 'fotoStudentUploaded' ? 'photos' : 'documents';
+      const urlField = field.replace('Uploaded', 'Url') as keyof StudentFormData;
+      const fileName = file.name;
+
+      const publicUrl = await uploadStudentFile(file, folder, formData.studentId, fileName);
+
+      clearInterval(progressInterval);
+      setUploadedFiles(prev => ({
+        ...prev,
+        [field]: { name: file.name, size: `${(file.size / (1024 * 1024)).toFixed(1)} MB`, progress: 100 }
+      }));
+
+      // Update state first
+      setFormData(prev => ({
+        ...prev,
+        [field]: true,
+        [urlField]: publicUrl
+      }));
+      
+      // Auto-save outside state updater using the correct new data
+      autoSave({
+        ...formData,
+        [field]: true,
+        [urlField]: publicUrl
+      }, step);
+      
+      setUploadErrors(prev => ({ ...prev, [field]: '' }));
+    } catch (err: any) {
+      clearInterval(progressInterval);
+      console.error(`Error uploading ${field}:`, err);
+      setUploadErrors(prev => ({ ...prev, [field]: err.message || 'Error al subir archivo' }));
+      setUploadedFiles(prev => {
+        const copy = { ...prev };
+        delete copy[field];
+        return copy;
+      });
+    }
   };
 
-  const handleDeleteFile = (docField: keyof StudentFormData) => {
+  const handleDeleteFile = (field: keyof StudentFormData) => {
+    const urlField = field.replace('Uploaded', 'Url') as keyof StudentFormData;
     setUploadedFiles(prev => {
       const copy = { ...prev };
-      delete copy[docField];
+      delete copy[field];
       return copy;
     });
-    handleInputChange(docField, false);
+    setFormData(prev => ({
+      ...prev,
+      [field]: false,
+      [urlField]: ''
+    }));
+    autoSave({
+      ...formData,
+      [field]: false,
+      [urlField]: ''
+    }, step);
   };
 
   // Submit and dynamic DB creation callback
-  const handleSubmitEnrollment = () => {
-    // 1. Gather files in administrative schema structure
-    const mappedDocuments = [
-      { id: 'd-1', name: uploadedFiles['fotoStudentUploaded']?.name || 'Foto_Estudiante.jpg', type: 'IMG', status: 'Pendiente' as const, size: uploadedFiles['fotoStudentUploaded']?.size || '1.1 MB', uploadedAt: new Date().toLocaleDateString(), auditoria: 'Subido desde WhatsApp Mobile' },
-      { id: 'd-2', name: uploadedFiles['epsCardUploaded']?.name || 'EPS_Certificado.pdf', type: 'PDF', status: 'Pendiente' as const, size: uploadedFiles['epsCardUploaded']?.size || '2.3 MB', uploadedAt: new Date().toLocaleDateString(), auditoria: 'IP verificada - Firma digital' },
-      { id: 'd-3', name: uploadedFiles['identityDocUploaded']?.name || 'Documento_Identidad.pdf', type: 'PDF', status: 'Pendiente' as const, size: uploadedFiles['identityDocUploaded']?.size || '1.8 MB', uploadedAt: new Date().toLocaleDateString(), auditoria: 'Firma de Habeas Data indexada' }
-    ];
-
-    // 2. Create the operational PendingApproval profile (AI pre-configured)
-    const newApprovalItem = {
-      id: 'app-' + Date.now(),
-      name: formData.studentName || 'Estudiante Nuevo',
-      email: `${formData.studentName.toLowerCase().replace(/\s+/g, '') || 'nuevo.student'}@edu.co`,
-      type: 'Estudiante' as const,
-      submittedAt: 'Hace un momento',
-      status: 'pending_approval' as const,
-      documentStatus: 'Revisión Manual' as const,
-      autoAssignedCourse: `${formData.lastCompletedGrade || 'Sexto'} Sede ${formData.sede}`,
-      documents: mappedDocuments,
-      riskScore: Math.floor(Math.random() * 20) + 8, // Risk AI calculated
-      // Future AI metadata structure pre-loaded
-      ocrExtractedData: {
-        fullname: formData.studentName,
-        documentNumber: formData.studentId,
-        documentType: formData.idType,
-        birthDate: formData.birthDate,
-        eps: formData.epsName,
-        sisben: formData.sisbenLevel,
-        stratum: formData.stratum
-      },
-      documentConfidenceScore: 94,
-      smartFlags: ["Lectura OCR Exitosa", "Detección de Firma Manual Activa"]
-    };
-
-    // 3. Save to shared dynamic approvals database
-    const savedApprovals = localStorage.getItem('aulacore-pending-approvals');
-    let approvalsList = [];
-    if (savedApprovals) {
-      try {
-        approvalsList = JSON.parse(savedApprovals);
-      } catch (e) {
-        console.error(e);
-      }
+  const handleSubmitEnrollment = async () => {
+    if (!formData.studentName || !formData.studentId) {
+      alert('Por favor complete los datos obligatorios del estudiante (Nombres y Documento) en el Paso 2.');
+      setStep(2);
+      return;
     }
-    approvalsList.unshift(newApprovalItem);
-    localStorage.setItem('aulacore-pending-approvals', JSON.stringify(approvalsList));
 
-    // 4. Clear local draft and go to success screen
-    localStorage.removeItem('aulacore-matricula-draft');
-    localStorage.removeItem('aulacore-matricula-draft-step');
-    setIsSubmitted(true);
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      alert('Error de Envío: Las variables de entorno de Supabase no están configuradas.');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      let finalSignatureUrl = '';
+      if (formData.signatureDataUrl) {
+        try {
+          const byteString = atob(formData.signatureDataUrl.split(',')[1]);
+          const mimeString = formData.signatureDataUrl.split(',')[0].split(':')[1].split(';')[0];
+          const ab = new ArrayBuffer(byteString.length);
+          const ia = new Uint8Array(ab);
+          for (let i = 0; i < byteString.length; i++) {
+            ia[i] = byteString.charCodeAt(i);
+          }
+          const blob = new Blob([ab], { type: mimeString });
+          const file = new File([blob], 'signature.png', { type: 'image/png' });
+          finalSignatureUrl = await uploadStudentFile(file, 'signatures', formData.studentId, 'signature.png');
+        } catch (sigErr) {
+          console.error("Error uploading student signature file:", sigErr);
+        }
+      }
+
+      const payload: StudentOnboardingData = {
+        institution_id: '11111111-1111-1111-1111-111111111111',
+        sede: formData.sede,
+        jornada: formData.jornada,
+        periodo: formData.periodo,
+        tipo_matricula: formData.tipoMatricula,
+        student_name: formData.studentName,
+        student_id: formData.studentId,
+        id_type: formData.idType,
+        birth_date: formData.birthDate || undefined,
+        blood_type: formData.bloodType || undefined,
+        eps_name: formData.epsName || undefined,
+        address: formData.address || undefined,
+        has_disability: formData.hasDisability,
+        disability_type: formData.disabilityType || undefined,
+        sisben_level: formData.sisbenLevel,
+        stratum: formData.stratum,
+        mother_name: formData.motherName || undefined,
+        mother_phone: formData.motherPhone || undefined,
+        father_name: formData.fatherName || undefined,
+        father_phone: formData.fatherPhone || undefined,
+        primary_guardian: formData.primaryGuardian,
+        emergency_name: formData.emergencyName || undefined,
+        emergency_phone: formData.emergencyPhone || undefined,
+        emergency_relation: formData.emergencyRelation || undefined,
+        previous_school: formData.previousSchool || undefined,
+        last_completed_grade: formData.lastCompletedGrade || undefined,
+        previous_school_type: formData.previousSchoolType,
+        allergies: formData.allergies || undefined,
+        medications: formData.medications || undefined,
+        physical_restrictions: formData.physicalRestrictions || undefined,
+        medical_observations: formData.medicalObservations || undefined,
+        foto_student_url: formData.fotoStudentUrl || undefined,
+        eps_card_url: formData.epsCardUrl || undefined,
+        identity_doc_url: formData.identityDocUrl || undefined,
+        notes_cert_url: formData.notesCertUrl || undefined,
+        paz_salvo_url: formData.pazSalvoUrl || undefined,
+        medical_cert_url: formData.medicalCertUrl || undefined,
+        signature_url: finalSignatureUrl || undefined,
+        consent_habeas_data: formData.consentHabeasData,
+        consent_manual: formData.consentManual,
+        consent_siee: formData.consentSIEE,
+        consent_institutional: formData.consentInstitutional,
+        status: 'pending_approval'
+      };
+
+      await submitStudentOnboarding(payload);
+
+      // Clear local draft and go to success screen
+      localStorage.removeItem('aulacore-matricula-draft');
+      localStorage.removeItem('aulacore-matricula-draft-step');
+      setIsSubmitted(true);
+    } catch (err: any) {
+      console.error('Error submitting student onboarding:', err);
+      const errMsg = err.message || '';
+      if (errMsg.includes('student_onboardings_student_id_key') || errMsg.includes('duplicate key value violates unique constraint')) {
+        alert('Error: El documento de identidad del estudiante ingresado ya tiene una matrícula activa o registrada en el sistema. Por favor verifica los datos.');
+      } else {
+        alert('Error al enviar la matrícula: ' + (err.message || err));
+      }
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   // Mobile steps labels
@@ -531,6 +651,17 @@ export default function MatriculaPage() {
           </span>
         </div>
       </div>
+
+      {/* Supabase Config Warning */}
+      {(!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) && (
+        <div className="bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-2xl flex items-start gap-2.5 text-xs font-semibold shadow-sm animate-in fade-in">
+          <AlertTriangle className="w-5 h-5 text-rose-500 shrink-0 mt-0.5 animate-pulse" />
+          <div>
+            <strong className="block text-rose-900 mb-0.5">Advertencia: Falta configuración de Supabase en Vercel</strong>
+            Asegúrate de agregar las variables de entorno <code className="bg-rose-100 px-1 py-0.5 rounded font-bold font-mono">NEXT_PUBLIC_SUPABASE_URL</code> y <code className="bg-rose-100 px-1 py-0.5 rounded font-bold font-mono">NEXT_PUBLIC_SUPABASE_ANON_KEY</code> en tu panel de proyectos de Vercel. De lo contrario, los archivos cargados y el expediente de la matrícula no se guardarán en Supabase y el envío se quedará en estado de carga infinito.
+          </div>
+        </div>
+      )}
 
       {/* Main Wizard Row */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 flex-1 items-start">
@@ -1086,12 +1217,12 @@ export default function MatriculaPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
                   {[
-                    { label: 'Fotografía del Estudiante (Fondo blanco)', field: 'fotoStudentUploaded', type: 'Foto_Estudiante.jpg', size: '1.2 MB' },
-                    { label: 'Certificado de Afiliación a EPS (Máx. 30 días)', field: 'epsCardUploaded', type: 'Certificado_EPS.pdf', size: '2.4 MB' },
-                    { label: 'Documento de Identidad Estudiante (Ambas caras)', field: 'identityDocUploaded', type: 'Documento_Identidad.pdf', size: '1.8 MB' },
-                    { label: 'Certificado de Notas Grado Anterior', field: 'notesCertUploaded', type: 'Certificado_Academico.pdf', size: '3.1 MB' },
-                    { label: 'Paz y Salvo Colegio Anterior', field: 'pazSalvoUploaded', type: 'Paz_y_Salvo.pdf', size: '1.1 MB' },
-                    { label: 'Certificado de Estado de Salud General', field: 'medicalCertUploaded', type: 'Certificado_Medico.pdf', size: '1.6 MB' },
+                    { label: 'Fotografía del Estudiante (Fondo blanco)', field: 'fotoStudentUploaded', ref: fotoStudentInputRef, accept: 'image/*', type: 'Foto_Estudiante.jpg' },
+                    { label: 'Certificado de Afiliación a EPS (Máx. 30 días)', field: 'epsCardUploaded', ref: epsCardInputRef, accept: '.pdf,image/*', type: 'Certificado_EPS.pdf' },
+                    { label: 'Documento de Identidad Estudiante (Ambas caras)', field: 'identityDocUploaded', ref: identityDocInputRef, accept: '.pdf,image/*', type: 'Documento_Identidad.pdf' },
+                    { label: 'Certificado de Notas Grado Anterior', field: 'notesCertUploaded', ref: notesCertInputRef, accept: '.pdf,image/*', type: 'Certificado_Academico.pdf' },
+                    { label: 'Paz y Salvo Colegio Anterior', field: 'pazSalvoUploaded', ref: pazSalvoInputRef, accept: '.pdf,image/*', type: 'Paz_y_Salvo.pdf' },
+                    { label: 'Certificado de Estado de Salud General', field: 'medicalCertUploaded', ref: medicalCertInputRef, accept: '.pdf,image/*', type: 'Certificado_Medico.pdf' },
                   ].map(doc => {
                     const isUploaded = formData[doc.field as keyof StudentFormData];
                     const fileLoader = uploadedFiles[doc.field];
@@ -1108,6 +1239,16 @@ export default function MatriculaPage() {
                             : "bg-slate-50/50 border-slate-250 hover:bg-slate-50"
                         )}
                       >
+                        <input
+                          type="file"
+                          ref={doc.ref}
+                          className="hidden"
+                          accept={doc.accept}
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handleRealUpload(doc.field as keyof StudentFormData, file);
+                          }}
+                        />
                         <div className="flex items-start justify-between gap-3 mb-3">
                           <div>
                             <h4 className="text-xs font-bold text-slate-800">{doc.label}</h4>
@@ -1129,6 +1270,7 @@ export default function MatriculaPage() {
                             <div className="flex items-center gap-2">
                               <span className="text-[9px] font-bold text-emerald-600 bg-emerald-100 px-1.5 py-0.5 rounded uppercase">Auditable</span>
                               <button 
+                                type="button"
                                 onClick={() => handleDeleteFile(doc.field as keyof StudentFormData)}
                                 className="text-rose-500 hover:bg-rose-50 p-1 rounded-md transition-colors cursor-pointer"
                               >
@@ -1147,12 +1289,24 @@ export default function MatriculaPage() {
                             </div>
                           </div>
                         ) : (
-                          <button 
-                            onClick={() => handleSimulateUpload(doc.field as keyof StudentFormData, doc.type, doc.size)}
-                            className="w-full bg-white border border-slate-200 hover:border-indigo-300 hover:text-indigo-600 text-slate-600 text-[11px] font-bold py-2.5 rounded-xl transition-all cursor-pointer shadow-sm text-center"
-                          >
-                            + Seleccionar Archivo
-                          </button>
+                          <div>
+                            <button 
+                              type="button"
+                              onClick={() => {
+                                if (!formData.studentId) {
+                                  alert('Por favor ingrese el Documento de Identidad del Estudiante antes de cargar archivos.');
+                                  return;
+                                }
+                                doc.ref.current?.click();
+                              }}
+                              className="w-full bg-white border border-slate-200 hover:border-indigo-300 hover:text-indigo-600 text-slate-650 text-[11px] font-bold py-2.5 rounded-xl transition-all cursor-pointer shadow-sm text-center"
+                            >
+                              + Seleccionar Archivo
+                            </button>
+                            {uploadErrors[doc.field] && (
+                              <p className="text-[9px] text-rose-500 mt-1 text-center font-semibold">{uploadErrors[doc.field]}</p>
+                            )}
+                          </div>
                         )}
                       </div>
                     );
@@ -1332,9 +1486,18 @@ export default function MatriculaPage() {
             ) : (
               <button
                 onClick={handleSubmitEnrollment}
-                className="px-8 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-1 shadow-lg shadow-emerald-600/10 hover:-translate-y-0.5 active:scale-95 cursor-pointer"
+                disabled={submitting}
+                className={cn(
+                  "px-8 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-1 shadow-lg shadow-emerald-600/10 hover:-translate-y-0.5 active:scale-95 cursor-pointer",
+                  submitting && "opacity-50 cursor-not-allowed active:scale-100"
+                )}
               >
-                Enviar Matrícula <CheckCircle2 className="w-4 h-4" />
+                {submitting ? 'Enviando...' : 'Enviar Matrícula'} 
+                {submitting ? (
+                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                ) : (
+                  <CheckCircle2 className="w-4 h-4" />
+                )}
               </button>
             )}
           </div>

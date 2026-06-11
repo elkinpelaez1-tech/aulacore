@@ -445,15 +445,19 @@ export default function DocentesPage() {
         [field]: { name: file.name, size: `${(file.size / (1024 * 1024)).toFixed(1)} MB`, progress: 100 }
       }));
 
-      setFormData(prev => {
-        const updated = {
-          ...prev,
-          [field]: true,
-          [urlField]: publicUrl
-        };
-        autoSave(updated, step);
-        return updated;
-      });
+      // Update state first
+      setFormData(prev => ({
+        ...prev,
+        [field]: true,
+        [urlField]: publicUrl
+      }));
+      
+      // Auto-save outside state updater using the correct new data
+      autoSave({
+        ...formData,
+        [field]: true,
+        [urlField]: publicUrl
+      }, step);
       
       setUploadErrors(prev => ({ ...prev, [field]: '' }));
     } catch (err: any) {
@@ -475,15 +479,16 @@ export default function DocentesPage() {
       delete copy[field];
       return copy;
     });
-    setFormData(prev => {
-      const updated = {
-        ...prev,
-        [field]: false,
-        [urlField]: ''
-      };
-      autoSave(updated, step);
-      return updated;
-    });
+    setFormData(prev => ({
+      ...prev,
+      [field]: false,
+      [urlField]: ''
+    }));
+    autoSave({
+      ...formData,
+      [field]: false,
+      [urlField]: ''
+    }, step);
   };
 
   // Submit dynamic database save
@@ -554,7 +559,12 @@ export default function DocentesPage() {
       setIsSubmitted(true);
     } catch (err: any) {
       console.error('Error enviando onboarding a Supabase:', err);
-      alert('Error al enviar la solicitud: ' + (err.message || err));
+      const errMsg = err.message || '';
+      if (errMsg.includes('teacher_onboardings_email_key') || errMsg.includes('duplicate key value violates unique constraint')) {
+        alert('Error: El correo electrónico ingresado ya tiene un registro de onboarding activo en el sistema. Por favor utiliza un correo diferente.');
+      } else {
+        alert('Error al enviar la solicitud: ' + (err.message || err));
+      }
     } finally {
       setSubmitting(false);
     }

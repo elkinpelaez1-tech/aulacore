@@ -40,17 +40,31 @@ export async function uploadOnboardingFile(
   documentId: string,
   fileName: string
 ): Promise<string> {
-  const fileExt = fileName.split('.').pop();
-  const path = `${folder}/${documentId}_${Date.now()}.${fileExt}`;
+  const fileExt = (fileName.split('.').pop() || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  const cleanDocId = documentId.replace(/[^a-zA-Z0-9]/g, '');
+  const path = `${folder}/${cleanDocId}_${Date.now()}.${fileExt}`;
+
+  // Determinar el tipo MIME correcto (especialmente en Windows donde a veces viene vacío para PDFs)
+  let mimeType = file.type;
+  if (!mimeType || mimeType === 'application/octet-stream') {
+    if (fileExt === 'pdf') mimeType = 'application/pdf';
+    else if (fileExt === 'png') mimeType = 'image/png';
+    else if (fileExt === 'jpg' || fileExt === 'jpeg') mimeType = 'image/jpeg';
+  }
+
+  // Crear un objeto File limpio con nombre ASCII y contenido aplanado (slice) para evitar problemas de streaming en navegadores
+  const cleanFileName = `file_${Date.now()}.${fileExt}`;
+  const cleanFile = new File([file.slice(0, file.size)], cleanFileName, { type: mimeType });
 
   const { data, error } = await supabase.storage
     .from('teacher-onboarding')
-    .upload(path, file, {
+    .upload(path, cleanFile, {
       cacheControl: '3600',
-      upsert: true
+      upsert: false
     });
 
   if (error) {
+    console.error('Error in supabase.storage.upload:', error);
     throw error;
   }
 
@@ -61,6 +75,7 @@ export async function uploadOnboardingFile(
 
   return publicUrl;
 }
+
 
 // 2. REGISTRAR ONBOARDING (INSERTAR EN DB)
 export async function submitOnboarding(data: TeacherOnboardingData): Promise<TeacherOnboardingData> {
