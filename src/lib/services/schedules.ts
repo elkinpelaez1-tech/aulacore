@@ -106,7 +106,98 @@ export async function getSchedulesByTeacher(teacherId: string, periodId: string)
     .order('start_time', { ascending: true });
 
   if (error) throw new Error(error.message);
-  return data;
+
+  if (data && data.length > 0) {
+    return data;
+  }
+
+  // Fallback to onboarding schedules if no active schedules found
+  try {
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(teacherId);
+    if (!isUuid) return [];
+
+    // 1. Try by onboarding ID
+    const { data: byId } = await supabase
+      .from('teacher_onboardings')
+      .select('selected_slots, subject_area, academic_level, sede')
+      .eq('id', teacherId)
+      .maybeSingle();
+
+    let onboarding = byId;
+    
+    // 2. Try by user_id if not found
+    if (!onboarding) {
+      const { data: byUserId } = await supabase
+        .from('teacher_onboardings')
+        .select('selected_slots, subject_area, academic_level, sede')
+        .eq('user_id', teacherId)
+        .maybeSingle();
+      onboarding = byUserId;
+    }
+
+    if (onboarding && onboarding.selected_slots && onboarding.selected_slots.length > 0) {
+      const dayMapping: Record<string, number> = {
+        'Lunes': 1,
+        'Martes': 2,
+        'Miércoles': 3,
+        'Miercoles': 3,
+        'Jueves': 4,
+        'Viernes': 5,
+        'Sábado': 6,
+        'Sabado': 6
+      };
+
+      const parsedSchedules: EnrichedSchedule[] = [];
+
+      for (const slot of onboarding.selected_slots) {
+        const parts = slot.split('-');
+        if (parts.length !== 2) continue;
+        const dayName = parts[0];
+        const blockIdStr = parts[1];
+        const dayId = dayMapping[dayName];
+        const blockId = parseInt(blockIdStr, 10);
+
+        if (!dayId || isNaN(blockId)) continue;
+
+        const startHour = 6 + blockId;
+        const endHour = 6 + blockId + 1;
+        const startTime = `${String(startHour).padStart(2, '0')}:00:00`;
+        const endTime = `${String(endHour).padStart(2, '0')}:00:00`;
+
+        parsedSchedules.push({
+          id: `onboarding-${teacherId}-${slot}`,
+          institution_id: '11111111-1111-1111-1111-111111111111',
+          course_id: '',
+          subject_id: '',
+          teacher_id: teacherId,
+          classroom: onboarding.sede || 'Por definir',
+          academic_period_id: periodId,
+          day_of_week: dayId,
+          start_time: startTime,
+          end_time: endTime,
+          school_day: 'unica',
+          status: 'active',
+          created_by: null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          curriculum_subjects: onboarding.subject_area ? { name: onboarding.subject_area } : null,
+          courses: onboarding.academic_level ? { grade_level: onboarding.academic_level, group_name: 'Asignado' } : null
+        } as any);
+      }
+
+      // Sort by day and start time
+      return parsedSchedules.sort((a, b) => {
+        if (a.day_of_week !== b.day_of_week) {
+          return a.day_of_week - b.day_of_week;
+        }
+        return a.start_time.localeCompare(b.start_time);
+      });
+    }
+  } catch (fallbackErr) {
+    console.error('Error fetching onboarding schedules fallback:', fallbackErr);
+  }
+
+  return [];
 }
 
 /**

@@ -29,6 +29,7 @@ export function GroupDirectorCard({ director }: Props) {
   const [isSending, setIsSending] = useState(false);
   const [isSentSuccess, setIsSentSuccess] = useState(false);
   const [mockVerificationHash, setMockVerificationHash] = useState('');
+  const [error, setError] = useState('');
 
   const openWhatsApp = () => {
     // Solo demo. Quitar cualquier caracter no numérico
@@ -41,31 +42,53 @@ export function GroupDirectorCard({ director }: Props) {
     if (!emailSubject.trim() || !emailMessage.trim()) return;
 
     setIsSending(true);
+    setError('');
     
-    // Simulate API request delay
-    setTimeout(() => {
-      setIsSending(false);
-      setIsSentSuccess(true);
-      // Generate a mock secure transaction ID
-      const hash = 'AC-EML-' + Math.random().toString(36).substring(2, 10).toUpperCase() + '-' + Date.now().toString().slice(-6);
-      setMockVerificationHash(hash);
-      
-      // Sync with localStorage message log
-      const localKey = 'aulacore-messages-log';
-      const existingLogs = JSON.parse(localStorage.getItem(localKey) || '[]');
-      const newLog = {
-        id: hash,
-        recipientName: director.name,
-        recipientEmail: director.email,
+    fetch('/api/send-email', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        to: director.email,
         subject: emailSubject,
         message: emailMessage,
         category: emailCategory,
-        sentAt: new Date().toISOString(),
-        senderRole: 'Coordinador',
-        senderName: 'Dr. Ramírez'
-      };
-      localStorage.setItem(localKey, JSON.stringify([newLog, ...existingLogs]));
-    }, 1500);
+        recipientName: director.name,
+      }),
+    })
+      .then(async (res) => {
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error || 'Error al enviar el correo');
+        }
+        
+        setIsSending(false);
+        setIsSentSuccess(true);
+        const hash = data.id || ('AC-EML-' + Math.random().toString(36).substring(2, 10).toUpperCase() + '-' + Date.now().toString().slice(-6));
+        setMockVerificationHash(hash);
+        
+        // Sync with localStorage message log
+        const localKey = 'aulacore-messages-log';
+        const existingLogs = JSON.parse(localStorage.getItem(localKey) || '[]');
+        const newLog = {
+          id: hash,
+          recipientName: director.name,
+          recipientEmail: director.email,
+          subject: emailSubject,
+          message: emailMessage,
+          category: emailCategory,
+          sentAt: new Date().toISOString(),
+          senderRole: 'Coordinador',
+          senderName: 'Dr. Ramírez'
+        };
+        localStorage.setItem(localKey, JSON.stringify([newLog, ...existingLogs]));
+      })
+      .catch((err: any) => {
+        console.error("Error sending real email to director:", err);
+        setIsSending(false);
+        setError(err.message || 'Error al despachar el correo electrónico. Por favor reintente.');
+      });
   };
 
   return (
@@ -131,6 +154,7 @@ export function GroupDirectorCard({ director }: Props) {
               setEmailMessage('');
               setEmailCategory('general');
               setIsSending(false);
+              setError('');
             }
           }}>
             <DialogTrigger
@@ -233,6 +257,13 @@ export function GroupDirectorCard({ director }: Props) {
                       className="w-full min-h-[120px] bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:bg-white text-slate-800 rounded-lg p-3 text-xs font-medium focus:outline-none transition-all resize-none"
                     />
                   </div>
+
+                  {error && (
+                    <div className="bg-rose-50 border border-rose-200 text-rose-850 text-xs font-semibold rounded-lg p-2.5 flex items-center gap-2 mb-3">
+                      <AlertCircle className="w-4 h-4 text-rose-500 shrink-0" />
+                      <span>{error}</span>
+                    </div>
+                  )}
 
                   {/* Botones de Acción */}
                   <div className="flex gap-2 pt-2">
