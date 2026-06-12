@@ -112,7 +112,20 @@ export async function approveOnboarding(
   institutionId: string
 ): Promise<{ success: boolean; activationLink: string; error?: string }> {
   try {
-    // A. Obtener datos de la solicitud
+    const tempPassword = 'AulaCore2026!'; // Contraseña temporal por defecto
+
+    // Ejecutar el proceso atómico de aprobación mediante el RPC de base de datos
+    const { data: userId, error: rpcError } = await supabase.rpc('approve_teacher_onboarding_rpc', {
+      p_onboarding_id: onboardingId,
+      p_institution_id: institutionId,
+      p_temp_password: tempPassword
+    });
+
+    if (rpcError || !userId) {
+      throw new Error(rpcError?.message || 'Error al ejecutar RPC de aprobación en el servidor.');
+    }
+
+    // Obtener los datos actuales del onboarding para generar enlace y logs de correo
     const { data: onboarding, error: fetchError } = await supabase
       .from('teacher_onboardings')
       .select('*')
@@ -120,58 +133,7 @@ export async function approveOnboarding(
       .single();
 
     if (fetchError || !onboarding) {
-      throw new Error(fetchError?.message || 'Solicitud de onboarding no encontrada.');
-    }
-
-    // B. Crear usuario en Auth usando la función RPC
-    const tempPassword = 'AulaCore2026!'; // Contraseña temporal por defecto
-    const names = onboarding.full_name.split(' ');
-    const firstName = names[0] || 'Docente';
-    const lastName = names.slice(1).join(' ') || 'AulaCore';
-
-    const { data: userId, error: rpcError } = await supabase.rpc('create_teacher_auth_user', {
-      p_email: onboarding.email,
-      p_password: tempPassword,
-      p_first_name: firstName,
-      p_last_name: lastName
-    });
-
-    if (rpcError || !userId) {
-      throw new Error(rpcError?.message || 'No se pudo crear el usuario en Supabase Auth.');
-    }
-
-    // C. Vincular el perfil al rol correspondiente en public.user_roles
-    const selectedRoles = onboarding.selected_roles && onboarding.selected_roles.length > 0
-      ? onboarding.selected_roles
-      : ['docente'];
-
-    // Para evitar duplicación, eliminamos roles anteriores de esta institución si los hubiere
-    await supabase
-      .from('user_roles')
-      .delete()
-      .eq('user_id', userId)
-      .eq('institution_id', institutionId);
-
-    const rolesInsert = selectedRoles.map((role: string) => ({
-      user_id: userId,
-      institution_id: institutionId,
-      role: role
-    }));
-
-    const { error: rolesError } = await supabase
-      .from('user_roles')
-      .insert(rolesInsert);
-
-    if (rolesError) {
-      throw new Error(rolesError.message);
-    }
-
-    // D. Actualizar la foto de perfil en public.profiles
-    if (onboarding.foto_url) {
-      await supabase
-        .from('profiles')
-        .update({ avatar_url: onboarding.foto_url })
-        .eq('id', userId);
+      throw new Error(fetchError?.message || 'Onboarding no encontrado tras la aprobación.');
     }
 
     // E. Generar enlace de activación e historial de correo
@@ -187,13 +149,11 @@ export async function approveOnboarding(
     const existingLogs = Array.isArray(onboarding.email_logs) ? onboarding.email_logs : [];
     const updatedLogs = [newEmailLog, ...existingLogs];
 
-    // F. Actualizar el estado del onboarding en la base de datos
+    // Actualizar campos de correo en el cliente
     const { error: updateError } = await supabase
       .from('teacher_onboardings')
       .update({
-        status: 'invited',
         activation_link: activationLink,
-        user_id: userId,
         email_logs: updatedLogs,
         updated_at: new Date().toISOString()
       })

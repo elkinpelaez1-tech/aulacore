@@ -127,100 +127,17 @@ export async function approveStudentOnboarding(
   institutionId: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    // A. Obtener datos de la solicitud
-    const { data: onboarding, error: fetchError } = await supabase
-      .from('student_onboardings')
-      .select('*')
-      .eq('id', onboardingId)
-      .single();
-
-    if (fetchError || !onboarding) {
-      throw new Error(fetchError?.message || 'Solicitud de onboarding no encontrada.');
-    }
-
-    // B. Crear usuario en Auth usando la función RPC
-    const cleanName = onboarding.student_name.toLowerCase().replace(/\s+/g, '');
-    const generatedEmail = `${cleanName || 'estudiante.' + onboarding.student_id}@aulacore.edu.co`;
     const tempPassword = 'AulaCore2026!';
-    const names = onboarding.student_name.split(' ');
-    const firstName = names[0] || 'Estudiante';
-    const lastName = names.slice(1).join(' ') || 'AulaCore';
 
-    const { data: userId, error: rpcError } = await supabase.rpc('create_teacher_auth_user', {
-      p_email: generatedEmail,
-      p_password: tempPassword,
-      p_first_name: firstName,
-      p_last_name: lastName
+    // Ejecutar el proceso atómico de aprobación mediante el RPC de base de datos
+    const { data: userId, error: rpcError } = await supabase.rpc('approve_student_onboarding_rpc', {
+      p_onboarding_id: onboardingId,
+      p_institution_id: institutionId,
+      p_temp_password: tempPassword
     });
 
     if (rpcError || !userId) {
-      throw new Error(rpcError?.message || 'No se pudo crear el usuario estudiante en Auth.');
-    }
-
-    // C. Vincular el perfil al rol estudiante en public.user_roles
-    await supabase
-      .from('user_roles')
-      .delete()
-      .eq('user_id', userId)
-      .eq('institution_id', institutionId);
-
-    const { error: roleError } = await supabase
-      .from('user_roles')
-      .insert({
-        user_id: userId,
-        institution_id: institutionId,
-        role: 'estudiante'
-      });
-
-    if (roleError) {
-      throw new Error(roleError.message);
-    }
-
-    // D. Registrar el estudiante en public.students
-    const enrollmentNumber = 'MAT-' + Date.now().toString().substring(6);
-    
-    // Verificar si ya existe en public.students
-    const { data: existingStudent } = await supabase
-      .from('students')
-      .select('id')
-      .eq('id', userId)
-      .maybeSingle();
-
-    if (!existingStudent) {
-      const { error: studentError } = await supabase
-        .from('students')
-        .insert({
-          id: userId,
-          enrollment_number: enrollmentNumber,
-          status: 'activo',
-          date_of_birth: onboarding.birth_date || null,
-          medical_notes: onboarding.medical_observations || onboarding.allergies || null
-        });
-
-      if (studentError) {
-        throw new Error(studentError.message);
-      }
-    }
-
-    // E. Actualizar foto del perfil
-    if (onboarding.foto_student_url) {
-      await supabase
-        .from('profiles')
-        .update({ avatar_url: onboarding.foto_student_url })
-        .eq('id', userId);
-    }
-
-    // F. Actualizar el estado del onboarding en la base de datos
-    const { error: updateError } = await supabase
-      .from('student_onboardings')
-      .update({
-        status: 'activated',
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', onboardingId);
-
-    if (updateError) {
-      throw new Error(updateError.message);
+      throw new Error(rpcError?.message || 'Error al ejecutar RPC de aprobación de estudiante.');
     }
 
     return { success: true };

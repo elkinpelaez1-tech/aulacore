@@ -29,7 +29,11 @@ export function TeachersGrid() {
   return (
     <div className="space-y-6">
       {/* 1. Hero Metrics Panel */}
-      <TeacherMetricsPanel />
+      <TeacherMetricsPanel 
+        teachers={MOCK_TEACHERS} 
+        activeFilter="Todos" 
+        onFilterChange={() => {}} 
+      />
 
       {/* 2. Filters & Search */}
       <div className="flex flex-col md:flex-row items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-200">
