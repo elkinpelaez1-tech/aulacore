@@ -27,8 +27,8 @@ export function ApprovalReviewDrawer({
   const [notes, setNotes] = useState('');
 
   useEffect(() => {
-    setNotes('');
-  }, [approval?.id]);
+    setNotes(approval?.observations || '');
+  }, [approval?.id, approval?.observations]);
 
   if (!approval) return null;
 

@@ -18,6 +18,7 @@ export interface PendingApproval {
   autoAssignedCourse?: string;
   documents: AttachedDocument[];
   riskScore?: number; // AI calculated risk for profile anomalies
+  observations?: string;
 }
 
 export interface MagicLink {

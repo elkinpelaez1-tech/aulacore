@@ -256,10 +256,42 @@ export default function AutomatizacionPage() {
   };
 
   const handleUpdateDocumentStatus = (approvalId: string, docId: string, newStatus: 'Validado' | 'Pendiente' | 'Rechazado') => {
+    setPendingApprovals(prev => prev.map(app => {
+      if (app.id !== approvalId) return app;
+      
+      const updatedDocs = app.documents.map(d => {
+        if (d.id !== docId) return d;
+        return { ...d, status: newStatus };
+      });
+      
+      // Determine overall document status
+      let documentStatus: 'Validado' | 'Faltante' | 'Revisión Manual' = 'Revisión Manual';
+      const allValid = updatedDocs.every(d => d.status === 'Validado');
+      const anyRejected = updatedDocs.some(d => d.status === 'Rechazado');
+      
+      if (updatedDocs.length === 0) {
+        documentStatus = 'Faltante';
+      } else if (allValid) {
+        documentStatus = 'Validado';
+      }
+
+      return {
+        ...app,
+        documents: updatedDocs,
+        documentStatus
+      };
+    }));
     showToast(`Estado del documento actualizado a ${newStatus}.`, 'success');
   };
 
   const handleSaveObservations = (id: string, observations: string) => {
+    setPendingApprovals(prev => prev.map(app => {
+      if (app.id !== id) return app;
+      return {
+        ...app,
+        observations
+      };
+    }));
     showToast(`Observación guardada para el registro.`, 'success');
   };
 
