@@ -32,6 +32,8 @@ import {
   Copy,
   ExternalLink,
   BookOpen,
+  LayoutGrid,
+  TableProperties,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -93,6 +95,7 @@ export default function MisAlumnosPage() {
   const [selectedCourse, setSelectedCourse] = useState('Todos');
   const [selectedSubject, setSelectedSubject] = useState('Todas');
   const [selectedRisk, setSelectedRisk] = useState('Todos');
+  const [viewMode, setViewMode] = useState<'card' | 'table'>('card');
 
   // Student 360 Drawer state
   const [selectedStudent, setSelectedStudent] = useState<StudentMockData | null>(null);
@@ -124,6 +127,18 @@ export default function MisAlumnosPage() {
       setCustomizedText(text);
     }
   }, [commsStudent, selectedTemplate]);
+
+  // Auto-open student details when redirected from global search
+  useEffect(() => {
+    const autoOpenId = localStorage.getItem('aulacore-search-auto-open-student');
+    if (autoOpenId && students && students.length > 0) {
+      const student = students.find(s => s.id === autoOpenId);
+      if (student) {
+        openStudent360(student, 'resumen');
+      }
+      localStorage.removeItem('aulacore-search-auto-open-student');
+    }
+  }, [students]);
 
   // Show customized toast notifications
   const showToast = (message: string, type: 'success' | 'info' = 'success') => {
@@ -294,6 +309,35 @@ export default function MisAlumnosPage() {
                 <option value="Bajo">Bajo</option>
               </select>
             </div>
+
+            {/* View Switcher */}
+            <div className="h-9 w-px bg-slate-250 mx-1 hidden sm:block" />
+            <div className="flex items-center bg-slate-100/80 p-0.5 rounded-lg border border-slate-200/50 shadow-sm">
+              <Button
+                variant="ghost"
+                size="sm"
+                className={cn(
+                  "h-8 px-2.5 rounded-md text-xs font-bold transition-all gap-1.5",
+                  viewMode === 'card' ? "bg-white text-slate-900 shadow-sm border border-slate-200/20" : "text-slate-500 hover:text-slate-800"
+                )}
+                onClick={() => setViewMode('card')}
+              >
+                <LayoutGrid className="w-4 h-4" />
+                <span className="hidden sm:inline">Tarjetas</span>
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className={cn(
+                  "h-8 px-2.5 rounded-md text-xs font-bold transition-all gap-1.5",
+                  viewMode === 'table' ? "bg-white text-slate-900 shadow-sm border border-slate-200/20" : "text-slate-500 hover:text-slate-800"
+                )}
+                onClick={() => setViewMode('table')}
+              >
+                <TableProperties className="w-4 h-4" />
+                <span className="hidden sm:inline">Tabla</span>
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -354,171 +398,319 @@ export default function MisAlumnosPage() {
           </Card>
         </div>
 
-        {/* 3. Grid de Estudiantes */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {filteredStudents.length > 0 ? (
-            filteredStudents.map((student) => {
-              const styles = getTrafficLight(student);
-              const subject = SUBJECT_MAPPING[student.id] || 'Matemáticas';
+        {/* 3. Grid o Tabla de Estudiantes */}
+        {viewMode === 'card' ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {filteredStudents.length > 0 ? (
+              filteredStudents.map((student) => {
+                const styles = getTrafficLight(student);
+                const subject = SUBJECT_MAPPING[student.id] || 'Matemáticas';
 
-              return (
-                <Card
-                  key={student.id}
-                  className={cn(
-                    'rounded-xl transition-all duration-300 relative bg-white flex flex-col justify-between overflow-hidden group select-none shadow-[0_1.5px_4px_rgba(0,0,0,0.02)] border',
-                    styles.border
-                  )}
-                >
-                  {/* Glowing dynamic background on hover */}
-                  <div className={cn("absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none bg-gradient-to-tr from-transparent via-transparent", styles.bgLight)} />
+                return (
+                  <Card
+                    key={student.id}
+                    className={cn(
+                      'rounded-xl transition-all duration-300 relative bg-white flex flex-col justify-between overflow-hidden group select-none shadow-[0_1.5px_4px_rgba(0,0,0,0.02)] border',
+                      styles.border
+                    )}
+                  >
+                    {/* Glowing dynamic background on hover */}
+                    <div className={cn("absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none bg-gradient-to-tr from-transparent via-transparent", styles.bgLight)} />
 
-                  <CardContent className="p-4.5 relative z-10 flex-1 flex flex-col justify-between">
-                    <div>
-                      {/* Top Header Card: Avatar & Level Risk */}
-                      <div className="flex items-start justify-between">
-                        <div className="relative">
-                          <img
-                            src={student.avatarUrl || `https://i.pravatar.cc/150?u=${student.id}`}
-                            alt={student.name}
-                            className="w-12 h-12 rounded-full border border-slate-100 object-cover shadow-sm bg-slate-50"
-                          />
-                          <span
-                            className={cn(
-                              'absolute bottom-0 right-0 w-3 h-3 rounded-full ring-2 ring-white',
-                              styles.indicator
-                            )}
-                          />
+                    <CardContent className="p-4.5 relative z-10 flex-1 flex flex-col justify-between">
+                      <div>
+                        {/* Top Header Card: Avatar & Level Risk */}
+                        <div className="flex items-start justify-between">
+                          <div className="relative">
+                            <img
+                              src={student.avatarUrl || `https://i.pravatar.cc/150?u=${student.id}`}
+                              alt={student.name}
+                              className="w-12 h-12 rounded-full border border-slate-100 object-cover shadow-sm bg-slate-50"
+                            />
+                            <span
+                              className={cn(
+                                'absolute bottom-0 right-0 w-3 h-3 rounded-full ring-2 ring-white',
+                                styles.indicator
+                              )}
+                            />
+                          </div>
+
+                          {/* Top corner info */}
+                          <div className="flex flex-col items-end">
+                            <Badge variant="outline" className={cn("px-2 py-0.5 text-[10px] font-bold rounded-md uppercase tracking-wider", styles.color)}>
+                              {styles.label}
+                            </Badge>
+                          </div>
                         </div>
 
-                        {/* Top corner info */}
-                        <div className="flex flex-col items-end">
-                          <Badge variant="outline" className={cn("px-2 py-0.5 text-[10px] font-bold rounded-md uppercase tracking-wider", styles.color)}>
-                            {styles.label}
-                          </Badge>
+                        {/* Student Info */}
+                        <div className="mt-3.5">
+                          <h4 className="font-extrabold text-[15px] text-slate-900 group-hover:text-blue-600 transition-colors tracking-tight line-clamp-1">
+                            {student.name}
+                          </h4>
+                          
+                          <div className="flex items-center gap-1.5 text-xs text-slate-400 font-bold mt-2">
+                            <span className="bg-slate-50 text-slate-500 border border-slate-200/60 px-1.5 py-0.5 rounded">
+                              {student.group}
+                            </span>
+                            <span className="text-slate-300">•</span>
+                            <span className="font-medium text-slate-500 truncate flex items-center gap-1">
+                              <BookOpen className="w-3.5 h-3.5 text-slate-400" /> {subject}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Performance indicators */}
+                        <div className="grid grid-cols-2 gap-3 mt-4 pt-3 border-t border-slate-100">
+                          <div>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Promedio</p>
+                            <p className={cn(
+                              "text-sm font-black mt-0.5",
+                              student.gpa >= 4.0 ? "text-emerald-600" : student.gpa >= 3.0 ? "text-amber-500" : "text-rose-500"
+                            )}>
+                              {student.gpa > 0 ? student.gpa.toFixed(1) : '—'} <span className="text-[10px] font-medium text-slate-400">/ 5.0</span>
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Asistencia</p>
+                            <p className={cn(
+                              "text-sm font-black mt-0.5",
+                              student.attendanceRate >= 90 ? "text-emerald-600" : student.attendanceRate >= 80 ? "text-amber-500" : "text-rose-500"
+                            )}>
+                              {student.attendanceRate}%
+                            </p>
+                          </div>
                         </div>
                       </div>
 
-                      {/* Student Info */}
-                      <div className="mt-3.5">
-                        <h4 className="font-extrabold text-[15px] text-slate-900 group-hover:text-blue-600 transition-colors tracking-tight line-clamp-1">
-                          {student.name}
-                        </h4>
+                      {/* 4. Acciones Rápidas (Minimalist Icons) */}
+                      <div className="flex items-center justify-between gap-1.5 mt-5 pt-3 border-t border-slate-100">
                         
-                        <div className="flex items-center gap-1.5 text-xs text-slate-400 font-bold mt-2">
-                          <span className="bg-slate-50 text-slate-500 border border-slate-200/60 px-1.5 py-0.5 rounded">
-                            {student.group}
-                          </span>
-                          <span className="text-slate-300">•</span>
-                          <span className="font-medium text-slate-500 truncate flex items-center gap-1">
-                            <BookOpen className="w-3.5 h-3.5 text-slate-400" /> {subject}
-                          </span>
-                        </div>
+                        {/* WhatsApp Quick Action */}
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => {
+                            setCommsStudent(student);
+                            setCommsChannel('whatsapp');
+                            setSelectedTemplate('inasistencia');
+                          }}
+                          className="w-8.5 h-8.5 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 hover:text-emerald-700 transition"
+                          title="Contacto WhatsApp"
+                        >
+                          <MessageCircle className="w-4.5 h-4.5 font-bold" />
+                        </Button>
+
+                        {/* Email Quick Action */}
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => {
+                            setCommsStudent(student);
+                            setCommsChannel('email');
+                            setSelectedTemplate('bajo_rendimiento');
+                          }}
+                          className="w-8.5 h-8.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700 transition"
+                          title="Enviar Correo"
+                        >
+                          <Mail className="w-4.5 h-4.5" />
+                        </Button>
+
+                        {/* Perfil 360 Action */}
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => openStudent360(student, 'resumen')}
+                          className="w-8.5 h-8.5 rounded-lg bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-800 transition"
+                          title="Perfil 360"
+                        >
+                          <GraduationCap className="w-4.5 h-4.5" />
+                        </Button>
+
+                        {/* Observador Action */}
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => openStudent360(student, 'convivencia')}
+                          className="w-8.5 h-8.5 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 hover:text-amber-700 transition"
+                          title="Observador de Convivencia"
+                        >
+                          <FileText className="w-4.5 h-4.5" />
+                        </Button>
+
+                        {/* Historial Académico */}
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => openStudent360(student, 'historial')}
+                          className="w-8.5 h-8.5 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 hover:text-indigo-700 transition"
+                          title="Historial Académico"
+                        >
+                          <History className="w-4.5 h-4.5" />
+                        </Button>
                       </div>
 
-                      {/* Performance indicators */}
-                      <div className="grid grid-cols-2 gap-3 mt-4 pt-3 border-t border-slate-100">
-                        <div>
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Promedio</p>
-                          <p className={cn(
-                            "text-sm font-black mt-0.5",
-                            student.gpa >= 4.0 ? "text-emerald-600" : student.gpa >= 3.0 ? "text-amber-500" : "text-rose-500"
-                          )}>
-                            {student.gpa > 0 ? student.gpa.toFixed(1) : '—'} <span className="text-[10px] font-medium text-slate-400">/ 5.0</span>
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Asistencia</p>
-                          <p className={cn(
-                            "text-sm font-black mt-0.5",
-                            student.attendanceRate >= 90 ? "text-emerald-600" : student.attendanceRate >= 80 ? "text-amber-500" : "text-rose-500"
-                          )}>
-                            {student.attendanceRate}%
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* 4. Acciones Rápidas (Minimalist Icons) */}
-                    <div className="flex items-center justify-between gap-1.5 mt-5 pt-3 border-t border-slate-100">
-                      
-                      {/* WhatsApp Quick Action */}
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => {
-                          setCommsStudent(student);
-                          setCommsChannel('whatsapp');
-                          setSelectedTemplate('inasistencia');
-                        }}
-                        className="w-8.5 h-8.5 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 hover:text-emerald-700 transition"
-                        title="Contacto WhatsApp"
-                      >
-                        <MessageCircle className="w-4.5 h-4.5 font-bold" />
-                      </Button>
-
-                      {/* Email Quick Action */}
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => {
-                          setCommsStudent(student);
-                          setCommsChannel('email');
-                          setSelectedTemplate('bajo_rendimiento');
-                        }}
-                        className="w-8.5 h-8.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700 transition"
-                        title="Enviar Correo"
-                      >
-                        <Mail className="w-4.5 h-4.5" />
-                      </Button>
-
-                      {/* Perfil 360 Action */}
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => openStudent360(student, 'resumen')}
-                        className="w-8.5 h-8.5 rounded-lg bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-800 transition"
-                        title="Perfil 360"
-                      >
-                        <GraduationCap className="w-4.5 h-4.5" />
-                      </Button>
-
-                      {/* Observador Action */}
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => openStudent360(student, 'convivencia')}
-                        className="w-8.5 h-8.5 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 hover:text-amber-700 transition"
-                        title="Observador de Convivencia"
-                      >
-                        <FileText className="w-4.5 h-4.5" />
-                      </Button>
-
-                      {/* Historial Académico */}
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => openStudent360(student, 'historial')}
-                        className="w-8.5 h-8.5 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 hover:text-indigo-700 transition"
-                        title="Historial Académico"
-                      >
-                        <History className="w-4.5 h-4.5" />
-                      </Button>
-                    </div>
-
-                  </CardContent>
-                </Card>
-              );
-            })
-          ) : (
-            <div className="col-span-full py-12 flex flex-col items-center justify-center text-center">
-              <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 mb-3">
-                <Search className="w-6 h-6" />
+                    </CardContent>
+                  </Card>
+                );
+              })
+            ) : (
+              <div className="col-span-full py-12 flex flex-col items-center justify-center text-center">
+                <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 mb-3">
+                  <Search className="w-6 h-6" />
+                </div>
+                <h3 className="font-extrabold text-slate-800">No se encontraron estudiantes</h3>
+                <p className="text-slate-400 text-sm mt-1 max-w-sm">Intenta cambiar los parámetros de búsqueda o los filtros superiores.</p>
               </div>
-              <h3 className="font-extrabold text-slate-800">No se encontraron estudiantes</h3>
-              <p className="text-slate-400 text-sm mt-1 max-w-sm">Intenta cambiar los parámetros de búsqueda o los filtros superiores.</p>
+            )}
+          </div>
+        ) : (
+          <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm animate-fade-in">
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse text-left">
+                <thead>
+                  <tr className="bg-slate-50/70 border-b border-slate-200 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                    <th className="py-3.5 px-4.5">Estudiante</th>
+                    <th className="py-3.5 px-4">Curso</th>
+                    <th className="py-3.5 px-4">Materia</th>
+                    <th className="py-3.5 px-4">Promedio</th>
+                    <th className="py-3.5 px-4">Asistencia</th>
+                    <th className="py-3.5 px-4">Riesgo</th>
+                    <th className="py-3.5 px-4.5 text-right">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 text-sm font-semibold text-slate-700">
+                  {filteredStudents.length > 0 ? (
+                    filteredStudents.map((student) => {
+                      const styles = getTrafficLight(student);
+                      const subject = SUBJECT_MAPPING[student.id] || 'Matemáticas';
+                      return (
+                        <tr key={student.id} className="hover:bg-slate-50/50 transition-colors group">
+                          <td className="py-3 px-4.5 flex items-center gap-3">
+                            <div className="relative shrink-0">
+                              <img
+                                src={student.avatarUrl || `https://i.pravatar.cc/150?u=${student.id}`}
+                                alt={student.name}
+                                className="w-9 h-9 rounded-full object-cover border border-slate-100 shadow-sm"
+                              />
+                              <span className={cn('absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full ring-2 ring-white', styles.indicator)} />
+                            </div>
+                            <div>
+                              <p className="font-extrabold text-slate-900 group-hover:text-blue-600 transition-colors leading-tight">{student.name}</p>
+                              <p className="text-[10px] text-slate-400 font-bold mt-0.5">CC. {student.document}</p>
+                            </div>
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className="bg-slate-50 border border-slate-200/60 px-2 py-0.5 rounded text-xs text-slate-600 font-bold">
+                              {student.group}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className="text-xs font-semibold text-slate-500 truncate flex items-center gap-1.5">
+                              <BookOpen className="w-3.5 h-3.5 text-slate-400" /> {subject}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className={cn(
+                              "font-black text-sm",
+                              student.gpa >= 4.0 ? "text-emerald-600" : student.gpa >= 3.0 ? "text-amber-500" : "text-rose-500"
+                            )}>
+                              {student.gpa > 0 ? student.gpa.toFixed(1) : '—'} <span className="text-[10px] font-medium text-slate-400">/ 5.0</span>
+                            </span>
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className={cn(
+                              "font-black text-sm",
+                              student.attendanceRate >= 90 ? "text-emerald-600" : student.attendanceRate >= 80 ? "text-amber-500" : "text-rose-500"
+                            )}>
+                              {student.attendanceRate}%
+                            </span>
+                          </td>
+                          <td className="py-3 px-4">
+                            <Badge variant="outline" className={cn("px-2 py-0.5 text-[9px] font-bold rounded-md uppercase tracking-wider border", styles.color)}>
+                              {styles.label}
+                            </Badge>
+                          </td>
+                          <td className="py-3 px-4.5">
+                            <div className="flex items-center justify-end gap-1.5">
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                onClick={() => {
+                                  setCommsStudent(student);
+                                  setCommsChannel('whatsapp');
+                                  setSelectedTemplate('inasistencia');
+                                }}
+                                className="w-7.5 h-7.5 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 hover:text-emerald-700 transition"
+                                title="Contacto WhatsApp"
+                              >
+                                <MessageCircle className="w-4 h-4 font-bold" />
+                              </Button>
+
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                onClick={() => {
+                                  setCommsStudent(student);
+                                  setCommsChannel('email');
+                                  setSelectedTemplate('bajo_rendimiento');
+                                }}
+                                className="w-7.5 h-7.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700 transition"
+                                title="Enviar Correo"
+                              >
+                                <Mail className="w-4 h-4" />
+                              </Button>
+
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                onClick={() => openStudent360(student, 'resumen')}
+                                className="w-7.5 h-7.5 rounded-lg bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-800 transition"
+                                title="Perfil 360"
+                              >
+                                <GraduationCap className="w-4 h-4" />
+                              </Button>
+
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                onClick={() => openStudent360(student, 'convivencia')}
+                                className="w-7.5 h-7.5 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 hover:text-amber-700 transition"
+                                title="Observador"
+                              >
+                                <FileText className="w-4 h-4" />
+                              </Button>
+
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                onClick={() => openStudent360(student, 'historial')}
+                                className="w-7.5 h-7.5 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 hover:text-indigo-700 transition"
+                                title="Historial"
+                              >
+                                <History className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  ) : (
+                    <tr>
+                      <td colSpan={7} className="py-12 text-center">
+                        <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 mx-auto mb-3">
+                          <Search className="w-6 h-6" />
+                        </div>
+                        <h3 className="font-extrabold text-slate-800">No se encontraron estudiantes</h3>
+                        <p className="text-slate-400 text-sm mt-1">Intenta cambiar los parámetros de búsqueda o los filtros superiores.</p>
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* 7. Insight IA (Bloque inferior muy pequeño) */}
         <div className="mt-8 pt-4 border-t border-slate-200/70">

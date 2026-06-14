@@ -26,6 +26,8 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
+import { MOCK_STUDENTS } from '@/lib/data/mock-students';
+import { MOCK_TEACHERS } from '@/lib/data/mock-teachers';
 
 export interface RoleScopePermissions {
   role_scope: 'global' | 'institution_supervisor' | 'course' | 'subject' | 'administrative' | 'family' | 'student';
@@ -89,6 +91,52 @@ export function Header({ userName, userRole }: HeaderProps) {
   const [isPeriodModalOpen, setIsPeriodModalOpen] = useState(false);
   const [dynamicPeriods, setDynamicPeriods] = useState<AcademicPeriodConfig[]>([]);
 
+  // Búsqueda Global
+  const [globalSearch, setGlobalSearch] = useState('');
+  const [showResults, setShowResults] = useState(false);
+  const [searchResults, setSearchResults] = useState<{
+    students: any[];
+    teachers: any[];
+    courses: any[];
+  }>({ students: [], teachers: [], courses: [] });
+
+  useEffect(() => {
+    if (!globalSearch.trim()) {
+      setSearchResults({ students: [], teachers: [], courses: [] });
+      return;
+    }
+
+    const query = globalSearch.toLowerCase();
+
+    // 1. Filtrar estudiantes
+    const filteredStudents = MOCK_STUDENTS.filter(s => 
+      s.name.toLowerCase().includes(query) || 
+      s.document.includes(query)
+    ).slice(0, 4);
+
+    // 2. Filtrar docentes
+    const filteredTeachers = MOCK_TEACHERS.filter(t => 
+      t.name.toLowerCase().includes(query) || 
+      t.specialty.toLowerCase().includes(query) ||
+      t.area.toLowerCase().includes(query)
+    ).slice(0, 4);
+
+    // 3. Filtrar cursos
+    const allCourses = [
+      { id: 'cccccccc-10aa-1111-2222-333333333333', name: 'Grado 10 - Grupo A', level: '10' },
+      { id: '55555555-5555-5555-5555-000000000000', name: 'Grado 11-A - Grupo Once A', level: '11' }
+    ];
+    const filteredCourses = allCourses.filter(c => 
+      c.name.toLowerCase().includes(query)
+    );
+
+    setSearchResults({
+      students: filteredStudents,
+      teachers: filteredTeachers,
+      courses: filteredCourses
+    });
+  }, [globalSearch]);
+
   // Sync profile details with current simulated/real active role
   useEffect(() => {
     if (isProfileOpen) {
@@ -151,7 +199,7 @@ export function Header({ userName, userRole }: HeaderProps) {
         </div>
 
         {/* Search Bar */}
-        <div className="flex-1 max-w-xl">
+        <div className="flex-1 max-w-xl relative">
           <div className="relative">
             <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
               <Search className="w-5 h-5" />
@@ -160,8 +208,149 @@ export function Header({ userName, userRole }: HeaderProps) {
               type="text"
               placeholder="Buscar estudiantes, cursos, docentes..."
               className="pl-12 pr-4 py-2 rounded-lg bg-slate-50 border-slate-200 shadow-sm transition-colors focus:ring-2 focus:ring-blue-300"
+              value={globalSearch}
+              onChange={(e) => {
+                setGlobalSearch(e.target.value);
+                setShowResults(true);
+              }}
+              onFocus={() => setShowResults(true)}
             />
+            {globalSearch && (
+              <button 
+                onClick={() => {
+                  setGlobalSearch('');
+                  setShowResults(false);
+                }} 
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 hover:text-slate-600 focus:outline-none"
+              >
+                Limpiar
+              </button>
+            )}
           </div>
+
+          {/* Floating Search Results Dropdown */}
+          {showResults && globalSearch.trim().length > 0 && (
+            <>
+              {/* Overlay background to close dropdown when clicking outside */}
+              <div className="fixed inset-0 z-40 cursor-default" onClick={() => setShowResults(false)} />
+              
+              <div className="absolute w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-2xl z-50 overflow-hidden max-h-[450px] flex flex-col animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="p-3 bg-slate-50 border-b border-slate-200 flex justify-between items-center shrink-0">
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Coincidencias Encontradas</span>
+                  <span className="text-[9px] bg-indigo-50 border border-indigo-200 text-indigo-700 px-2 py-0.5 rounded-full font-bold">AulaCore Search</span>
+                </div>
+                
+                <div className="flex-1 overflow-y-auto divide-y divide-slate-100">
+                  {/* CATEGORY: ESTUDIANTES */}
+                  {searchResults.students.length > 0 && (
+                    <div className="p-3">
+                      <h4 className="text-[10px] font-bold text-slate-450 uppercase tracking-wider mb-2">Estudiantes</h4>
+                      <div className="space-y-2">
+                        {searchResults.students.map((student) => (
+                          <div 
+                            key={student.id} 
+                            onClick={() => {
+                              setShowResults(false);
+                              setGlobalSearch('');
+                              localStorage.setItem('aulacore-search-auto-open-student', student.id);
+                              router.push('/mis-alumnos');
+                            }}
+                            className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-lg cursor-pointer transition-colors"
+                          >
+                            <div className="flex items-center gap-2">
+                              <img 
+                                src={student.avatarUrl || `https://i.pravatar.cc/150?u=${student.id}`} 
+                                alt={student.name} 
+                                className="w-8 h-8 rounded-full object-cover border border-slate-100"
+                              />
+                              <div>
+                                <p className="text-xs font-bold text-slate-900 leading-tight">{student.name}</p>
+                                <p className="text-[9px] text-slate-400 font-semibold">{student.group} • CC. {student.document}</p>
+                              </div>
+                            </div>
+                            <span className="text-[9px] bg-slate-100 text-slate-600 font-bold px-1.5 py-0.5 rounded">Ficha 360</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* CATEGORY: DOCENTES */}
+                  {searchResults.teachers.length > 0 && (
+                    <div className="p-3">
+                      <h4 className="text-[10px] font-bold text-slate-450 uppercase tracking-wider mb-2">Docentes</h4>
+                      <div className="space-y-2">
+                        {searchResults.teachers.map((teacher) => (
+                          <div 
+                            key={teacher.id}
+                            onClick={() => {
+                              setShowResults(false);
+                              setGlobalSearch('');
+                              localStorage.setItem('aulacore-search-auto-open-teacher', teacher.id);
+                              router.push('/docentes');
+                            }}
+                            className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-lg cursor-pointer transition-colors"
+                          >
+                            <div className="flex items-center gap-2">
+                              <img 
+                                src={teacher.avatarUrl || `https://i.pravatar.cc/150?u=${teacher.id}`} 
+                                alt={teacher.name} 
+                                className="w-8 h-8 rounded-full object-cover border border-slate-100"
+                              />
+                              <div>
+                                <p className="text-xs font-bold text-slate-900 leading-tight">{teacher.name}</p>
+                                <p className="text-[9px] text-slate-400 font-semibold">{teacher.specialty} • {teacher.area}</p>
+                              </div>
+                            </div>
+                            <span className="text-[9px] bg-indigo-50 text-indigo-600 border border-indigo-150 font-bold px-1.5 py-0.5 rounded">Ficha</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* CATEGORY: CURSOS */}
+                  {searchResults.courses.length > 0 && (
+                    <div className="p-3">
+                      <h4 className="text-[10px] font-bold text-slate-450 uppercase tracking-wider mb-2">Cursos</h4>
+                      <div className="space-y-2">
+                        {searchResults.courses.map((course) => (
+                          <div 
+                            key={course.id}
+                            onClick={() => {
+                              setShowResults(false);
+                              setGlobalSearch('');
+                              router.push('/planeacion-horaria');
+                            }}
+                            className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-lg cursor-pointer transition-colors"
+                          >
+                            <div className="flex items-center gap-2">
+                              <div className="w-8 h-8 rounded bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center font-bold text-xs">
+                                {course.level}
+                              </div>
+                              <div>
+                                <p className="text-xs font-bold text-slate-900 leading-tight">{course.name}</p>
+                                <p className="text-[9px] text-slate-400 font-semibold">Malla académica asignada</p>
+                              </div>
+                            </div>
+                            <span className="text-[9px] bg-emerald-50 text-emerald-600 border border-emerald-150 font-bold px-1.5 py-0.5 rounded">Malla Horaria</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {searchResults.students.length === 0 && searchResults.teachers.length === 0 && searchResults.courses.length === 0 && (
+                    <div className="p-8 text-center text-slate-400">
+                      <Search className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                      <p className="text-xs font-bold">No se encontraron resultados</p>
+                      <p className="text-[10px] text-slate-400 mt-0.5">Prueba buscando otro nombre, materia o curso.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Right Section */}

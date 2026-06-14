@@ -136,6 +136,18 @@ export function TeacherIntelligenceGrid() {
     loadRealTeachers();
   }, []);
 
+  // Auto-open teacher details when redirected from global search
+  useEffect(() => {
+    const autoOpenId = localStorage.getItem('aulacore-search-auto-open-teacher');
+    if (autoOpenId && teachers && teachers.length > 0) {
+      const teacher = teachers.find(t => t.id === autoOpenId);
+      if (teacher) {
+        handleCardClick(teacher);
+      }
+      localStorage.removeItem('aulacore-search-auto-open-teacher');
+    }
+  }, [teachers]);
+
   const uniqueCampuses = Array.from(new Set(teachers.map(t => t.campus)));
   const uniqueStatuses = Array.from(new Set(teachers.map(t => t.status)));
 
