@@ -166,7 +166,7 @@ const MOCK_PERIODS: AcademicPeriod[] = [
     name: 'Tercer Periodo',
     code: 'P3',
     weight: 40.00,
-    status: 'inactive',
+    status: 'active',
     start_date: '2026-08-16',
     end_date: '2026-11-25'
   }

@@ -25,18 +25,35 @@ export function TeacherIntelligenceGrid() {
   useEffect(() => {
     async function loadRealTeachers() {
       try {
-        const { data, error } = await supabase
+        // 1. Obtener aprobados de teacher_onboardings
+        const { data: onboardings, error: onboardingError } = await supabase
           .from('teacher_onboardings')
           .select('*')
           .in('status', ['invited', 'email_sent', 'activated', 'first_access']);
 
-        if (error) {
-          console.error("Error loading approved teachers:", error);
-          return;
+        if (onboardingError) {
+          console.error("Error loading approved teachers:", onboardingError);
         }
 
-        if (data && data.length > 0) {
-          const mappedRealTeachers = data.map((t: any): TeacherMockData => {
+        // 2. Obtener docentes registrados en la base de datos (con rol de docente)
+        const { data: dbRoles, error: rolesError } = await supabase
+          .from('user_roles')
+          .select(`
+            user_id,
+            profiles:user_id ( id, first_name, last_name, avatar_url )
+          `)
+          .eq('institution_id', '11111111-1111-1111-1111-111111111111')
+          .eq('role', 'docente');
+
+        if (rolesError) {
+          console.error("Error loading official teachers from roles:", rolesError);
+        }
+
+        const mappedRealTeachers: TeacherMockData[] = [];
+
+        // Mapear onboardings
+        if (onboardings && onboardings.length > 0) {
+          onboardings.forEach((t: any) => {
             let level: AcademicLevel = 'Primaria';
             if (t.academic_level) {
               if (t.academic_level.includes('Preescolar')) level = 'Preescolar';
@@ -51,8 +68,8 @@ export function TeacherIntelligenceGrid() {
             if (t.status === 'invited') status = 'Disponible';
             else if (t.status === 'activated') status = 'Activo';
 
-            return {
-              id: t.id,
+            mappedRealTeachers.push({
+              id: t.user_id || t.id, // Mapeamos a user_id como ID principal si existe
               name: t.full_name,
               document: t.document_id,
               email: t.email,
@@ -66,21 +83,51 @@ export function TeacherIntelligenceGrid() {
               status: status,
               avatarUrl: t.foto_url,
               alerts: []
-            };
-          });
-
-          // Combine MOCK_TEACHERS with real teachers, avoiding duplicates by document or email
-          setTeachers(prev => {
-            const combined = [...MOCK_TEACHERS];
-            mappedRealTeachers.forEach((real: TeacherMockData) => {
-              const exists = combined.some(m => m.document === real.document || m.email === real.email);
-              if (!exists) {
-                combined.push(real);
-              }
             });
-            return combined;
           });
         }
+
+        // Mapear oficiales (los que no tengan onboarding)
+        if (dbRoles && dbRoles.length > 0) {
+          dbRoles
+            .filter((r: any) => r.profiles)
+            .forEach((r: any) => {
+              const p = r.profiles;
+              // Verificar si ya fue agregado por el onboarding
+              const alreadyAdded = mappedRealTeachers.some(m => m.id === p.id);
+              if (!alreadyAdded) {
+                mappedRealTeachers.push({
+                  id: p.id, // user_id
+                  name: `${p.first_name} ${p.last_name}`,
+                  document: 'N/A',
+                  email: `${p.first_name.toLowerCase().replace(/\s/g, '')}@aulacore.edu.co`,
+                  phone: '+57 300 000 0000',
+                  specialty: 'Docente Oficial',
+                  area: 'General',
+                  level: 'Primaria',
+                  campus: 'Sede Principal',
+                  assignedCourses: [],
+                  weeklyHours: 20,
+                  status: 'Activo',
+                  avatarUrl: p.avatar_url,
+                  alerts: []
+                });
+              }
+            });
+        }
+
+        // Combinar MOCK_TEACHERS con los docentes reales mapeados
+        setTeachers(prev => {
+          const combined = [...MOCK_TEACHERS];
+          mappedRealTeachers.forEach((real: TeacherMockData) => {
+            const exists = combined.some(m => m.id === real.id || (real.email && m.email.toLowerCase() === real.email.toLowerCase()));
+            if (!exists) {
+              combined.push(real);
+            }
+          });
+          return combined;
+        });
+
       } catch (err) {
         console.error("Error loading teachers from database:", err);
       }

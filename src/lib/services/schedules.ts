@@ -92,6 +92,57 @@ export async function getSchedulesByCourse(courseId: string, periodId: string) {
  * Obtener horario por docente (Vista Docente)
  */
 export async function getSchedulesByTeacher(teacherId: string, periodId: string) {
+  console.log('[getSchedulesByTeacher] Received:', { teacherId, periodId });
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(teacherId);
+  if (!isUuid) {
+    console.warn('[getSchedulesByTeacher] teacherId is not a UUID:', teacherId);
+    return [];
+  }
+
+  let resolvedUserId = teacherId;
+  let onboarding: any = null;
+
+  // 1. Intentar buscar el onboarding por id
+  try {
+    const { data: byId } = await supabase
+      .from('teacher_onboardings')
+      .select('id, user_id, selected_slots, subject_area, academic_level, sede')
+      .eq('id', teacherId)
+      .maybeSingle();
+
+    if (byId) {
+      onboarding = byId;
+      console.log('[getSchedulesByTeacher] Found onboarding by ID:', byId);
+      if (byId.user_id) {
+        resolvedUserId = byId.user_id;
+        console.log('[getSchedulesByTeacher] Resolved user_id from onboarding by ID:', resolvedUserId);
+      }
+    }
+  } catch (err) {
+    console.warn('[getSchedulesByTeacher] Error query onboarding by ID (continuing):', err);
+  }
+
+  // 2. Si no se encontró el onboarding por ID, intentar buscar por user_id
+  if (!onboarding) {
+    try {
+      const { data: byUserId } = await supabase
+        .from('teacher_onboardings')
+        .select('id, user_id, selected_slots, subject_area, academic_level, sede')
+        .eq('user_id', teacherId)
+        .maybeSingle();
+
+      if (byUserId) {
+        onboarding = byUserId;
+        console.log('[getSchedulesByTeacher] Found onboarding by user_id:', byUserId);
+      }
+    } catch (err) {
+      console.warn('[getSchedulesByTeacher] Error query onboarding by user_id:', err);
+    }
+  }
+
+  console.log('[getSchedulesByTeacher] Querying academic_schedules with teacher_id =', resolvedUserId);
+  
+  // 3. Consultar horarios oficiales usando el user_id resuelto
   const { data, error } = await supabase
     .from('academic_schedules')
     .select(`
@@ -99,43 +150,27 @@ export async function getSchedulesByTeacher(teacherId: string, periodId: string)
       curriculum_subjects ( name ),
       courses ( grade_level, group_name )
     `)
-    .eq('teacher_id', teacherId)
+    .eq('teacher_id', resolvedUserId)
     .eq('academic_period_id', periodId)
     .eq('status', 'active')
     .order('day_of_week', { ascending: true })
     .order('start_time', { ascending: true });
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    console.error('[getSchedulesByTeacher] DB Query Error:', error);
+    throw new Error(error.message);
+  }
+
+  console.log('[getSchedulesByTeacher] Official schedules found:', data);
 
   if (data && data.length > 0) {
     return data;
   }
 
-  // Fallback to onboarding schedules if no active schedules found
+  // 4. Fallback a los slots de onboarding si no hay horarios oficiales activos
   try {
-    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(teacherId);
-    if (!isUuid) return [];
-
-    // 1. Try by onboarding ID
-    const { data: byId } = await supabase
-      .from('teacher_onboardings')
-      .select('selected_slots, subject_area, academic_level, sede')
-      .eq('id', teacherId)
-      .maybeSingle();
-
-    let onboarding = byId;
-    
-    // 2. Try by user_id if not found
-    if (!onboarding) {
-      const { data: byUserId } = await supabase
-        .from('teacher_onboardings')
-        .select('selected_slots, subject_area, academic_level, sede')
-        .eq('user_id', teacherId)
-        .maybeSingle();
-      onboarding = byUserId;
-    }
-
     if (onboarding && onboarding.selected_slots && onboarding.selected_slots.length > 0) {
+      console.log('[getSchedulesByTeacher] No official schedules found. Falling back to onboarding slots:', onboarding.selected_slots);
       const dayMapping: Record<string, number> = {
         'Lunes': 1,
         'Martes': 2,
@@ -165,11 +200,11 @@ export async function getSchedulesByTeacher(teacherId: string, periodId: string)
         const endTime = `${String(endHour).padStart(2, '0')}:00:00`;
 
         parsedSchedules.push({
-          id: `onboarding-${teacherId}-${slot}`,
+          id: `onboarding-${onboarding.id}-${slot}`,
           institution_id: '11111111-1111-1111-1111-111111111111',
           course_id: '',
           subject_id: '',
-          teacher_id: teacherId,
+          teacher_id: resolvedUserId,
           classroom: onboarding.sede || 'Por definir',
           academic_period_id: periodId,
           day_of_week: dayId,
@@ -194,7 +229,7 @@ export async function getSchedulesByTeacher(teacherId: string, periodId: string)
       });
     }
   } catch (fallbackErr) {
-    console.error('Error fetching onboarding schedules fallback:', fallbackErr);
+    console.error('[getSchedulesByTeacher] Error fetching onboarding schedules fallback:', fallbackErr);
   }
 
   return [];

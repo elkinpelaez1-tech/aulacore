@@ -132,7 +132,7 @@ const MOCK_SETTINGS: AcademicSettings = {
 const MOCK_PERIODS: AcademicPeriod[] = [
   { id: '11111111-1111-1111-2222-333333333333', name: 'Primer Periodo', code: 'P1', weight: 30, status: 'closed' },
   { id: '22222222-2222-2222-2222-333333333333', name: 'Segundo Periodo', code: 'P2', weight: 30, status: 'active' },
-  { id: '33333333-3333-3333-2222-333333333333', name: 'Tercer Periodo', code: 'P3', weight: 40, status: 'inactive' }
+  { id: '33333333-3333-3333-2222-333333333333', name: 'Tercer Periodo', code: 'P3', weight: 40, status: 'active' }
 ];
 
 // Notas de los docentes que llegan AUTOMÁTICAMENTE
