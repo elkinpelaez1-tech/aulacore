@@ -169,26 +169,26 @@ export default function MisAlumnosPage() {
   const getTrafficLight = (student: StudentMockData) => {
     if (student.academicRisk === 'Alto') {
       return {
-        color: 'bg-rose-500 shadow-rose-500/20 text-rose-600 border-rose-200/50',
+        color: 'bg-rose-50 text-rose-800 border-rose-250 shadow-sm shadow-rose-100/30',
         bgLight: 'bg-rose-50/50',
         border: 'border-rose-100 hover:border-rose-200 hover:shadow-rose-500/5',
-        label: 'Riesgo Académico',
-        indicator: 'bg-rose-500 ring-rose-200'
+        label: '🔴 Riesgo Académico',
+        indicator: 'bg-rose-550 ring-rose-200'
       };
     } else if (student.academicRisk === 'Medio') {
       return {
-        color: 'bg-amber-400 shadow-amber-400/20 text-amber-700 border-amber-200/50',
+        color: 'bg-amber-50 text-amber-950 border-amber-250 shadow-sm shadow-amber-100/30',
         bgLight: 'bg-amber-50/30',
         border: 'border-amber-100 hover:border-amber-200 hover:shadow-amber-400/5',
-        label: 'Seguimiento',
+        label: '🟡 Seguimiento',
         indicator: 'bg-amber-400 ring-amber-150'
       };
     }
     return {
-      color: 'bg-emerald-500 shadow-emerald-500/20 text-emerald-600 border-emerald-200/50',
+      color: 'bg-emerald-50 text-emerald-800 border-emerald-250 shadow-sm shadow-emerald-100/30',
       bgLight: 'bg-emerald-50/20',
       border: 'border-slate-100 hover:border-emerald-100 hover:shadow-emerald-500/5',
-      label: 'Excelente',
+      label: '🟢 Excelente',
       indicator: 'bg-emerald-500 ring-emerald-250'
     };
   };
@@ -437,7 +437,7 @@ export default function MisAlumnosPage() {
 
                           {/* Top corner info */}
                           <div className="flex flex-col items-end">
-                            <Badge variant="outline" className={cn("px-2 py-0.5 text-[10px] font-bold rounded-md uppercase tracking-wider", styles.color)}>
+                            <Badge variant="outline" className={cn("px-3.5 py-1 text-[11px] font-extrabold rounded-full uppercase tracking-wider whitespace-nowrap w-fit shrink-0 border", styles.color)}>
                               {styles.label}
                             </Badge>
                           </div>
@@ -627,7 +627,7 @@ export default function MisAlumnosPage() {
                             </span>
                           </td>
                           <td className="py-3 px-4">
-                            <Badge variant="outline" className={cn("px-2 py-0.5 text-[9px] font-bold rounded-md uppercase tracking-wider border", styles.color)}>
+                            <Badge variant="outline" className={cn("px-3.5 py-1 text-[11px] font-extrabold rounded-full uppercase tracking-wider border", styles.color)}>
                               {styles.label}
                             </Badge>
                           </td>

@@ -65,7 +65,7 @@ export function TeacherDetailDrawer({ teacher, isOpen, onOpenChange }: Props) {
                 <SheetDescription className="text-sm font-semibold text-slate-500 mb-2">
                   CC. {teacher.document}
                 </SheetDescription>
-                <span className={cn("inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border", statusStyle.bg, statusStyle.text, statusStyle.border)}>
+                <span className={cn("inline-flex items-center px-2 py-0.5 rounded text-[10px] font-extrabold uppercase tracking-wider border whitespace-nowrap w-fit shrink-0", statusStyle.bg, statusStyle.text, statusStyle.border)}>
                   {teacher.status}
                 </span>
               </div>

@@ -118,7 +118,7 @@ export function CompactTeacherCard({ teacher, onClick }: Props) {
             <p className="text-xs font-semibold text-slate-500 truncate">{teacher.specialty}</p>
             
             <div className="flex items-center justify-between mt-2">
-              <span className={cn("inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border", statusStyle.bg, statusStyle.text, statusStyle.border)}>
+              <span className={cn("inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase tracking-wider border whitespace-nowrap w-fit shrink-0", statusStyle.bg, statusStyle.text, statusStyle.border)}>
                 {teacher.status}
               </span>
               <div className="flex items-center gap-2">
