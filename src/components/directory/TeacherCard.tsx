@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils';
 
 interface Props {
   teacher: TeacherMockData;
+  onClick?: (teacher: TeacherMockData) => void;
 }
 
 const statusColors: Record<TeacherStatus, { bg: string, text: string, border: string }> = {
@@ -22,7 +23,7 @@ const statusColors: Record<TeacherStatus, { bg: string, text: string, border: st
   'Sobrecarga académica': { bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200' }
 };
 
-export function TeacherCard({ teacher }: Props) {
+export function TeacherCard({ teacher, onClick }: Props) {
   const [isEmailOpen, setIsEmailOpen] = useState(false);
   const [emailSubject, setEmailSubject] = useState('');
   const [emailMessage, setEmailMessage] = useState('');
@@ -99,7 +100,10 @@ export function TeacherCard({ teacher }: Props) {
       <div className={cn("absolute top-0 left-0 w-full h-1", statusStyle.bg.replace('50', '500').replace('100', '400'))} />
       
       <CardContent className="p-0 flex flex-col h-full">
-        <div className="p-5 flex items-start gap-4">
+        <div 
+          className={cn("p-5 flex items-start gap-4 transition-all duration-200 rounded-t-xl", onClick && "cursor-pointer hover:bg-slate-55/60")}
+          onClick={() => onClick && onClick(teacher)}
+        >
           <div className="w-16 h-16 rounded-full bg-slate-100 shrink-0 border-2 border-white shadow-sm overflow-hidden flex items-center justify-center text-slate-500 font-bold text-xl relative">
             {teacher.avatarUrl ? (
               <img 
@@ -115,7 +119,7 @@ export function TeacherCard({ teacher }: Props) {
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex justify-between items-start gap-2">
-              <h3 className="font-bold text-slate-900 truncate" title={teacher.name}>{teacher.name}</h3>
+              <h3 className="font-bold text-slate-900 truncate group-hover:text-indigo-700 transition-colors" title={teacher.name}>{teacher.name}</h3>
             </div>
             <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide">CC. {teacher.document}</p>
             

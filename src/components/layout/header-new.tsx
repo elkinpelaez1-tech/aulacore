@@ -106,19 +106,60 @@ export function Header({ userName, userRole }: HeaderProps) {
       return;
     }
 
-    const query = globalSearch.toLowerCase();
+    const normalizeStr = (str: string) => 
+      str ? str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() : '';
+
+    const query = normalizeStr(globalSearch);
 
     // 1. Filtrar estudiantes
     const filteredStudents = MOCK_STUDENTS.filter(s => 
-      s.name.toLowerCase().includes(query) || 
-      s.document.includes(query)
+      normalizeStr(s.name).includes(query) || 
+      normalizeStr(s.document).includes(query)
     ).slice(0, 4);
 
     // 2. Filtrar docentes
-    const filteredTeachers = MOCK_TEACHERS.filter(t => 
-      t.name.toLowerCase().includes(query) || 
-      t.specialty.toLowerCase().includes(query) ||
-      t.area.toLowerCase().includes(query)
+    const activeTeachers = [...MOCK_TEACHERS];
+    if (typeof window !== 'undefined') {
+      const logsStr = localStorage.getItem('aulacore-migration-logs');
+      if (logsStr) {
+        try {
+          const logs = JSON.parse(logsStr);
+          const hasDocentes = logs.some((l: any) => 
+            l.module_type?.toLowerCase().includes('docente') || 
+            l.module_type?.toLowerCase() === 'docentes'
+          );
+          if (hasDocentes) {
+            const carlosExists = activeTeachers.some(m => m.id === 't-79820300');
+            if (!carlosExists) {
+              activeTeachers.push({
+                id: 't-79820300',
+                name: 'Carlos Martínez Gómez',
+                document: '79820300',
+                email: 'carlos.martinez@aulacore.edu.co',
+                phone: '+57 310 456 7890',
+                specialty: 'Lengua Castellana (Lenguaje)',
+                area: 'Lengua Castellana',
+                level: 'Bachillerato',
+                campus: 'Sede Principal',
+                assignedCourses: ['10-A', '11-B'],
+                weeklyHours: 22,
+                status: 'Activo',
+                avatarUrl: 'https://i.pravatar.cc/150?u=79820300',
+                alerts: []
+              });
+            }
+          }
+        } catch (e) {
+          console.warn('Error reading logs in header-new', e);
+        }
+      }
+    }
+
+    const filteredTeachers = activeTeachers.filter(t => 
+      normalizeStr(t.name).includes(query) || 
+      normalizeStr(t.specialty).includes(query) ||
+      normalizeStr(t.area).includes(query) ||
+      (t.document && normalizeStr(t.document).includes(query))
     ).slice(0, 4);
 
     // 3. Filtrar cursos
@@ -127,7 +168,7 @@ export function Header({ userName, userRole }: HeaderProps) {
       { id: '55555555-5555-5555-5555-000000000000', name: 'Grado 11-A - Grupo Once A', level: '11' }
     ];
     const filteredCourses = allCourses.filter(c => 
-      c.name.toLowerCase().includes(query)
+      normalizeStr(c.name).includes(query)
     );
 
     setSearchResults({
