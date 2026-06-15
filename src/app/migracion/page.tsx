@@ -411,6 +411,7 @@ export default function MigrationPage() {
       }));
 
       const newLog = {
+        id: 'AC-MIG-' + Math.random().toString(36).substring(2, 10).toUpperCase() + '-' + Date.now().toString().slice(-4),
         institution_id: '11111111-1111-1111-1111-111111111111',
         user_id: '22222222-2222-2222-2222-222222222222', // Rector UID
         user_name: userName || 'Dr. Ramón Ramírez',
@@ -422,7 +423,8 @@ export default function MigrationPage() {
         updated_count: simUpdatedCount || 0,
         rejected_count: simRejectedCount || 0,
         status: importStatus,
-        details: errorDetails
+        details: errorDetails,
+        created_at: new Date().toISOString()
       };
 
       try {
@@ -1399,8 +1401,13 @@ export default function MigrationPage() {
                 <TableBody>
                   {auditLogs.map((log, index) => (
                     <TableRow key={index} className="hover:bg-slate-50/50 transition-colors">
-                      <TableCell className="font-bold text-slate-950 text-xs pl-6">
-                        {new Date(log.created_at || log.imported_at).toLocaleString()}
+                      <TableCell className="font-bold text-slate-955 text-xs pl-6">
+                        {log.created_at || log.imported_at ? (
+                          (() => {
+                            const d = new Date(log.created_at || log.imported_at);
+                            return isNaN(d.getTime()) ? 'Reciente' : d.toLocaleString();
+                          })()
+                        ) : 'Reciente'}
                       </TableCell>
                       <TableCell className="font-black text-slate-800 text-xs">{log.module_type}</TableCell>
                       <TableCell className="text-xs font-semibold text-slate-600">
