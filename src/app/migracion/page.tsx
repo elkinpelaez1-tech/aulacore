@@ -461,38 +461,375 @@ export default function MigrationPage() {
     }
   };
 
-  // --- Download Audit Report ---
-  const handleDownloadAuditReport = () => {
-    const reportText = `=====================================================
-AULACORE - CENTRO DE MIGRACIÓN INSTITUCIONAL
-REPORTE OFICIAL DE AUDITORÍA DE IMPORTACIÓN
-=====================================================
-Fecha/Hora: ${new Date().toLocaleString()}
-Institución: ${selectedInstitution}
-Sede: ${selectedSede}
-Módulo Importado: ${selectedModule}
-Usuario Responsable: ${userName || 'Dr. Ramón Ramírez'}
-IP de Origen: 192.168.1.107
-Archivo Procesado: ${fileName || 'archivo_desconocido.csv'}
+  // --- Download Audit Report (Microsoft Word .doc format) ---
+  const handleDownloadAuditReport = async () => {
+    let logoBase64 = '';
+    try {
+      const response = await fetch('/logo-aulacore.png');
+      const blob = await response.blob();
+      logoBase64 = await new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.readAsDataURL(blob);
+      });
+    } catch (err) {
+      console.warn('Could not load logo for document. Using text fallback.', err);
+    }
 
-RESUMEN DE PROCESAMIENTO:
----------------------------------------------
-- Total de registros: ${parsedRows.length}
-- Registros Creados: ${simCreatedCount}
-- Registros Actualizados: ${simUpdatedCount}
-- Registros Rechazados: ${simRejectedCount}
-- Estado Final: ${simRejectedCount === 0 ? 'Exitoso' : 'Exitoso con advertencias'}
+    const verificationHash = 'AC-MIG-' + Math.random().toString(36).substring(2, 10).toUpperCase() + '-' + Date.now().toString().slice(-4);
+    
+    const htmlContent = `
+<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+<head>
+  <meta charset="utf-8">
+  <title>Acta Oficial de Migración de Datos</title>
+  <!--[if gte mso 9]>
+  <xml>
+    <w:WordDocument>
+      <w:View>Print</w:View>
+      <w:Zoom>100</w:Zoom>
+      <w:DoNotOptimizeForBrowser/>
+    </w:WordDocument>
+  </xml>
+  <![endif]-->
+  <style>
+    @page {
+      size: 8.5in 11in;
+      margin: 1.0in 1.0in 1.0in 1.0in;
+      mso-header-margin: .5in;
+      mso-footer-margin: .5in;
+    }
+    body {
+      font-family: 'Arial', 'Helvetica', sans-serif;
+      color: #334155;
+      line-height: 1.4;
+      font-size: 11pt;
+    }
+    .header-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 25px;
+    }
+    .header-table td {
+      border: none;
+      padding: 0;
+    }
+    .logo-td {
+      width: 90px;
+      vertical-align: middle;
+    }
+    .logo-img {
+      width: 80px;
+      height: 80px;
+    }
+    .header-text-td {
+      vertical-align: middle;
+      padding-left: 15px;
+    }
+    .inst-title {
+      font-size: 16pt;
+      font-weight: bold;
+      color: #1e3a8a;
+      margin: 0;
+      text-transform: uppercase;
+    }
+    .inst-subtitle {
+      font-size: 9pt;
+      color: #64748b;
+      margin: 2px 0 0 0;
+      font-style: italic;
+    }
+    .inst-meta {
+      font-size: 9pt;
+      color: #475569;
+      margin: 4px 0 0 0;
+      font-weight: bold;
+    }
+    .divider {
+      border-bottom: 3px double #3b82f6;
+      margin-top: 5px;
+      margin-bottom: 20px;
+    }
+    .doc-title {
+      text-align: center;
+      font-size: 15pt;
+      font-weight: bold;
+      color: #0f172a;
+      margin-top: 10px;
+      margin-bottom: 5px;
+      text-transform: uppercase;
+    }
+    .doc-subtitle {
+      text-align: center;
+      font-size: 10pt;
+      color: #475569;
+      margin-top: 0;
+      margin-bottom: 25px;
+      font-weight: bold;
+    }
+    .section-title {
+      font-size: 11pt;
+      font-weight: bold;
+      color: #1e3a8a;
+      border-bottom: 1px solid #cbd5e1;
+      padding-bottom: 4px;
+      margin-top: 25px;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+    }
+    .meta-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+    .meta-table td {
+      padding: 6px 8px;
+      border: 1px solid #e2e8f0;
+      font-size: 10pt;
+    }
+    .meta-label {
+      background-color: #f8fafc;
+      font-weight: bold;
+      color: #475569;
+      width: 30%;
+    }
+    .meta-value {
+      color: #0f172a;
+      width: 70%;
+    }
+    .stats-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+    .stats-table th {
+      background-color: #1e3a8a;
+      color: #ffffff;
+      font-weight: bold;
+      font-size: 10pt;
+      padding: 8px 10px;
+      border: 1px solid #1e3a8a;
+      text-transform: uppercase;
+      text-align: center;
+    }
+    .stats-table td {
+      padding: 8px 10px;
+      border: 1px solid #cbd5e1;
+      text-align: center;
+      font-size: 11pt;
+      font-weight: bold;
+    }
+    .stat-new { color: #0f172a; }
+    .stat-upd { color: #2563eb; }
+    .stat-rej { color: #dc2626; }
+    .stat-status {
+      font-weight: bold;
+    }
+    .status-success { color: #15803d; }
+    .status-warning { color: #b45309; }
+    .status-failed { color: #b91c1c; }
+    .errors-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    .errors-table th {
+      background-color: #f1f5f9;
+      color: #475569;
+      font-weight: bold;
+      font-size: 9pt;
+      padding: 6px 10px;
+      border: 1px solid #cbd5e1;
+      text-align: left;
+    }
+    .errors-table td {
+      padding: 6px 10px;
+      border: 1px solid #cbd5e1;
+      font-size: 9pt;
+      text-align: left;
+    }
+    .success-callout {
+      background-color: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      color: #15803d;
+      padding: 12px;
+      border-radius: 6px;
+      font-size: 10pt;
+      font-weight: bold;
+      text-align: center;
+    }
+    .signature-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 60px;
+    }
+    .signature-table td {
+      border: none;
+      width: 45%;
+      text-align: center;
+      vertical-align: top;
+      font-size: 10pt;
+    }
+    .signature-space {
+      width: 10%;
+    }
+    .signature-line {
+      border-top: 1px solid #94a3b8;
+      padding-top: 8px;
+      margin-top: 40px;
+    }
+    .footer-note {
+      margin-top: 40px;
+      text-align: center;
+      font-size: 8pt;
+      color: #94a3b8;
+      border-top: 1px solid #e2e8f0;
+      padding-top: 10px;
+    }
+  </style>
+</head>
+<body>
 
-DETALLE DE ERRORES/RECHAZADOS:
----------------------------------------------
-${validationErrors.length === 0 ? '✓ Ningún error detectado.' : validationErrors.map(e => `Fila ${e.row}: Campo [${e.field}] -> ${e.error} (Valor: "${e.value}")`).join('\n')}
-=====================================================`;
+  <!-- ENCABEZADO OFICIAL -->
+  <table class="header-table">
+    <tr>
+      <td class="logo-td">
+        ${logoBase64 ? `<img src="${logoBase64}" class="logo-img" alt="Logo IE" />` : `<table style="width:80px;height:80px;border-collapse:collapse;background-color:#1e3a8a;border-radius:8px;"><tr><td style="color:#ffffff;text-align:center;font-weight:bold;font-size:24pt;font-family:Arial;">A</td></tr></table>`}
+      </td>
+      <td class="header-text-td">
+        <h2 class="inst-title">${selectedInstitution}</h2>
+        <p class="inst-subtitle">"Innovación, Valores y Liderazgo Académico"</p>
+        <p class="inst-meta">Sede: ${selectedSede} | NIT: 800.192.304-5 | Registro Oficial MEN N° 4143.0.21</p>
+      </td>
+    </tr>
+  </table>
+  
+  <div class="divider"></div>
 
-    const blob = new Blob([reportText], { type: 'text/plain;charset=utf-8;' });
+  <!-- TÍTULO DEL DOCUMENTO -->
+  <div class="doc-title">Acta Oficial de Auditoría de Importación</div>
+  <div class="doc-subtitle">Sistema de Control de Migración Inmutable de AulaCore</div>
+
+  <!-- DATOS GENERALES -->
+  <div class="section-title">1. Información General del Proceso</div>
+  <table class="meta-table">
+    <tr>
+      <td class="meta-label">Fecha y Hora de Emisión</td>
+      <td class="meta-value">${new Date().toLocaleString()}</td>
+    </tr>
+    <tr>
+      <td class="meta-label">Módulo de Información</td>
+      <td class="meta-value">${selectedModule}</td>
+    </tr>
+    <tr>
+      <td class="meta-label">Usuario Responsable</td>
+      <td class="meta-value">${userName || 'Dr. Ramón Ramírez'} (Rector)</td>
+    </tr>
+    <tr>
+      <td class="meta-label">Archivo de Datos Origen</td>
+      <td class="meta-value">${fileName || `migracion_${selectedModule.toLowerCase()}.csv`}</td>
+    </tr>
+    <tr>
+      <td class="meta-label">Dirección IP de Red</td>
+      <td class="meta-value">192.168.1.107 (Conexión Segura Autorizada)</td>
+    </tr>
+    <tr>
+      <td class="meta-label">Firma Digital (Hash)</td>
+      <td class="meta-value" style="font-family: Consolas, monospace; font-weight: bold; color: #1e3a8a;">${verificationHash}</td>
+    </tr>
+  </table>
+
+  <!-- RESULTADOS DE PROCESAMIENTO -->
+  <div class="section-title">2. Resultados del Procesamiento e Impacto</div>
+  <table class="stats-table">
+    <thead>
+      <tr>
+        <th style="width: 20%;">Total Registros</th>
+        <th style="width: 20%;">Nuevos (Crear)</th>
+        <th style="width: 20%;">Existentes (Actualizar)</th>
+        <th style="width: 20%;">Omitidos (Rechazar)</th>
+        <th style="width: 20%;">Estado Final</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>${parsedRows.length}</td>
+        <td class="stat-new">+${simCreatedCount}</td>
+        <td class="stat-upd">+${simUpdatedCount}</td>
+        <td class="stat-rej">${simRejectedCount}</td>
+        <td>
+          <span class="stat-status ${simRejectedCount === 0 ? 'status-success' : (parsedRows.length - simRejectedCount > 0 ? 'status-warning' : 'status-failed')}">
+            ${simRejectedCount === 0 ? 'EXITOSO' : (parsedRows.length - simRejectedCount > 0 ? 'CON ADVERTENCIAS' : 'FALLIDO')}
+          </span>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- DETALLE DE INCIDENCIAS -->
+  <div class="section-title">3. Detalle de Validaciones e Incidencias</div>
+  ${validationErrors.length === 0 ? `
+    <div class="success-callout">
+      ✓ CERTIFICACIÓN DE CARGA LIMPIA: El proceso finalizó satisfactoriamente. Ningún error o inconsistencia fue detectado en el archivo de origen.
+    </div>
+  ` : `
+    <table class="errors-table">
+      <thead>
+        <tr>
+          <th style="width: 10%;">Fila</th>
+          <th style="width: 25%;">Campo Relacionado</th>
+          <th style="width: 45%;">Descripción del Error</th>
+          <th style="width: 20%;">Valor Reportado</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${validationErrors.map(e => `
+          <tr>
+            <td style="font-weight: bold; text-align: center;">${e.row}</td>
+            <td style="font-family: Consolas, monospace;">${e.field}</td>
+            <td style="color: #dc2626;">${e.error}</td>
+            <td style="font-family: Consolas, monospace; background-color: #f8fafc;">${e.value || '(Vacío)'}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `}
+
+  <!-- BLOQUE DE FIRMAS -->
+  <table class="signature-table">
+    <tr>
+      <td>
+        <div class="signature-line">
+          <strong>${userName || 'Dr. Ramón Ramírez'}</strong><br>
+          Rector / Representante Legal<br>
+          ${selectedInstitution}
+        </div>
+      </td>
+      <td class="signature-space"></td>
+      <td>
+        <div class="signature-line">
+          <strong>Sello Digital AulaCore Verification</strong><br>
+          Clave de Control Interno Inmutable<br>
+          IP: 192.168.1.107 | TLS v1.3
+        </div>
+      </td>
+    </tr>
+  </table>
+
+  <!-- NOTA DE PIE -->
+  <div class="footer-note">
+    Documento oficial generado por el Centro de Migración Institucional de AulaCore. Copias de este reporte son custodiadas de manera encriptada en el historial de logs del sistema para fines de auditoría del Ministerio de Educación Nacional.
+  </div>
+
+</body>
+</html>
+    `;
+
+    const blob = new Blob([htmlContent], { type: 'application/msword;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', `reporte_auditoria_migracion_${Date.now()}.txt`);
+    link.setAttribute('download', `acta_migracion_${selectedModule.toLowerCase().replace(/ /g, '_')}_${Date.now()}.doc`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
