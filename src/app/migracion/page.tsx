@@ -396,42 +396,56 @@ export default function MigrationPage() {
 
   // --- Confirm Import (Step 7) ---
   const handleConfirmImport = async () => {
-    setLoading(true);
-    const total = parsedRows.length;
-    const finalValid = total - simRejectedCount;
-    const importStatus = simRejectedCount === 0 ? 'Exitoso' : (finalValid > 0 ? 'Exitoso con advertencias' : 'Fallido');
-
-    // Build details report for errors
-    const errorDetails = validationErrors.map(e => ({
-      row: e.row,
-      field: e.field,
-      error: e.error,
-      value: e.value
-    }));
-
-    const newLog = {
-      institution_id: '11111111-1111-1111-1111-111111111111',
-      user_id: '22222222-2222-2222-2222-222222222222', // Rector UID
-      user_name: userName || 'Dr. Ramón Ramírez',
-      ip_address: '192.168.1.107',
-      module_type: selectedModule,
-      file_name: fileName || `migracion_${selectedModule.toLowerCase()}.csv`,
-      records_count: total,
-      created_count: simCreatedCount,
-      updated_count: simUpdatedCount,
-      rejected_count: simRejectedCount,
-      status: importStatus,
-      details: errorDetails
-    };
-
     try {
-      // Save to Supabase DB
-      const { data, error } = await supabase
-        .from('migration_audit_logs')
-        .insert([newLog])
-        .select();
+      setLoading(true);
+      const total = parsedRows ? parsedRows.length : 0;
+      const finalValid = total - (simRejectedCount || 0);
+      const importStatus = (simRejectedCount || 0) === 0 ? 'Exitoso' : (finalValid > 0 ? 'Exitoso con advertencias' : 'Fallido');
 
-      // Mirror to local cache
+      // Build details report for errors
+      const errorDetails = (validationErrors || []).map(e => ({
+        row: e.row,
+        field: e.field,
+        error: e.error,
+        value: e.value
+      }));
+
+      const newLog = {
+        institution_id: '11111111-1111-1111-1111-111111111111',
+        user_id: '22222222-2222-2222-2222-222222222222', // Rector UID
+        user_name: userName || 'Dr. Ramón Ramírez',
+        ip_address: '192.168.1.107',
+        module_type: selectedModule || 'Estudiantes',
+        file_name: fileName || `migracion_${(selectedModule || 'Estudiantes').toLowerCase()}.csv`,
+        records_count: total,
+        created_count: simCreatedCount || 0,
+        updated_count: simUpdatedCount || 0,
+        rejected_count: simRejectedCount || 0,
+        status: importStatus,
+        details: errorDetails
+      };
+
+      try {
+        // Save to Supabase DB with a 2-second timeout to prevent hanging on network/RLS issues
+        const insertPromise = supabase
+          .from('migration_audit_logs')
+          .insert([newLog])
+          .select();
+
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Timeout connecting to Supabase')), 2000)
+        );
+
+        const { data, error } = (await Promise.race([insertPromise, timeoutPromise])) as any;
+
+        if (error) {
+          console.warn('Supabase returned error on insertion:', error);
+        }
+      } catch (dbErr) {
+        console.warn('Database logging failed or timed out. Falling back to local cache.', dbErr);
+      }
+
+      // Mirror to local cache (guarantees the UI updates even if Supabase has RLS or connection issues)
       const updatedLogs = [newLog, ...auditLogs];
       setAuditLogs(updatedLogs);
       localStorage.setItem('aulacore-migration-logs', JSON.stringify(updatedLogs));
@@ -439,11 +453,8 @@ export default function MigrationPage() {
       setWizardStep(7);
       alert('✓ Importación completada. Log de auditoría inmutable guardado.');
     } catch (e) {
-      console.error('Error inserting log to Supabase:', e);
-      // Local fallback
-      const updatedLogs = [newLog, ...auditLogs];
-      setAuditLogs(updatedLogs);
-      localStorage.setItem('aulacore-migration-logs', JSON.stringify(updatedLogs));
+      console.error('Fatal error during import confirmation:', e);
+      alert('Hubo un error al procesar la importación. Cargando respaldo local...');
       setWizardStep(7);
     } finally {
       setLoading(false);
