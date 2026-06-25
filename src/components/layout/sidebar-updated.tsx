@@ -1,47 +1,58 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { ChevronRight, LogOut } from 'lucide-react';
+import { ChevronRight, LogOut, Database } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { NAVIGATION_MENUS, UserRole } from '@/lib/navigation';
 import { useAuth } from '@/providers/auth-provider';
+import { useRole } from '@/providers/role-provider';
 
 interface SidebarProps {
   userRole: UserRole;
 }
 
-export function Sidebar({ userRole }: SidebarProps) {
-  const { signOut } = useAuth();
+export function Sidebar({ userRole: _propRole }: SidebarProps) {
+  const { signOut, roles } = useAuth();
+  const { activeInstitution, userRole } = useRole();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const menuItems = NAVIGATION_MENUS[userRole];
 
-  // Dynamic branding states
-  const [logoUrl, setLogoUrl] = useState('/logo-aulacore.png');
-  const [schoolName, setSchoolName] = useState('AulaCore');
-  const [isCustom, setIsCustom] = useState(false);
+  const isSuperAdmin = (roles as string[])?.includes('super_admin') || false;
+  const schoolName = activeInstitution?.name || 'AulaCore';
+  const logoUrl = activeInstitution?.logo_url || '/logo-aulacore.png';
+  const isCustom = !!activeInstitution?.logo_url || (activeInstitution?.id !== '11111111-1111-1111-1111-111111111111');
 
-  useEffect(() => {
-    const saved = localStorage.getItem('aulacore-institucion-settings');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (parsed.logoPrincipal && parsed.logoPrincipal !== 'https://images.unsplash.com/photo-1546410531-bb4caa6b424d?auto=format&fit=crop&q=80&w=120') {
-          setLogoUrl(parsed.logoPrincipal);
-          setIsCustom(true);
-        }
-        if (parsed.name && parsed.name !== 'Gimnasio Campestre AulaCore') {
-          setSchoolName(parsed.name);
-          setIsCustom(true);
-        }
-      } catch (e) {
-        console.error('Error loading institutional settings in sidebar', e);
-      }
+  const MODULE_ROUTES_MAPPING: Record<string, string> = {
+    '/pei': 'pei',
+    '/pae': 'pae',
+    '/migracion': 'onboarding',
+  };
+
+  const rawMenuItems = NAVIGATION_MENUS[userRole] || [];
+  const menuItemsList = [...rawMenuItems];
+  
+  if (isSuperAdmin) {
+    if (!menuItemsList.some(item => item.href === '/configuracion/saas')) {
+      menuItemsList.push({
+        label: 'Consola SaaS',
+        href: '/configuracion/saas',
+        icon: Database,
+        header: 'Administración Global'
+      });
     }
-  }, []);
+  }
+
+  const activeModules = activeInstitution?.active_modules || [];
+  const menuItems = menuItemsList.filter(item => {
+    if (isSuperAdmin) return true;
+    const requiredModule = MODULE_ROUTES_MAPPING[item.href];
+    if (requiredModule && !activeModules.includes(requiredModule)) {
+      return false;
+    }
+    return true;
+  });
 
   return (
     <aside className="w-60 bg-gradient-to-b from-slate-900 to-slate-950 text-slate-50 flex flex-col h-screen border-r border-slate-800 shadow-xl select-none">

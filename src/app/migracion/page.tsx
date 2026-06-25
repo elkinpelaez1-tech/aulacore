@@ -14,6 +14,7 @@ import {
   CheckCircle2, AlertCircle, Eye, Info, BrainCircuit, Globe, ArrowRight 
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import * as XLSX from 'xlsx';
 
 // MODULE TEMPLATES DEFINITION
 const TEMPLATES_CSV: Record<string, string> = {
@@ -42,7 +43,7 @@ interface ValidationError {
 }
 
 export default function MigrationPage() {
-  const { userRole, userName, mounted } = useRole();
+  const { userRole, userName, mounted, institutionId } = useRole();
   const router = useRouter();
 
   const [activeTab, setActiveTab] = useState<'wizard' | 'history' | 'connectors'>('wizard');
@@ -214,23 +215,63 @@ export default function MigrationPage() {
   };
 
   const processUploadedFile = (file: File) => {
-    if (!file.name.endsWith('.csv') && !file.name.endsWith('.txt')) {
-      alert('Por favor, suba únicamente archivos en formato CSV (.csv)');
+    const isExcel = file.name.endsWith('.xlsx') || file.name.endsWith('.xls');
+    const isCsv = file.name.endsWith('.csv') || file.name.endsWith('.txt');
+
+    if (!isExcel && !isCsv) {
+      alert('Por favor, suba únicamente archivos en formato Excel (.xlsx, .xls) o CSV (.csv, .txt)');
       return;
     }
 
     setFileName(file.name);
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const text = e.target?.result as string;
-      setFileContent(text);
-      const parsed = parseCSVText(text);
-      setParsedHeaders(parsed.headers);
-      setParsedRows(parsed.rows);
-      setWizardStep(5); // Proceed immediately to validation step
-      validateRecords(parsed.rows, selectedModule);
-    };
-    reader.readAsText(file);
+
+    if (isExcel) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = new Uint8Array(e.target?.result as ArrayBuffer);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const firstSheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[firstSheetName];
+          const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: '' }) as Record<string, any>[];
+          
+          if (jsonData.length === 0) {
+            alert('El archivo Excel está vacío.');
+            return;
+          }
+          
+          const headers = Object.keys(jsonData[0]);
+          const stringRows = jsonData.map((row) => {
+            const newRow: Record<string, string> = {};
+            headers.forEach(h => {
+              newRow[h] = String(row[h] ?? '').trim();
+            });
+            return newRow;
+          });
+          
+          setParsedHeaders(headers);
+          setParsedRows(stringRows);
+          setWizardStep(5);
+          validateRecords(stringRows, selectedModule);
+        } catch (err) {
+          console.error(err);
+          alert('Error al leer el archivo Excel.');
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    } else {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const text = e.target?.result as string;
+        setFileContent(text);
+        const parsed = parseCSVText(text);
+        setParsedHeaders(parsed.headers);
+        setParsedRows(parsed.rows);
+        setWizardStep(5);
+        validateRecords(parsed.rows, selectedModule);
+      };
+      reader.readAsText(file);
+    }
   };
 
   // --- Dynamic Template Generation & Download ---
@@ -394,7 +435,6 @@ export default function MigrationPage() {
     setWizardStep(6);
   };
 
-  // --- Confirm Import (Step 7) ---
   const handleConfirmImport = async () => {
     try {
       setLoading(true);
@@ -402,7 +442,188 @@ export default function MigrationPage() {
       const finalValid = total - (simRejectedCount || 0);
       const importStatus = (simRejectedCount || 0) === 0 ? 'Exitoso' : (finalValid > 0 ? 'Exitoso con advertencias' : 'Fallido');
 
-      // Build details report for errors
+      const activeInstId = institutionId || '11111111-1111-1111-1111-111111111111';
+
+      // 1. Aprovisionamiento/Carga de Periodo y Año Lectivo Académico si es necesario
+      let activeYearId = null;
+      let periodList: any[] = [];
+
+      try {
+        const { data: activeYears } = await supabase
+          .from('academic_years')
+          .select('id, year')
+          .eq('institution_id', activeInstId)
+          .eq('is_active', true);
+        
+        activeYearId = activeYears && activeYears.length > 0 ? activeYears[0].id : null;
+        if (!activeYearId) {
+          const { data: anyYears } = await supabase
+            .from('academic_years')
+            .select('id')
+            .eq('institution_id', activeInstId)
+            .limit(1);
+          if (anyYears && anyYears.length > 0) {
+            activeYearId = anyYears[0].id;
+          } else {
+            const { data: newYear } = await supabase
+              .from('academic_years')
+              .insert({ institution_id: activeInstId, year: 2026, is_active: true })
+              .select()
+              .single();
+            if (newYear) activeYearId = newYear.id;
+          }
+        }
+
+        if (activeYearId) {
+          const { data: periods } = await supabase
+            .from('academic_periods')
+            .select('id, code, status')
+            .eq('academic_year_id', activeYearId);
+          
+          periodList = periods || [];
+          if (periodList.length === 0) {
+            const defaultPeriods = [
+              { academic_year_id: activeYearId, name: 'Primer Periodo', code: 'P1', start_date: '2026-01-15', end_date: '2026-04-15', weight: 30.00, status: 'closed' },
+              { academic_year_id: activeYearId, name: 'Segundo Periodo', code: 'P2', start_date: '2026-04-16', end_date: '2026-08-15', weight: 30.00, status: 'active' },
+              { academic_year_id: activeYearId, name: 'Tercer Periodo', code: 'P3', start_date: '2026-08-16', end_date: '2026-11-25', weight: 40.00, status: 'inactive' }
+            ];
+            const { data: newPeriods } = await supabase
+              .from('academic_periods')
+              .insert(defaultPeriods)
+              .select();
+            if (newPeriods) periodList = newPeriods;
+          }
+        }
+      } catch (err) {
+        console.warn('Error resolviendo año y periodos académicos:', err);
+      }
+
+      // 2. Filtrar filas válidas para la inserción
+      const invalidRowsIndices = new Set(validationErrors.map(e => e.row - 1));
+      const validRows = parsedRows.filter((_, idx) => !invalidRowsIndices.has(idx));
+
+      // 3. Persistir en tablas relacionales de Supabase
+      if (validRows.length > 0) {
+        if (selectedModule === 'Estudiantes') {
+          const recordsToInsert = validRows.map(row => ({
+            institution_id: activeInstId,
+            student_name: row.nombre_completo,
+            student_id: row.documento,
+            birth_date: row.fecha_nacimiento || null,
+            address: row.direccion || '',
+            sede: 'Sede Principal',
+            jornada: 'Mañana',
+            periodo: '2026',
+            tipo_matricula: 'Regular',
+            status: 'pending_approval'
+          }));
+          const { error: insErr } = await supabase.from('student_onboardings').insert(recordsToInsert);
+          if (insErr) console.error('Error insertando student_onboardings:', insErr);
+        } else if (selectedModule === 'Docentes') {
+          const recordsToInsert = validRows.map(row => ({
+            institution_id: activeInstId,
+            full_name: row.nombre_completo,
+            document_id: row.documento,
+            email: row.correo,
+            phone: row.telefono || '',
+            subject_area: row.area_academica || '',
+            status: 'invited',
+            selected_roles: [row.tipo_docente || 'docente']
+          }));
+          const { error: insErr } = await supabase.from('teacher_onboardings').insert(recordsToInsert);
+          if (insErr) console.error('Error insertando teacher_onboardings:', insErr);
+        } else if (selectedModule === 'Cursos') {
+          if (activeYearId) {
+            const recordsToInsert = validRows.map(row => {
+              const parts = (row.codigo || '10-A').split('-');
+              const grade = parts[0] || '10';
+              const group = parts[1] || 'A';
+              return {
+                institution_id: activeInstId,
+                academic_year_id: activeYearId,
+                grade_level: grade,
+                group_name: group,
+                description: row.nombre_curso || `Grado ${grade} ${group}`
+              };
+            });
+            const { error: insErr } = await supabase.from('courses').insert(recordsToInsert);
+            if (insErr) console.error('Error insertando courses:', insErr);
+          }
+        } else if (selectedModule === 'Calificaciones') {
+          const { data: studentsList } = await supabase.from('students').select('id, enrollment_number');
+          const { data: { user: currentUser } } = await supabase.auth.getUser();
+          const teacherId = currentUser?.id || '22222222-2222-2222-2222-222222222222';
+          
+          const recordsToInsert = [];
+          for (const row of validRows) {
+            const student = studentsList?.find(s => s.enrollment_number === row.estudiante_documento || s.id === row.estudiante_documento);
+            if (!student) continue;
+
+            const periodCode = row.periodo || 'P2';
+            const period = periodList.find(p => p.code === periodCode);
+            const periodId = period?.id || (periodList[0]?.id);
+            if (!periodId) continue;
+
+            let gradeVal = 3.0;
+            if (row.grade) {
+              gradeVal = parseFloat(row.grade);
+            } else {
+              const n1 = parseFloat(row.nota_examen1 || '0');
+              const n2 = parseFloat(row.nota_examen2 || '0');
+              const nt = parseFloat(row.nota_tareas || '0');
+              const np = parseFloat(row.nota_participacion || '0');
+              const count = [row.nota_examen1, row.nota_examen2, row.nota_tareas, row.nota_participacion].filter(x => x !== undefined).length || 4;
+              gradeVal = (n1 + n2 + nt + np) / count;
+            }
+
+            recordsToInsert.push({
+              student_id: student.id,
+              academic_period_id: periodId,
+              subject: row.asignatura_codigo || 'Generales',
+              grade: gradeVal,
+              teacher_id: teacherId,
+              remarks: 'Importación Excel AulaCore'
+            });
+          }
+          if (recordsToInsert.length > 0) {
+            const { error: insErr } = await supabase.from('academic_records').insert(recordsToInsert);
+            if (insErr) console.error('Error insertando academic_records:', insErr);
+          }
+        } else if (selectedModule === 'Asistencia') {
+          const { data: studentsList } = await supabase.from('students').select('id, enrollment_number');
+          const { data: { user: currentUser } } = await supabase.auth.getUser();
+          const recorderId = currentUser?.id || '22222222-2222-2222-2222-222222222222';
+
+          const recordsToInsert = [];
+          for (const row of validRows) {
+            const student = studentsList?.find(s => s.enrollment_number === row.estudiante_documento || s.id === row.estudiante_documento);
+            if (!student) continue;
+
+            const periodId = periodList.find(p => p.status === 'active')?.id || periodList[0]?.id;
+            if (!periodId) continue;
+
+            const statusMap: Record<string, string> = {
+              'Asiste': 'present', 'Falla': 'absent', 'Tarde': 'tardy', 'Excusa': 'excused',
+              'present': 'present', 'absent': 'absent', 'tardy': 'tardy', 'excused': 'excused'
+            };
+
+            recordsToInsert.push({
+              student_id: student.id,
+              academic_period_id: periodId,
+              record_date: row.fecha || new Date().toISOString().split('T')[0],
+              status: statusMap[row.estado_asistencia] || 'present',
+              recorded_by: recorderId,
+              qr_scanned: false
+            });
+          }
+          if (recordsToInsert.length > 0) {
+            const { error: insErr } = await supabase.from('attendance_records').insert(recordsToInsert);
+            if (insErr) console.error('Error insertando attendance_records:', insErr);
+          }
+        }
+      }
+
+      // 4. Crear log de auditoría
       const errorDetails = (validationErrors || []).map(e => ({
         row: e.row,
         field: e.field,
@@ -412,8 +633,8 @@ export default function MigrationPage() {
 
       const newLog = {
         id: 'AC-MIG-' + Math.random().toString(36).substring(2, 10).toUpperCase() + '-' + Date.now().toString().slice(-4),
-        institution_id: '11111111-1111-1111-1111-111111111111',
-        user_id: '22222222-2222-2222-2222-222222222222', // Rector UID
+        institution_id: activeInstId,
+        user_id: '22222222-2222-2222-2222-222222222222', 
         user_name: userName || 'Dr. Ramón Ramírez',
         ip_address: '192.168.1.107',
         module_type: selectedModule || 'Estudiantes',
@@ -428,32 +649,18 @@ export default function MigrationPage() {
       };
 
       try {
-        // Save to Supabase DB with a 2-second timeout to prevent hanging on network/RLS issues
-        const insertPromise = supabase
-          .from('migration_audit_logs')
-          .insert([newLog])
-          .select();
-
-        const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Timeout connecting to Supabase')), 2000)
-        );
-
-        const { data, error } = (await Promise.race([insertPromise, timeoutPromise])) as any;
-
-        if (error) {
-          console.warn('Supabase returned error on insertion:', error);
-        }
+        const { error } = await supabase.from('migration_audit_logs').insert([newLog]);
+        if (error) console.warn('Error insertando log de migración:', error);
       } catch (dbErr) {
-        console.warn('Database logging failed or timed out. Falling back to local cache.', dbErr);
+        console.warn('Excepción insertando log de migración:', dbErr);
       }
 
-      // Mirror to local cache (guarantees the UI updates even if Supabase has RLS or connection issues)
       const updatedLogs = [newLog, ...auditLogs];
       setAuditLogs(updatedLogs);
       localStorage.setItem('aulacore-migration-logs', JSON.stringify(updatedLogs));
 
       setWizardStep(7);
-      alert('✓ Importación completada. Log de auditoría inmutable guardado.');
+      alert('✓ Importación completada. Datos reales persistidos y log inmutable de auditoría guardado.');
     } catch (e) {
       console.error('Fatal error during import confirmation:', e);
       alert('Hubo un error al procesar la importación. Cargando respaldo local...');

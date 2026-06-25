@@ -14,6 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { supabase } from '@/lib/supabase';
 import { cn } from '@/lib/utils';
+import { useRole } from '@/providers/role-provider';
 
 const statusColors: Record<TeacherStatus, { bg: string, text: string, border: string, dot: string }> = {
   'Activo': { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', dot: 'bg-emerald-500' },
@@ -27,7 +28,8 @@ const statusColors: Record<TeacherStatus, { bg: string, text: string, border: st
 const LEVELS: AcademicLevel[] = ['Preescolar', 'Primaria', 'Bachillerato', 'Media Técnica', 'Coordinación Académica', 'Administrativos Docentes'];
 
 export function TeacherIntelligenceGrid() {
-  const [teachers, setTeachers] = useState<TeacherMockData[]>(MOCK_TEACHERS);
+  const { institutionId } = useRole();
+  const [teachers, setTeachers] = useState<TeacherMockData[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<TeacherStatus | 'Todos'>('Todos');
   const [campusFilter, setCampusFilter] = useState<string>('Todas');
@@ -41,25 +43,27 @@ export function TeacherIntelligenceGrid() {
 
   useEffect(() => {
     async function loadRealTeachers() {
+      if (!institutionId) return;
       try {
-        // 1. Obtener aprobados de teacher_onboardings
+        // 1. Obtener aprobados de teacher_onboardings del inquilino activo
         const { data: onboardings, error: onboardingError } = await supabase
           .from('teacher_onboardings')
           .select('*')
+          .eq('institution_id', institutionId)
           .in('status', ['invited', 'email_sent', 'activated', 'first_access']);
 
         if (onboardingError) {
           console.error("Error loading approved teachers:", onboardingError);
         }
 
-        // 2. Obtener docentes registrados en la base de datos (con rol de docente)
+        // 2. Obtener docentes registrados en la base de datos (con rol de docente) del inquilino activo
         const { data: dbRoles, error: rolesError } = await supabase
           .from('user_roles')
           .select(`
             user_id,
             profiles:user_id ( id, first_name, last_name, avatar_url )
           `)
-          .eq('institution_id', '11111111-1111-1111-1111-111111111111')
+          .eq('institution_id', institutionId)
           .eq('role', 'docente');
 
         if (rolesError) {
@@ -133,9 +137,9 @@ export function TeacherIntelligenceGrid() {
             });
         }
 
-        // Combinar MOCK_TEACHERS con los docentes reales mapeados
+        // Combinar MOCK_TEACHERS (sólo si es el inquilino demo) con los docentes reales mapeados
         setTeachers(prev => {
-          const combined = [...MOCK_TEACHERS];
+          const combined = institutionId === '11111111-1111-1111-1111-111111111111' ? [...MOCK_TEACHERS] : [];
           mappedRealTeachers.forEach((real: TeacherMockData) => {
             const exists = combined.some(m => m.id === real.id || (real.email && m.email.toLowerCase() === real.email.toLowerCase()));
             if (!exists) {
@@ -189,7 +193,7 @@ export function TeacherIntelligenceGrid() {
     }
 
     loadRealTeachers();
-  }, []);
+  }, [institutionId]);
 
   // Auto-open teacher details when redirected from global search
   useEffect(() => {

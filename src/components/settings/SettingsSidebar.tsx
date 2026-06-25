@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/providers/auth-provider';
 import { 
   Wand2, 
   Building2, 
@@ -17,7 +18,7 @@ import {
   UserPlus
 } from 'lucide-react';
 
-const MENU_GROUPS = [
+const BASE_MENU_GROUPS = [
   {
     label: 'Auto-Onboarding',
     items: [
@@ -47,6 +48,20 @@ const MENU_GROUPS = [
 
 export function SettingsSidebar() {
   const pathname = usePathname();
+  const { roles } = useAuth();
+  const isSuperAdmin = (roles as string[])?.includes('super_admin') || false;
+
+  const menuGroups = [...BASE_MENU_GROUPS];
+  if (isSuperAdmin) {
+    menuGroups.push({
+      label: 'Administración SaaS Global',
+      items: [
+        { name: 'Consola SaaS', href: '/configuracion/saas', icon: Building2 },
+        { name: 'Nuevo Colegio (Tenant)', href: '/configuracion/nuevo-colegio', icon: UserPlus },
+        { name: 'Auditoría Onboardings', href: '/configuracion/auditoria', icon: ShieldCheck },
+      ]
+    });
+  }
 
   return (
     <aside className="w-64 shrink-0 bg-white border-r border-slate-200 min-h-[calc(100vh-theme(spacing.16))] flex flex-col py-6 px-4">
@@ -55,8 +70,8 @@ export function SettingsSidebar() {
         <p className="text-xs font-semibold text-slate-500 mt-1">Centro de Automatización</p>
       </div>
 
-      <nav className="flex-1 space-y-8">
-        {MENU_GROUPS.map((group) => (
+      <nav className="flex-1 space-y-8 overflow-y-auto max-h-[calc(100vh-280px)]">
+        {menuGroups.map((group) => (
           <div key={group.label}>
             <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3 px-2">
               {group.label}
@@ -67,13 +82,13 @@ export function SettingsSidebar() {
                 return (
                   <li key={item.name}>
                     <Link
-                      href={item.href}
-                      className={cn(
-                        "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-bold transition-all duration-200 group",
-                        isActive 
-                          ? "bg-indigo-50 text-indigo-700" 
-                          : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-                      )}
+                       href={item.href}
+                       className={cn(
+                         "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-bold transition-all duration-200 group",
+                         isActive 
+                           ? "bg-indigo-50 text-indigo-700" 
+                           : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                       )}
                     >
                       <item.icon className={cn(
                         "w-4 h-4 transition-colors",
@@ -90,7 +105,7 @@ export function SettingsSidebar() {
       </nav>
       
       {/* Mini status indicator */}
-      <div className="mt-8 pt-6 border-t border-slate-100 px-2">
+      <div className="mt-8 pt-6 border-t border-slate-100 px-2 shrink-0">
         <div className="flex items-center gap-2">
           <div className="relative flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>

@@ -306,7 +306,7 @@ const MOCK_FULL_PROFILES: Record<string, StudentFullProfile & {
 };
 
 export default function Student360({ initialStudentId }: { initialStudentId?: string | null }) {
-  const { userName } = useRole();
+  const { userName, institutionId } = useRole();
 
   // --- CONFIGURACIÓN & ENTIDADES GLOBALES ---
   const [settings, setSettings] = useState<AcademicSettings>(MOCK_SETTINGS);
@@ -360,22 +360,26 @@ export default function Student360({ initialStudentId }: { initialStudentId?: st
   // 1. CARGA INICIAL DE DATOS (Supabase con fallback)
   useEffect(() => {
     async function loadInitialData() {
+      if (!institutionId) return;
       try {
         // Cargar settings de la institución
         const { data: settingsData, error: settingsError } = await supabase
           .from('institution_academic_settings')
           .select('*')
-          .limit(1)
+          .eq('institution_id', institutionId)
           .maybeSingle();
 
         if (settingsData && !settingsError) {
           setSettings(settingsData as any);
+        } else if (institutionId === '11111111-1111-1111-1111-111111111111') {
+          setSettings(MOCK_SETTINGS);
         }
 
         // Cargar periodos dinámicos del año activo
         const { data: activeYear } = await supabase
           .from('academic_years')
           .select('id')
+          .eq('institution_id', institutionId)
           .eq('is_active', true)
           .maybeSingle();
 
@@ -389,47 +393,70 @@ export default function Student360({ initialStudentId }: { initialStudentId?: st
           if (periodData && !periodError) {
             setPeriods(periodData as any);
           }
+        } else if (institutionId === '11111111-1111-1111-1111-111111111111') {
+          setPeriods(MOCK_PERIODS);
         }
 
         // Cargar lista de estudiantes y sus cursos
-        const { data: studentData, error: studentError } = await supabase
-          .from('students')
-          .select(`
-            id,
-            enrollment_number,
-            status,
-            profiles (
-              first_name,
-              last_name,
-              avatar_url,
-              email
-            ),
-            student_enrollments (
-              courses (
-                description
-              )
-            )
-          `);
+        // Filtramos por user_roles para asegurar multi-tenancy estricto
+        const { data: userRoles, error: rolesErr } = await supabase
+          .from('user_roles')
+          .select('user_id')
+          .eq('institution_id', institutionId)
+          .eq('role', 'estudiante');
 
-        if (studentData && !studentError) {
-          const formattedList: StudentListItem[] = studentData.map((s: any) => ({
-            id: s.id,
-            name: `${s.profiles?.first_name || ''} ${s.profiles?.last_name || ''}`.trim() || 'Estudiante',
-            enrollment_number: s.enrollment_number,
-            status: s.status,
-            avatar_url: s.profiles?.avatar_url,
-            email: s.profiles?.email,
-            course_name: s.student_enrollments?.[0]?.courses?.description || 'Sin Curso'
-          }));
-          setStudents(formattedList);
+        const studentIds = userRoles?.map(ur => ur.user_id) || [];
+
+        if (studentIds.length > 0 && !rolesErr) {
+          const { data: studentData, error: studentError } = await supabase
+            .from('students')
+            .select(`
+              id,
+              enrollment_number,
+              status,
+              profiles (
+                first_name,
+                last_name,
+                avatar_url,
+                email
+              ),
+              student_enrollments (
+                courses (
+                  description
+                )
+              )
+            `)
+            .in('id', studentIds);
+
+          if (studentData && !studentError) {
+            const formattedList: StudentListItem[] = studentData.map((s: any) => ({
+              id: s.id,
+              name: `${s.profiles?.first_name || ''} ${s.profiles?.last_name || ''}`.trim() || 'Estudiante',
+              enrollment_number: s.enrollment_number,
+              status: s.status,
+              avatar_url: s.profiles?.avatar_url,
+              email: s.profiles?.email,
+              course_name: s.student_enrollments?.[0]?.courses?.description || 'Sin Curso'
+            }));
+            setStudents(formattedList);
+          }
+        } else if (institutionId === '11111111-1111-1111-1111-111111111111') {
+          setStudents(MOCK_STUDENTS);
+        } else {
+          setStudents([]);
         }
       } catch (err) {
         console.warn('Supabase fetch failed, executing Mocks fallback seamlessly:', err);
+        if (institutionId === '11111111-1111-1111-1111-111111111111') {
+          setSettings(MOCK_SETTINGS);
+          setPeriods(MOCK_PERIODS);
+          setStudents(MOCK_STUDENTS);
+        }
       }
     }
 
     loadInitialData();
-  }, []);
+  }, [institutionId]);
 
   // 2. CARGA DE DETALLES DEL ESTUDIANTE SELECCIONADO (Supabase con fallback)
   useEffect(() => {

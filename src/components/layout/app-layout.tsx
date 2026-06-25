@@ -13,7 +13,7 @@ interface AppLayoutProps {
 }
 
 export function AppLayout({ children, userRole: _propRole, userName: _propName, hidePadding }: AppLayoutProps) {
-  const { userRole, userName, mounted } = useRole();
+  const { userRole, userName, mounted, activeInstitution } = useRole();
 
   if (!mounted) {
     return (
@@ -26,8 +26,15 @@ export function AppLayout({ children, userRole: _propRole, userName: _propName, 
     );
   }
 
+  const primaryColor = activeInstitution?.primary_color || '#6366f1';
+
   return (
     <div key={userRole} className="flex h-screen bg-white">
+      <style>{`
+        :root {
+          --primary: ${primaryColor};
+        }
+      `}</style>
       {/* Sidebar */}
       <Sidebar userRole={userRole} />
 

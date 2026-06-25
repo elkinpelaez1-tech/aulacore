@@ -4,18 +4,22 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { UserRole } from '@/lib/navigation';
 import { useAuth } from '@/providers/auth-provider';
 
+import { InstitutionData } from '@/providers/auth-provider';
+
 interface RoleContextType {
   userRole: UserRole;
   setUserRole: (role: UserRole) => void;
   userName: string;
   setUserName: (name: string) => void;
   mounted: boolean;
+  institutionId: string;
+  activeInstitution: InstitutionData | null;
 }
 
 const RoleContext = createContext<RoleContextType | undefined>(undefined);
 
 export function RoleProvider({ children }: { children: React.ReactNode }) {
-  const { profile, activeRole, setActiveRole, isAuthenticated, loading, roles } = useAuth();
+  const { profile, activeRole, setActiveRole, isAuthenticated, loading, roles, institutionId, activeInstitution } = useAuth();
   
   const [localRole, setLocalRoleState] = useState<UserRole>('rector');
   const [localName, setLocalNameState] = useState<string>('Dr. Ramírez');
@@ -70,6 +74,7 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
       name = savedCustomName;
     } else {
       if (role === 'rector') name = 'Dr. Ramírez';
+      else if (role === 'coordinador') name = 'Dra. Diana Carolina Reyes';
       else if (role === 'director_grupo') name = 'Lic. Martínez';
       else if (role === 'docente') name = 'Prof. Gómez';
       else if (role === 'secretaria') name = 'Dra. Elena Toro';
@@ -104,8 +109,18 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
   // Se considera montado cuando cargó el cliente local para evitar errores de hidratación
   const isMounted = mounted;
 
+  const fallbackInstitutionId = institutionId || '11111111-1111-1111-1111-111111111111';
+
   return (
-    <RoleContext.Provider value={{ userRole, setUserRole, userName, setUserName, mounted: isMounted }}>
+    <RoleContext.Provider value={{ 
+      userRole, 
+      setUserRole, 
+      userName, 
+      setUserName, 
+      mounted: isMounted, 
+      institutionId: fallbackInstitutionId, 
+      activeInstitution 
+    }}>
       {children}
     </RoleContext.Provider>
   );
