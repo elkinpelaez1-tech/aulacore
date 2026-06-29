@@ -3,7 +3,9 @@
 import React, { useState } from 'react';
 import { ChartCard } from '@/components/territorio/ChartCard';
 import { SummaryCard } from '@/components/territorio/SummaryCard';
-import { Sparkles, SlidersHorizontal, ArrowRight, TrendingUp, HelpCircle, X } from 'lucide-react';
+import { Modal } from '@/components/territorio/Modal';
+import { EXPLAINERS } from '@/services/territory-mock';
+import { Sparkles, SlidersHorizontal, ArrowRight, TrendingUp, HelpCircle } from 'lucide-react';
 import { 
   ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, 
   Tooltip, ResponsiveContainer, Label 
@@ -14,45 +16,6 @@ interface DataPoint {
   xVal: number;
   yVal: number;
 }
-
-interface ExplainerInfo {
-  title: string;
-  definition: string;
-  calculation: string;
-  interpretation: string;
-  decisions: string;
-}
-
-const EXPLAINERS: Record<string, ExplainerInfo> = {
-  madurez: {
-    title: 'Madurez Digital (Health Score)',
-    definition: 'Evalúa de manera agregada la adopción de herramientas digitales y módulos de AulaCore en los colegios de la jurisdicción.',
-    calculation: 'Ponderación porcentual según el estado activo de los módulos curriculares, administrativos y de asistencia (RFID, Mallas, PEI, Planeación Horaria).',
-    interpretation: 'Puntajes mayores a 80% reflejan una excelente asimilación digital. Valores inferiores a 70% indican riesgo de rezago operativo y necesidad de capacitación.',
-    decisions: 'Priorizar auditorías técnicas y asignar acompañamiento a directivos y secretarios de colegios rezagados.'
-  },
-  conectividad: {
-    title: 'Conectividad (Banda Ancha)',
-    definition: 'Mide la disponibilidad y calidad del enlace a internet de banda ancha contratado o entregado en la sede principal del plantel.',
-    calculation: 'Porcentaje de sedes con conexión dedicada superior a 20 Mbps y estabilidad de canal en el mes.',
-    interpretation: 'Permite segmentar colegios urbanos y rurales. Indispensable para habilitar servicios sincrónicos en AulaCore.',
-    decisions: 'Tramitar proyectos de cofinanciación de infraestructura de redes ante el Ministerio de TIC en áreas rurales críticas.'
-  },
-  asistencia: {
-    title: 'Tasa de Asistencia Media',
-    definition: 'Promedio consolidado del cumplimiento de presencialidad de los alumnos en sus jornadas académicas.',
-    calculation: 'Registros de entrada en portería cruzados por lectoras RFID y reportes de inasistencias en clase.',
-    interpretation: 'Tasas inferiores a 90% representan un disparador de riesgo académico y posible deserción escolar posterior.',
-    decisions: 'Activar el protocolo de retención escolar (visitas del Supervisor de Zona y apoyo alimentario PAE).'
-  },
-  pearson: {
-    title: 'Coeficiente de Correlación R de Pearson',
-    definition: 'Estadístico matemático que cuantifica el grado de asociación lineal entre las dos variables seleccionadas.',
-    calculation: 'Fórmula de covarianza de las variables dividida por el producto de sus desviaciones estándar.',
-    interpretation: 'Va de -1.0 a +1.0. Un valor cercano a 1.5 es positivo fuerte (ambas suben juntas); cercano a -1.0 es negativo fuerte (al subir una, baja la otra). 0.0 indica ausencia de relación lineal.',
-    decisions: 'Validar si la inversión tecnológica realizada (Eje X) está provocando un retorno efectivo en calidad o deserción (Eje Y).'
-  }
-};
 
 const GENERATE_MOCK_DATA = (xVar: string, yVar: string): DataPoint[] => {
   const basePoints = [
@@ -215,7 +178,7 @@ export default function TerritoryAnaliticaPage() {
             <div className="flex items-center gap-1.5">
               <button 
                 onClick={() => setExplainerId('pearson')}
-                className="text-slate-450 hover:text-indigo-600 cursor-pointer border-none bg-transparent"
+                className="text-slate-455 hover:text-indigo-600 cursor-pointer border-none bg-transparent"
                 title="¿Cómo se calcula este coeficiente?"
               >
                 <HelpCircle className="w-3.5 h-3.5" />
@@ -256,68 +219,49 @@ export default function TerritoryAnaliticaPage() {
         </SummaryCard>
       </div>
 
-      {/* ================================================================= */}
-      {/* 🧭 MODAL EXPLICATIVO DEL INDICADOR SELECCIONADO (INFO MODAL)     */}
-      {/* ================================================================= */}
-      {explainerData && (
-        <div className="fixed inset-0 z-50 overflow-hidden flex items-center justify-center bg-slate-900/40 backdrop-blur-xs">
-          <div className="relative w-full max-w-lg bg-white shadow-2xl rounded-3xl flex flex-col border border-slate-200 overflow-hidden m-4 animate-scale-in">
-            
-            {/* Header */}
-            <div className="p-5 border-b border-slate-150 bg-slate-50/50 flex justify-between items-center">
-              <div className="flex items-center gap-2">
-                <HelpCircle className="w-5 h-5 text-indigo-650" />
-                <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">
-                  Guía Metodológica del Indicador
-                </h3>
-              </div>
-              <button 
-                onClick={() => setExplainerId(null)}
-                className="p-1 border border-slate-200 hover:bg-slate-50 rounded-lg text-slate-400 hover:text-slate-800 cursor-pointer"
-              >
-                ✕
-              </button>
+      {/* 🧭 MODAL EXPLICATIVO DEL INDICADOR SELECCIONADO */}
+      <Modal
+        isOpen={!!explainerId}
+        onClose={() => setExplainerId(null)}
+        title="Guía Metodológica del Indicador"
+        subtitle="Analítica Territorial"
+        footer={
+          <button
+            onClick={() => setExplainerId(null)}
+            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition-all cursor-pointer border-none"
+          >
+            Cerrar Guía
+          </button>
+        }
+      >
+        {explainerData && (
+          <div className="space-y-4 text-xs font-semibold text-slate-655">
+            <div>
+              <span className="text-[10px] font-black text-slate-405 uppercase tracking-wider block">Indicador</span>
+              <h4 className="text-sm font-black text-indigo-755 uppercase tracking-wide mt-0.5">{explainerData.title}</h4>
             </div>
 
-            {/* Contenido */}
-            <div className="p-6 space-y-4 text-xs leading-normal">
-              <div>
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Indicador</span>
-                <h4 className="text-sm font-black text-indigo-700 uppercase tracking-wide mt-0.5">{explainerData.title}</h4>
-              </div>
-
-              <div className="space-y-3.5 border-t border-slate-100 pt-4 font-semibold text-slate-655">
-                <p>
-                  <strong className="text-slate-800 block">¿Qué significa?</strong>
-                  {explainerData.definition}
-                </p>
-                <p>
-                  <strong className="text-slate-800 block">¿Cómo se calcula?</strong>
-                  {explainerData.calculation}
-                </p>
-                <p>
-                  <strong className="text-slate-800 block">¿Cómo debe interpretarse?</strong>
-                  {explainerData.interpretation}
-                </p>
-                <p className="bg-indigo-50/20 border border-indigo-150 p-3.5 rounded-xl text-indigo-900">
-                  <strong className="text-indigo-950 block mb-0.5">¿Qué decisiones permite tomar?</strong>
-                  {explainerData.decisions}
-                </p>
-              </div>
-            </div>
-
-            {/* Footer */}
-            <div className="p-4 border-t border-slate-100 bg-slate-50/20 flex justify-end">
-              <button
-                onClick={() => setExplainerId(null)}
-                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition-all cursor-pointer border-none"
-              >
-                Cerrar Guía
-              </button>
+            <div className="space-y-3.5 border-t border-slate-100 pt-4">
+              <p>
+                <strong className="text-slate-800 block">¿Qué significa?</strong>
+                {explainerData.definition}
+              </p>
+              <p>
+                <strong className="text-slate-800 block">¿Cómo se calcula?</strong>
+                {explainerData.calculation}
+              </p>
+              <p>
+                <strong className="text-slate-800 block">¿Cómo debe interpretarse?</strong>
+                {explainerData.interpretation}
+              </p>
+              <p className="bg-indigo-50/20 border border-indigo-150 p-3.5 rounded-xl text-indigo-900">
+                <strong className="text-indigo-955 block mb-0.5">¿Qué decisiones permite tomar?</strong>
+                {explainerData.decisions}
+              </p>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </Modal>
     </div>
   );
 }

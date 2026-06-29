@@ -1,32 +1,17 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
-import { Calendar, User, Clock, CheckCircle, PlusCircle, CheckCircle2, Shield, Plus, X, AlertTriangle } from 'lucide-react';
-
-interface MockVisit {
-  id: string;
-  institution: string;
-  type: string;
-  date: string;
-  time: string;
-  duration: string;
-  inspector: string;
-  priority: 'Alta' | 'Media' | 'Baja';
-  status: 'Programada' | 'Confirmada' | 'En ejecución' | 'Finalizada' | 'Cancelada' | 'Reprogramada';
-}
-
-const INITIAL_VISITS: MockVisit[] = [
-  { id: '1', institution: 'Institución Educativa Marco Fidel Suárez', type: 'Capacitación AulaCore', date: '2026-07-02', time: '09:00', duration: '2 horas', inspector: 'Ing. Laura Benítez', priority: 'Alta', status: 'Programada' },
-  { id: '2', institution: 'I.E. Rural El Hatillo', type: 'Inspección Conectividad', date: '2026-07-05', time: '14:00', duration: '4 horas', inspector: 'Téc. Fernando Ruiz', priority: 'Alta', status: 'Confirmada' },
-  { id: '3', institution: 'I.E. Presbítero Antonio José Bernal', type: 'Auditoría PAE', date: '2026-06-29', time: '10:00', duration: '2 horas', inspector: 'Dr. Daniel Rendón', priority: 'Media', status: 'En ejecución' },
-  { id: '4', institution: 'Gimnasio Campestre AulaCore', type: 'Reunión de Rectores', date: '2026-06-25', time: '08:00', duration: '4 horas', inspector: 'Dr. Alejandro Gómez', priority: 'Baja', status: 'Finalizada' },
-];
+import { Modal } from '@/components/territorio/Modal';
+import { INITIAL_VISITS, MockVisit } from '@/services/territory-mock';
+import { hasTerritoryPermission, getRbacControlAttrs } from '@/services/territory-rbac';
+import { Calendar, User, Clock, CheckCircle, PlusCircle, CheckCircle2, Shield, Plus, X, AlertTriangle, ShieldAlert } from 'lucide-react';
 
 export default function TerritoryAgendaPage() {
-  const [visits, setVisits] = useState<MockVisit[]>(INITIAL_VISITS);
+  const [visits, setVisits] = useState<MockVisit[]>([]);
   const [statusFilter, setStatusFilter] = useState('all');
+  const [currentRole, setCurrentRole] = useState('Secretario de Educación');
   
   // Dynamic Activity Types state
   const [activityTypes, setActivityTypes] = useState<string[]>([
@@ -49,9 +34,27 @@ export default function TerritoryAgendaPage() {
   
   const [success, setSuccess] = useState(false);
 
+  // Leer cargo del usuario y escuchar cambios en la simulación
+  useEffect(() => {
+    setVisits(INITIAL_VISITS);
+
+    function updateRole() {
+      const saved = sessionStorage.getItem('simulated_role');
+      if (saved) setCurrentRole(saved);
+    }
+    updateRole();
+    window.addEventListener('rbac-role-changed', updateRole);
+    return () => window.removeEventListener('rbac-role-changed', updateRole);
+  }, []);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!date || !inspector) return;
+
+    if (!hasTerritoryPermission(currentRole, 'programar_visita')) {
+      alert('Error: Su rol actual no tiene privilegios para registrar visitas.');
+      return;
+    }
 
     const newVisit: MockVisit = {
       id: Date.now().toString(),
@@ -96,6 +99,9 @@ export default function TerritoryAgendaPage() {
     }
   };
 
+  const hasAccess = hasTerritoryPermission(currentRole, 'programar_visita');
+  const rbacAttrs = getRbacControlAttrs(currentRole, 'programar_visita');
+
   return (
     <div className="p-6 space-y-6 relative h-full">
       {/* Encabezado */}
@@ -116,9 +122,20 @@ export default function TerritoryAgendaPage() {
         </div>
       )}
 
+      {/* Alerta de Restricción RBAC */}
+      {!hasAccess && (
+        <div className="bg-amber-50 border border-amber-250 p-4 rounded-2xl flex gap-3 text-amber-900 text-xs font-semibold">
+          <ShieldAlert className="w-5 h-5 shrink-0 text-amber-600" />
+          <div>
+            <span className="font-extrabold block">Acción Restringida por Cargo</span>
+            Tu rol actual ({currentRole}) no cuenta con autorización para programar visitas técnicas en la agenda territorial.
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Formulario */}
-        <Card className="border-slate-200 shadow-sm rounded-2xl bg-white h-fit">
+        <Card className={`border-slate-200 shadow-sm rounded-2xl bg-white h-fit transition-opacity duration-200 ${!hasAccess ? 'opacity-65' : ''}`}>
           <CardHeader className="border-b border-slate-100 py-4 px-6 bg-slate-50/20">
             <CardTitle className="text-sm font-black text-slate-855 uppercase tracking-wider flex items-center gap-2">
               <PlusCircle className="w-4 h-4 text-indigo-655" />
@@ -137,8 +154,9 @@ export default function TerritoryAgendaPage() {
                 </label>
                 <select
                   value={school}
+                  disabled={!hasAccess}
                   onChange={(e) => setSchool(e.target.value)}
-                  className="w-full text-xs font-semibold text-slate-800 px-3 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500"
+                  className="w-full text-xs font-semibold text-slate-800 px-3 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500 disabled:bg-slate-50"
                 >
                   <option value="Gimnasio Campestre AulaCore">Gimnasio Campestre AulaCore</option>
                   <option value="I.E. Marco Fidel Suárez">I.E. Marco Fidel Suárez</option>
@@ -156,8 +174,9 @@ export default function TerritoryAgendaPage() {
                 <div className="flex gap-2">
                   <select
                     value={type}
+                    disabled={!hasAccess}
                     onChange={(e) => setType(e.target.value)}
-                    className="flex-1 text-xs font-semibold text-slate-800 px-3 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none"
+                    className="flex-1 text-xs font-semibold text-slate-800 px-3 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none disabled:bg-slate-50"
                   >
                     {activityTypes.map(act => (
                       <option key={act} value={act}>{act}</option>
@@ -165,8 +184,9 @@ export default function TerritoryAgendaPage() {
                   </select>
                   <button
                     type="button"
+                    disabled={!hasAccess}
                     onClick={() => setActivityModal(true)}
-                    className="px-3 border border-slate-200 hover:border-slate-350 hover:bg-slate-50 text-slate-700 rounded-xl flex items-center justify-center cursor-pointer transition-all duration-200"
+                    className="px-3 border border-slate-200 hover:border-slate-350 hover:bg-slate-50 text-slate-700 rounded-xl flex items-center justify-center cursor-pointer transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                     title="Añadir tipo de actividad"
                   >
                     <Plus className="w-4 h-4" />
@@ -182,10 +202,11 @@ export default function TerritoryAgendaPage() {
                 <input
                   type="text"
                   required
+                  disabled={!hasAccess}
                   value={inspector}
                   onChange={(e) => setInspector(e.target.value)}
                   placeholder="Ej: Ing. Laura Benítez"
-                  className="w-full text-xs font-semibold text-slate-800 px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none placeholder-slate-400"
+                  className="w-full text-xs font-semibold text-slate-800 px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none placeholder-slate-400 focus:border-indigo-500 disabled:bg-slate-50 disabled:cursor-not-allowed"
                 />
               </div>
 
@@ -196,9 +217,10 @@ export default function TerritoryAgendaPage() {
                   <input
                     type="date"
                     required
+                    disabled={!hasAccess}
                     value={date}
                     onChange={(e) => setDate(e.target.value)}
-                    className="w-full text-xs font-semibold text-slate-800 px-3 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none"
+                    className="w-full text-xs font-semibold text-slate-800 px-3 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none disabled:bg-slate-50"
                   />
                 </div>
                 <div className="space-y-1">
@@ -206,9 +228,10 @@ export default function TerritoryAgendaPage() {
                   <input
                     type="time"
                     required
+                    disabled={!hasAccess}
                     value={time}
                     onChange={(e) => setTime(e.target.value)}
-                    className="w-full text-xs font-semibold text-slate-800 px-3 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none"
+                    className="w-full text-xs font-semibold text-slate-800 px-3 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none disabled:bg-slate-50"
                   />
                 </div>
               </div>
@@ -219,8 +242,9 @@ export default function TerritoryAgendaPage() {
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Duración</label>
                   <select
                     value={duration}
+                    disabled={!hasAccess}
                     onChange={(e) => setDuration(e.target.value)}
-                    className="w-full text-xs font-semibold text-slate-800 px-3 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none"
+                    className="w-full text-xs font-semibold text-slate-800 px-3 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none disabled:bg-slate-50"
                   >
                     <option value="1 hora">1 hora</option>
                     <option value="2 horas">2 horas</option>
@@ -232,8 +256,9 @@ export default function TerritoryAgendaPage() {
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Prioridad</label>
                   <select
                     value={priority}
+                    disabled={!hasAccess}
                     onChange={(e) => setPriority(e.target.value as any)}
-                    className="w-full text-xs font-semibold text-slate-800 px-3 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none"
+                    className="w-full text-xs font-semibold text-slate-800 px-3 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none disabled:bg-slate-50"
                   >
                     <option value="Alta">Alta</option>
                     <option value="Media">Media</option>
@@ -245,7 +270,8 @@ export default function TerritoryAgendaPage() {
               {/* Botón */}
               <button
                 type="submit"
-                className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-xs transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer border-none"
+                {...rbacAttrs}
+                className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-xs transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer border-none disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <PlusCircle className="w-3.5 h-3.5" />
                 Registrar en Agenda
@@ -329,54 +355,43 @@ export default function TerritoryAgendaPage() {
         </div>
       </div>
 
-      {/* ================================================================= */}
-      {/* ➕ MODAL DINÁMICO PARA CREAR TIPO DE ACTIVIDAD                   */}
-      {/* ================================================================= */}
-      {activityModal && (
-        <div className="fixed inset-0 z-50 overflow-hidden flex items-center justify-center bg-slate-900/40 backdrop-blur-xs">
-          <div className="relative w-full max-w-sm bg-white shadow-2xl rounded-3xl flex flex-col border border-slate-200 overflow-hidden m-4 animate-scale-in">
-            <div className="p-5 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
-              <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">Añadir Actividad</h3>
-              <button 
-                onClick={() => setActivityModal(false)}
-                className="p-1 border border-slate-200 hover:bg-slate-50 rounded-lg text-slate-405 hover:text-slate-800 cursor-pointer"
-              >
-                ✕
-              </button>
-            </div>
-            <form onSubmit={handleAddActivity}>
-              <div className="p-6 space-y-4">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Nombre de la Actividad</label>
-                  <input
-                    type="text"
-                    required
-                    value={newActivityName}
-                    onChange={(e) => setNewActivityName(e.target.value)}
-                    placeholder="Ej: Auditoría de Matrículas"
-                    className="w-full text-xs font-semibold text-slate-800 px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none placeholder-slate-400"
-                  />
-                </div>
-              </div>
-              <div className="p-4 border-t border-slate-100 bg-slate-50/20 flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setActivityModal(false)}
-                  className="px-3.5 py-2 border border-slate-200 hover:bg-slate-50 font-bold rounded-xl text-xs cursor-pointer text-slate-700 bg-white"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs cursor-pointer border-none"
-                >
-                  Guardar Tipo
-                </button>
-              </div>
-            </form>
+      {/* ➕ MODAL DINÁMICO PARA CREAR TIPO DE ACTIVIDAD */}
+      <Modal
+        isOpen={activityModal}
+        onClose={() => setActivityModal(false)}
+        title="Añadir Tipo de Actividad"
+        subtitle="Agenda Territorial"
+        footer={
+          <>
+            <button
+              onClick={() => setActivityModal(false)}
+              className="px-3.5 py-2 border border-slate-200 hover:bg-slate-50 font-bold rounded-xl text-xs cursor-pointer text-slate-700 bg-white"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={handleAddActivity}
+              className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs cursor-pointer border-none"
+            >
+              Guardar Tipo
+            </button>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          <div className="space-y-1">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Nombre de la Actividad</label>
+            <input
+              type="text"
+              required
+              value={newActivityName}
+              onChange={(e) => setNewActivityName(e.target.value)}
+              placeholder="Ej: Auditoría de Matrículas"
+              className="w-full text-xs font-semibold text-slate-800 px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none placeholder-slate-400"
+            />
           </div>
         </div>
-      )}
+      </Modal>
     </div>
   );
 }

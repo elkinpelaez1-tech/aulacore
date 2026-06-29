@@ -1,63 +1,20 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { 
-  Megaphone, Send, CheckCircle2, FileText, Globe, Users, 
-  Upload, Trash2, ShieldAlert, Sparkles, Mail, MessageSquare, 
-  Clock, CheckCheck, Landmark, CheckCircle
+  INITIAL_CIRCULARES, INITIAL_BORRADORES, INITIAL_PROGRAMADOS, Circular 
+} from '@/services/territory-mock';
+import { hasTerritoryPermission, getRbacControlAttrs } from '@/services/territory-rbac';
+import { 
+  Megaphone, Send, CheckCircle2, FileText, Upload, Trash2, 
+  Sparkles, Mail, MessageSquare, Clock, CheckCheck, Landmark, ShieldAlert 
 } from 'lucide-react';
 
-interface Circular {
-  id: string;
-  title: string;
-  body: string;
-  scope: string;
-  targetDetails?: string;
-  date: string;
-  status: 'Pendiente' | 'Enviado' | 'Entregado' | 'Leído';
-  readRatio: string; // ej: "18/24"
-  attachments: string[];
-  digitallySigned: boolean;
-  scheduledFor?: string;
-}
-
-const INITIAL_CIRCULARES: Circular[] = [
-  { 
-    id: '1', 
-    title: 'Circular 024: Auditorías del Programa de Alimentación Escolar (PAE)', 
-    body: 'Se convoca a todos los rectores oficiales a revisar el cronograma de visitas de auditoría del segundo trimestre para garantizar la sanidad alimentaria.', 
-    scope: 'Instituciones Oficiales', 
-    date: 'Hoy 10:24 AM', 
-    status: 'Leído', 
-    readRatio: '20/24 (83%)', 
-    attachments: ['Cronograma_Auditorias_PAE.pdf'], 
-    digitallySigned: true 
-  },
-  { 
-    id: '2', 
-    title: 'Circular 023: Actualización Obligatoria de Matrículas en Lote', 
-    body: 'Plazo extendido hasta el 15 de julio para registrar las novedades académicas en la plataforma AulaCore.', 
-    scope: 'Todas las Instituciones', 
-    date: 'Hace 3 días', 
-    status: 'Entregado', 
-    readRatio: '32/48 (66%)', 
-    attachments: ['Manual_Matricula_AulaCore_2026.docx', 'Plantilla_Carga.xlsx'], 
-    digitallySigned: true 
-  },
-];
-
-const INITIAL_BORRADORES = [
-  { id: 'b1', title: 'Borrador: Conectividad Rural Banda Ancha', body: 'Solicitud de informe de factibilidad de tendido de fibra en veredas...', scope: 'Por Municipio (Barbosa)', date: 'Modificado ayer' }
-];
-
-const INITIAL_PROGRAMADOS = [
-  { id: 'p1', title: 'Circular 025: Capacitación Docente Plan PEI 2027', body: 'Taller virtual de alineamiento pedagógico del Proyecto Educativo Institucional...', scope: 'Todas las Instituciones', scheduledFor: '2026-07-01 a las 08:00 AM' }
-];
-
 export default function TerritoryComunicacionesPage() {
-  const [circulares, setCirculares] = useState<Circular[]>(INITIAL_CIRCULARES);
+  const [circulares, setCirculares] = useState<Circular[]>([]);
   const [historyTab, setHistoryTab] = useState<'enviados' | 'borradores' | 'programados'>('enviados');
+  const [currentRole, setCurrentRole] = useState('Secretario de Educación');
   
   // Form states
   const [title, setTitle] = useState('');
@@ -82,6 +39,19 @@ export default function TerritoryComunicacionesPage() {
   const [scheduledTime, setScheduledTime] = useState('08:00');
 
   const [success, setSuccess] = useState(false);
+
+  // Leer rol de la sesión y escuchar cambios en vivo
+  useEffect(() => {
+    setCirculares(INITIAL_CIRCULARES);
+
+    function updateRole() {
+      const saved = sessionStorage.getItem('simulated_role');
+      if (saved) setCurrentRole(saved);
+    }
+    updateRole();
+    window.addEventListener('rbac-role-changed', updateRole);
+    return () => window.removeEventListener('rbac-role-changed', updateRole);
+  }, []);
 
   // Simulación de carga de archivo
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -113,6 +83,12 @@ export default function TerritoryComunicacionesPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title || !body) return;
+
+    // Control de seguridad adicional
+    if (!hasTerritoryPermission(currentRole, 'emitir_circular')) {
+      alert('Error: Su rol actual no tiene privilegios para realizar esta acción.');
+      return;
+    }
 
     let finalScope = scope;
     if (scope === 'Por Municipio') finalScope = `Municipio: ${selectedMunicipio}`;
@@ -160,6 +136,9 @@ export default function TerritoryComunicacionesPage() {
     { id: 'c4', name: 'I.E. Rural El Hatillo' },
   ];
 
+  const hasAccess = hasTerritoryPermission(currentRole, 'emitir_circular');
+  const rbacAttrs = getRbacControlAttrs(currentRole, 'emitir_circular');
+
   return (
     <div className="p-6 space-y-6">
       {/* Encabezado */}
@@ -180,9 +159,20 @@ export default function TerritoryComunicacionesPage() {
         </div>
       )}
 
+      {/* Mensaje de Restricción RBAC si no tiene acceso */}
+      {!hasAccess && (
+        <div className="bg-amber-50 border border-amber-250 p-4 rounded-2xl flex gap-3 text-amber-900 text-xs font-semibold">
+          <ShieldAlert className="w-5 h-5 shrink-0 text-amber-600" />
+          <div>
+            <span className="font-extrabold block">Acción Restringida por Cargo</span>
+            Tu rol actual ({currentRole}) no cuenta con autorización para emitir comunicados oficiales territoriales.
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Formulario de Circular */}
-        <Card className="border-slate-200 shadow-sm rounded-2xl bg-white lg:col-span-2">
+        <Card className={`border-slate-200 shadow-sm rounded-2xl bg-white lg:col-span-2 transition-opacity duration-200 ${!hasAccess ? 'opacity-65' : ''}`}>
           <CardHeader className="border-b border-slate-100 py-4 px-6 bg-slate-50/20">
             <CardTitle className="text-sm font-black text-slate-855 uppercase tracking-wider flex items-center gap-2">
               <Megaphone className="w-4 h-4 text-indigo-655" />
@@ -200,10 +190,11 @@ export default function TerritoryComunicacionesPage() {
                 <input
                   type="text"
                   required
+                  disabled={!hasAccess}
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="Ej: Circular 025: Talleres de Capacitación Pedagógica 2026"
-                  className="w-full text-xs font-semibold text-slate-800 px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none placeholder-slate-400 focus:border-indigo-500"
+                  className="w-full text-xs font-semibold text-slate-800 px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none placeholder-slate-400 focus:border-indigo-500 disabled:bg-slate-50 disabled:cursor-not-allowed"
                 />
               </div>
 
@@ -213,8 +204,9 @@ export default function TerritoryComunicacionesPage() {
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Destinatarios (Alcance)</label>
                   <select
                     value={scope}
+                    disabled={!hasAccess}
                     onChange={(e) => setScope(e.target.value)}
-                    className="w-full text-xs font-semibold text-slate-800 px-3 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none"
+                    className="w-full text-xs font-semibold text-slate-800 px-3 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none disabled:bg-slate-50"
                   >
                     <option value="Todas las Instituciones">Todas las Instituciones</option>
                     <option value="Instituciones Oficiales">Instituciones Oficiales</option>
@@ -231,6 +223,7 @@ export default function TerritoryComunicacionesPage() {
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Seleccionar Municipio</label>
                     <select
                       value={selectedMunicipio}
+                      disabled={!hasAccess}
                       onChange={(e) => setSelectedMunicipio(e.target.value)}
                       className="w-full text-xs font-semibold text-slate-800 px-3 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none"
                     >
@@ -247,6 +240,7 @@ export default function TerritoryComunicacionesPage() {
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Seleccionar Comuna / Corregimiento</label>
                     <select
                       value={selectedComuna}
+                      disabled={!hasAccess}
                       onChange={(e) => setSelectedComuna(e.target.value)}
                       className="w-full text-xs font-semibold text-slate-800 px-3 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none"
                     >
@@ -267,6 +261,7 @@ export default function TerritoryComunicacionesPage() {
                       <label key={sch.id} className="flex items-center gap-2 cursor-pointer">
                         <input
                           type="checkbox"
+                          disabled={!hasAccess}
                           checked={selectedManualIds.includes(sch.id)}
                           onChange={() => toggleManualId(sch.id)}
                           className="rounded text-indigo-650"
@@ -284,20 +279,22 @@ export default function TerritoryComunicacionesPage() {
                 <textarea
                   required
                   rows={5}
+                  disabled={!hasAccess}
                   value={body}
                   onChange={(e) => setBody(e.target.value)}
                   placeholder="Redacte el cuerpo de la circular de obligatorio cumplimiento..."
-                  className="w-full text-xs font-semibold text-slate-800 px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none placeholder-slate-400 focus:border-indigo-500"
+                  className="w-full text-xs font-semibold text-slate-800 px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none placeholder-slate-400 focus:border-indigo-500 disabled:bg-slate-50 disabled:cursor-not-allowed"
                 />
               </div>
 
-              {/* Carga de Adjuntos Drag & Drop */}
+              {/* Carga de Adjuntos */}
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Anexar Documentos Oficiales</label>
                 
-                <div className="border border-dashed border-slate-250 hover:border-indigo-400 rounded-2xl p-4 text-center cursor-pointer bg-slate-50/20 hover:bg-slate-50/50 transition-all duration-200 relative">
+                <div className={`border border-dashed border-slate-250 hover:border-indigo-400 rounded-2xl p-4 text-center bg-slate-50/20 hover:bg-slate-50/50 transition-all duration-200 relative ${!hasAccess ? 'pointer-events-none opacity-50' : 'cursor-pointer'}`}>
                   <input
                     type="file"
+                    disabled={!hasAccess}
                     onChange={handleFileUpload}
                     className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
                     accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.png,.jpg,.jpeg,.zip"
@@ -345,6 +342,7 @@ export default function TerritoryComunicacionesPage() {
                   <label className="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer">
                     <input
                       type="checkbox"
+                      disabled={!hasAccess}
                       checked={isScheduled}
                       onChange={(e) => setIsScheduled(e.target.checked)}
                       className="rounded text-indigo-650"
@@ -360,6 +358,7 @@ export default function TerritoryComunicacionesPage() {
                       <input
                         type="date"
                         required
+                        disabled={!hasAccess}
                         value={scheduledDate}
                         onChange={(e) => setScheduledDate(e.target.value)}
                         className="w-full text-xs font-semibold text-slate-800 p-2 bg-white border border-slate-200 rounded-lg focus:outline-none"
@@ -370,6 +369,7 @@ export default function TerritoryComunicacionesPage() {
                       <input
                         type="time"
                         required
+                        disabled={!hasAccess}
                         value={scheduledTime}
                         onChange={(e) => setScheduledTime(e.target.value)}
                         className="w-full text-xs font-semibold text-slate-800 p-2 bg-white border border-slate-200 rounded-lg focus:outline-none"
@@ -384,6 +384,7 @@ export default function TerritoryComunicacionesPage() {
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
+                    disabled={!hasAccess}
                     checked={sendWhatsApp}
                     onChange={(e) => setSendWhatsApp(e.target.checked)}
                     className="rounded text-indigo-650"
@@ -397,6 +398,7 @@ export default function TerritoryComunicacionesPage() {
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
+                    disabled={!hasAccess}
                     checked={sendEmail}
                     onChange={(e) => setSendEmail(e.target.checked)}
                     className="rounded text-indigo-650"
@@ -410,6 +412,7 @@ export default function TerritoryComunicacionesPage() {
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
+                    disabled={!hasAccess}
                     checked={digitallySigned}
                     onChange={(e) => setDigitallySigned(e.target.checked)}
                     className="rounded text-indigo-650"
@@ -424,8 +427,8 @@ export default function TerritoryComunicacionesPage() {
               <div className="border-t border-slate-100 pt-4 flex justify-end">
                 <button
                   type="submit"
-                  disabled={isUploading}
-                  className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-xs transition-all duration-200 flex items-center gap-1.5 cursor-pointer border-none disabled:opacity-50 disabled:cursor-not-allowed"
+                  {...rbacAttrs}
+                  className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-xs transition-all duration-200 flex items-center gap-1.5 cursor-pointer border-none disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   <Send className="w-3.5 h-3.5" />
                   {isScheduled ? 'Programar Circular' : 'Emitir Circular'}

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import { Modal } from '@/components/territorio/Modal';
 import { getTerritorialInstitutions, TerritorialInstitution } from '@/services/territory-service';
 import { 
   Search, Building, Laptop, Eye, HelpCircle, X, 
@@ -218,45 +219,31 @@ function InstitutionDetailModal({ selectedInst, onClose }: DetailModalProps) {
   ];
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden flex items-center justify-center bg-slate-900/40 backdrop-blur-xs">
-      {/* Backdrop clickable */}
-      <div className="absolute inset-0 cursor-pointer" onClick={onClose} />
-
-      {/* Modal Card */}
-      <div className="relative w-full max-w-2xl bg-white shadow-2xl rounded-3xl flex flex-col max-h-[85vh] animate-scale-in border border-slate-200 overflow-hidden z-10 m-4">
-        
-        {/* Cabecera */}
-        <div className="p-6 border-b border-slate-100 bg-slate-50/40 flex justify-between items-start">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-indigo-50 border border-indigo-100 rounded-xl flex items-center justify-center text-indigo-650 font-bold shrink-0">
-              <Building className="w-5 h-5" />
-            </div>
-            <div>
-              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">
-                Ficha Ejecutiva Escolar
-              </span>
-              <h3 className="text-sm font-black text-slate-850 uppercase tracking-wider mt-0.5 truncate max-w-[400px]">
-                {selectedInst.name}
-              </h3>
-            </div>
-          </div>
-          <button 
-            onClick={onClose}
-            className="p-1.5 border border-slate-200 hover:bg-slate-50 rounded-xl text-slate-450 hover:text-slate-800 transition-all duration-200 cursor-pointer"
-          >
-            ✕
-          </button>
-        </div>
-
+    <Modal
+      isOpen={true}
+      onClose={onClose}
+      title={selectedInst.name}
+      subtitle="Ficha Ejecutiva Escolar"
+      sizeClassName="max-w-2xl"
+      footer={
+        <button
+          onClick={onClose}
+          className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition-all cursor-pointer border-none"
+        >
+          Cerrar Ficha
+        </button>
+      }
+    >
+      <div className="space-y-6">
         {/* Pestañas de Navegación Interna */}
-        <div className="flex border-b border-slate-100 bg-slate-50/20 px-6 py-2 gap-2 overflow-x-auto shrink-0">
+        <div className="flex border-b border-slate-100 bg-slate-50/20 px-2 py-1.5 gap-2 overflow-x-auto shrink-0 rounded-xl">
           {tabOptions.map((opt) => {
             const isActive = tab === opt.id;
             return (
               <button
                 key={opt.id}
                 onClick={() => setTab(opt.id)}
-                className={`text-[10px] font-extrabold uppercase px-3 py-1.5 rounded-lg border transition-all duration-200 cursor-pointer whitespace-nowrap ${
+                className={`text-[9px] font-black uppercase px-3 py-1.5 rounded-lg border transition-all duration-200 cursor-pointer whitespace-nowrap ${
                   isActive 
                     ? 'bg-indigo-600 border-indigo-650 text-white shadow-xs' 
                     : 'bg-white border-slate-200 text-slate-500 hover:text-slate-850 hover:bg-slate-50'
@@ -268,9 +255,8 @@ function InstitutionDetailModal({ selectedInst, onClose }: DetailModalProps) {
           })}
         </div>
 
-        {/* Contenido (Scrollable) */}
-        <div className="p-6 overflow-y-auto space-y-6 text-xs leading-normal flex-1">
-          
+        {/* Contenido de la pestaña */}
+        <div className="text-xs leading-normal">
           {tab === 'general' && (
             <div className="space-y-4 font-semibold text-slate-655">
               <div className="bg-slate-50/50 p-4 border border-slate-150 rounded-2xl space-y-3">
@@ -453,17 +439,7 @@ function InstitutionDetailModal({ selectedInst, onClose }: DetailModalProps) {
             </div>
           )}
         </div>
-
-        {/* Footer */}
-        <div className="p-6 border-t border-slate-100 bg-slate-50/40 flex justify-end">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition-all cursor-pointer border-none"
-          >
-            Cerrar Ficha
-          </button>
-        </div>
       </div>
-    </div>
+    </Modal>
   );
 }
