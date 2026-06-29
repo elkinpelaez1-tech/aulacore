@@ -12,7 +12,7 @@ import {
   CheckCircle2, Edit3, Save, X, ExternalLink, ShieldCheck, 
   Layers, Users, Activity, QrCode, HardDrive, BarChart3, 
   TrendingUp, Calendar, Clock, MapPin, Check, Mail, Phone,
-  Info, ArrowRight, ShieldAlert, BadgeInfo, Eye
+  Info, ArrowRight, ShieldAlert, BadgeInfo, Eye, Globe
 } from 'lucide-react';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, 
@@ -842,13 +842,26 @@ export default function SaasConsolePage() {
                             <div>
                               <span className="text-xs font-bold text-slate-850 flex items-center gap-1.5">
                                 {inst.name}
+                                {inst.organization_type === 'secretaria' ? (
+                                  <span className="bg-purple-100 text-purple-800 text-[9px] px-1.5 py-0.5 rounded-md font-extrabold uppercase">
+                                    Secretaría
+                                  </span>
+                                ) : (
+                                  <span className="bg-slate-100 text-slate-700 text-[9px] px-1.5 py-0.5 rounded-md font-extrabold uppercase">
+                                    Colegio
+                                  </span>
+                                )}
                                 {inst.id === '11111111-1111-1111-1111-111111111111' && (
                                   <span className="bg-indigo-100 text-indigo-855 text-[9px] px-1.5 py-0.5 rounded-md font-extrabold uppercase">
                                     Demo V1
                                   </span>
                                 )}
                               </span>
-                              <span className="text-[10px] text-slate-450 block font-semibold mt-0.5">{inst.rector_name || 'Rector No Asignado'}</span>
+                              <span className="text-[10px] text-slate-450 block font-semibold mt-0.5">
+                                {inst.organization_type === 'secretaria'
+                                  ? `${inst.municipality || 'Municipio'}, ${inst.department || 'Departamento'} (${inst.territorial_type || 'Entidad'})`
+                                  : (inst.rector_name || 'Rector No Asignado')}
+                              </span>
                             </div>
                           </div>
                         </TableCell>
@@ -1032,7 +1045,18 @@ export default function SaasConsolePage() {
                     return (
                       <TableRow key={inst.id}>
                         <TableCell className="py-3.5 align-middle">
-                          <span className="text-xs font-bold text-slate-800 block">{inst.name}</span>
+                          <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                            {inst.name}
+                            {inst.organization_type === 'secretaria' ? (
+                              <span className="bg-purple-100 text-purple-800 text-[9px] px-1.5 py-0.5 rounded-md font-extrabold uppercase">
+                                Secretaría
+                              </span>
+                            ) : (
+                              <span className="bg-slate-100 text-slate-700 text-[9px] px-1.5 py-0.5 rounded-md font-extrabold uppercase">
+                                Colegio
+                              </span>
+                            )}
+                          </span>
                           <span className="text-[10px] text-slate-450 block font-semibold">{inst.nit || 'NIT No parametrizado'}</span>
                         </TableCell>
                         <TableCell className="py-3.5 align-middle">
@@ -1052,16 +1076,28 @@ export default function SaasConsolePage() {
                           )}
                         </TableCell>
                         <TableCell className="py-3.5 align-middle">
-                          <span className="text-xs font-bold text-slate-850 block">{metrics.studentsCount} / {limits.maxStudents}</span>
-                          <span className="text-[10px] text-slate-400 block font-semibold">
-                            ({Math.round((metrics.studentsCount / limits.maxStudents) * 100)}% de la cuota)
-                          </span>
+                          {inst.organization_type === 'secretaria' ? (
+                            <span className="text-xs font-bold text-slate-450">No aplica (Territorial)</span>
+                          ) : (
+                            <>
+                              <span className="text-xs font-bold text-slate-850 block">{metrics.studentsCount} / {limits.maxStudents}</span>
+                              <span className="text-[10px] text-slate-400 block font-semibold">
+                                ({limits.maxStudents > 0 ? Math.round((metrics.studentsCount / limits.maxStudents) * 100) : 0}% de la cuota)
+                              </span>
+                            </>
+                          )}
                         </TableCell>
                         <TableCell className="py-3.5 align-middle">
-                          <span className="text-xs font-bold text-slate-850 block">{metrics.teachersCount} / {limits.maxTeachers}</span>
-                          <span className="text-[10px] text-slate-400 block font-semibold">
-                            ({Math.round((metrics.teachersCount / limits.maxTeachers) * 100)}% de la cuota)
-                          </span>
+                          {inst.organization_type === 'secretaria' ? (
+                            <span className="text-xs font-bold text-slate-450">No aplica (Territorial)</span>
+                          ) : (
+                            <>
+                              <span className="text-xs font-bold text-slate-850 block">{metrics.teachersCount} / {limits.maxTeachers}</span>
+                              <span className="text-[10px] text-slate-400 block font-semibold">
+                                ({limits.maxTeachers > 0 ? Math.round((metrics.teachersCount / limits.maxTeachers) * 100) : 0}% de la cuota)
+                              </span>
+                            </>
+                          )}
                         </TableCell>
                         <TableCell className="py-3.5 align-middle">
                           <span className="text-xs font-bold text-slate-805">
@@ -1196,188 +1232,235 @@ export default function SaasConsolePage() {
             {/* Cuerpo del Drawer (Scrollable) */}
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
               {activeTab360 === 'resumen' && (
-                <div className="space-y-6">
-                  {/* Fila de KPIs de Salud y Avance */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <Card className="p-4 border-slate-150 shadow-none flex items-center gap-3 bg-slate-50/10">
-                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
-                        (instMetrics[selectedInst360.id]?.healthStatus === 'excellent') ? 'bg-emerald-50 text-emerald-600' :
-                        (instMetrics[selectedInst360.id]?.healthStatus === 'warning') ? 'bg-amber-50 text-amber-700' : 'bg-rose-50 text-rose-700'
-                      }`}>
-                        <Activity className="w-4 h-4" />
+                selectedInst360.organization_type === 'secretaria' ? (
+                  <div className="space-y-6">
+                    <Card className="p-5 border-indigo-150 bg-indigo-50/20 rounded-2xl text-center space-y-3 shadow-none">
+                      <div className="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto">
+                        <Globe className="w-6 h-6" />
                       </div>
-                      <div>
-                        <span className="text-[10px] font-black text-slate-450 uppercase tracking-wider block">Salud Operativa</span>
-                        <span className="text-base font-black text-slate-800 block mt-0.5">
-                          {instMetrics[selectedInst360.id]?.healthPercent || 0}%
-                        </span>
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-black text-slate-800 uppercase tracking-wider">Entidad Territorial Registrada</h4>
+                        <p className="text-xs font-semibold text-slate-500 max-w-sm mx-auto">
+                          Jurisdicción asignada a la Secretaría de Educación de {selectedInst360.municipality || 'Municipio'} ({selectedInst360.department || 'Departamento'}).
+                        </p>
                       </div>
                     </Card>
 
-                    <Card className="p-4 border-slate-150 shadow-none flex items-center gap-3 bg-slate-50/10">
-                      <div className="w-9 h-9 bg-indigo-50 text-indigo-650 rounded-xl flex items-center justify-center shrink-0">
-                        <Layers className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <span className="text-[10px] font-black text-slate-450 uppercase tracking-wider block">Implementado</span>
-                        <span className="text-base font-black text-slate-800 block mt-0.5">
-                          {instMetrics[selectedInst360.id]?.progressPercent || 0}%
-                        </span>
-                      </div>
-                    </Card>
-                  </div>
-
-                  {/* Resumen Comercial */}
-                  <div className="bg-slate-50/50 p-4 rounded-xl border border-slate-100 space-y-3">
-                    <h4 className="text-xs font-black uppercase tracking-wider text-slate-700">Estado Comercial y Licencia</h4>
-                    <div className="grid grid-cols-3 gap-4 text-xs font-semibold">
-                      <div>
-                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Plan de Licencia</span>
-                        <span className="text-slate-800 mt-1 block font-bold capitalize">
-                          {selectedInst360.plan_type?.replace('_', ' ') || 'Free Trial'}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Suscripción</span>
-                        <span className="text-slate-850 mt-1 block font-bold">
-                          {selectedInst360.subscription_status === 'active' ? '🟢 Activa' : '🔴 Suspendida'}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Vencimiento</span>
-                        <span className="text-slate-800 mt-1 block font-bold">
-                          {selectedInst360.subscription_expires_at ? new Date(selectedInst360.subscription_expires_at).toLocaleDateString() : '2026-12-31'}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Indicadores Académicos y Salud Operativa */}
-                  <div className="border border-slate-200 rounded-2xl p-5 space-y-3.5">
-                    <h4 className="text-xs font-black uppercase tracking-wider text-slate-850">Indicadores Académicos</h4>
-                    <div className="grid grid-cols-3 gap-2 text-center">
-                      <div className="p-3 bg-slate-50/30 rounded-xl border border-slate-100">
-                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Promedio General</span>
-                        <span className="text-base font-black text-slate-855 mt-1 block">
-                          {instMetrics[selectedInst360.id]?.averageGrade || 'N/A'}
-                        </span>
-                      </div>
-                      <div className="p-3 bg-slate-50/30 rounded-xl border border-slate-100">
-                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Calificaciones</span>
-                        <span className="text-base font-black text-slate-855 mt-1 block">
-                          {instMetrics[selectedInst360.id]?.gradesCount || 0}
-                        </span>
-                      </div>
-                      <div className="p-3 bg-slate-50/30 rounded-xl border border-slate-100">
-                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Asistencias</span>
-                        <span className="text-base font-black text-slate-855 mt-1 block">
-                          {instMetrics[selectedInst360.id]?.attendanceCount || 0}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Población Estudiantil y Usuarios Activos */}
-                  <div className="border border-slate-200 rounded-2xl p-5 space-y-3.5">
-                    <h4 className="text-xs font-black uppercase tracking-wider text-slate-855">Usuarios Activos por Rol</h4>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
-                      <div className="p-2.5 bg-slate-50/20 rounded-xl border border-slate-100">
-                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Alumnos</span>
-                        <span className="text-sm font-black text-slate-800 mt-1 block">{instMetrics[selectedInst360.id]?.studentsCount || 0}</span>
-                      </div>
-                      <div className="p-2.5 bg-slate-50/20 rounded-xl border border-slate-100">
-                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Docentes</span>
-                        <span className="text-sm font-black text-slate-800 mt-1 block">{instMetrics[selectedInst360.id]?.teachersCount || 0}</span>
-                      </div>
-                      <div className="p-2.5 bg-slate-50/20 rounded-xl border border-slate-100">
-                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Padres</span>
-                        <span className="text-sm font-black text-slate-800 mt-1 block">{instMetrics[selectedInst360.id]?.parentsCount || 0}</span>
-                      </div>
-                      <div className="p-2.5 bg-slate-50/20 rounded-xl border border-slate-100">
-                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Staff</span>
-                        <span className="text-sm font-black text-slate-800 mt-1 block">
-                          {(instMetrics[selectedInst360.id]?.coordinatorsCount || 0) + (instMetrics[selectedInst360.id]?.secretariesCount || 0) + 1}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Actividad Reciente (30 días) */}
-                  <div className="bg-indigo-50/30 p-4 rounded-xl border border-indigo-100/50 space-y-2.5">
-                    <h4 className="text-xs font-black uppercase tracking-wider text-indigo-900">Actividad Reciente (Últimos 30 días)</h4>
-                    <div className="grid grid-cols-2 gap-4 text-xs font-semibold text-slate-700">
-                      <div className="flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-505 shrink-0" />
-                        <span>Evaluaciones Procesadas IA:</span>
-                        <strong className="text-indigo-855 font-black">+{instMetrics[selectedInst360.id]?.recentGradesCount || 0}</strong>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 rounded-full bg-blue-505 shrink-0" />
-                        <span>Asistencias Registradas:</span>
-                        <strong className="text-blue-855 font-black">+{instMetrics[selectedInst360.id]?.recentAttendanceCount || 0}</strong>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Alertas Críticas */}
-                  <div className="space-y-2">
-                    <h4 className="text-xs font-black uppercase tracking-wider text-slate-855">Alertas Críticas Activas</h4>
-                    {instMetrics[selectedInst360.id]?.activeAlerts > 0 ? (
-                      <div className="bg-rose-50/40 border border-rose-200 p-4 rounded-xl flex gap-3 text-rose-800 items-start">
-                        <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5 text-rose-600 animate-bounce" />
-                        <div className="text-xs">
-                          <span className="font-bold">Requiere Intervención</span>
-                          <p className="font-semibold text-rose-700 mt-1">
-                            El colegio reporta {instMetrics[selectedInst360.id]?.activeAlerts} alertas predictivas de riesgo escolar/deserción activas sin resolver en el periodo.
-                          </p>
+                    <div className="bg-slate-50/50 p-4 rounded-xl border border-slate-100 space-y-3">
+                      <h4 className="text-xs font-black uppercase tracking-wider text-slate-700">Estado Comercial y Licencia</h4>
+                      <div className="grid grid-cols-3 gap-4 text-xs font-semibold">
+                        <div>
+                          <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Plan Activo</span>
+                          <span className="text-slate-800 mt-1 block font-bold capitalize">
+                            {selectedInst360.plan_type?.replace('_', ' ') || 'Free Trial'}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Suscripción</span>
+                          <span className="text-slate-850 mt-1 block font-bold">
+                            {selectedInst360.subscription_status === 'active' ? '🟢 Activa' : '🔴 Suspendida'}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Vencimiento</span>
+                          <span className="text-slate-800 mt-1 block font-bold">
+                            {selectedInst360.subscription_expires_at ? new Date(selectedInst360.subscription_expires_at).toLocaleDateString() : '2026-12-31'}
+                          </span>
                         </div>
                       </div>
-                    ) : (
-                      <div className="bg-emerald-50/40 border border-emerald-250 p-4 rounded-xl flex gap-3 text-emerald-800 items-start">
-                        <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
-                        <div className="text-xs">
-                          <span className="font-bold">Sin alertas críticas</span>
-                          <p className="font-semibold text-emerald-700 mt-0.5">La institución no reporta incidencias críticas o riesgos escolares sin atender.</p>
+                    </div>
+
+                    <div className="border border-slate-200 rounded-2xl p-5 text-center bg-slate-50/10 space-y-2">
+                      <h4 className="text-xs font-black uppercase tracking-wider text-slate-850">Panel Ejecutivo Territorial</h4>
+                      <p className="text-xs font-semibold text-slate-450 leading-relaxed max-w-md mx-auto">
+                        Las analíticas agregadas de cobertura, calidad académica y ausentismo de las instituciones bajo esta jurisdicción se habilitarán en la siguiente etapa del desarrollo.
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    {/* Fila de KPIs de Salud y Avance */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <Card className="p-4 border-slate-150 shadow-none flex items-center gap-3 bg-slate-50/10">
+                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                          (instMetrics[selectedInst360.id]?.healthStatus === 'excellent') ? 'bg-emerald-50 text-emerald-600' :
+                          (instMetrics[selectedInst360.id]?.healthStatus === 'warning') ? 'bg-amber-50 text-amber-700' : 'bg-rose-50 text-rose-700'
+                        }`}>
+                          <Activity className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <span className="text-[10px] font-black text-slate-455 uppercase tracking-wider block">Salud Operativa</span>
+                          <span className="text-base font-black text-slate-800 block mt-0.5">
+                            {instMetrics[selectedInst360.id]?.healthPercent || 0}%
+                          </span>
+                        </div>
+                      </Card>
+
+                      <Card className="p-4 border-slate-150 shadow-none flex items-center gap-3 bg-slate-50/10">
+                        <div className="w-9 h-9 bg-indigo-50 text-indigo-655 rounded-xl flex items-center justify-center shrink-0">
+                          <Layers className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <span className="text-[10px] font-black text-slate-455 uppercase tracking-wider block">Implementado</span>
+                          <span className="text-base font-black text-slate-800 block mt-0.5">
+                            {instMetrics[selectedInst360.id]?.progressPercent || 0}%
+                          </span>
+                        </div>
+                      </Card>
+                    </div>
+
+                    {/* Resumen Comercial */}
+                    <div className="bg-slate-50/50 p-4 rounded-xl border border-slate-100 space-y-3">
+                      <h4 className="text-xs font-black uppercase tracking-wider text-slate-700">Estado Comercial y Licencia</h4>
+                      <div className="grid grid-cols-3 gap-4 text-xs font-semibold">
+                        <div>
+                          <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Plan de Licencia</span>
+                          <span className="text-slate-800 mt-1 block font-bold capitalize">
+                            {selectedInst360.plan_type?.replace('_', ' ') || 'Free Trial'}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Suscripción</span>
+                          <span className="text-slate-850 mt-1 block font-bold">
+                            {selectedInst360.subscription_status === 'active' ? '🟢 Activa' : '🔴 Suspendida'}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Vencimiento</span>
+                          <span className="text-slate-800 mt-1 block font-bold">
+                            {selectedInst360.subscription_expires_at ? new Date(selectedInst360.subscription_expires_at).toLocaleDateString() : '2026-12-31'}
+                          </span>
                         </div>
                       </div>
-                    )}
-                  </div>
+                    </div>
 
-                  {/* Próximas Tareas Recomendadas */}
-                  <div className="space-y-2.5">
-                    <h4 className="text-xs font-black uppercase tracking-wider text-slate-855">Próximas Tareas Recomendadas (IA Motor)</h4>
+                    {/* Indicadores Académicos y Salud Operativa */}
+                    <div className="border border-slate-200 rounded-2xl p-5 space-y-3.5">
+                      <h4 className="text-xs font-black uppercase tracking-wider text-slate-850">Indicadores Académicos</h4>
+                      <div className="grid grid-cols-3 gap-2 text-center">
+                        <div className="p-3 bg-slate-50/30 rounded-xl border border-slate-100">
+                          <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Promedio General</span>
+                          <span className="text-base font-black text-slate-855 mt-1 block">
+                            {instMetrics[selectedInst360.id]?.averageGrade || 'N/A'}
+                          </span>
+                        </div>
+                        <div className="p-3 bg-slate-50/30 rounded-xl border border-slate-100">
+                          <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Calificaciones</span>
+                          <span className="text-base font-black text-slate-855 mt-1 block">
+                            {instMetrics[selectedInst360.id]?.gradesCount || 0}
+                          </span>
+                        </div>
+                        <div className="p-3 bg-slate-50/30 rounded-xl border border-slate-100">
+                          <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Asistencias</span>
+                          <span className="text-base font-black text-slate-855 mt-1 block">
+                            {instMetrics[selectedInst360.id]?.attendanceCount || 0}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Población Estudiantil y Usuarios Activos */}
+                    <div className="border border-slate-200 rounded-2xl p-5 space-y-3.5">
+                      <h4 className="text-xs font-black uppercase tracking-wider text-slate-855">Usuarios Activos por Rol</h4>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
+                        <div className="p-2.5 bg-slate-50/20 rounded-xl border border-slate-100">
+                          <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Alumnos</span>
+                          <span className="text-sm font-black text-slate-800 mt-1 block">{instMetrics[selectedInst360.id]?.studentsCount || 0}</span>
+                        </div>
+                        <div className="p-2.5 bg-slate-50/20 rounded-xl border border-slate-100">
+                          <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Docentes</span>
+                          <span className="text-sm font-black text-slate-800 mt-1 block">{instMetrics[selectedInst360.id]?.teachersCount || 0}</span>
+                        </div>
+                        <div className="p-2.5 bg-slate-50/20 rounded-xl border border-slate-100">
+                          <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Padres</span>
+                          <span className="text-sm font-black text-slate-800 mt-1 block">{instMetrics[selectedInst360.id]?.parentsCount || 0}</span>
+                        </div>
+                        <div className="p-2.5 bg-slate-50/20 rounded-xl border border-slate-100">
+                          <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Staff</span>
+                          <span className="text-sm font-black text-slate-800 mt-1 block">
+                            {(instMetrics[selectedInst360.id]?.coordinatorsCount || 0) + (instMetrics[selectedInst360.id]?.secretariesCount || 0) + 1}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Actividad Reciente (30 días) */}
+                    <div className="bg-indigo-50/30 p-4 rounded-xl border border-indigo-100/50 space-y-2.5">
+                      <h4 className="text-xs font-black uppercase tracking-wider text-indigo-900">Actividad Reciente (Últimos 30 días)</h4>
+                      <div className="grid grid-cols-2 gap-4 text-xs font-semibold text-slate-700">
+                        <div className="flex items-center gap-2">
+                          <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0" />
+                          <span>Evaluaciones Procesadas IA:</span>
+                          <strong className="text-indigo-855 font-black">+{instMetrics[selectedInst360.id]?.recentGradesCount || 0}</strong>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
+                          <span>Asistencias Registradas:</span>
+                          <strong className="text-blue-855 font-black">+{instMetrics[selectedInst360.id]?.recentAttendanceCount || 0}</strong>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Alertas Críticas */}
                     <div className="space-y-2">
-                      {instMetrics[selectedInst360.id]?.progressPercent < 50 ? (
-                        <div className="p-3 border border-slate-200 rounded-xl bg-white flex justify-between items-center">
-                          <span className="text-xs font-bold text-slate-800">1. Completar Parametrización Académica</span>
-                          <span className="text-[10px] font-black uppercase text-indigo-650 font-extrabold animate-pulse">Alta Prioridad</span>
+                      <h4 className="text-xs font-black uppercase tracking-wider text-slate-855">Alertas Críticas Activas</h4>
+                      {instMetrics[selectedInst360.id]?.activeAlerts > 0 ? (
+                        <div className="bg-rose-50/40 border border-rose-200 p-4 rounded-xl flex gap-3 text-rose-800 items-start">
+                          <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5 text-rose-600 animate-bounce" />
+                          <div className="text-xs">
+                            <span className="font-bold">Requiere Intervención</span>
+                            <p className="font-semibold text-rose-700 mt-1">
+                              El colegio reporta {instMetrics[selectedInst360.id]?.activeAlerts} alertas predictivas de riesgo escolar/deserción activas sin resolver en el periodo.
+                            </p>
+                          </div>
                         </div>
-                      ) : null}
-                      {instMetrics[selectedInst360.id]?.studentsCount === 0 ? (
-                        <div className="p-3 border border-slate-200 rounded-xl bg-white flex justify-between items-center">
-                          <span className="text-xs font-bold text-slate-800">1. Realizar Importación de Estudiantes (.xlsx)</span>
-                          <span className="text-[10px] font-black uppercase text-rose-650 font-extrabold">Prioridad Crítica</span>
+                      ) : (
+                        <div className="bg-emerald-50/40 border border-emerald-250 p-4 rounded-xl flex gap-3 text-emerald-800 items-start">
+                          <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
+                          <div className="text-xs">
+                            <span className="font-bold">Sin alertas críticas</span>
+                            <p className="font-semibold text-emerald-700 mt-0.5">La institución no reporta incidencias críticas o riesgos escolares sin atender.</p>
+                          </div>
                         </div>
-                      ) : null}
-                      {instMetrics[selectedInst360.id]?.teachersCount > 0 && !selectedInst360.active_modules?.includes('rfid') ? (
+                      )}
+                    </div>
+
+                    {/* Próximas Tareas Recomendadas */}
+                    <div className="space-y-2.5">
+                      <h4 className="text-xs font-black uppercase tracking-wider text-slate-855">Próximas Tareas Recomendadas (IA Motor)</h4>
+                      <div className="space-y-2">
+                        {instMetrics[selectedInst360.id]?.progressPercent < 50 ? (
+                          <div className="p-3 border border-slate-200 rounded-xl bg-white flex justify-between items-center">
+                            <span className="text-xs font-bold text-slate-800">1. Completar Parametrización Académica</span>
+                            <span className="text-[10px] font-black uppercase text-indigo-650 font-extrabold animate-pulse">Alta Prioridad</span>
+                          </div>
+                        ) : null}
+                        {instMetrics[selectedInst360.id]?.studentsCount === 0 ? (
+                          <div className="p-3 border border-slate-200 rounded-xl bg-white flex justify-between items-center">
+                            <span className="text-xs font-bold text-slate-800">1. Realizar Importación de Estudiantes (.xlsx)</span>
+                            <span className="text-[10px] font-black uppercase text-rose-650 font-extrabold">Prioridad Crítica</span>
+                          </div>
+                        ) : null}
+                        {instMetrics[selectedInst360.id]?.teachersCount > 0 && !selectedInst360.active_modules?.includes('rfid') ? (
+                          <div className="p-3 border border-slate-200 rounded-xl bg-white flex justify-between items-center">
+                            <span className="text-xs font-bold text-slate-800">1. Ofrecer Módulo RFID (Upsell)</span>
+                            <span className="text-[10px] font-black uppercase text-amber-650 font-extrabold">Oportunidad Comercial</span>
+                          </div>
+                        ) : null}
+                        {instMetrics[selectedInst360.id]?.progressPercent >= 80 && instMetrics[selectedInst360.id]?.progressPercent < 100 ? (
+                          <div className="p-3 border border-slate-200 rounded-xl bg-white flex justify-between items-center">
+                            <span className="text-xs font-bold text-slate-800">1. Planificar Capacitación de Padres y Docentes</span>
+                            <span className="text-[10px] font-black uppercase text-indigo-500">Siguiente Etapa</span>
+                          </div>
+                        ) : null}
                         <div className="p-3 border border-slate-200 rounded-xl bg-white flex justify-between items-center">
-                          <span className="text-xs font-bold text-slate-800">1. Ofrecer Módulo RFID (Upsell)</span>
-                          <span className="text-[10px] font-black uppercase text-amber-650 font-extrabold">Oportunidad Comercial</span>
+                          <span className="text-xs font-bold text-slate-655">Monitorear logs de Auditoría Semanales</span>
+                          <span className="text-[10px] text-slate-400 font-bold">Mantenimiento</span>
                         </div>
-                      ) : null}
-                      {instMetrics[selectedInst360.id]?.progressPercent >= 80 && instMetrics[selectedInst360.id]?.progressPercent < 100 ? (
-                        <div className="p-3 border border-slate-200 rounded-xl bg-white flex justify-between items-center">
-                          <span className="text-xs font-bold text-slate-800">1. Planificar Capacitación de Padres y Docentes</span>
-                          <span className="text-[10px] font-black uppercase text-indigo-500">Siguiente Etapa</span>
-                        </div>
-                      ) : null}
-                      <div className="p-3 border border-slate-200 rounded-xl bg-white flex justify-between items-center">
-                        <span className="text-xs font-bold text-slate-655">Monitorear logs de Auditoría Semanales</span>
-                        <span className="text-[10px] text-slate-400 font-bold">Mantenimiento</span>
                       </div>
                     </div>
                   </div>
-                </div>
+                )
               )}
 
               {/* --- DRAWER TAB: DATOS GENERALES (LEGAL / BRANDING) --- */}
@@ -1385,25 +1468,50 @@ export default function SaasConsolePage() {
                 <div className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-semibold">
                     <div className="space-y-1">
-                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">NIT</span>
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">NIT de la Entidad</span>
                       <span className="text-slate-800 font-bold block">{selectedInst360.nit || 'NIT No parametrizado'}</span>
                     </div>
-                    <div className="space-y-1">
-                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Código DANE</span>
-                      <span className="text-slate-800 font-bold block">{selectedInst360.dane_code || 'N/A'}</span>
-                    </div>
-                    <div className="space-y-1 md:col-span-2">
-                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Resolución de Funcionamiento</span>
-                      <span className="text-slate-800 font-bold block">{selectedInst360.resolution || 'No especificada'}</span>
-                    </div>
-                    <div className="space-y-1">
-                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Rector</span>
-                      <span className="text-slate-800 font-bold block">{selectedInst360.rector_name || 'No especificado'}</span>
-                    </div>
-                    <div className="space-y-1">
-                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Secretario Académico</span>
-                      <span className="text-slate-800 font-bold block">{selectedInst360.secretary_name || 'No especificado'}</span>
-                    </div>
+                    {selectedInst360.organization_type === 'secretaria' ? (
+                      <>
+                        <div className="space-y-1">
+                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Departamento</span>
+                          <span className="text-slate-800 font-bold block">{selectedInst360.department || 'No especificado'}</span>
+                        </div>
+                        <div className="space-y-1">
+                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Municipio</span>
+                          <span className="text-slate-800 font-bold block">{selectedInst360.municipality || 'No especificado'}</span>
+                        </div>
+                        <div className="space-y-1 md:col-span-2">
+                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Tipo de Entidad Territorial</span>
+                          <span className="text-slate-800 font-bold block">{selectedInst360.territorial_type || 'No especificado'}</span>
+                        </div>
+                        {selectedInst360.dane_code && (
+                          <div className="space-y-1">
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Código DANE</span>
+                            <span className="text-slate-800 font-bold block">{selectedInst360.dane_code}</span>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        <div className="space-y-1">
+                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Código DANE</span>
+                          <span className="text-slate-800 font-bold block">{selectedInst360.dane_code || 'N/A'}</span>
+                        </div>
+                        <div className="space-y-1 md:col-span-2">
+                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Resolución de Funcionamiento</span>
+                          <span className="text-slate-800 font-bold block">{selectedInst360.resolution || 'No especificada'}</span>
+                        </div>
+                        <div className="space-y-1">
+                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Rector</span>
+                          <span className="text-slate-800 font-bold block">{selectedInst360.rector_name || 'No especificado'}</span>
+                        </div>
+                        <div className="space-y-1">
+                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Secretario Académico</span>
+                          <span className="text-slate-800 font-bold block">{selectedInst360.secretary_name || 'No especificado'}</span>
+                        </div>
+                      </>
+                    )}
                   </div>
 
                   <div className="border-t border-slate-100 pt-5 space-y-3">
@@ -1443,32 +1551,38 @@ export default function SaasConsolePage() {
                   {/* Consumo de cuotas */}
                   <div className="space-y-4 pt-4 border-t border-slate-100">
                     <h4 className="text-xs font-black uppercase tracking-wider text-slate-850">Límites y Consumos Estimados</h4>
-                    <div className="space-y-3.5 text-xs font-semibold">
-                      <div className="space-y-1.5">
-                        <div className="flex justify-between font-bold text-slate-700">
-                          <span>Cuota de Estudiantes</span>
-                          <span>{instMetrics[selectedInst360.id]?.studentsCount} / {getLimitsByPlan(selectedInst360.plan_type).maxStudents} Alumnos</span>
+                    {selectedInst360.organization_type === 'secretaria' ? (
+                      <div className="bg-slate-50/50 p-4 rounded-xl border border-slate-100 text-xs text-slate-500 font-semibold leading-relaxed">
+                        Las Secretarías de Educación operan bajo un modelo de licenciamiento territorial. El consumo de cuotas de almacenamiento y perfiles se calcula de forma agregada a partir de los colegios asociados a su jurisdicción en la siguiente etapa del desarrollo.
+                      </div>
+                    ) : (
+                      <div className="space-y-3.5 text-xs font-semibold">
+                        <div className="space-y-1.5">
+                          <div className="flex justify-between font-bold text-slate-700">
+                            <span>Cuota de Estudiantes</span>
+                            <span>{instMetrics[selectedInst360.id]?.studentsCount} / {getLimitsByPlan(selectedInst360.plan_type).maxStudents} Alumnos</span>
+                          </div>
+                          <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                            <div 
+                              className="bg-indigo-650 h-full rounded-full"
+                              style={{ width: `${Math.round((instMetrics[selectedInst360.id]?.studentsCount / getLimitsByPlan(selectedInst360.plan_type).maxStudents) * 100)}%` }}
+                            />
+                          </div>
                         </div>
-                        <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                          <div 
-                            className="bg-indigo-650 h-full rounded-full"
-                            style={{ width: `${Math.round((instMetrics[selectedInst360.id]?.studentsCount / getLimitsByPlan(selectedInst360.plan_type).maxStudents) * 100)}%` }}
-                          />
+                        <div className="space-y-1.5">
+                          <div className="flex justify-between font-bold text-slate-700">
+                            <span>Cuota de Docentes</span>
+                            <span>{instMetrics[selectedInst360.id]?.teachersCount} / {getLimitsByPlan(selectedInst360.plan_type).maxTeachers} Profesores</span>
+                          </div>
+                          <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                            <div 
+                              className="bg-indigo-650 h-full rounded-full"
+                              style={{ width: `${Math.round((instMetrics[selectedInst360.id]?.teachersCount / getLimitsByPlan(selectedInst360.plan_type).maxTeachers) * 100)}%` }}
+                            />
+                          </div>
                         </div>
                       </div>
-                      <div className="space-y-1.5">
-                        <div className="flex justify-between font-bold text-slate-700">
-                          <span>Cuota de Docentes</span>
-                          <span>{instMetrics[selectedInst360.id]?.teachersCount} / {getLimitsByPlan(selectedInst360.plan_type).maxTeachers} Profesores</span>
-                        </div>
-                        <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                          <div 
-                            className="bg-indigo-650 h-full rounded-full"
-                            style={{ width: `${Math.round((instMetrics[selectedInst360.id]?.teachersCount / getLimitsByPlan(selectedInst360.plan_type).maxTeachers) * 100)}%` }}
-                          />
-                        </div>
-                      </div>
-                    </div>
+                    )}
                   </div>
 
                   <div className="border-t border-slate-100 pt-5 space-y-3">

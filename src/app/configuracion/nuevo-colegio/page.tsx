@@ -35,6 +35,12 @@ export default function NuevoColegioPage() {
   const [activeModules, setActiveModules] = useState<string[]>(['onboarding']);
   const [logoUrl, setLogoUrl] = useState('');
 
+  // Territorial and Hierarchical States (Fase 1)
+  const [orgType, setOrgType] = useState<'school' | 'secretaria'>('school');
+  const [department, setDepartment] = useState('');
+  const [municipality, setMunicipality] = useState('');
+  const [territorialType, setTerritorialType] = useState('Municipal Certificada');
+
   // Access Control check
   const isSuperAdmin = (roles as string[])?.includes('super_admin') || false;
 
@@ -61,7 +67,7 @@ export default function NuevoColegioPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !slug) {
-      setError('El nombre y el slug de la institución son obligatorios.');
+      setError('El nombre y el slug de la organización son obligatorios.');
       return;
     }
 
@@ -69,23 +75,27 @@ export default function NuevoColegioPage() {
     setError(null);
 
     try {
-      // 1. Insert new institution
-      const newInst = {
+      // 1. Insert new organization
+      const newInst: any = {
         name,
         slug,
-        slogan,
+        slogan: orgType === 'school' ? slogan : 'Secretaría de Educación Territorial',
         nit: nit || null,
         dane_code: daneCode || null,
-        resolution: resolution || null,
-        legal_nature: legalNature,
-        rector_name: rectorName || null,
-        secretary_name: secretaryName || null,
+        resolution: orgType === 'school' ? resolution || null : null,
+        legal_nature: orgType === 'school' ? legalNature : 'Pública',
+        rector_name: orgType === 'school' ? rectorName || null : null,
+        secretary_name: orgType === 'school' ? secretaryName || null : null,
         primary_color: primaryColor,
         sidebar_color: sidebarColor,
         plan_type: planType,
         subscription_status: 'active',
         active_modules: activeModules,
-        logo_url: logoUrl || null
+        logo_url: logoUrl || null,
+        organization_type: orgType,
+        department: orgType === 'secretaria' ? department || null : null,
+        municipality: orgType === 'secretaria' ? municipality || null : null,
+        territorial_type: orgType === 'secretaria' ? territorialType || null : null
       };
 
       const { data: instData, error: instError } = await supabase
@@ -95,12 +105,26 @@ export default function NuevoColegioPage() {
         .single();
 
       if (instError || !instData) {
-        throw new Error(instError?.message || 'Error al guardar la institución.');
+        throw new Error(instError?.message || 'Error al guardar la organización.');
       }
 
       const newInstId = instData.id;
 
-      // 2. Insert Default Academic Settings
+      // Si es de tipo "secretaria", finalizamos exitosamente aquí omitiendo periodos y años académicos
+      if (orgType === 'secretaria') {
+        setSuccess(true);
+        setName('');
+        setSlug('');
+        setNit('');
+        setDaneCode('');
+        setResolution('');
+        setDepartment('');
+        setMunicipality('');
+        setLoading(false);
+        return;
+      }
+
+      // 2. Insert Default Academic Settings (solo para colegios)
       const { error: settingsError } = await supabase
         .from('institution_academic_settings')
         .insert([{
@@ -161,7 +185,7 @@ export default function NuevoColegioPage() {
       setResolution('');
     } catch (err: any) {
       console.error(err);
-      setError(err.message || 'Ocurrió un error inesperado al aprovisionar el colegio.');
+      setError(err.message || 'Ocurrió un error inesperado al aprovisionar la organización.');
     } finally {
       setLoading(false);
     }
@@ -249,6 +273,38 @@ export default function NuevoColegioPage() {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Selector de Tipo de Organización */}
+        <Card className="border-slate-200 shadow-sm rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50/50">
+          <div>
+            <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">Tipo de Organización a Crear</h3>
+            <p className="text-[10px] text-slate-500 font-semibold mt-0.5">Defina si el nuevo tenant será un colegio independiente o una entidad territorial gubernamental.</p>
+          </div>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setOrgType('school')}
+              className={`px-4 py-2 text-xs font-bold rounded-xl border transition-all duration-200 cursor-pointer ${
+                orgType === 'school'
+                  ? 'bg-indigo-600 border-indigo-650 text-white shadow-sm'
+                  : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+              }`}
+            >
+              Institución Educativa (Colegio)
+            </button>
+            <button
+              type="button"
+              onClick={() => setOrgType('secretaria')}
+              className={`px-4 py-2 text-xs font-bold rounded-xl border transition-all duration-200 cursor-pointer ${
+                orgType === 'secretaria'
+                  ? 'bg-indigo-600 border-indigo-650 text-white shadow-sm'
+                  : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+              }`}
+            >
+              Secretaría de Educación
+            </button>
+          </div>
+        </Card>
+
         {/* Sección 1: Datos de Registro y Firma */}
         <Card className="border-slate-200 shadow-sm rounded-2xl">
           <CardHeader className="border-b border-slate-100 py-4.5 bg-slate-50/30">
@@ -257,105 +313,190 @@ export default function NuevoColegioPage() {
               1. Identidad Legal y Registros Oficiales
             </CardTitle>
             <CardDescription className="text-xs font-semibold text-slate-500">
-              Complete los nombres legales e identificadores gubernamentales del plantel.
+              {orgType === 'school' 
+                ? 'Complete los nombres legales e identificadores gubernamentales del plantel.' 
+                : 'Complete la ubicación y datos de la entidad territorial gubernamental.'}
             </CardDescription>
           </CardHeader>
-          <CardContent className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700">Nombre de la Institución *</label>
-              <input 
-                type="text" 
-                value={name} 
-                onChange={handleNameChange} 
-                required 
-                placeholder="Ej. Gimnasio Campestre AulaCore"
-                className="w-full text-xs font-semibold text-slate-850 px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700">Slug (Autogenerado) *</label>
-              <input 
-                type="text" 
-                value={slug} 
-                onChange={(e) => setSlug(e.target.value)} 
-                required 
-                placeholder="ej-colegio-campestre-aulacore"
-                className="w-full text-xs font-semibold text-slate-850 px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700">Eslogan Institucional</label>
-              <input 
-                type="text" 
-                value={slogan} 
-                onChange={(e) => setSlogan(e.target.value)} 
-                placeholder="Ej. Liderazgo y Ciencia para el Futuro"
-                className="w-full text-xs font-semibold text-slate-850 px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700">Naturaleza Jurídica</label>
-              <select 
-                value={legalNature} 
-                onChange={(e) => setLegalNature(e.target.value)} 
-                className="w-full text-xs font-semibold text-slate-850 px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none"
-              >
-                <option value="Privada">Privada (Colegio Privado)</option>
-                <option value="Pública">Pública (I.E. Oficial)</option>
-                <option value="Cooperativa">Cooperativa</option>
-              </select>
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700">NIT de la Institución</label>
-              <input 
-                type="text" 
-                value={nit} 
-                onChange={(e) => setNit(e.target.value)} 
-                placeholder="Ej. 900.123.456-7"
-                className="w-full text-xs font-semibold text-slate-850 px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700">Código DANE Oficial</label>
-              <input 
-                type="text" 
-                value={daneCode} 
-                onChange={(e) => setDaneCode(e.target.value)} 
-                placeholder="Ej. 111001012345"
-                className="w-full text-xs font-semibold text-slate-850 px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none"
-              />
-            </div>
-            <div className="space-y-1.5 md:col-span-2">
-              <label className="text-xs font-bold text-slate-700">Resolución de Funcionamiento</label>
-              <input 
-                type="text" 
-                value={resolution} 
-                onChange={(e) => setResolution(e.target.value)} 
-                placeholder="Ej. Resolución 1234 del 12 de Octubre de 2022 - MinEducación"
-                className="w-full text-xs font-semibold text-slate-850 px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700">Nombre del Rector(a)</label>
-              <input 
-                type="text" 
-                value={rectorName} 
-                onChange={(e) => setRectorName(e.target.value)} 
-                placeholder="Ej. Dra. Mariana Restrepo"
-                className="w-full text-xs font-semibold text-slate-850 px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700">Nombre del Secretario(a) Académico</label>
-              <input 
-                type="text" 
-                value={secretaryName} 
-                onChange={(e) => setSecretaryName(e.target.value)} 
-                placeholder="Ej. Dr. Carlos Mario Hoyos"
-                className="w-full text-xs font-semibold text-slate-850 px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none"
-              />
-            </div>
-          </CardContent>
+          
+          {orgType === 'school' ? (
+            <CardContent className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700">Nombre de la Institución *</label>
+                <input 
+                  type="text" 
+                  value={name} 
+                  onChange={handleNameChange} 
+                  required 
+                  placeholder="Ej. Gimnasio Campestre AulaCore"
+                  className="w-full text-xs font-semibold text-slate-850 px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700">Slug (Autogenerado) *</label>
+                <input 
+                  type="text" 
+                  value={slug} 
+                  onChange={(e) => setSlug(e.target.value)} 
+                  required 
+                  placeholder="ej-colegio-campestre-aulacore"
+                  className="w-full text-xs font-semibold text-slate-850 px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700">Eslogan Institucional</label>
+                <input 
+                  type="text" 
+                  value={slogan} 
+                  onChange={(e) => setSlogan(e.target.value)} 
+                  placeholder="Ej. Liderazgo y Ciencia para el Futuro"
+                  className="w-full text-xs font-semibold text-slate-850 px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700">Naturaleza Jurídica</label>
+                <select 
+                  value={legalNature} 
+                  onChange={(e) => setLegalNature(e.target.value)} 
+                  className="w-full text-xs font-semibold text-slate-850 px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none"
+                >
+                  <option value="Privada">Privada (Colegio Privado)</option>
+                  <option value="Pública">Pública (I.E. Oficial)</option>
+                  <option value="Cooperativa">Cooperativa</option>
+                </select>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700">NIT de la Institución</label>
+                <input 
+                  type="text" 
+                  value={nit} 
+                  onChange={(e) => setNit(e.target.value)} 
+                  placeholder="Ej. 900.123.456-7"
+                  className="w-full text-xs font-semibold text-slate-850 px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700">Código DANE Oficial</label>
+                <input 
+                  type="text" 
+                  value={daneCode} 
+                  onChange={(e) => setDaneCode(e.target.value)} 
+                  placeholder="Ej. 111001012345"
+                  className="w-full text-xs font-semibold text-slate-850 px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none"
+                />
+              </div>
+              <div className="space-y-1.5 md:col-span-2">
+                <label className="text-xs font-bold text-slate-700">Resolución de Funcionamiento</label>
+                <input 
+                  type="text" 
+                  value={resolution} 
+                  onChange={(e) => setResolution(e.target.value)} 
+                  placeholder="Ej. Resolución 1234 del 12 de Octubre de 2022 - MinEducación"
+                  className="w-full text-xs font-semibold text-slate-850 px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700">Nombre del Rector(a)</label>
+                <input 
+                  type="text" 
+                  value={rectorName} 
+                  onChange={(e) => setRectorName(e.target.value)} 
+                  placeholder="Ej. Dra. Mariana Restrepo"
+                  className="w-full text-xs font-semibold text-slate-850 px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700">Nombre del Secretario(a) Académico</label>
+                <input 
+                  type="text" 
+                  value={secretaryName} 
+                  onChange={(e) => setSecretaryName(e.target.value)} 
+                  placeholder="Ej. Dr. Carlos Mario Hoyos"
+                  className="w-full text-xs font-semibold text-slate-850 px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none"
+                />
+              </div>
+            </CardContent>
+          ) : (
+            <CardContent className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700">Nombre de la Secretaría de Educación *</label>
+                <input 
+                  type="text" 
+                  value={name} 
+                  onChange={handleNameChange} 
+                  required 
+                  placeholder="Ej. Secretaría de Educación de Medellín"
+                  className="w-full text-xs font-semibold text-slate-850 px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700">Slug (Autogenerado) *</label>
+                <input 
+                  type="text" 
+                  value={slug} 
+                  onChange={(e) => setSlug(e.target.value)} 
+                  required 
+                  placeholder="ej-secretaria-de-educacion-de-medellin"
+                  className="w-full text-xs font-semibold text-slate-850 px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700">Departamento *</label>
+                <input 
+                  type="text" 
+                  value={department} 
+                  onChange={(e) => setDepartment(e.target.value)} 
+                  required
+                  placeholder="Ej. Antioquia"
+                  className="w-full text-xs font-semibold text-slate-850 px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700">Municipio *</label>
+                <input 
+                  type="text" 
+                  value={municipality} 
+                  onChange={(e) => setMunicipality(e.target.value)} 
+                  required
+                  placeholder="Ej. Medellín"
+                  className="w-full text-xs font-semibold text-slate-850 px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700">Tipo de Entidad Territorial *</label>
+                <select 
+                  value={territorialType} 
+                  onChange={(e) => setTerritorialType(e.target.value)} 
+                  className="w-full text-xs font-semibold text-slate-850 px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none"
+                >
+                  <option value="Municipal Certificada">Municipal Certificada</option>
+                  <option value="Municipal No Certificada">Municipal No Certificada</option>
+                  <option value="Departamental">Departamental</option>
+                  <option value="Distrital">Distrital</option>
+                </select>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700">NIT de la Entidad</label>
+                <input 
+                  type="text" 
+                  value={nit} 
+                  onChange={(e) => setNit(e.target.value)} 
+                  placeholder="Ej. 890.900.123-4"
+                  className="w-full text-xs font-semibold text-slate-850 px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700">Código DANE (Opcional)</label>
+                <input 
+                  type="text" 
+                  value={daneCode} 
+                  onChange={(e) => setDaneCode(e.target.value)} 
+                  placeholder="Ej. 211001012345"
+                  className="w-full text-xs font-semibold text-slate-850 px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none"
+                />
+              </div>
+            </CardContent>
+          )}
         </Card>
 
         {/* Sección 2: Branding Visual */}

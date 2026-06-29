@@ -30,6 +30,11 @@ export interface InstitutionData {
   subscription_status: string;
   active_modules: string[];
   subscription_expires_at?: string;
+  organization_type?: string;
+  parent_organization_id?: string | null;
+  department?: string | null;
+  municipality?: string | null;
+  territorial_type?: string | null;
 }
 
 interface AuthContextType {
