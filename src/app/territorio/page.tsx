@@ -97,21 +97,69 @@ export default function TerritoryDashboardPage() {
 
   return (
     <div className="p-6 space-y-6">
-      {/* Encabezado Principal */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-lg font-black text-slate-800 uppercase tracking-wider">
-            Resumen Ejecutivo Territorial
-          </h2>
-          <p className="text-xs font-semibold text-slate-500 mt-0.5">
-            Analítica unificada de cobertura, calidad y madurez operativa escolar.
-          </p>
+      {/* Bienvenida Ejecutiva Personalizada */}
+      <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white rounded-3xl p-6 shadow-md border border-indigo-950 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <span className="text-[10px] font-black uppercase text-indigo-300 tracking-wider">Consola Ejecutiva</span>
+            <h2 className="text-base font-black uppercase tracking-wider mt-1">
+              Buenos días, Dr. Alejandro Gómez
+            </h2>
+            <p className="text-xs text-slate-350 font-semibold mt-0.5">
+              Bienvenido al ecosistema de inteligencia educativa territorial de AulaCore.
+            </p>
+          </div>
+          <div className="flex items-center gap-2 bg-white/10 border border-white/10 rounded-xl px-3 py-1.5 shrink-0">
+            <Calendar className="w-4 h-4 text-indigo-300" />
+            <span className="text-[10px] font-black uppercase text-indigo-200">
+              Periodo Escolar: 2026 Activo
+            </span>
+          </div>
         </div>
-        <div className="flex items-center gap-2 bg-indigo-50/50 border border-indigo-100 rounded-xl px-3 py-1.5 shrink-0">
-          <Calendar className="w-4 h-4 text-indigo-650" />
-          <span className="text-[10px] font-black uppercase text-indigo-700">
-            Periodo Escolar: 2026 Activo
-          </span>
+
+        {/* Resumen Operativo y Agenda */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-white/10 text-xs">
+          {/* Fichas de Control */}
+          <div className="space-y-3">
+            <h4 className="text-[10px] font-black uppercase tracking-wider text-indigo-300">Monitoreo de Alertas del Territorio</h4>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="p-3 bg-white/5 border border-white/5 rounded-2xl text-center">
+                <span className="text-lg font-black text-rose-450 block">2</span>
+                <span className="text-[8px] font-black text-slate-400 uppercase tracking-wider">Alertas Críticas</span>
+              </div>
+              <div className="p-3 bg-white/5 border border-white/5 rounded-2xl text-center">
+                <span className="text-lg font-black text-amber-450 block">4</span>
+                <span className="text-[8px] font-black text-slate-400 uppercase tracking-wider">En Seguimiento</span>
+              </div>
+              <div className="p-3 bg-white/5 border border-white/5 rounded-2xl text-center">
+                <span className="text-lg font-black text-emerald-450 block">42</span>
+                <span className="text-[8px] font-black text-slate-400 uppercase tracking-wider">Sin Novedad</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Agenda de Actuación Diaria */}
+          <div className="space-y-2">
+            <h4 className="text-[10px] font-black uppercase tracking-wider text-indigo-300">Agenda y Actuaciones Pendientes Hoy</h4>
+            <div className="grid grid-cols-2 gap-3 text-[10px] font-bold text-slate-350">
+              <div className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 shrink-0" />
+                <span>1 Visita de PAE en ejecución</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0" />
+                <span>1 Circular programada</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0" />
+                <span>1 Plan de Calidad abierto</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-purple-500 shrink-0" />
+                <span>Reunión de Rectores (2:00 PM)</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -265,12 +313,12 @@ export default function TerritoryDashboardPage() {
               <AreaChart data={COBERTURA_HISTORICA} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorMatricula" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.2}/>
-                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.2}/>
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
                   </linearGradient>
                   <linearGradient id="colorCupos" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.1}/>
-                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.1}/>
+                    <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
@@ -278,8 +326,8 @@ export default function TerritoryDashboardPage() {
                 <YAxis stroke="#94a3b8" style={{ fontSize: '10px', fontWeight: 'bold' }} />
                 <Tooltip />
                 <Legend style={{ fontSize: '11px', fontWeight: 'bold' }} />
-                <Area type="monotone" dataKey="matricula" name="Matriculados" stroke="#6366f1" strokeWidth={2.5} fillOpacity={1} fill="url(#colorMatricula)" />
-                <Area type="monotone" dataKey="cupos" name="Cupos Ofertados" stroke="#3b82f6" strokeWidth={1.5} strokeDasharray="5 5" fillOpacity={1} fill="url(#colorCupos)" />
+                <Area type="monotone" dataKey="matricula" name="Matriculados" stroke="#10b981" strokeWidth={2.5} fillOpacity={1} fill="url(#colorMatricula)" />
+                <Area type="monotone" dataKey="cupos" name="Cupos Ofertados" stroke="#8b5cf6" strokeWidth={1.5} strokeDasharray="5 5" fillOpacity={1} fill="url(#colorCupos)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>

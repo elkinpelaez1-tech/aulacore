@@ -3,33 +3,49 @@
 import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
-import { Calendar, User, Clock, CheckCircle, PlusCircle, CheckCircle2, Shield } from 'lucide-react';
+import { Calendar, User, Clock, CheckCircle, PlusCircle, CheckCircle2, Shield, Plus, X, AlertTriangle } from 'lucide-react';
 
 interface MockVisit {
   id: string;
   institution: string;
-  type: 'Capacitación AulaCore' | 'Auditoría PAE' | 'Inspección Conectividad' | 'Reunión de Rectores';
+  type: string;
   date: string;
+  time: string;
+  duration: string;
   inspector: string;
-  status: 'Programada' | 'En Progreso' | 'Realizada';
+  priority: 'Alta' | 'Media' | 'Baja';
+  status: 'Programada' | 'Confirmada' | 'En ejecución' | 'Finalizada' | 'Cancelada' | 'Reprogramada';
 }
 
 const INITIAL_VISITS: MockVisit[] = [
-  { id: '1', institution: 'Institución Educativa Marco Fidel Suárez', type: 'Capacitación AulaCore', date: 'Julio 2, 2026', inspector: 'Ing. Laura Benítez', status: 'Programada' },
-  { id: '2', institution: 'I.E. Rural El Hatillo', type: 'Inspección Conectividad', date: 'Julio 5, 2026', inspector: 'Téc. Fernando Ruiz', status: 'Programada' },
-  { id: '3', institution: 'I.E. Presbítero Antonio José Bernal', type: 'Auditoría PAE', date: 'Hoy 9:00 AM', inspector: 'Dr. Daniel Rendón', status: 'En Progreso' },
-  { id: '4', institution: 'Gimnasio Campestre AulaCore', type: 'Reunión de Rectores', date: 'Junio 25, 2026', inspector: 'Dr. Alejandro Gómez', status: 'Realizada' },
+  { id: '1', institution: 'Institución Educativa Marco Fidel Suárez', type: 'Capacitación AulaCore', date: '2026-07-02', time: '09:00', duration: '2 horas', inspector: 'Ing. Laura Benítez', priority: 'Alta', status: 'Programada' },
+  { id: '2', institution: 'I.E. Rural El Hatillo', type: 'Inspección Conectividad', date: '2026-07-05', time: '14:00', duration: '4 horas', inspector: 'Téc. Fernando Ruiz', priority: 'Alta', status: 'Confirmada' },
+  { id: '3', institution: 'I.E. Presbítero Antonio José Bernal', type: 'Auditoría PAE', date: '2026-06-29', time: '10:00', duration: '2 horas', inspector: 'Dr. Daniel Rendón', priority: 'Media', status: 'En ejecución' },
+  { id: '4', institution: 'Gimnasio Campestre AulaCore', type: 'Reunión de Rectores', date: '2026-06-25', time: '08:00', duration: '4 horas', inspector: 'Dr. Alejandro Gómez', priority: 'Baja', status: 'Finalizada' },
 ];
 
 export default function TerritoryAgendaPage() {
   const [visits, setVisits] = useState<MockVisit[]>(INITIAL_VISITS);
   const [statusFilter, setStatusFilter] = useState('all');
+  
+  // Dynamic Activity Types state
+  const [activityTypes, setActivityTypes] = useState<string[]>([
+    'Capacitación AulaCore',
+    'Auditoría PAE',
+    'Inspección Conectividad',
+    'Reunión de Rectores'
+  ]);
+  const [activityModal, setActivityModal] = useState(false);
+  const [newActivityName, setNewActivityName] = useState('');
 
   // Form states
   const [school, setSchool] = useState('Gimnasio Campestre AulaCore');
-  const [type, setType] = useState<any>('Capacitación AulaCore');
+  const [type, setType] = useState('Capacitación AulaCore');
   const [date, setDate] = useState('');
+  const [time, setTime] = useState('08:00');
+  const [duration, setDuration] = useState('2 horas');
   const [inspector, setInspector] = useState('');
+  const [priority, setPriority] = useState<'Alta' | 'Media' | 'Baja'>('Media');
   
   const [success, setSuccess] = useState(false);
 
@@ -42,7 +58,10 @@ export default function TerritoryAgendaPage() {
       institution: school,
       type,
       date,
+      time,
+      duration,
       inspector,
+      priority,
       status: 'Programada',
     };
 
@@ -53,10 +72,32 @@ export default function TerritoryAgendaPage() {
     setTimeout(() => setSuccess(false), 4000);
   };
 
+  const handleAddActivity = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newActivityName.trim()) return;
+    
+    setActivityTypes(prev => [...prev, newActivityName.trim()]);
+    setType(newActivityName.trim());
+    setNewActivityName('');
+    setActivityModal(false);
+  };
+
   const filteredVisits = visits.filter(v => statusFilter === 'all' || v.status === statusFilter);
 
+  const getStatusBadgeClass = (status: string) => {
+    switch (status) {
+      case 'Finalizada': return 'bg-emerald-100 text-emerald-800';
+      case 'En ejecución': return 'bg-blue-100 text-blue-800 animate-pulse';
+      case 'Confirmada': return 'bg-indigo-100 text-indigo-800';
+      case 'Programada': return 'bg-slate-100 text-slate-705';
+      case 'Cancelada': return 'bg-rose-100 text-rose-800';
+      case 'Reprogramada': return 'bg-amber-100 text-amber-850';
+      default: return 'bg-slate-100 text-slate-700';
+    }
+  };
+
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-6 relative h-full">
       {/* Encabezado */}
       <div>
         <h2 className="text-lg font-black text-slate-800 uppercase tracking-wider">
@@ -79,8 +120,8 @@ export default function TerritoryAgendaPage() {
         {/* Formulario */}
         <Card className="border-slate-200 shadow-sm rounded-2xl bg-white h-fit">
           <CardHeader className="border-b border-slate-100 py-4 px-6 bg-slate-50/20">
-            <CardTitle className="text-sm font-black text-slate-850 uppercase tracking-wider flex items-center gap-2">
-              <PlusCircle className="w-4 h-4 text-indigo-650" />
+            <CardTitle className="text-sm font-black text-slate-855 uppercase tracking-wider flex items-center gap-2">
+              <PlusCircle className="w-4 h-4 text-indigo-655" />
               Programar Visita
             </CardTitle>
             <CardDescription className="text-xs font-semibold text-slate-455 mt-1">
@@ -112,16 +153,25 @@ export default function TerritoryAgendaPage() {
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">
                   Tipo de Actividad
                 </label>
-                <select
-                  value={type}
-                  onChange={(e) => setType(e.target.value as any)}
-                  className="w-full text-xs font-semibold text-slate-800 px-3 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none"
-                >
-                  <option value="Capacitación AulaCore">Capacitación AulaCore</option>
-                  <option value="Auditoría PAE">Auditoría PAE</option>
-                  <option value="Inspección Conectividad">Inspección Conectividad</option>
-                  <option value="Reunión de Rectores">Reunión de Rectores</option>
-                </select>
+                <div className="flex gap-2">
+                  <select
+                    value={type}
+                    onChange={(e) => setType(e.target.value)}
+                    className="flex-1 text-xs font-semibold text-slate-800 px-3 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none"
+                  >
+                    {activityTypes.map(act => (
+                      <option key={act} value={act}>{act}</option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => setActivityModal(true)}
+                    className="px-3 border border-slate-200 hover:border-slate-350 hover:bg-slate-50 text-slate-700 rounded-xl flex items-center justify-center cursor-pointer transition-all duration-200"
+                    title="Añadir tipo de actividad"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
 
               {/* Inspector */}
@@ -139,19 +189,57 @@ export default function TerritoryAgendaPage() {
                 />
               </div>
 
-              {/* Fecha */}
-              <div className="space-y-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">
-                  Fecha Programada
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  placeholder="Ej: Julio 12, 2026"
-                  className="w-full text-xs font-semibold text-slate-800 px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none placeholder-slate-400"
-                />
+              {/* Fecha y Hora */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Fecha</label>
+                  <input
+                    type="date"
+                    required
+                    value={date}
+                    onChange={(e) => setDate(e.target.value)}
+                    className="w-full text-xs font-semibold text-slate-800 px-3 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Hora</label>
+                  <input
+                    type="time"
+                    required
+                    value={time}
+                    onChange={(e) => setTime(e.target.value)}
+                    className="w-full text-xs font-semibold text-slate-800 px-3 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* Duración y Prioridad */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Duración</label>
+                  <select
+                    value={duration}
+                    onChange={(e) => setDuration(e.target.value)}
+                    className="w-full text-xs font-semibold text-slate-800 px-3 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none"
+                  >
+                    <option value="1 hora">1 hora</option>
+                    <option value="2 horas">2 horas</option>
+                    <option value="4 horas">4 horas</option>
+                    <option value="Todo el día">Todo el día</option>
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Prioridad</label>
+                  <select
+                    value={priority}
+                    onChange={(e) => setPriority(e.target.value as any)}
+                    className="w-full text-xs font-semibold text-slate-800 px-3 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none"
+                  >
+                    <option value="Alta">Alta</option>
+                    <option value="Media">Media</option>
+                    <option value="Baja">Baja</option>
+                  </select>
+                </div>
               </div>
 
               {/* Botón */}
@@ -178,8 +266,11 @@ export default function TerritoryAgendaPage() {
             >
               <option value="all">Todas las visitas</option>
               <option value="Programada">Programadas</option>
-              <option value="En Progreso">En Progreso</option>
-              <option value="Realizada">Realizadas</option>
+              <option value="Confirmada">Confirmadas</option>
+              <option value="En ejecución">En ejecución</option>
+              <option value="Finalizada">Finalizadas</option>
+              <option value="Cancelada">Canceladas</option>
+              <option value="Reprogramada">Reprogramadas</option>
             </select>
           </div>
 
@@ -190,9 +281,10 @@ export default function TerritoryAgendaPage() {
                   <TableHeader className="bg-slate-50/40">
                     <TableRow>
                       <TableHead className="font-bold text-xs text-slate-500 uppercase tracking-wider h-11">Institución Educativa</TableHead>
-                      <TableHead className="font-bold text-xs text-slate-500 uppercase tracking-wider h-11">Tipo de Actividad</TableHead>
+                      <TableHead className="font-bold text-xs text-slate-500 uppercase tracking-wider h-11">Actividad</TableHead>
                       <TableHead className="font-bold text-xs text-slate-500 uppercase tracking-wider h-11">Fecha y Hora</TableHead>
-                      <TableHead className="font-bold text-xs text-slate-500 uppercase tracking-wider h-11">Inspector Asignado</TableHead>
+                      <TableHead className="font-bold text-xs text-slate-500 uppercase tracking-wider h-11">Prioridad</TableHead>
+                      <TableHead className="font-bold text-xs text-slate-500 uppercase tracking-wider h-11">Inspector</TableHead>
                       <TableHead className="font-bold text-xs text-slate-500 uppercase tracking-wider h-11 text-center">Estado</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -202,11 +294,19 @@ export default function TerritoryAgendaPage() {
                         <TableCell className="py-3.5 align-middle text-xs font-bold text-slate-800">
                           {visit.institution}
                         </TableCell>
-                        <TableCell className="py-3.5 align-middle text-xs font-semibold text-indigo-750">
+                        <TableCell className="py-3.5 align-middle text-xs font-semibold text-indigo-755">
                           {visit.type}
                         </TableCell>
                         <TableCell className="py-3.5 align-middle text-xs font-bold text-slate-700">
-                          {visit.date}
+                          {visit.date} a las {visit.time} ({visit.duration})
+                        </TableCell>
+                        <TableCell className="py-3.5 align-middle">
+                          <span className={`text-[9px] font-black uppercase border px-2 py-0.5 rounded-md ${
+                            visit.priority === 'Alta' ? 'bg-rose-50 border-rose-100 text-rose-700' :
+                            visit.priority === 'Media' ? 'bg-amber-50 border-amber-100 text-amber-700' : 'bg-slate-50 border-slate-200 text-slate-550'
+                          }`}>
+                            {visit.priority}
+                          </span>
                         </TableCell>
                         <TableCell className="py-3.5 align-middle">
                           <div className="flex items-center gap-1.5 text-xs text-slate-600 font-semibold">
@@ -215,10 +315,7 @@ export default function TerritoryAgendaPage() {
                           </div>
                         </TableCell>
                         <TableCell className="py-3.5 align-middle text-center">
-                          <span className={`text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full ${
-                            visit.status === 'Realizada' ? 'bg-emerald-100 text-emerald-800' :
-                            visit.status === 'En Progreso' ? 'bg-amber-100 text-amber-850 animate-pulse' : 'bg-slate-100 text-slate-700'
-                          }`}>
+                          <span className={`text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full ${getStatusBadgeClass(visit.status)}`}>
                             {visit.status}
                           </span>
                         </TableCell>
@@ -231,6 +328,55 @@ export default function TerritoryAgendaPage() {
           </Card>
         </div>
       </div>
+
+      {/* ================================================================= */}
+      {/* ➕ MODAL DINÁMICO PARA CREAR TIPO DE ACTIVIDAD                   */}
+      {/* ================================================================= */}
+      {activityModal && (
+        <div className="fixed inset-0 z-50 overflow-hidden flex items-center justify-center bg-slate-900/40 backdrop-blur-xs">
+          <div className="relative w-full max-w-sm bg-white shadow-2xl rounded-3xl flex flex-col border border-slate-200 overflow-hidden m-4 animate-scale-in">
+            <div className="p-5 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+              <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">Añadir Actividad</h3>
+              <button 
+                onClick={() => setActivityModal(false)}
+                className="p-1 border border-slate-200 hover:bg-slate-50 rounded-lg text-slate-405 hover:text-slate-800 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+            <form onSubmit={handleAddActivity}>
+              <div className="p-6 space-y-4">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Nombre de la Actividad</label>
+                  <input
+                    type="text"
+                    required
+                    value={newActivityName}
+                    onChange={(e) => setNewActivityName(e.target.value)}
+                    placeholder="Ej: Auditoría de Matrículas"
+                    className="w-full text-xs font-semibold text-slate-800 px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none placeholder-slate-400"
+                  />
+                </div>
+              </div>
+              <div className="p-4 border-t border-slate-100 bg-slate-50/20 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setActivityModal(false)}
+                  className="px-3.5 py-2 border border-slate-200 hover:bg-slate-50 font-bold rounded-xl text-xs cursor-pointer text-slate-700 bg-white"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs cursor-pointer border-none"
+                >
+                  Guardar Tipo
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -188,122 +188,209 @@ export default function TerritoryInstitutionsPage() {
       </Card>
 
       {/* ================================================================= */}
-      {/* 🧭 DRAWER VISTA DETALLE DE COLEGIO (SLIDE-IN PANEL LATERAL)       */}
+      {/* 🏛️ MODAL FICHA EJECUTIVA DE COLEGIO (CENTERED POPUP DIALOG)      */}
       {/* ================================================================= */}
       {selectedInst && (
-        <div className="fixed inset-0 z-50 overflow-hidden flex justify-end">
-          {/* Backdrop */}
-          <div 
-            className="absolute inset-0 bg-slate-900/40 backdrop-blur-xs transition-opacity duration-300 cursor-pointer" 
-            onClick={() => setSelectedInst(null)}
-          />
+        <InstitutionDetailModal 
+          selectedInst={selectedInst} 
+          onClose={() => setSelectedInst(null)} 
+        />
+      )}
+    </div>
+  );
+}
 
-          {/* Panel Deslizable */}
-          <div className="relative w-full max-w-lg bg-white shadow-2xl h-full flex flex-col animate-slide-in border-l border-slate-200 z-10">
-            
-            {/* Cabecera Drawer */}
-            <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex justify-between items-start">
-              <div>
-                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">
-                  Ficha Técnica Institucional
-                </span>
-                <h3 className="text-sm font-black text-slate-850 uppercase tracking-wider mt-1 truncate max-w-[340px]">
-                  {selectedInst.name}
-                </h3>
-              </div>
-              <button 
-                onClick={() => setSelectedInst(null)}
-                className="p-1.5 border border-slate-200 hover:bg-slate-50 rounded-xl text-slate-450 hover:text-slate-800 transition-all duration-200 cursor-pointer"
-              >
-                <X className="w-4.5 h-4.5" />
-              </button>
+interface DetailModalProps {
+  selectedInst: TerritorialInstitution;
+  onClose: () => void;
+}
+
+type ModalTab = 'general' | 'adopcion' | 'infraestructura' | 'planes';
+
+function InstitutionDetailModal({ selectedInst, onClose }: DetailModalProps) {
+  const [tab, setTab] = useState<ModalTab>('general');
+
+  const tabOptions: { id: ModalTab; label: string }[] = [
+    { id: 'general', label: 'General & Contacto' },
+    { id: 'adopcion', label: 'Adopción (Health Score)' },
+    { id: 'infraestructura', label: 'Infraestructura & PAE' },
+    { id: 'planes', label: 'Planes & IA' },
+  ];
+
+  return (
+    <div className="fixed inset-0 z-50 overflow-hidden flex items-center justify-center bg-slate-900/40 backdrop-blur-xs">
+      {/* Backdrop clickable */}
+      <div className="absolute inset-0 cursor-pointer" onClick={onClose} />
+
+      {/* Modal Card */}
+      <div className="relative w-full max-w-2xl bg-white shadow-2xl rounded-3xl flex flex-col max-h-[85vh] animate-scale-in border border-slate-200 overflow-hidden z-10 m-4">
+        
+        {/* Cabecera */}
+        <div className="p-6 border-b border-slate-100 bg-slate-50/40 flex justify-between items-start">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-indigo-50 border border-indigo-100 rounded-xl flex items-center justify-center text-indigo-650 font-bold shrink-0">
+              <Building className="w-5 h-5" />
             </div>
+            <div>
+              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">
+                Ficha Ejecutiva Escolar
+              </span>
+              <h3 className="text-sm font-black text-slate-850 uppercase tracking-wider mt-0.5 truncate max-w-[400px]">
+                {selectedInst.name}
+              </h3>
+            </div>
+          </div>
+          <button 
+            onClick={onClose}
+            className="p-1.5 border border-slate-200 hover:bg-slate-50 rounded-xl text-slate-450 hover:text-slate-800 transition-all duration-200 cursor-pointer"
+          >
+            ✕
+          </button>
+        </div>
 
-            {/* Cuerpo del Drawer (Scrollable) */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-6">
-              
-              {/* Bloque 1: Información General */}
-              <div className="space-y-3.5">
-                <h4 className="text-xs font-black uppercase tracking-wider text-slate-850 flex items-center gap-1.5">
-                  <Landmark className="w-4 h-4 text-indigo-650" />
-                  Datos de Contacto y Representación
-                </h4>
-                <div className="bg-slate-50/50 p-4 border border-slate-150 rounded-xl space-y-3 text-xs font-semibold">
-                  <div className="flex justify-between">
-                    <span className="text-slate-450">Rector(a):</span>
-                    <span className="text-slate-800 font-bold">{selectedInst.rector}</span>
+        {/* Pestañas de Navegación Interna */}
+        <div className="flex border-b border-slate-100 bg-slate-50/20 px-6 py-2 gap-2 overflow-x-auto shrink-0">
+          {tabOptions.map((opt) => {
+            const isActive = tab === opt.id;
+            return (
+              <button
+                key={opt.id}
+                onClick={() => setTab(opt.id)}
+                className={`text-[10px] font-extrabold uppercase px-3 py-1.5 rounded-lg border transition-all duration-200 cursor-pointer whitespace-nowrap ${
+                  isActive 
+                    ? 'bg-indigo-600 border-indigo-650 text-white shadow-xs' 
+                    : 'bg-white border-slate-200 text-slate-500 hover:text-slate-850 hover:bg-slate-50'
+                }`}
+              >
+                {opt.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Contenido (Scrollable) */}
+        <div className="p-6 overflow-y-auto space-y-6 text-xs leading-normal flex-1">
+          
+          {tab === 'general' && (
+            <div className="space-y-4 font-semibold text-slate-655">
+              <div className="bg-slate-50/50 p-4 border border-slate-150 rounded-2xl space-y-3">
+                <div className="flex justify-between border-b border-slate-100 pb-2">
+                  <span className="text-slate-450">Rector(a):</span>
+                  <span className="text-slate-800 font-extrabold">{selectedInst.rector}</span>
+                </div>
+                <div className="flex justify-between border-b border-slate-100 pb-2">
+                  <span className="text-slate-455">Código DANE:</span>
+                  <span className="text-slate-800 font-bold font-mono">{selectedInst.daneCode}</span>
+                </div>
+                <div className="flex justify-between border-b border-slate-100 pb-2">
+                  <span className="text-slate-455">Naturaleza Jurídica:</span>
+                  <span className={`text-[10px] font-black uppercase px-2.5 py-0.5 rounded-md ${
+                    selectedInst.nature === 'Privado' ? 'bg-amber-50 border border-amber-100 text-amber-800' : 'bg-indigo-50 border border-indigo-100 text-indigo-850'
+                  }`}>
+                    {selectedInst.nature}
+                  </span>
+                </div>
+                <div className="flex justify-between border-b border-slate-100 pb-2">
+                  <span className="text-slate-455">Municipio / Comuna:</span>
+                  <span className="text-slate-800 font-bold">{selectedInst.municipality}</span>
+                </div>
+                <div className="flex justify-between border-b border-slate-100 pb-2">
+                  <span className="text-slate-455">Correo de Contacto:</span>
+                  <span className="text-indigo-650 font-bold font-mono">{selectedInst.contactEmail}</span>
+                </div>
+                <div className="flex justify-between border-b border-slate-100 pb-2">
+                  <span className="text-slate-455">Teléfono:</span>
+                  <span className="text-slate-700 font-bold">{selectedInst.contactPhone}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-455">Dirección Física:</span>
+                  <span className="text-slate-700 font-bold truncate max-w-[240px]">{selectedInst.address}</span>
+                </div>
+              </div>
+
+              {/* Botón Canal Directo */}
+              <div className="pt-2 flex justify-between items-center bg-slate-50/20 p-4 border border-slate-150 rounded-2xl">
+                <div>
+                  <span className="text-xs font-bold text-slate-800 block">Canal Directo de Mensajería</span>
+                  <span className="text-[10px] text-slate-400 block font-semibold">Comunicación unificada con el Rector.</span>
+                </div>
+                <button
+                  disabled
+                  onClick={() => alert('Mensajería real inhabilitada en fase de onboarding.')}
+                  className="px-4 py-2 bg-indigo-50 border border-indigo-100 text-indigo-400 text-xs font-bold rounded-xl flex items-center gap-1 cursor-not-allowed"
+                >
+                  Rectoría (Inactivo)
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {tab === 'adopcion' && (
+            <div className="space-y-6">
+              {/* Ponderado General */}
+              <div className="flex items-center justify-between p-4 bg-slate-50 border border-slate-200 rounded-2xl">
+                <div>
+                  <span className="text-xs font-extrabold text-slate-800 block">Health Score Provisional</span>
+                  <span className="text-[10px] text-slate-400 font-semibold">Cálculo en base a módulos AulaCore activos.</span>
+                </div>
+                <span className="text-2xl font-black text-indigo-700 bg-indigo-50 border border-indigo-100 px-3 py-1 rounded-xl">
+                  {selectedInst.healthScore}%
+                </span>
+              </div>
+
+              {/* Módulos Desglosados */}
+              <div className="space-y-3.5 text-xs font-bold">
+                <h4 className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Detalle por Módulos</h4>
+                
+                {/* Matricula */}
+                <div className="space-y-1">
+                  <div className="flex justify-between text-slate-500 text-[10px]">
+                    <span>Matrícula en Lote</span>
+                    <span>{selectedInst.adoption.matricula}%</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-450">Correo Oficial:</span>
-                    <span className="text-indigo-650 font-bold font-mono">{selectedInst.contactEmail}</span>
+                  <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                    <div className="bg-indigo-650 h-full rounded-full" style={{ width: `${selectedInst.adoption.matricula}%` }} />
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-450">Teléfono:</span>
-                    <span className="text-slate-700 font-bold">{selectedInst.contactPhone}</span>
+                </div>
+
+                {/* Mallas Curriculares */}
+                <div className="space-y-1">
+                  <div className="flex justify-between text-slate-500 text-[10px]">
+                    <span>Parametrización de Mallas</span>
+                    <span>{selectedInst.adoption.mallas}%</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-450">Dirección Sede Principal:</span>
-                    <span className="text-slate-700 font-bold truncate max-w-[200px]">{selectedInst.address}</span>
+                  <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                    <div className="bg-purple-600 h-full rounded-full" style={{ width: `${selectedInst.adoption.mallas}%` }} />
+                  </div>
+                </div>
+
+                {/* PEI */}
+                <div className="space-y-1">
+                  <div className="flex justify-between text-slate-500 text-[10px]">
+                    <span>Parametrización del PEI</span>
+                    <span>{selectedInst.adoption.pei}%</span>
+                  </div>
+                  <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                    <div className="bg-emerald-500 h-full rounded-full" style={{ width: `${selectedInst.adoption.pei}%` }} />
+                  </div>
+                </div>
+
+                {/* RFID */}
+                <div className="space-y-1">
+                  <div className="flex justify-between text-slate-500 text-[10px]">
+                    <span>Integración Asistencia RFID</span>
+                    <span>{selectedInst.adoption.rfid}%</span>
+                  </div>
+                  <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                    <div className="bg-blue-500 h-full rounded-full" style={{ width: `${selectedInst.adoption.rfid}%` }} />
                   </div>
                 </div>
               </div>
 
-              {/* Bloque 2: Madurez e Implementación AulaCore */}
-              <div className="space-y-3.5">
-                <h4 className="text-xs font-black uppercase tracking-wider text-slate-850 flex items-center gap-1.5">
-                  <Laptop className="w-4 h-4 text-purple-650" />
-                  Adopción Tecnológica de AulaCore
-                </h4>
-                <div className="space-y-3 text-xs font-bold">
-                  {/* Matricula */}
-                  <div className="space-y-1">
-                    <div className="flex justify-between text-slate-500 text-[10px]">
-                      <span>Matrícula en Lote</span>
-                      <span>{selectedInst.adoption.matricula}%</span>
-                    </div>
-                    <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                      <div className="bg-indigo-650 h-full rounded-full" style={{ width: `${selectedInst.adoption.matricula}%` }} />
-                    </div>
-                  </div>
-
-                  {/* Mallas Curriculares */}
-                  <div className="space-y-1">
-                    <div className="flex justify-between text-slate-500 text-[10px]">
-                      <span>Parametrización de Mallas</span>
-                      <span>{selectedInst.adoption.mallas}%</span>
-                    </div>
-                    <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                      <div className="bg-purple-600 h-full rounded-full" style={{ width: `${selectedInst.adoption.mallas}%` }} />
-                    </div>
-                  </div>
-
-                  {/* PEI */}
-                  <div className="space-y-1">
-                    <div className="flex justify-between text-slate-500 text-[10px]">
-                      <span>Parametrización del PEI</span>
-                      <span>{selectedInst.adoption.pei}%</span>
-                    </div>
-                    <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                      <div className="bg-emerald-500 h-full rounded-full" style={{ width: `${selectedInst.adoption.pei}%` }} />
-                    </div>
-                  </div>
-
-                  {/* RFID */}
-                  <div className="space-y-1">
-                    <div className="flex justify-between text-slate-500 text-[10px]">
-                      <span>Integración Asistencia RFID</span>
-                      <span>{selectedInst.adoption.rfid}%</span>
-                    </div>
-                    <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                      <div className="bg-blue-500 h-full rounded-full" style={{ width: `${selectedInst.adoption.rfid}%` }} />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Bloque 3: Insights IA Predictiva */}
+              {/* Análisis de IA */}
               {selectedInst.iaInsight && (
-                <div className="bg-indigo-50/20 border border-indigo-150 p-4 rounded-xl flex gap-3 text-slate-800 items-start">
+                <div className="bg-indigo-50/20 border border-indigo-150 p-4 rounded-2xl flex gap-3 text-slate-800 items-start">
                   <Sparkles className="w-5 h-5 shrink-0 text-indigo-600 mt-0.5 animate-pulse" />
                   <div className="text-xs leading-relaxed">
                     <span className="font-black text-indigo-900 block flex items-center gap-1">
@@ -316,23 +403,67 @@ export default function TerritoryInstitutionsPage() {
                 </div>
               )}
             </div>
+          )}
 
-            {/* Footer Drawer */}
-            <div className="p-6 border-t border-slate-100 bg-slate-50/50 flex justify-between items-center">
-              <span className="text-[10px] text-slate-450 font-bold">Último backup: Hace 2 horas</span>
-              <button
-                onClick={() => {
-                  alert(`Se iniciará el canal directo con la rectoría de: ${selectedInst.name}`);
-                }}
-                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-xs transition-all duration-200 cursor-pointer flex items-center gap-1"
-              >
-                Canal Directo Rectoría
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
+          {tab === 'infraestructura' && (
+            <div className="space-y-4 font-semibold text-slate-655">
+              <div className="p-4 border border-slate-200 rounded-2xl bg-slate-50/30 space-y-3">
+                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Estado de Red e Infraestructura</h4>
+                <div className="flex justify-between border-b border-slate-100 pb-2">
+                  <span>Conectividad de Banda Ancha:</span>
+                  <span className="text-emerald-700 font-extrabold">Estable (85 Mbps)</span>
+                </div>
+                <div className="flex justify-between border-b border-slate-100 pb-2">
+                  <span>Incidencias Críticas Reportadas:</span>
+                  <span className="text-slate-800 font-bold">0 Activas</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Último Reporte PAE:</span>
+                  <span className="text-indigo-600 font-bold">Conforme (Hace 1 día)</span>
+                </div>
+              </div>
+              <div className="p-4 border border-rose-150 bg-rose-50/10 rounded-2xl text-rose-800 text-[11px] leading-relaxed">
+                <span className="font-black block text-rose-900 mb-0.5">Nota de Mantenimiento</span>
+                Se pre-aprobó una visita técnica preventiva del área de redes para evaluar el switch principal del Bloque B de la sede.
+              </div>
             </div>
-          </div>
+          )}
+
+          {tab === 'planes' && (
+            <div className="space-y-4">
+              <div className="bg-indigo-50/20 border border-indigo-150 p-4 rounded-2xl flex gap-3 text-slate-800 items-start">
+                <Sparkles className="w-5 h-5 shrink-0 text-indigo-600 mt-0.5 animate-pulse" />
+                <div className="text-xs leading-relaxed">
+                  <span className="font-black text-indigo-900 block flex items-center gap-1">
+                    Sugerencias del Motor de Inteligencia Territorial
+                  </span>
+                  <p className="font-semibold text-slate-600 mt-1.5">
+                    Este establecimiento destaca por su alta adopción del software. Se sugiere certificarlo como <strong>"Colegio Mentor Digital"</strong> para capacitar a otras I.E. rurales de Barbosa.
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-4 border border-slate-200 rounded-2xl bg-slate-50/50 space-y-2 text-xs font-semibold text-slate-550">
+                <div className="flex justify-between items-center">
+                  <span className="font-extrabold text-slate-700">Plan de Refuerzo Curricular</span>
+                  <span className="text-[9px] font-black uppercase text-indigo-750 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-md">Vigente</span>
+                </div>
+                <p className="text-[11px]">Meta: Nivelar el promedio de Matemáticas de grado 11 en el periodo escolar.</p>
+              </div>
+            </div>
+          )}
         </div>
-      )}
+
+        {/* Footer */}
+        <div className="p-6 border-t border-slate-100 bg-slate-50/40 flex justify-end">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition-all cursor-pointer border-none"
+          >
+            Cerrar Ficha
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

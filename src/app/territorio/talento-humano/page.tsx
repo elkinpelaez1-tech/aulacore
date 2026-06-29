@@ -6,26 +6,27 @@ import { ChartCard } from '@/components/territorio/ChartCard';
 import { SummaryCard } from '@/components/territorio/SummaryCard';
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
-import { Users2, Contact, Award, CheckCircle, Search, Sparkles, AlertCircle } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { Users2, Contact, Award, CheckCircle, Search, AlertCircle, Sparkles, BookOpen } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
 interface MockTeacher {
   id: string;
   name: string;
   specialty: string;
   school: string;
-  degree: 'Licenciatura' | 'Especialización' | 'Maestría' | 'Doctorado';
+  statute: 'Decreto 2277' | 'Decreto 1278';
+  degree: 'Normalista' | 'Tecnólogo' | 'Profesional' | 'Especialista' | 'Magíster' | 'Doctor';
   experienceYears: number;
   status: 'Activo' | 'Licencia';
 }
 
 const MOCK_TEACHERS: MockTeacher[] = [
-  { id: '1', name: 'Prof. Andrés Alzate', specialty: 'Matemáticas', school: 'I.E. Marco Fidel Suárez', degree: 'Maestría', experienceYears: 12, status: 'Activo' },
-  { id: '2', name: 'Prof. Claudia Patricia Restrepo', specialty: 'Lengua Castellana', school: 'Gimnasio Campestre AulaCore', degree: 'Especialización', experienceYears: 15, status: 'Activo' },
-  { id: '3', name: 'Prof. Juan Fernando Quintero', specialty: 'Ciencias Naturales', school: 'I.E. Presbítero Antonio José Bernal', degree: 'Licenciatura', experienceYears: 6, status: 'Activo' },
-  { id: '4', name: 'Prof. Sandra Milena Muñoz', specialty: 'Inglés', school: 'Colegio San Ignacio de Loyola', degree: 'Maestría', experienceYears: 9, status: 'Activo' },
-  { id: '5', name: 'Prof. Ricardo Antonio Vélez', specialty: 'Tecnología', school: 'I.E. Técnico Industrial Pascual Bravo', degree: 'Doctorado', experienceYears: 20, status: 'Activo' },
-  { id: '6', name: 'Prof. Gloria Estella Tobón', specialty: 'Matemáticas', school: 'I.E. Rural El Hatillo', degree: 'Licenciatura', experienceYears: 4, status: 'Licencia' },
+  { id: '1', name: 'Prof. Andrés Alzate', specialty: 'Matemáticas', school: 'I.E. Marco Fidel Suárez', statute: 'Decreto 1278', degree: 'Magíster', experienceYears: 12, status: 'Activo' },
+  { id: '2', name: 'Prof. Claudia Patricia Restrepo', specialty: 'Lengua Castellana', school: 'Gimnasio Campestre AulaCore', statute: 'Decreto 2277', degree: 'Especialista', experienceYears: 15, status: 'Activo' },
+  { id: '3', name: 'Prof. Juan Fernando Quintero', specialty: 'Ciencias Naturales', school: 'I.E. Presbítero Antonio José Bernal', statute: 'Decreto 1278', degree: 'Profesional', experienceYears: 6, status: 'Activo' },
+  { id: '4', name: 'Prof. Sandra Milena Muñoz', specialty: 'Inglés', school: 'Colegio San Ignacio de Loyola', statute: 'Decreto 1278', degree: 'Magíster', experienceYears: 9, status: 'Activo' },
+  { id: '5', name: 'Prof. Ricardo Antonio Vélez', specialty: 'Tecnología', school: 'I.E. Técnico Industrial Pascual Bravo', statute: 'Decreto 2277', degree: 'Doctor', experienceYears: 20, status: 'Activo' },
+  { id: '6', name: 'Prof. Gloria Estella Tobón', specialty: 'Matemáticas', school: 'I.E. Rural El Hatillo', statute: 'Decreto 1278', degree: 'Normalista', experienceYears: 4, status: 'Licencia' },
 ];
 
 const MOCK_VACANCIES = [
@@ -34,20 +35,31 @@ const MOCK_VACANCIES = [
 ];
 
 const FORMACION_DOCENTE = [
-  { name: 'Licenciados', docentes: 720 },
+  { name: 'Normalistas', docentes: 120 },
+  { name: 'Tecnólogos', docentes: 210 },
+  { name: 'Profesionales', docentes: 720 },
   { name: 'Especialistas', docentes: 640 },
   { name: 'Magísteres', docentes: 410 },
   { name: 'Doctores', docentes: 70 },
 ];
 
+const DISTRIBUCION_ESTATUTO = [
+  { name: 'Decreto 1278 (Nuevo)', value: 1140, color: '#6366f1' },
+  { name: 'Decreto 2277 (Antiguo)', value: 700, color: '#10b981' },
+];
+
 export default function TerritoryTalentoHumanoPage() {
   const [search, setSearch] = useState('');
   const [specialtyFilter, setSpecialtyFilter] = useState('all');
+  const [statuteFilter, setStatuteFilter] = useState('all');
+  const [degreeFilter, setDegreeFilter] = useState('all');
 
   const filteredTeachers = MOCK_TEACHERS.filter(t => {
     const matchesSearch = t.name.toLowerCase().includes(search.toLowerCase()) || t.school.toLowerCase().includes(search.toLowerCase());
     const matchesSpecialty = specialtyFilter === 'all' || t.specialty === specialtyFilter;
-    return matchesSearch && matchesSpecialty;
+    const matchesStatute = statuteFilter === 'all' || t.statute === statuteFilter;
+    const matchesDegree = degreeFilter === 'all' || t.degree === degreeFilter;
+    return matchesSearch && matchesSpecialty && matchesStatute && matchesDegree;
   });
 
   return (
@@ -73,17 +85,17 @@ export default function TerritoryTalentoHumanoPage() {
           iconBgClass="bg-blue-50"
         />
         <KpiCard
-          title="Directivos Registrados"
-          value="142"
-          description="Rectores y Coordinadores"
-          icon={Contact}
+          title="Decreto 1278"
+          value="1,140"
+          description="Estatuto docente nuevo"
+          icon={BookOpen}
           iconColorClass="text-indigo-650"
           iconBgClass="bg-indigo-50"
         />
         <KpiCard
-          title="Con Escalafón Docente"
-          value="85%"
-          description="Estatuto Docente validado"
+          title="Decreto 2277"
+          value="700"
+          description="Estatuto docente antiguo"
           icon={Award}
           iconColorClass="text-emerald-650"
           iconBgClass="bg-emerald-50"
@@ -101,8 +113,8 @@ export default function TerritoryTalentoHumanoPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Gráfico de distribución de formación */}
         <ChartCard
-          title="Distribución por Nivel de Postgrado"
-          description="Formación académica consolidada del personal del territorio."
+          title="Distribución por Nivel de Formación Académica"
+          description="Formación oficial y posgrados de docentes registrados."
           className="lg:col-span-2"
         >
           <div className="h-72">
@@ -118,33 +130,50 @@ export default function TerritoryTalentoHumanoPage() {
           </div>
         </ChartCard>
 
-        {/* Alertas de vacantes críticas */}
-        <SummaryCard 
-          title="Alertas de Cobertura de Vacantes"
-          headerActions={
-            <span className="text-[9px] font-black text-rose-700 bg-rose-50 border border-rose-100 px-2 py-0.5 rounded-md flex items-center gap-0.5">
-              <AlertCircle className="w-3 h-3 text-rose-550 animate-pulse" />
-              Crítico
-            </span>
-          }
+        {/* Gráfico de Distribución por Estatuto */}
+        <ChartCard
+          title="Distribución por Estatuto Laboral"
+          description="Segmentación del magisterio colombiano."
         >
-          <div className="space-y-4">
-            {MOCK_VACANCIES.map(v => (
-              <div key={v.id} className="p-4 border border-rose-150 rounded-xl bg-rose-50/10 space-y-2 text-xs font-semibold">
-                <div className="flex justify-between items-center">
-                  <span className="font-extrabold text-rose-900">{v.subject}</span>
-                  <span className="text-[9px] font-black uppercase text-rose-700 bg-rose-50 border border-rose-100 px-2 py-0.5 rounded-md">
-                    Prioridad {v.priority}
-                  </span>
-                </div>
-                <div className="flex justify-between text-slate-500 text-[10px]">
-                  <span>Sede: {v.school}</span>
-                  <span>Publicado: {v.posted}</span>
-                </div>
+          <div className="h-72 flex flex-col justify-between">
+            <div className="flex-1 min-h-0 relative">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={DISTRIBUCION_ESTATUTO}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={55}
+                    outerRadius={75}
+                    paddingAngle={3}
+                    dataKey="value"
+                  >
+                    {DISTRIBUCION_ESTATUTO.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <span className="text-xl font-black text-slate-800">1,840</span>
+                <span className="text-[9px] text-slate-400 font-extrabold uppercase">Docentes</span>
               </div>
-            ))}
+            </div>
+            
+            <div className="space-y-1.5 text-[10px] font-bold text-slate-500 pt-2 border-t border-slate-100">
+              {DISTRIBUCION_ESTATUTO.map((entry) => (
+                <div key={entry.name} className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: entry.color }} />
+                    <span>{entry.name}</span>
+                  </div>
+                  <span className="text-slate-700 font-extrabold">{entry.value}</span>
+                </div>
+              ))}
+            </div>
           </div>
-        </SummaryCard>
+        </ChartCard>
       </div>
 
       {/* Directorio Docente */}
@@ -153,9 +182,10 @@ export default function TerritoryTalentoHumanoPage() {
           Directorio Docente del Territorio
         </h4>
 
-        {/* Filtros */}
-        <div className="bg-slate-50/20 border border-slate-200 rounded-2xl p-4 flex flex-col sm:flex-row items-center gap-4">
-          <div className="flex-1 min-w-[200px] flex items-center bg-white border border-slate-200 rounded-xl px-3 py-2 w-full">
+        {/* Filtros Avanzados */}
+        <div className="bg-slate-50/20 border border-slate-200 rounded-2xl p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+          {/* Buscador */}
+          <div className="flex items-center bg-white border border-slate-200 rounded-xl px-3 py-2">
             <Search className="w-4 h-4 text-slate-400 shrink-0" />
             <input
               type="text"
@@ -166,12 +196,13 @@ export default function TerritoryTalentoHumanoPage() {
             />
           </div>
 
-          <div className="flex flex-col gap-1 w-full sm:w-44">
+          {/* Filtro Especialidad */}
+          <div className="flex flex-col gap-1">
             <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Especialidad</span>
             <select
               value={specialtyFilter}
               onChange={(e) => setSpecialtyFilter(e.target.value)}
-              className="text-xs font-semibold text-slate-800 px-3 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none"
+              className="text-xs font-semibold text-slate-800 px-3 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none w-full"
             >
               <option value="all">Todas las especialidades</option>
               <option value="Matemáticas">Matemáticas</option>
@@ -179,6 +210,38 @@ export default function TerritoryTalentoHumanoPage() {
               <option value="Ciencias Naturales">Ciencias Naturales</option>
               <option value="Inglés">Inglés</option>
               <option value="Tecnología">Tecnología</option>
+            </select>
+          </div>
+
+          {/* Filtro Estatuto */}
+          <div className="flex flex-col gap-1">
+            <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Estatuto Docente</span>
+            <select
+              value={statuteFilter}
+              onChange={(e) => setStatuteFilter(e.target.value)}
+              className="text-xs font-semibold text-slate-800 px-3 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none w-full"
+            >
+              <option value="all">Todos los estatutos</option>
+              <option value="Decreto 1278">Decreto 1278 (Nuevo)</option>
+              <option value="Decreto 2277">Decreto 2277 (Antiguo)</option>
+            </select>
+          </div>
+
+          {/* Filtro Escalafón Formación */}
+          <div className="flex flex-col gap-1">
+            <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Escalafón Formación</span>
+            <select
+              value={degreeFilter}
+              onChange={(e) => setDegreeFilter(e.target.value)}
+              className="text-xs font-semibold text-slate-800 px-3 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none w-full"
+            >
+              <option value="all">Todos los niveles</option>
+              <option value="Normalista">Normalista</option>
+              <option value="Tecnólogo">Tecnólogo</option>
+              <option value="Profesional">Profesional</option>
+              <option value="Especialista">Especialista</option>
+              <option value="Magíster">Magíster</option>
+              <option value="Doctor">Doctor</option>
             </select>
           </div>
         </div>
@@ -192,9 +255,10 @@ export default function TerritoryTalentoHumanoPage() {
                   <TableRow>
                     <TableHead className="font-bold text-xs text-slate-500 uppercase tracking-wider h-11">Nombre del Docente</TableHead>
                     <TableHead className="font-bold text-xs text-slate-500 uppercase tracking-wider h-11">Especialidad / Área</TableHead>
+                    <TableHead className="font-bold text-xs text-slate-500 uppercase tracking-wider h-11">Estatuto</TableHead>
+                    <TableHead className="font-bold text-xs text-slate-500 uppercase tracking-wider h-11">Nivel de Postgrado</TableHead>
                     <TableHead className="font-bold text-xs text-slate-500 uppercase tracking-wider h-11">Institución Vinculada</TableHead>
-                    <TableHead className="font-bold text-xs text-slate-500 uppercase tracking-wider h-11 text-center">Nivel de Postgrado</TableHead>
-                    <TableHead className="font-bold text-xs text-slate-500 uppercase tracking-wider h-11 text-center">Antigüedad (Años)</TableHead>
+                    <TableHead className="font-bold text-xs text-slate-500 uppercase tracking-wider h-11 text-center">Antigüedad</TableHead>
                     <TableHead className="font-bold text-xs text-slate-500 uppercase tracking-wider h-11 text-center">Estado</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -207,14 +271,17 @@ export default function TerritoryTalentoHumanoPage() {
                       <TableCell className="py-3.5 align-middle text-xs font-semibold text-indigo-750">
                         {t.specialty}
                       </TableCell>
+                      <TableCell className="py-3.5 align-middle text-xs font-extrabold text-slate-600">
+                        {t.statute}
+                      </TableCell>
+                      <TableCell className="py-3.5 align-middle text-xs font-bold text-indigo-900 bg-indigo-50/10 px-2 py-0.5 rounded-md w-fit block mt-1.5">
+                        {t.degree}
+                      </TableCell>
                       <TableCell className="py-3.5 align-middle text-xs font-semibold text-slate-655">
                         {t.school}
                       </TableCell>
-                      <TableCell className="py-3.5 align-middle text-center text-xs font-bold text-slate-700">
-                        {t.degree}
-                      </TableCell>
                       <TableCell className="py-3.5 align-middle text-center text-xs font-bold text-slate-800">
-                        {t.experienceYears}
+                        {t.experienceYears} años
                       </TableCell>
                       <TableCell className="py-3.5 align-middle text-center">
                         <span className={`text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full ${
@@ -227,7 +294,7 @@ export default function TerritoryTalentoHumanoPage() {
                   ))}
                   {filteredTeachers.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={6} className="py-8 text-center text-xs text-slate-450 font-bold italic">
+                      <TableCell colSpan={7} className="py-8 text-center text-xs text-slate-450 font-bold italic">
                         No se encontraron docentes registrados con ese criterio.
                       </TableCell>
                     </TableRow>
