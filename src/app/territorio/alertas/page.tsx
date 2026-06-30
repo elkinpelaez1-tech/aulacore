@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import { AulaHelp } from '@/components/territorio/AulaHelp';
 import { TerritorialAlert } from '@/services/territory-mock';
 import { getAlertsByQueue } from '@/services/territory-alerts';
 import { 
@@ -99,7 +100,10 @@ export default function TerritoryAlertsPage() {
         <Card className="border-slate-200 shadow-xs rounded-2xl bg-white p-4">
           <div className="flex justify-between items-start">
             <div className="space-y-1">
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Decisiones Urgentes</span>
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider flex items-center">
+                Decisiones Urgentes
+                <AulaHelp helpId="cat-decisiones-urgentes" />
+              </span>
               <h3 className="text-2xl font-black text-rose-700">{kpis.decisionesUrgentes} Triage</h3>
               <span className="text-[9px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md">
                 Alertas críticas sin reasignar
@@ -115,7 +119,10 @@ export default function TerritoryAlertsPage() {
         <Card className="border-slate-200 shadow-xs rounded-2xl bg-white p-4">
           <div className="flex justify-between items-start">
             <div className="space-y-1">
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">I.E. con Semáforo Activo</span>
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider flex items-center">
+                I.E. con Semáforo Activo
+                <AulaHelp helpId="cat-ie-criticas" />
+              </span>
               <h3 className="text-2xl font-black text-amber-700">{kpis.ieCriticasCount} Colegios</h3>
               <span className="text-[9px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md">
                 Semáforo rojo/naranja activo
@@ -131,7 +138,10 @@ export default function TerritoryAlertsPage() {
         <Card className="border-slate-200 shadow-xs rounded-2xl bg-white p-4">
           <div className="flex justify-between items-start">
             <div className="space-y-1">
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Acciones Asignadas</span>
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider flex items-center">
+                Acciones Asignadas
+                <AulaHelp helpId="cat-acciones-pendientes" />
+              </span>
               <h3 className="text-2xl font-black text-slate-805">{kpis.accionesPendientes} Casos</h3>
               <span className="text-[9px] font-bold text-indigo-650 bg-indigo-50 px-2 py-0.5 rounded-md">
                 En intervención o seguimiento
@@ -147,7 +157,10 @@ export default function TerritoryAlertsPage() {
         <Card className="border-slate-200 shadow-xs rounded-2xl bg-white p-4">
           <div className="flex justify-between items-start">
             <div className="space-y-1">
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Vulnerabilidad Territorial</span>
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider flex items-center">
+                Vulnerabilidad Territorial
+                <AulaHelp helpId="cat-vulnerabilidad" />
+              </span>
               <h3 className="text-2xl font-black text-slate-700">{kpis.vulnerabilidadIndex}</h3>
               <span className="text-[9px] font-bold text-slate-400 bg-slate-50 px-2 py-0.5 rounded-md">
                 Índice predictivo del municipio
@@ -220,7 +233,10 @@ export default function TerritoryAlertsPage() {
                   <TableHead className="font-bold text-xs text-slate-500 uppercase h-11">Institución Educativa</TableHead>
                   <TableHead className="font-bold text-xs text-slate-500 uppercase h-11">Descripción / Incidente</TableHead>
                   <TableHead className="font-bold text-xs text-slate-500 uppercase h-11 text-center">Impacto</TableHead>
-                  <TableHead className="font-bold text-xs text-slate-500 uppercase h-11">Prioridad Inteligente</TableHead>
+                  <TableHead className="font-bold text-xs text-slate-500 uppercase h-11 flex items-center gap-0.5">
+                    Prioridad Inteligente
+                    <AulaHelp helpId="cat-prioridad-inteligente" />
+                  </TableHead>
                   <TableHead className="font-bold text-xs text-slate-500 uppercase h-11">Responsable</TableHead>
                   <TableHead className="font-bold text-xs text-slate-500 uppercase h-11 text-center">Estado</TableHead>
                   <TableHead className="font-bold text-xs text-slate-500 uppercase h-11 text-right pr-6">Acción</TableHead>

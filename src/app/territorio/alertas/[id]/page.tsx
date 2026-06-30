@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { AulaHelp } from '@/components/territorio/AulaHelp';
 import { TerritorialAlert } from '@/services/territory-mock';
 import { 
   transitionAlertStatus, 
@@ -265,7 +266,10 @@ export default function TerritoryAlertDetailPage() {
               <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Cruce de Variables BI</span>
               <div className="space-y-3 text-xs font-semibold">
                 <div className="flex justify-between border-b border-slate-100 pb-2">
-                  <span className="text-slate-455">Impacto Estimado:</span>
+                  <span className="text-slate-455 flex items-center">
+                    Impacto Estimado
+                    <AulaHelp helpId="cat-impacto-estimado" />
+                  </span>
                   <span className="text-rose-700 font-extrabold">{alertData.impact_estimate} Personas</span>
                 </div>
                 {Object.entries(alertData.metadata.kpis).map(([k, v]) => (
