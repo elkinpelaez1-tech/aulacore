@@ -10,6 +10,7 @@ import {
   Megaphone, Send, CheckCircle2, FileText, Upload, Trash2, 
   Sparkles, Mail, MessageSquare, Clock, CheckCheck, Landmark, ShieldAlert 
 } from 'lucide-react';
+import { dispatchMIOEvent } from '@/services/mio-service';
 
 export default function TerritoryComunicacionesPage() {
   const [circulares, setCirculares] = useState<Circular[]>([]);
@@ -112,6 +113,26 @@ export default function TerritoryComunicacionesPage() {
       alert(`Circular programada con éxito para el ${scheduledDate} a las ${scheduledTime}`);
     } else {
       setCirculares(prev => [newCircular, ...prev]);
+
+      // Despachar a MIO
+      dispatchMIOEvent({
+        id: `evt-circ-${Date.now()}`,
+        type: 'circular.sent',
+        tenantId: 'tenant-antioquia',
+        municipality: 'Barbosa',
+        data: {
+          circular_id: newCircular.id,
+          title: newCircular.title,
+          scope: newCircular.scope,
+          comment: 'Despacho formal de circular digital firmada.'
+        },
+        timestamp: new Date().toISOString(),
+        userId: 'usr-admin-sed',
+        userRole: currentRole,
+        originModule: 'Comunicaciones',
+        organizationName: 'Secretaría de Educación de Antioquia'
+      });
+
       setSuccess(true);
       setTimeout(() => setSuccess(false), 4000);
     }

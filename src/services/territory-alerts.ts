@@ -1,16 +1,17 @@
 'use client';
 
-import { TerritorialAlert, TerritorialAlertLog, INITIAL_ALERTS } from './territory-mock';
+import { TerritorialAlert, TerritorialAlertLog, getAlertsMock } from './territory-mock';
 
 // Local storage session key to persist changes in memory
 const ALERTS_SESSION_KEY = 'aulacore_territorial_alerts';
 
 function getStoredAlerts(): TerritorialAlert[] {
-  if (typeof window === 'undefined') return INITIAL_ALERTS;
+  if (typeof window === 'undefined') return [];
   const stored = sessionStorage.getItem(ALERTS_SESSION_KEY);
   if (!stored) {
-    sessionStorage.setItem(ALERTS_SESSION_KEY, JSON.stringify(INITIAL_ALERTS));
-    return INITIAL_ALERTS;
+    const initial = getAlertsMock();
+    sessionStorage.setItem(ALERTS_SESSION_KEY, JSON.stringify(initial));
+    return initial;
   }
   return JSON.parse(stored);
 }
@@ -157,4 +158,10 @@ export function assignAlertTo(alertId: string, officerName: string): boolean {
   alert.logs.push(newLog);
   saveStoredAlerts(alerts);
   return true;
+}
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('modo-demo-changed', () => {
+    sessionStorage.removeItem(ALERTS_SESSION_KEY);
+  });
 }

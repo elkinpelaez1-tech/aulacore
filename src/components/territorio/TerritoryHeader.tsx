@@ -3,18 +3,23 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/providers/auth-provider';
 import { supabase } from '@/lib/supabase';
+import { useRouter } from 'next/navigation';
 import { Modal } from './Modal';
 import { 
   Search, Bell, User, MapPin, Sparkles, ChevronDown, 
-  Settings, Key, LogOut, Info, ShieldCheck, Calendar, Users2, Landmark
+  Settings, Key, LogOut, Info, ShieldCheck, Calendar, Users2, Landmark,
+  ShieldAlert, Mail, Phone, Lock
 } from 'lucide-react';
 
 export function TerritoryHeader() {
+  const router = useRouter();
   const { allInstitutions, overrideInstitutionId } = useAuth();
   
   // States for dropdowns and modals
   const [profileOpen, setProfileOpen] = useState(false);
   const [orgOpen, setOrgOpen] = useState(false);
+  const [profileModalOpen, setProfileModalOpen] = useState(false);
+  const [passwordModalOpen, setPasswordModalOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState('Secretario de Educación');
   
   const profileRef = useRef<HTMLDivElement>(null);
@@ -172,19 +177,19 @@ export function TerritoryHeader() {
                 </select>
               </div>
 
-              <button onClick={() => alert('Abrir Mi Perfil...')} className="w-full text-left px-4 py-2 hover:bg-slate-50 font-semibold text-slate-700 flex items-center gap-2 border-none bg-transparent cursor-pointer">
-                <User className="w-4 h-4 text-slate-450" />
+               <button onClick={() => { setProfileModalOpen(true); setProfileOpen(false); }} className="w-full text-left px-4 py-2 hover:bg-slate-50 font-semibold text-slate-700 flex items-center gap-2 border-none bg-transparent cursor-pointer">
+                <User className="w-4 h-4 text-slate-455" />
                 Mi perfil
               </button>
-              <button onClick={() => alert('Configuración general...')} className="w-full text-left px-4 py-2 hover:bg-slate-50 font-semibold text-slate-700 flex items-center gap-2 border-none bg-transparent cursor-pointer">
+              <button onClick={() => { router.push('/territorio/configuracion'); setProfileOpen(false); }} className="w-full text-left px-4 py-2 hover:bg-slate-50 font-semibold text-slate-700 flex items-center gap-2 border-none bg-transparent cursor-pointer">
                 <Settings className="w-4 h-4 text-slate-455" />
                 Configuración
               </button>
-              <button onClick={() => alert('Cambiar contraseña...')} className="w-full text-left px-4 py-2 hover:bg-slate-50 font-semibold text-slate-700 flex items-center gap-2 border-none bg-transparent cursor-pointer">
+              <button onClick={() => { setPasswordModalOpen(true); setProfileOpen(false); }} className="w-full text-left px-4 py-2 hover:bg-slate-50 font-semibold text-slate-700 flex items-center gap-2 border-none bg-transparent cursor-pointer">
                 <Key className="w-4 h-4 text-slate-455" />
                 Cambiar contraseña
               </button>
-              <button onClick={() => alert('Cerrando sesión...')} className="w-full text-left px-4 py-2 hover:bg-slate-50 font-black text-rose-650 flex items-center gap-2 border-t border-slate-100 pt-2 mt-1 border-none bg-transparent cursor-pointer">
+              <button onClick={() => { router.push('/login'); setProfileOpen(false); }} className="w-full text-left px-4 py-2 hover:bg-slate-50 font-black text-rose-650 flex items-center gap-2 border-t border-slate-100 pt-2 mt-1 border-none bg-transparent cursor-pointer">
                 <LogOut className="w-4 h-4" />
                 Cerrar sesión
               </button>
@@ -279,6 +284,135 @@ export function TerritoryHeader() {
                   [Registro de auditoría inmutable e inyectable de Supabase]
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      </Modal>
+
+      {/* 👤 MODAL DE MI PERFIL */}
+      <Modal
+        isOpen={profileModalOpen}
+        onClose={() => setProfileModalOpen(false)}
+        title="Mi Perfil de Usuario"
+        subtitle="AulaCore Gestión de Identidad"
+        footer={
+          <button
+            onClick={() => setProfileModalOpen(false)}
+            className="px-4 py-2 bg-indigo-650 hover:bg-indigo-700 text-white font-bold rounded-xl cursor-pointer text-xs border-none"
+          >
+            Cerrar
+          </button>
+        }
+      >
+        <div className="space-y-4 text-xs font-semibold text-slate-750">
+          <div className="flex items-center gap-4 p-4 border border-slate-200 rounded-2xl bg-slate-50/50">
+            <div className="w-12 h-12 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-2xl flex items-center justify-center font-black text-lg shadow-inner shrink-0">
+              AG
+            </div>
+            <div>
+              <h4 className="text-sm font-black text-slate-800">Dr. Alejandro Gómez</h4>
+              <span className="text-[10px] font-black text-indigo-650 bg-indigo-50 px-2 py-0.5 rounded-full uppercase tracking-wider block mt-1 w-fit">
+                {selectedRole}
+              </span>
+            </div>
+          </div>
+
+          <div className="space-y-2.5">
+            <div className="flex items-center gap-2 border-b border-slate-100 pb-2">
+              <Mail className="w-4 h-4 text-slate-400 shrink-0" />
+              <div>
+                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Correo Institucional</span>
+                <span className="text-slate-800">a.gomez@sed.gov.co</span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 border-b border-slate-100 pb-2">
+              <Phone className="w-4 h-4 text-slate-400 shrink-0" />
+              <div>
+                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Teléfono de Contacto</span>
+                <span className="text-slate-800">+57 (300) 456-7890</span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 border-b border-slate-100 pb-2">
+              <Landmark className="w-4 h-4 text-slate-400 shrink-0" />
+              <div>
+                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Entidad Territorial</span>
+                <span className="text-slate-800">Gobernación de Antioquia - Secretaría de Educación</span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+              <div>
+                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Firma Digital Autorizada</span>
+                <span className="text-emerald-700 font-bold">Certificado Homologado Vigente (SHA-256)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Modal>
+
+      {/* 🔑 MODAL DE CAMBIAR CONTRASEÑA */}
+      <Modal
+        isOpen={passwordModalOpen}
+        onClose={() => setPasswordModalOpen(false)}
+        title="Cambiar Contraseña"
+        subtitle="AulaCore Seguridad"
+        footer={
+          <div className="flex gap-2">
+            <button
+              onClick={() => setPasswordModalOpen(false)}
+              className="px-4 py-2 border border-slate-200 hover:bg-slate-50 font-bold rounded-xl text-xs cursor-pointer text-slate-700 bg-white"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={() => {
+                alert('Contraseña modificada con éxito.');
+                setPasswordModalOpen(false);
+              }}
+              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs cursor-pointer border-none"
+            >
+              Guardar Contraseña
+            </button>
+          </div>
+        }
+      >
+        <div className="space-y-4 text-xs font-semibold text-slate-700">
+          <div className="space-y-1">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Contraseña Actual</label>
+            <div className="relative">
+              <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+              <input
+                type="password"
+                placeholder="••••••••••••"
+                className="w-full text-xs pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Nueva Contraseña</label>
+            <div className="relative">
+              <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+              <input
+                type="password"
+                placeholder="Min. 8 caracteres"
+                className="w-full text-xs pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Confirmar Nueva Contraseña</label>
+            <div className="relative">
+              <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+              <input
+                type="password"
+                placeholder="Verifique su contraseña"
+                className="w-full text-xs pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500"
+              />
             </div>
           </div>
         </div>

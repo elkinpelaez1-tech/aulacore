@@ -3,10 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { hasTerritoryPermission, getRbacControlAttrs } from '@/services/territory-rbac';
+import { CentroAutomatizaciones } from '@/components/territorio/CentroAutomatizaciones';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { 
   Settings, Save, CheckCircle2, Sliders, Landmark, 
   Image as ImageIcon, Sparkles, Mail, Users2, ShieldCheck, 
-  MapPin, ShieldAlert, FileText, ToggleLeft 
+  MapPin, ShieldAlert, FileText, ToggleLeft, Cpu
 } from 'lucide-react';
 
 type TabType = 
@@ -18,12 +20,25 @@ type TabType =
   | 'funcionarios' 
   | 'territorial' 
   | 'auditoria' 
-  | 'licencia';
+  | 'licencia'
+  | 'mio';
 
-export default function TerritoryConfiguracionPage() {
-  const [activeTab, setActiveTab] = useState<TabType>('ficha');
+function ConfiguracionContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const initialTab = (searchParams.get('tab') as TabType) || 'ficha';
+  
+  const [activeTab, setActiveTab] = useState<TabType>(initialTab);
   const [success, setSuccess] = useState(false);
   const [currentRole, setCurrentRole] = useState('Secretario de Educación');
+
+  // Ajustar pestaña activa si cambia el query parameter
+  useEffect(() => {
+    const tabParam = searchParams.get('tab') as TabType;
+    if (tabParam) {
+      setActiveTab(tabParam);
+    }
+  }, [searchParams]);
 
   // Ficha General States
   const [name, setName] = useState('Secretaría de Educación de Antioquia');
@@ -66,6 +81,7 @@ export default function TerritoryConfiguracionPage() {
     { id: 'ficha', label: 'Ficha de la Secretaría', icon: Landmark },
     { id: 'identidad', label: 'Identidad e Imagen', icon: ImageIcon },
     { id: 'umbrales', label: 'Umbrales de Alertas', icon: Sliders },
+    { id: 'mio', label: 'Centro de Automatizaciones MIO', icon: Cpu },
     { id: 'ia', label: 'Motor IA Territorial', icon: Sparkles, isPlaceholder: true },
     { id: 'comunicaciones', label: 'Config. Comunicaciones', icon: Mail, isPlaceholder: true },
     { id: 'funcionarios', label: 'Gestión de Funcionarios', icon: Users2, isPlaceholder: true },
@@ -419,6 +435,10 @@ export default function TerritoryConfiguracionPage() {
             </Card>
           )}
 
+          {activeTab === 'mio' && (
+            <CentroAutomatizaciones />
+          )}
+
           {/* Placeholder Tabs de Opciones de Navegación Futura */}
           {['ia', 'comunicaciones', 'funcionarios', 'territorial', 'auditoria', 'licencia'].includes(activeTab) && (
             <Card className="border-slate-200 shadow-sm rounded-2xl bg-white p-12 text-center space-y-4">
@@ -448,5 +468,13 @@ export default function TerritoryConfiguracionPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function TerritoryConfiguracionPage() {
+  return (
+    <React.Suspense fallback={<div className="p-6 text-xs text-slate-455 font-bold uppercase tracking-wider">Cargando administración...</div>}>
+      <ConfiguracionContent />
+    </React.Suspense>
   );
 }

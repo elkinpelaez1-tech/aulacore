@@ -16,6 +16,9 @@ import {
   getTelemetryStats 
 } from '@/services/help-ai-service';
 import { HELP_KNOWLEDGE_BASE, HelpArticle } from '@/services/help-knowledge-base';
+import { HELP_GLOSSARY } from '@/services/help-glossary';
+import { isModoDemoActive } from '@/services/territory-mock';
+import { getMIORuns } from '@/services/mio-service';
 
 export function AulaHelpIA() {
   const pathname = usePathname();
@@ -44,21 +47,22 @@ export function AulaHelpIA() {
 
   // Cargar rol y chat al iniciar
   useEffect(() => {
-    const savedRole = sessionStorage.getItem('simulated_role');
-    if (savedRole) {
-      setCurrentRole(savedRole);
-      if (savedRole === 'Rector Principal') {
-        setOrgType('Institución Educativa');
-      } else {
-        setOrgType('Secretaría de Educación');
-      }
+    const savedRole = sessionStorage.getItem('simulated_role') || 'Secretario de Educación';
+    setCurrentRole(savedRole);
+    if (savedRole === 'Rector Principal') {
+      setOrgType('Institución Educativa');
+    } else {
+      setOrgType('Secretaría de Educación');
     }
 
+    const demoActive = isModoDemoActive();
     const history = getChatHistory();
     if (history.length === 0) {
       const welcome: ChatMessage = {
         sender: 'ia',
-        text: `¡Hola! Soy **AulaHelp IA**, tu asesor experto en gestión educativa y AulaCore.\n\nEstoy aquí para guiarte en el uso de la plataforma según tu cargo (**${savedRole || 'Secretario'}**).\n\n¿En qué proceso o indicador del sistema tienes dudas hoy?`,
+        text: demoActive
+          ? `¡Bienvenido a la **Demostración Comercial de AulaCore**! 🎬\n\nSoy **AulaHelp IA**, tu asesor de ventas y gestión gubernamental.\n\nHe activado el **Modo Demo Comercial** en el territorio consolidado de **Antioquia** ( Barbosa, Copacabana, Girardota, Medellín) con datos realistas para 10 planteles.\n\nPara guiar su presentación, haga clic abajo en **"Guión de la Demo Comercial 🎬"** o pregúnteme sobre el valor estratégico de cualquier módulo para un Alcalde o Rector.`
+          : `¡Hola! Soy **AulaHelp IA**, tu asesor experto en gestión educativa y AulaCore.\n\nEstoy aquí para guiarte en el uso de la plataforma según tu cargo (**${savedRole}**).\n\n¿En qué proceso o indicador del sistema tienes dudas hoy?`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
       setMessages([welcome]);
@@ -72,6 +76,25 @@ export function AulaHelpIA() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isThinking]);
+
+  // Escuchar cambio del modo demo para recargar mensajes
+  useEffect(() => {
+    const handleDemo = () => {
+      const demoActive = isModoDemoActive();
+      const savedRole = sessionStorage.getItem('simulated_role') || 'Secretario de Educación';
+      const welcome: ChatMessage = {
+        sender: 'ia',
+        text: demoActive
+          ? `¡Bienvenido a la **Demostración Comercial de AulaCore**! 🎬\n\nSoy **AulaHelp IA**, tu asesor de ventas y gestión gubernamental.\n\nHe activado el **Modo Demo Comercial** en el territorio consolidado de **Antioquia** ( Barbosa, Copacabana, Girardota, Medellín) con datos realistas para 10 planteles.\n\nPara guiar su presentación, haga clic abajo en **"Guión de la Demo Comercial 🎬"** o pregúnteme sobre el valor estratégico de cualquier módulo para un Alcalde o Rector.`
+          : `¡Hola! Soy **AulaHelp IA**, tu asesor experto en gestión educativa y AulaCore.\n\nEstoy aquí para guiarte en el uso de la plataforma según tu cargo (**${savedRole}**).\n\n¿En qué proceso o indicador del sistema tienes dudas hoy?`,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+      setMessages([welcome]);
+      saveChatHistory([welcome]);
+    };
+    window.addEventListener('modo-demo-changed', handleDemo);
+    return () => window.removeEventListener('modo-demo-changed', handleDemo);
+  }, []);
 
   // Ayuda Proactiva (temporizador de 60 segundos de inactividad)
   useEffect(() => {
@@ -129,13 +152,82 @@ export function AulaHelpIA() {
     setProactiveVisible(false);
 
     try {
-      const response = await askAulaHelpIA(textToSend, pathname, currentRole, orgType);
+      let responseText = '';
+      let related: string[] = [];
+
+      const queryLower = textToSend.toLowerCase();
+
+      if (queryLower.includes('guión') || queryLower.includes('guion')) {
+        responseText = `**Guión Oficial de Ventas - Demo Comercial Premium (10 Minutos)** 🎬\n\nSiga este recorrido en 3 actos para impresionar a un Secretario o Alcalde:\n\n` +
+          `*   **Acto 1: Detección (2 mins)**:\n` +
+          `    1. Inicie en la **Consola Territorial**. Resalte los KPIs. Muestre la matrícula consolidada real de **4.820 estudiantes** en Antioquia.\n` +
+          `    2. Diríjase al **Centro de Alertas Tempranas (CAT)**. Explique el triage. Muestre el semáforo en Rojo en la **I.E. Rural El Hatillo (PAE-001)**.\n\n` +
+          `*   **Acto 2: Diagnóstico e Inteligencia (4 mins)**:\n` +
+          `    1. Abra el expediente de la alerta. Señale el **Impacto Estimado (240 raciones)**.\n` +
+          `    2. Use **AulaHelp IA** para ver qué norma legal del PAE ampara este caso y cómo calcular el impacto.\n` +
+          `    3. Muestre la pestaña **Recomendaciones** generadas automáticamente para actuar de inmediato.\n\n` +
+          `*   **Acto 3: Resolución e Inmutabilidad (4 mins)**:\n` +
+          `    1. Transicione el estado a "Intervención" y asigne a la inspectora **Claudia Restrepo**.\n` +
+          `    2. Muestre el **Timeline Narrativo**. Explique cómo la inmutabilidad y la firma digital previenen la alteración de bitácoras.\n` +
+          `    3. Diríjase a **Reportes** y descargue la planilla foliada con el sello oficial de la Gobernación de Antioquia.`;
+        related = ['como-registrar-visita', 'cat-prioridad-inteligente'];
+      } else if (queryLower.includes('valor comercial') || queryLower.includes('roi') || queryLower.includes('retorno')) {
+        responseText = `**Retorno de Inversión (ROI) y Valor Comercial de AulaCore** 📈\n\nAulaCore se presenta a Alcaldías y Gobernaciones bajo tres pilares de valor monetario e institucional:\n\n` +
+          `1.  **Reducción de la Deserción Escolar (ROI Social)**:\n` +
+          `    *   *Métrica*: Al alertar inasistencias en 48 horas (vía RFID) en vez de al final de mes, se recuperan un promedio de 8.2% de alumnos en riesgo de abandono.\n` +
+          `    *   *Impacto*: Mayor transferencia per cápita del Sistema General de Participaciones (SGP) al municipio.\n\n` +
+          `2.  **Optimización y Control del PAE**:\n` +
+          `    *   *Métrica*: Cruce en caliente entre raciones contratadas y asistencia real registrada.\n` +
+          `    *   *Impacto*: Evita el pago de raciones no entregadas o duplicadas, ahorrando hasta un 14.5% del presupuesto alimentario.\n\n` +
+          `3.  **Transparencia de Auditoría**:\n` +
+          `    *   *Métrica*: Bitácora de incidencias firmada con hashes criptográficos inmutables.\n` +
+          `    *   *Impacto*: Blindaje legal contra demandas de proveedores y cumplimiento estricto ante los entes de control fiscal.`;
+        related = ['cat-vulnerabilidad', 'que-es-matricula-consolidada'];
+      } else if (queryLower.includes('mio') || queryLower.includes('automatiz') || queryLower.includes('monitoreo') || queryLower.includes('black box') || queryLower.includes('caja negra') || queryLower.includes('eventos') || queryLower.includes('telemetr')) {
+        const currentRuns = getMIORuns();
+        const runSummary = currentRuns.length > 0 
+          ? currentRuns.slice(0, 3).map(r => `*   **Folio #${r.folio}**: Receta \`${r.recipeName}\` ejecutada en **${r.durationMs}ms** por el módulo \`${r.originModule}\`. Estado: \`${r.status}\`. Firma: \`${r.executionHash.substring(0, 16)}...\`.`).join('\n')
+          : '*   *No se registran eventos procesados en la Black Box en este periodo de sesión.*';
+
+        responseText = `**Servicio de Telemetría y Monitoreo del Ecosistema MIO** ⚡\n\n` +
+          `Como asesor de AulaCore, te presento el informe de auditoría inmutable de la **Black Box (Caja Negra)** en tiempo real:\n\n` +
+          `**Métricas Operativas del MIO**:\n` +
+          `*   **Eventos Totales**: ${currentRuns.length} procesados.\n` +
+          `*   **Tiempo de Respuesta**: ${currentRuns.length > 0 ? (currentRuns.reduce((a, r) => a + r.durationMs, 0) / currentRuns.length).toFixed(0) : '0'} ms promedio.\n` +
+          `*   **Canal**: Bus de Eventos Global Desacoplado.\n` +
+          `*   **Salud del Bus**: 🟢 Activo y en espera de eventos.\n\n` +
+          `**Últimos Folios Registrados (Auditoría SHA-256)**:\n${runSummary}\n\n` +
+          `*Nota: Todos los folios y timelines son inmutables y están firmados criptográficamente para auditoría fiscal.*`;
+        related = ['cat-prioridad-inteligente', 'cat-acciones-pendientes'];
+      } else {
+        // Buscar coincidencia semántica/texto en el glosario oficial
+        const glossaryMatch = Object.values(HELP_GLOSSARY).find(item => 
+          queryLower.includes(item.title.toLowerCase()) || 
+          item.id.split('-').some(word => word.length > 2 && queryLower.includes(word))
+        );
+
+        if (glossaryMatch) {
+          responseText = `**Glosario Oficial de AulaCore: ${glossaryMatch.title}** 📚\n\n` +
+            `*   **¿Qué es?**: ${glossaryMatch.whatIs}\n` +
+            `*   **¿Por qué es importante?**: ${glossaryMatch.whyImportant}\n` +
+            (glossaryMatch.howCalculated ? `*   **¿Cómo se calcula?**: ${glossaryMatch.howCalculated}\n` : '') +
+            `*   **Decisiones**: ${glossaryMatch.decisions}\n` +
+            `*   **Buenas Prácticas**: ${glossaryMatch.bestPractices}\n` +
+            `*   **Caso Práctico**: ${glossaryMatch.caseStudy}\n` +
+            (glossaryMatch.regulation ? `*   **Normatividad aplicable**: *${glossaryMatch.regulation}*` : '');
+          related = ['cat-vulnerabilidad', 'cat-prioridad-inteligente'];
+        } else {
+          const res = await askAulaHelpIA(textToSend, pathname, currentRole, orgType);
+          responseText = res.text;
+          related = res.relatedArticles || [];
+        }
+      }
       
       const iaMsg: ChatMessage = {
         sender: 'ia',
-        text: response.text,
+        text: responseText,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        relatedArticles: response.relatedArticles
+        relatedArticles: related
       };
       
       const final = [...updated, iaMsg];
@@ -160,6 +252,14 @@ export function AulaHelpIA() {
   };
 
   const getSuggestedQuestions = () => {
+    const demoActive = isModoDemoActive();
+    if (demoActive) {
+      return [
+        'Guión de la Demo Comercial 🎬',
+        '¿Cuál es el valor comercial del CAT para un Secretario?',
+        '¿Cómo justifica AulaCore su retorno de inversión (ROI)?'
+      ];
+    }
     if (pathname.includes('/territorio/alertas')) {
       return [
         '¿Cómo funciona la prioridad del Motor Inteligente?',

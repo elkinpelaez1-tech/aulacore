@@ -6,7 +6,8 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@
 import { Modal } from '@/components/territorio/Modal';
 import { INITIAL_VISITS, MockVisit } from '@/services/territory-mock';
 import { hasTerritoryPermission, getRbacControlAttrs } from '@/services/territory-rbac';
-import { Calendar, User, Clock, CheckCircle, PlusCircle, CheckCircle2, Shield, Plus, X, AlertTriangle, ShieldAlert } from 'lucide-react';
+import { dispatchMIOEvent } from '@/services/mio-service';
+import { Calendar, User, Clock, CheckCircle, PlusCircle, CheckCircle2, Shield, Plus, X, AlertTriangle, ShieldAlert, Check } from 'lucide-react';
 
 export default function TerritoryAgendaPage() {
   const [visits, setVisits] = useState<MockVisit[]>([]);
@@ -69,10 +70,66 @@ export default function TerritoryAgendaPage() {
     };
 
     setVisits(prev => [newVisit, ...prev]);
+
+    // Despachar a MIO
+    dispatchMIOEvent({
+      id: `evt-sched-${Date.now()}`,
+      type: 'visit.scheduled',
+      tenantId: 'tenant-antioquia',
+      municipality: 'Barbosa',
+      data: {
+        visit_id: newVisit.id,
+        school_name: newVisit.institution,
+        inspector: newVisit.inspector,
+        type: newVisit.type,
+        comment: 'Visita agendada formalmente desde la Agenda Territorial.'
+      },
+      timestamp: new Date().toISOString(),
+      userId: 'usr-admin-sed',
+      userRole: currentRole,
+      originModule: 'Agenda de Campo',
+      organizationName: 'Secretaría de Educación de Antioquia'
+    });
+
     setDate('');
     setInspector('');
     setSuccess(true);
     setTimeout(() => setSuccess(false), 4000);
+  };
+
+  const handleCompleteVisit = (visitId: string) => {
+    if (!hasTerritoryPermission(currentRole, 'programar_visita')) {
+      alert('Error: Su rol actual no cuenta con privilegios para firmar visitas.');
+      return;
+    }
+
+    const targetVisit = visits.find(v => v.id === visitId);
+    if (!targetVisit) return;
+
+    // Transicionar estado local
+    setVisits(prev => prev.map(v => v.id === visitId ? { ...v, status: 'Finalizada' } : v));
+
+    // Despachar a MIO
+    dispatchMIOEvent({
+      id: `evt-comp-${Date.now()}`,
+      type: 'visit.completed',
+      tenantId: 'tenant-antioquia',
+      municipality: 'Barbosa',
+      data: {
+        visit_id: visitId,
+        school_name: targetVisit.institution,
+        inspector: targetVisit.inspector,
+        type: targetVisit.type,
+        comment: 'Firma de acta técnica local offline sincronizada al bus.'
+      },
+      timestamp: new Date().toISOString(),
+      userId: 'usr-admin-sed',
+      userRole: currentRole,
+      originModule: 'Agenda de Campo',
+      organizationName: 'Secretaría de Educación de Antioquia'
+    });
+
+    alert('Visita finalizada. El MIO ha procesado el evento visit.completed de forma integrada.');
   };
 
   const handleAddActivity = (e: React.FormEvent) => {
@@ -312,6 +369,7 @@ export default function TerritoryAgendaPage() {
                       <TableHead className="font-bold text-xs text-slate-500 uppercase tracking-wider h-11">Prioridad</TableHead>
                       <TableHead className="font-bold text-xs text-slate-500 uppercase tracking-wider h-11">Inspector</TableHead>
                       <TableHead className="font-bold text-xs text-slate-500 uppercase tracking-wider h-11 text-center">Estado</TableHead>
+                      <TableHead className="font-bold text-xs text-slate-500 uppercase tracking-wider h-11 text-center">Acciones</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -344,6 +402,18 @@ export default function TerritoryAgendaPage() {
                           <span className={`text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full ${getStatusBadgeClass(visit.status)}`}>
                             {visit.status}
                           </span>
+                        </TableCell>
+                        <TableCell className="py-3.5 align-middle text-center">
+                          {visit.status !== 'Finalizada' && visit.status !== 'Cancelada' ? (
+                            <button
+                              onClick={() => handleCompleteVisit(visit.id)}
+                              className="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-1 rounded-lg border border-emerald-200 cursor-pointer transition-colors"
+                            >
+                              Finalizar Acta
+                            </button>
+                          ) : (
+                            <span className="text-[10px] font-semibold text-slate-400">Sin acciones</span>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))}

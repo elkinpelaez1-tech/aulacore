@@ -10,7 +10,7 @@ import { getTerritorialKpis, TerritorialKpis } from '@/services/territory-servic
 import { 
   Building, Users, Award, ShieldAlert, 
   CheckCircle2, Laptop, Calendar, AlertTriangle,
-  ArrowRight, Megaphone, PlusCircle, FileText, Sparkles, UserCheck, Settings, Users2
+  ArrowRight, Megaphone, PlusCircle, FileText, Sparkles, UserCheck, Settings, Users2, Cpu
 } from 'lucide-react';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, 
@@ -258,10 +258,10 @@ export default function TerritoryDashboardPage() {
         <h4 className="text-xs font-black uppercase tracking-wider text-slate-850">
           Accesos Rápidos Administrativos
         </h4>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <Link href="/territorio/comunicaciones" className="flex items-center justify-between p-4 bg-white border border-slate-200 hover:border-slate-350 rounded-2xl shadow-xs transition-all duration-200 group">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-650 flex items-center justify-center">
+              <div className="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-655 flex items-center justify-center">
                 <Megaphone className="w-4.5 h-4.5" />
               </div>
               <div className="text-left">
@@ -285,13 +285,26 @@ export default function TerritoryDashboardPage() {
             <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-blue-650 group-hover:translate-x-1 transition-all duration-200" />
           </Link>
 
+          <Link href="/territorio/configuracion?tab=mio" className="flex items-center justify-between p-4 bg-white border border-slate-200 hover:border-slate-350 rounded-2xl shadow-xs transition-all duration-200 group">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-650 flex items-center justify-center">
+                <Cpu className="w-4.5 h-4.5 animate-pulse" />
+              </div>
+              <div className="text-left">
+                <span className="text-xs font-bold text-slate-800 block">Automatizaciones MIO</span>
+                <span className="text-[10px] font-semibold text-slate-455 block">Consola y reglas del motor</span>
+              </div>
+            </div>
+            <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-amber-650 group-hover:translate-x-1 transition-all duration-200" />
+          </Link>
+
           <Link href="/territorio/reportes" className="flex items-center justify-between p-4 bg-white border border-slate-200 hover:border-slate-350 rounded-2xl shadow-xs transition-all duration-200 group">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-xl bg-purple-50 text-purple-650 flex items-center justify-center">
                 <FileText className="w-4.5 h-4.5" />
               </div>
               <div className="text-left">
-                <span className="text-xs font-bold text-slate-800 block">Descargar Reporte Mensual</span>
+                <span className="text-xs font-bold text-slate-850 block">Descargar Reporte Mensual</span>
                 <span className="text-[10px] font-semibold text-slate-455 block">Estadísticas Consolidadas PDF</span>
               </div>
             </div>

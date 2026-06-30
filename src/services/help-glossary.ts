@@ -85,6 +85,54 @@ export const HELP_GLOSSARY: Record<string, HelpItem> = {
     bestPractices: 'Comparar el IRT del municipio al finalizar cada semestre lectivo con las metas del plan de desarrollo territorial.',
     caseStudy: 'El IRT subió al 28% debido a lluvias prolongadas en veredas de Barbosa. Cobertura activó subsidio de transporte rural disminuyendo el ausentismo general.',
     regulation: 'Plan de Desarrollo Departamental y Directiva Ministerial contra la deserción escolar.'
+  },
+  'mio-engine': {
+    id: 'mio-engine',
+    title: 'MIO (Motor de Inteligencia Operativa)',
+    tooltip: 'El cerebro operativo de AulaCore que ejecuta y audita flujos de automatización institucional.',
+    whatIs: 'El núcleo de automatización inteligente encargado de recibir eventos del sistema, evaluar reglas y tomar decisiones automatizadas en cascada (como agendar visitas o crear alertas).',
+    whyImportant: 'Desacopla la lógica de negocio y permite la orquestación en tiempo real de múltiples módulos de AulaCore sin dependencias directas.',
+    howCalculated: 'Procesamiento en 7 capas: Evento ➔ Reglas ➔ Decisiones ➔ Automatización ➔ Aprendizaje (SHA-256) ➔ Recomendaciones IA ➔ Mejora Continua.',
+    decisions: 'Habilitar o deshabilitar recetas institucionales homologadas y aprobar propuestas de mejora continua formuladas por la IA.',
+    bestPractices: 'Monitorear la Black Box para detectar demoras en el procesamiento de flujos de intervención veredales.',
+    caseStudy: 'El MIO interceptó la alerta PAE y despachó automáticamente la circular oficial al rector de El Hatillo y la orden de visita de campo en 150 milisegundos.',
+    regulation: 'Arquitectura desacoplada basada en eventos (EDA) y estándares de inmutabilidad digital.'
+  },
+  'matriz-dispersion': {
+    id: 'matriz-dispersion',
+    title: 'Matriz de Dispersión Académica',
+    tooltip: 'Gráfico bidimensional en Analítica que cruza el ausentismo escolar con el rendimiento promedio.',
+    whatIs: 'Una visualización avanzada en el portal de analítica que posiciona cada institución educativa del territorio en base a su porcentaje de inasistencia (eje X) y su promedio de notas (eje Y).',
+    whyImportant: 'Permite identificar inmediatamente a las escuelas en el cuadrante crítico (alto ausentismo y bajo promedio) para intervenciones prioritarias.',
+    howCalculated: 'Cruce estadístico de asistencias diarias consolidadas y promedios aritméticos de notas por plantel.',
+    decisions: 'Direccionar recursos de tutoría escolar y subsidios de alimentación/transporte a los planteles en el cuadrante rojo.',
+    bestPractices: 'Validar que las I.E. no tengan descalces o retrasos en la carga de notas al final del periodo lectivo.',
+    caseStudy: 'Al cruzar Barbosa rural, la I.E. El Hatillo apareció en el extremo superior izquierdo de la matriz, gatillando el envío de raciones PAE de contingencia.',
+    regulation: 'Guía de Evaluación de Calidad Educativa del MEN.'
+  },
+  'cobertura-educativa': {
+    id: 'cobertura-educativa',
+    title: 'Cobertura Educativa',
+    tooltip: 'Indicador de acceso y permanencia que mide la población matriculada sobre la proyectada.',
+    whatIs: 'Módulo que analiza las tasas de matrícula del territorio veredal, comparando el total de cupos ocupados con el censo de población en edad escolar.',
+    whyImportant: 'Garantiza el cumplimiento del derecho a la educación formal y fundamenta los giros del SGP.',
+    howCalculated: 'Estudiantes matriculados activos divididos por la población proyectada del DANE multiplicada por 100.',
+    decisions: 'Planificar la construcción de aulas y aperturas de nuevas plazas docentes en zonas rurales.',
+    bestPractices: 'Auditar semanalmente el descalce entre estudiantes matriculados formalmente y asistentes reales registrados por RFID.',
+    caseStudy: 'Al caer la cobertura en Barbosa al 84%, Cobertura Territorial activó la campaña escolar veredal "Aula Puerta a Puerta" recuperando 320 matriculados.',
+    regulation: 'Decreto 1860 y Ley General de Educación de Colombia.'
+  },
+  'kpis-indicadores': {
+    id: 'kpis-indicadores',
+    title: 'KPIs (Indicadores Clave de Rendimiento)',
+    tooltip: 'Métricas analíticas que cuantifican la salud y eficacia de la gestión escolar del territorio.',
+    whatIs: 'Consolidado BI visible en los portales que mide las variables críticas de la educación (matrículas, alertas CAT resueltas, visitas realizadas y efectividad MIO).',
+    whyImportant: 'Facilita la toma de decisiones basada en datos reales en lugar de suposiciones intuitivas.',
+    howCalculated: 'Agregaciones estadísticas de la base de datos de Supabase en tiempo real.',
+    decisions: 'Calibrar los presupuestos del municipio y reasignar personal a las comunas en riesgo.',
+    bestPractices: 'Mantener las integraciones RFID y notas activas para alimentar los widgets analíticos sin retrasos.',
+    caseStudy: 'La Gobernación de Antioquia redujo el tiempo de resolución del CAT de 12 días a 48 horas al visualizar semanalmente los KPIs de efectividad de los inspectores.',
+    regulation: 'Métricas oficiales del Plan de Desarrollo Institucional.'
   }
 };
 
