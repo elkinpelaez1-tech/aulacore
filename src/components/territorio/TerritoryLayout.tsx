@@ -3,6 +3,7 @@
 import React from 'react';
 import { TerritorySidebar } from './TerritorySidebar';
 import { TerritoryHeader } from './TerritoryHeader';
+import { AulaHelpIA } from './AulaHelpIA';
 
 interface TerritoryLayoutProps {
   children: React.ReactNode;
@@ -24,6 +25,9 @@ export function TerritoryLayout({ children }: TerritoryLayoutProps) {
           {children}
         </main>
       </div>
+
+      {/* Asistente Inteligente Global AulaHelp IA */}
+      <AulaHelpIA />
     </div>
   );
 }
