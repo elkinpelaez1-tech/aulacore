@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { 
   Globe, Building2, Users, Award, Briefcase, 
   TrendingUp, Laptop, HardDrive, Megaphone, 
-  Calendar, FileText, Settings, Sparkles
+  Calendar, FileText, Settings, Sparkles, AlertTriangle
 } from 'lucide-react';
 
 interface SidebarItem {
@@ -18,6 +18,7 @@ interface SidebarItem {
 
 const SIDEBAR_ITEMS: SidebarItem[] = [
   { name: 'Inicio (Resumen)', href: '/territorio', icon: Globe },
+  { name: 'Centro de Alertas (CAT)', href: '/territorio/alertas', icon: AlertTriangle },
   { name: 'Instituciones Educativas', href: '/territorio/instituciones', icon: Building2 },
   { name: 'Cobertura Educativa', href: '/territorio/cobertura', icon: Users },
   { name: 'Calidad Educativa', href: '/territorio/calidad', icon: Award },
