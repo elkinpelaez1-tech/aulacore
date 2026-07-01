@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Bell, Search, User, Calendar, Shield } from 'lucide-react';
+import { Bell, Search, User, Calendar, Shield, Activity } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -82,6 +82,46 @@ export function Header({ userName, userRole }: HeaderProps) {
   const router = useRouter();
   const { userRole: activeRole, setUserRole, setUserName } = useRole();
   const { signOut, roles, user } = useAuth();
+
+  // Estado Offline / Conectividad
+  const [syncStats, setSyncStats] = useState<any>({
+    isOnline: true,
+    pendingCount: 0,
+    isSyncing: false
+  });
+
+  useEffect(() => {
+    const { getSyncStats } = require('@/services/offline-sync-engine');
+    const updateStats = async () => {
+      const stats = await getSyncStats();
+      setSyncStats((prev: any) => ({
+        ...prev,
+        isOnline: stats.isOnline,
+        pendingCount: stats.pendingCount
+      }));
+    };
+
+    updateStats();
+
+    const handleConnectivity = (e: any) => {
+      setSyncStats((prev: any) => ({ ...prev, isOnline: e.detail.online }));
+      updateStats();
+    };
+
+    const handleSyncState = (e: any) => {
+      setSyncStats((prev: any) => ({ ...prev, isSyncing: e.detail.state === 'syncing' }));
+    };
+
+    window.addEventListener('connectivity-changed', handleConnectivity);
+    window.addEventListener('sync-queue-changed', updateStats);
+    window.addEventListener('sync-state-changed', handleSyncState);
+
+    return () => {
+      window.removeEventListener('connectivity-changed', handleConnectivity);
+      window.removeEventListener('sync-queue-changed', updateStats);
+      window.removeEventListener('sync-state-changed', handleSyncState);
+    };
+  }, []);
   
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [profileName, setProfileName] = useState(userName);
@@ -477,6 +517,54 @@ export function Header({ userName, userRole }: HeaderProps) {
               </span>
             </Button>
           )}
+
+          {/* Widget de Conectividad del Ecosistema (Offline First) */}
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => router.push('/observaciones?tab=sync')} 
+            className={cn(
+              "gap-2 rounded-lg shadow-sm border-slate-200 cursor-pointer transition-all duration-200 flex items-center shrink-0 text-xs font-semibold px-3 py-1.5",
+              !syncStats.isOnline 
+                ? "bg-red-50 border-red-200 text-red-700 hover:bg-red-100" 
+                : syncStats.isSyncing 
+                  ? "bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
+                  : syncStats.pendingCount > 0
+                    ? "bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100"
+                    : "bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100"
+            )}
+            title={
+              !syncStats.isOnline 
+                ? "Ecosistema Trabajando Sin Conexión" 
+                : syncStats.isSyncing 
+                  ? "Sincronizando datos con la SED..."
+                  : syncStats.pendingCount > 0 
+                    ? `Tienes ${syncStats.pendingCount} operaciones pendientes de sincronización` 
+                    : "Ecosistema En Línea - Sincronizado"
+            }
+          >
+            {syncStats.isSyncing ? (
+              <Activity className="w-3.5 h-3.5 text-blue-500 animate-spin" />
+            ) : (
+              <span className={cn(
+                "w-2 h-2 rounded-full shrink-0",
+                !syncStats.isOnline 
+                  ? "bg-red-500 animate-pulse" 
+                  : syncStats.pendingCount > 0 
+                    ? "bg-amber-500 animate-pulse" 
+                    : "bg-emerald-500"
+              )} />
+            )}
+            <span className="hidden sm:inline">
+              {!syncStats.isOnline 
+                ? "Sin Conexión" 
+                : syncStats.isSyncing 
+                  ? "Sincronizando..." 
+                  : syncStats.pendingCount > 0 
+                    ? `Pendientes (${syncStats.pendingCount})` 
+                    : "En Línea"}
+            </span>
+          </Button>
 
           {/* Academic Period */}
           <DropdownMenu>

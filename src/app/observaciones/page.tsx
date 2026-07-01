@@ -18,10 +18,15 @@ import {
   Users, 
   BookOpen, 
   FileCheck,
-  Scale
+  Scale,
+  Activity,
+  Wifi,
+  WifiOff,
+  RefreshCw,
+  Trash2,
+  AlertCircle
 } from 'lucide-react';
 import Link from 'next/link';
-import { updateCIEIndicator, getCIEIndicators } from '@/services/cie-service';
 
 interface Student {
   id: string;
@@ -111,14 +116,23 @@ export default function ObservacionesPage() {
   const [faltaDesc, setFaltaDesc] = useState('');
   const [faltaEvidence, setFaltaEvidence] = useState('');
 
-  // Comité States
-  const [activeView, setActiveView] = useState<'observador' | 'comite'>('observador');
+  // Pestaña Activa
+  const [activeView, setActiveView] = useState<'observador' | 'comite' | 'sync'>('observador');
   const [actas, setActas] = useState<any[]>([
     { id: 'ACT-2026-01', date: '2026-06-22', topic: 'Mediación por caso de intimidación I.E. El Hatillo', attendees: ['Rector', 'Personero', 'Psicólogo', 'Acudientes'], status: 'Firmada Digitalmente', decision: 'Compromiso de conducta restaurativa y acompañamiento por psicología de la SED.' }
   ]);
   const [showActaForm, setShowActaForm] = useState(false);
   const [actaTopic, setActaTopic] = useState('');
   const [actaDecision, setActaDecision] = useState('');
+
+  // Estados del Centro de Sincronización
+  const [offlineQueue, setOfflineQueue] = useState<any[]>([]);
+  const [syncStats, setSyncStats] = useState<any>(null);
+  const [simulatedOnline, setSimulatedOnline] = useState(true);
+  const [syncProgressMsg, setSyncProgressMsg] = useState('');
+  const [syncProgressVal, setSyncProgressVal] = useState(0);
+  const [isSyncInProgress, setIsSyncInProgress] = useState(false);
+  const [syncErrors, setSyncErrors] = useState<string[]>([]);
 
   useEffect(() => {
     // Inicializar desde localStorage si existe, o usar datos mock
@@ -133,7 +147,40 @@ export default function ObservacionesPage() {
       setStudents(INITIAL_STUDENTS);
       localStorage.setItem('school_students', JSON.stringify(INITIAL_STUDENTS));
     }
+
+    // Comprobar si se solicitó la pestaña de sincronización
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('tab') === 'sync') {
+        setActiveView('sync');
+      }
+    }
   }, []);
+
+  // Suscribirse a cambios en la cola offline y el estado de red
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const { getSyncQueue, getSyncStats, isOnline } = require('@/services/offline-sync-engine');
+
+    const refreshSyncData = async () => {
+      const queue = await getSyncQueue();
+      const stats = await getSyncStats();
+      setOfflineQueue(queue);
+      setSyncStats(stats);
+      setSimulatedOnline(isOnline());
+    };
+
+    refreshSyncData();
+
+    window.addEventListener('sync-queue-changed', refreshSyncData);
+    window.addEventListener('connectivity-changed', refreshSyncData);
+
+    return () => {
+      window.removeEventListener('sync-queue-changed', refreshSyncData);
+      window.removeEventListener('connectivity-changed', refreshSyncData);
+    };
+  }, [activeView]);
 
   const handleSelectStudent = (student: Student) => {
     setSelectedStudent(student);
@@ -141,37 +188,72 @@ export default function ObservacionesPage() {
     setShowFaltaForm(false);
   };
 
-  const handleAddLogro = (e: React.FormEvent) => {
+  const handleAddLogro = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedStudent || !logroTitle.trim() || !logroDesc.trim()) return;
 
-    const newLogro = {
-      id: `ACH-${Date.now()}`,
+    const { isOnline, addToSyncQueue } = require('@/services/offline-sync-engine');
+    const online = isOnline();
+
+    const payload = {
+      studentId: selectedStudent.id,
+      studentName: selectedStudent.name,
       title: logroTitle,
       description: logroDesc,
-      date: new Date().toISOString().split('T')[0],
       points: logroPoints
     };
 
-    const updatedStudent = {
-      ...selectedStudent,
-      achievements: [newLogro, ...selectedStudent.achievements]
-    };
+    if (!online) {
+      // Registrar en la cola IndexedDB local
+      await addToSyncQueue('observador', 'CREATE_LOGRO', payload, 2);
+      
+      // Mostrar de forma optimista en la UI escolar
+      const newLogro = {
+        id: `ACH-TEMP-${Date.now()}`,
+        title: `${logroTitle} (Pendiente Sincronizar)`,
+        description: logroDesc,
+        date: new Date().toISOString().split('T')[0],
+        points: logroPoints
+      };
+      
+      const updatedStudent = {
+        ...selectedStudent,
+        achievements: [newLogro, ...selectedStudent.achievements]
+      };
+      const updatedList = students.map(s => s.id === selectedStudent.id ? updatedStudent : s);
+      setStudents(updatedList);
+      setSelectedStudent(updatedStudent);
+    } else {
+      // Si está conectado, guardar directo en BD e interactuar con el CIE
+      const newLogro = {
+        id: `ACH-${Date.now()}`,
+        title: logroTitle,
+        description: logroDesc,
+        date: new Date().toISOString().split('T')[0],
+        points: logroPoints
+      };
 
-    const updatedList = students.map(s => s.id === selectedStudent.id ? updatedStudent : s);
-    setStudents(updatedList);
-    localStorage.setItem('school_students', JSON.stringify(updatedList));
-    setSelectedStudent(updatedStudent);
-    
-    // Feedback positivo al CIE (reduce riesgo de convivencia y bajo rendimiento)
-    try {
-      const currentCie = getCIEIndicators();
-      const desercionRisk = currentCie.find(i => i.code === 'CIE-PRED-001');
-      if (desercionRisk) {
-        const newVal = Math.max(10, desercionRisk.currentValue - 5);
-        updateCIEIndicator('CIE-PRED-001', { currentValue: newVal });
-      }
-    } catch (err) {}
+      const updatedStudent = {
+        ...selectedStudent,
+        achievements: [newLogro, ...selectedStudent.achievements]
+      };
+
+      const updatedList = students.map(s => s.id === selectedStudent.id ? updatedStudent : s);
+      setStudents(updatedList);
+      localStorage.setItem('school_students', JSON.stringify(updatedList));
+      setSelectedStudent(updatedStudent);
+      
+      // CIE update
+      try {
+        const { updateCIEIndicator, getCIEIndicators } = require('@/services/cie-service');
+        const currentCie = getCIEIndicators();
+        const desercionRisk = currentCie.find((i: any) => i.code === 'CIE-PRED-001');
+        if (desercionRisk) {
+          const newVal = Math.max(10, desercionRisk.currentValue - 5);
+          updateCIEIndicator('CIE-PRED-001', { currentValue: newVal });
+        }
+      } catch (err) {}
+    }
 
     // Reset Form
     setLogroTitle('');
@@ -180,42 +262,79 @@ export default function ObservacionesPage() {
     setShowLogroForm(false);
   };
 
-  const handleAddFalta = (e: React.FormEvent) => {
+  const handleAddFalta = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedStudent || !faltaTitle.trim() || !faltaDesc.trim()) return;
 
-    const newFalta = {
-      id: `BEH-${Date.now()}`,
+    const { isOnline, addToSyncQueue } = require('@/services/offline-sync-engine');
+    const online = isOnline();
+
+    const payload = {
+      studentId: selectedStudent.id,
+      studentName: selectedStudent.name,
       type: faltaType,
       title: faltaTitle,
       description: faltaDesc,
-      date: new Date().toISOString().split('T')[0],
-      status: faltaType === 'Tipo III' ? 'Escalado SED' : 'Bajo Seguimiento' as any,
       evidence: faltaEvidence || undefined
     };
 
-    const updatedStudent = {
-      ...selectedStudent,
-      behaviorLogs: [newFalta, ...selectedStudent.behaviorLogs]
-    };
+    if (!online) {
+      // Registrar en la cola IndexedDB local
+      await addToSyncQueue('observador', 'CREATE_FALTA', payload, faltaType === 'Tipo III' ? 1 : 2);
+      
+      // Mostrar de forma optimista en la UI escolar
+      const newFalta = {
+        id: `BEH-TEMP-${Date.now()}`,
+        type: faltaType,
+        title: `${faltaTitle} (Pendiente Sincronizar)`,
+        description: faltaDesc,
+        date: new Date().toISOString().split('T')[0],
+        status: 'Bajo Seguimiento' as any,
+        evidence: faltaEvidence || undefined
+      };
+      
+      const updatedStudent = {
+        ...selectedStudent,
+        behaviorLogs: [newFalta, ...selectedStudent.behaviorLogs]
+      };
+      const updatedList = students.map(s => s.id === selectedStudent.id ? updatedStudent : s);
+      setStudents(updatedList);
+      setSelectedStudent(updatedStudent);
+    } else {
+      // Guardar directamente en base de datos escolar
+      const newFalta = {
+        id: `BEH-${Date.now()}`,
+        type: faltaType,
+        title: faltaTitle,
+        description: faltaDesc,
+        date: new Date().toISOString().split('T')[0],
+        status: faltaType === 'Tipo III' ? 'Escalado SED' : 'Bajo Seguimiento' as any,
+        evidence: faltaEvidence || undefined
+      };
 
-    const updatedList = students.map(s => s.id === selectedStudent.id ? updatedStudent : s);
-    setStudents(updatedList);
-    localStorage.setItem('school_students', JSON.stringify(updatedList));
-    setSelectedStudent(updatedStudent);
+      const updatedStudent = {
+        ...selectedStudent,
+        behaviorLogs: [newFalta, ...selectedStudent.behaviorLogs]
+      };
 
-    // Gatillar alerta al CIE y al MIO si es Tipo II o III
-    if (faltaType === 'Tipo II' || faltaType === 'Tipo III') {
-      try {
-        const currentCie = getCIEIndicators();
-        const convRisk = currentCie.find(i => i.code === 'CIE-PRED-004');
-        if (convRisk) {
-          const increment = faltaType === 'Tipo III' ? 25 : 15;
-          const newVal = Math.min(100, convRisk.currentValue + increment);
-          // Actualizar indicador del CIE lo cual gatilla el evento al MIO si cruza el umbral
-          updateCIEIndicator('CIE-PRED-004', { currentValue: newVal });
-        }
-      } catch (err) {}
+      const updatedList = students.map(s => s.id === selectedStudent.id ? updatedStudent : s);
+      setStudents(updatedList);
+      localStorage.setItem('school_students', JSON.stringify(updatedList));
+      setSelectedStudent(updatedStudent);
+
+      // Notificar CIE
+      if (faltaType === 'Tipo II' || faltaType === 'Tipo III') {
+        try {
+          const { updateCIEIndicator, getCIEIndicators } = require('@/services/cie-service');
+          const currentCie = getCIEIndicators();
+          const convRisk = currentCie.find((i: any) => i.code === 'CIE-PRED-004');
+          if (convRisk) {
+            const increment = faltaType === 'Tipo III' ? 25 : 15;
+            const newVal = Math.min(100, convRisk.currentValue + increment);
+            updateCIEIndicator('CIE-PRED-004', { currentValue: newVal });
+          }
+        } catch (err) {}
+      }
     }
 
     // Reset Form
@@ -244,12 +363,45 @@ export default function ObservacionesPage() {
     setShowActaForm(false);
   };
 
+  // Simulación: Cambiar conectividad
+  const handleToggleOnline = (checked: boolean) => {
+    const { setSimulatedOnlineState } = require('@/services/offline-sync-engine');
+    setSimulatedOnlineState(checked);
+    setSimulatedOnline(checked);
+  };
+
+  // Sincronizar cola manualmente
+  const handleManualSync = async () => {
+    const { syncQueueNow } = require('@/services/offline-sync-engine');
+    setIsSyncInProgress(true);
+    setSyncErrors([]);
+    setSyncProgressMsg('Iniciando sincronización por prioridades...');
+    setSyncProgressVal(5);
+
+    const res = await syncQueueNow((msg: string, progress: number) => {
+      setSyncProgressMsg(msg);
+      setSyncProgressVal(progress);
+    });
+
+    setIsSyncInProgress(false);
+    setSyncProgressVal(100);
+    setSyncProgressMsg(res.success ? '¡Sincronización completada con éxito!' : 'Sincronización finalizada con algunos errores.');
+    if (res.errors.length > 0) {
+      setSyncErrors(res.errors);
+    }
+  };
+
+  const handleClearQueue = async () => {
+    const { clearSyncQueue } = require('@/services/offline-sync-engine');
+    await clearSyncQueue();
+  };
+
   const filteredStudents = students.filter(s => 
     s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     s.grade.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // IA Copilot recommendations
+  // IA Copilot advice
   const getIACopilotAdvice = () => {
     if (!showFaltaForm) return null;
     
@@ -300,7 +452,7 @@ export default function ObservacionesPage() {
             </div>
           </div>
 
-          {/* Sub-pestañas: Observador vs Comité */}
+          {/* Sub-pestañas: Observador vs Comité vs Sincronización */}
           <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200 shadow-inner w-fit shrink-0">
             <button
               onClick={() => setActiveView('observador')}
@@ -315,6 +467,13 @@ export default function ObservacionesPage() {
             >
               <Scale className="w-3.5 h-3.5" />
               Comité de Convivencia
+            </button>
+            <button
+              onClick={() => setActiveView('sync')}
+              className={`text-[10px] font-black uppercase tracking-wider px-3.5 py-2 rounded-lg border-none cursor-pointer flex items-center gap-1 transition-all ${activeView === 'sync' ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-550'}`}
+            >
+              <Activity className="w-3.5 h-3.5 animate-pulse text-indigo-650" />
+              Centro de Sincronización
             </button>
           </div>
         </div>
@@ -421,7 +580,7 @@ export default function ObservacionesPage() {
                         <Button 
                           onClick={() => { setShowLogroForm(true); setShowFaltaForm(false); }}
                           size="sm" 
-                          className="bg-indigo-50 hover:bg-indigo-100 text-indigo-755 border border-indigo-100 font-bold text-[10px] rounded-lg px-2 py-1 flex items-center gap-0.5 cursor-pointer shadow-xs"
+                          className="bg-indigo-50 hover:bg-indigo-100 text-indigo-755 border border-indigo-100 font-bold text-[10px] rounded-lg px-2 py-1 flex items-center gap-0.5 cursor-pointer shadow-xs animate-fade-in"
                         >
                           <Plus className="w-3.5 h-3.5" /> Registrar Logro
                         </Button>
@@ -458,7 +617,7 @@ export default function ObservacionesPage() {
                         <Button 
                           onClick={() => { setShowFaltaForm(true); setShowLogroForm(false); }}
                           size="sm" 
-                          className="bg-red-50 hover:bg-red-100 text-red-755 border border-red-100 font-bold text-[10px] rounded-lg px-2 py-1 flex items-center gap-0.5 cursor-pointer shadow-xs"
+                          className="bg-red-50 hover:bg-red-100 text-red-755 border border-red-100 font-bold text-[10px] rounded-lg px-2 py-1 flex items-center gap-0.5 cursor-pointer shadow-xs animate-fade-in"
                         >
                           <Plus className="w-3.5 h-3.5" /> Registrar Falta
                         </Button>
@@ -467,7 +626,7 @@ export default function ObservacionesPage() {
                       {/* Lista de Faltas */}
                       <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
                         {selectedStudent.behaviorLogs.map((beh) => (
-                          <div key={beh.id} className="p-3 border border-slate-100 bg-slate-50/30 rounded-2xl space-y-1.5">
+                          <div key={beh.id} className="p-3 border border-slate-100 bg-slate-50/30 rounded-2xl space-y-1.5 animate-fade-in">
                             <div className="flex justify-between items-start">
                               <span className="font-extrabold text-slate-800 text-xs block leading-tight">{beh.title}</span>
                               <span 
@@ -482,7 +641,7 @@ export default function ObservacionesPage() {
                             </div>
                             <p className="text-[10px] text-slate-500 font-semibold">{beh.description}</p>
                             {beh.evidence && (
-                              <div className="text-[9px] text-slate-450 bg-slate-50 border border-slate-100 p-1.5 rounded-lg font-bold">
+                              <div className="text-[9px] text-slate-455 bg-slate-50 border border-slate-100 p-1.5 rounded-lg font-bold">
                                 Evidencia: {beh.evidence}
                               </div>
                             )}
@@ -633,7 +792,7 @@ export default function ObservacionesPage() {
                             </p>
                           </div>
 
-                          <div className="text-[8px] text-slate-450 uppercase font-black tracking-wider text-center mt-2">
+                          <div className="text-[8px] text-slate-455 uppercase tracking-wider text-center mt-2">
                             Módulo de Asesoría Legal Integrado
                           </div>
                         </div>
@@ -659,7 +818,7 @@ export default function ObservacionesPage() {
           </div>
         )}
 
-        {/* ⚖️ VISTA 2: COMITÉ DE CONVIVENCIA ESCOLAR (ACTAS Y SESIONES) */}
+        {/* ⚖️ VISTA 2: COMITÉ DE CONVIVENCIA ESCOLAR */}
         {activeView === 'comite' && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Listado de Actas Oficiales */}
@@ -692,7 +851,7 @@ export default function ObservacionesPage() {
                         required
                         placeholder="Ej. Incidente de riña 9°A / Caso de acoso"
                         value={actaTopic}
-                        onChange={(e) => set_actaTopic(e.target.value)}
+                        onChange={(e) => setActaTopic(e.target.value)}
                         className="w-full text-xs font-semibold text-slate-800 px-3 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500"
                       />
                     </div>
@@ -703,7 +862,7 @@ export default function ObservacionesPage() {
                         rows={3}
                         placeholder="Describa el acuerdo restaurativo pactado con acudientes, plazos y responsables..."
                         value={actaDecision}
-                        onChange={(e) => set_actaDecision(e.target.value)}
+                        onChange={(e) => setActaDecision(e.target.value)}
                         className="w-full text-xs font-semibold text-slate-800 px-3 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500"
                       />
                     </div>
@@ -748,7 +907,7 @@ export default function ObservacionesPage() {
               </div>
             </div>
 
-            {/* Panel de Ayuda y Normativa Ley 1620 */}
+            {/* Panel de Ayuda y Normativa */}
             <div className="bg-slate-50 border border-slate-200 rounded-3xl p-5 shadow-inner space-y-4 text-xs font-semibold text-slate-655">
               <h4 className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-1">
                 <Scale className="w-4 h-4 text-slate-655" />
@@ -782,9 +941,258 @@ export default function ObservacionesPage() {
                 </div>
               </div>
 
-              <div className="bg-indigo-50/20 border border-indigo-150 p-3.5 rounded-2xl text-indigo-900 leading-normal">
+              <div className="bg-indigo-50/20 border border-indigo-150 p-3.5 rounded-2xl text-indigo-900 leading-normal font-semibold">
                 <strong className="text-indigo-955 block mb-1">Dato de Impacto del CIE:</strong>
                 Cada falta registrada de Tipo II o III se publica al bus del MIO. El motor se encarga de crear el expediente y alertar en semáforo rojo en la Secretaría de Educación de forma instantánea.
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 🔄 VISTA 3: CENTRO DE SINCRONIZACIÓN OFFLINE (CONSOLA INTERACTIVA) */}
+        {activeView === 'sync' && (
+          <div className="space-y-6 animate-fade-in">
+            {/* Cabecera / Status Bar */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              {/* Card Estado de Conectividad con Toggle */}
+              <Card className="md:col-span-2 border-slate-205 rounded-3xl p-5 bg-white shadow-xs">
+                <div className="flex justify-between items-start">
+                  <div className="space-y-1">
+                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Canal de Red</span>
+                    <h3 className="text-sm font-black text-slate-805 flex items-center gap-1.5">
+                      {simulatedOnline ? (
+                        <>
+                          <Wifi className="w-5 h-5 text-emerald-500" />
+                          Conexión Estable
+                        </>
+                      ) : (
+                        <>
+                          <WifiOff className="w-5 h-5 text-red-500 animate-pulse" />
+                          Modo Offline Activo
+                        </>
+                      )}
+                    </h3>
+                  </div>
+
+                  {/* Switch interactivo de simulación */}
+                  <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-2xl">
+                    <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider">Simular Red</span>
+                    <input 
+                      type="checkbox" 
+                      checked={simulatedOnline} 
+                      onChange={(e) => handleToggleOnline(e.target.checked)}
+                      className="w-8 h-4 rounded-full bg-slate-300 appearance-none checked:bg-indigo-650 relative cursor-pointer outline-none transition-colors after:absolute after:top-0.5 after:left-0.5 after:w-3 after:after:h-3 after:h-3 after:rounded-full after:bg-white after:transition-transform checked:after:translate-x-4 shadow-inner"
+                    />
+                  </div>
+                </div>
+                <p className="text-[10px] text-slate-450 mt-3 font-semibold leading-relaxed">
+                  Apaga el interruptor para desconectar AulaCore. Podrás registrar méritos o faltas en el observador escolar sin internet y verificar cómo IndexedDB los retiene localmente.
+                </p>
+              </Card>
+
+              {/* Operaciones Pendientes */}
+              <Card className="border-slate-205 rounded-3xl p-5 bg-white shadow-xs flex flex-col justify-between">
+                <div>
+                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Folios en Cola</span>
+                  <h3 className="text-2xl font-black text-slate-850 mt-1">{syncStats?.pendingCount || 0}</h3>
+                </div>
+                <span className="text-[9px] font-bold text-slate-450 block border-t border-slate-100 pt-2">
+                  P1 Crítico: {syncStats?.criticalCount || 0} | P2 Operativo: {syncStats?.operationalCount || 0}
+                </span>
+              </Card>
+
+              {/* Última Sincronización */}
+              <Card className="border-slate-205 rounded-3xl p-5 bg-white shadow-xs flex flex-col justify-between">
+                <div>
+                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Última Sincronización</span>
+                  <h3 className="text-sm font-black text-slate-850 mt-2.5 flex items-center gap-1">
+                    <Clock className="w-4 h-4 text-slate-500" />
+                    {syncStats?.lastSyncTime || 'Ninguna en este ciclo'}
+                  </h3>
+                </div>
+                <span className="text-[9px] font-bold text-slate-455 block border-t border-slate-100 pt-2 uppercase">
+                  Receptor: Secretaría de Educación (SED)
+                </span>
+              </Card>
+            </div>
+
+            {/* Barra de progreso de Sincronización Manual */}
+            {isSyncInProgress && (
+              <Card className="border-indigo-150 rounded-3xl p-5 bg-indigo-50/5 shadow-xs space-y-3 animate-pulse">
+                <div className="flex justify-between items-center text-xs font-bold text-indigo-950">
+                  <span className="flex items-center gap-2">
+                    <RefreshCw className="w-4.5 h-4.5 animate-spin text-indigo-600" />
+                    {syncProgressMsg}
+                  </span>
+                  <span>{syncProgressVal}%</span>
+                </div>
+                <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                  <div 
+                    className="bg-indigo-650 h-full transition-all duration-300"
+                    style={{ width: `${syncProgressVal}%` }}
+                  />
+                </div>
+              </Card>
+            )}
+
+            {/* Tabla de operaciones en cola IndexedDB */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Listado de Cola */}
+              <Card className="lg:col-span-2 border-slate-205 rounded-3xl p-5 bg-white shadow-xs space-y-4">
+                <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+                  <div>
+                    <h4 className="text-xs font-black text-slate-805 uppercase tracking-wider flex items-center gap-1">
+                      <FileText className="w-4.5 h-4.5 text-slate-500" />
+                      Folios de Sincronización Pendientes (IndexedDB)
+                    </h4>
+                    <span className="text-[9px] text-slate-400 font-bold block">Cola de transacciones locales pendientes de consolidación central</span>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <button 
+                      onClick={handleClearQueue}
+                      className="bg-red-50 hover:bg-red-100 text-red-755 border border-red-100 font-bold text-[10px] rounded-lg px-2.5 py-1.5 cursor-pointer flex items-center gap-1 shadow-xs"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" /> Limpiar Cola
+                    </button>
+                    <button 
+                      onClick={handleManualSync}
+                      disabled={!simulatedOnline || isSyncInProgress || offlineQueue.length === 0}
+                      className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[10px] rounded-lg px-3 py-1.5 cursor-pointer flex items-center gap-1 shadow-xs border-none disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed transition-colors"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5" /> Sincronizar Ahora
+                    </button>
+                  </div>
+                </div>
+
+                {/* Listado */}
+                <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
+                  {offlineQueue.map((item) => (
+                    <div 
+                      key={item.id} 
+                      className={`p-3.5 border rounded-2xl space-y-2 text-xs font-semibold text-slate-655 ${
+                        item.status === 'failed' ? 'border-red-200 bg-red-50/10' : 'border-slate-100 bg-slate-50/20'
+                      }`}
+                    >
+                      <div className="flex justify-between items-center flex-wrap gap-2">
+                        <span className="text-[8px] font-black font-mono text-slate-400">{item.id}</span>
+                        <div className="flex items-center gap-1.5">
+                          <span 
+                            className="text-[8px] font-black px-2 py-0.5 rounded uppercase tracking-wider"
+                            style={{
+                              backgroundColor: item.priority === 1 ? '#fee2e2' : item.priority === 2 ? '#ffedd5' : '#f1f5f9',
+                              color: item.priority === 1 ? '#b91c1c' : item.priority === 2 ? '#c2410c' : '#475569'
+                            }}
+                          >
+                            Prioridad {item.priority === 1 ? '1 (Crítico)' : item.priority === 2 ? '2 (Operativo)' : '3 (Pesado)'}
+                          </span>
+                          <span className={`text-[8px] font-black px-2 py-0.5 rounded uppercase tracking-wider ${
+                            item.status === 'failed' ? 'bg-red-100 text-red-700 animate-pulse' : 'bg-slate-150 text-slate-600'
+                          }`}>
+                            {item.status}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="space-y-1">
+                        <span className="text-xs font-black text-slate-805 block">Módulo: {item.module.toUpperCase()} | Acción: {item.action}</span>
+                        <div className="text-[10px] text-slate-500 bg-white/70 border border-slate-100 p-2.5 rounded-xl space-y-1.5 font-bold shadow-2xs">
+                          <div>
+                            <span className="text-[8px] text-slate-400 block font-black uppercase">Estudiante</span>
+                            <span className="text-slate-800">{item.payload.studentName || item.payload.studentId}</span>
+                          </div>
+                          <div>
+                            <span className="text-[8px] text-slate-400 block font-black uppercase">Título</span>
+                            <span className="text-slate-800">{item.payload.title}</span>
+                          </div>
+                          <div>
+                            <span className="text-[8px] text-slate-400 block font-black uppercase">Detalle</span>
+                            <span className="text-slate-800 font-semibold">{item.payload.description}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {item.error && (
+                        <div className="text-[10px] text-red-700 bg-red-50 border border-red-100 p-2 rounded-xl flex items-start gap-1.5 font-bold">
+                          <AlertCircle className="w-4 h-4 shrink-0 text-red-650" />
+                          <div>
+                            <span className="font-black uppercase tracking-wider block text-[8px]">Error de Sincronización</span>
+                            {item.error}
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="flex justify-between items-center text-[8px] font-bold text-slate-400 border-t border-slate-50 pt-2">
+                        <span>Creado: {new Date(item.timestamp).toLocaleString()}</span>
+                        <span>Intentos de Envío: {item.attempts}</span>
+                      </div>
+                    </div>
+                  ))}
+
+                  {offlineQueue.length === 0 && (
+                    <div className="text-center py-16 text-slate-400 font-bold text-xs flex flex-col items-center gap-2">
+                      <CheckCircle2 className="w-10 h-10 text-emerald-500" />
+                      <div>La cola de IndexedDB está limpia. Todos los datos están en la nube de la SED.</div>
+                    </div>
+                  )}
+                </div>
+              </Card>
+
+              {/* Telemetría y Simulación de Conflictos */}
+              <div className="space-y-6">
+                {/* Card de Simulación de Conflictos */}
+                <Card className="border-slate-205 rounded-3xl p-5 bg-white shadow-xs space-y-4 font-semibold text-slate-655 text-xs">
+                  <div>
+                    <h4 className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-1">
+                      <ShieldAlert className="w-4.5 h-4.5 text-indigo-650" />
+                      Políticas de Conflicto de Datos
+                    </h4>
+                    <span className="text-[9px] text-slate-400 font-bold block">Cómo resuelve AulaCore los choques de información</span>
+                  </div>
+
+                  <div className="space-y-3.5 leading-relaxed">
+                    <div className="bg-slate-50 border border-slate-150 p-3 rounded-2xl">
+                      <strong className="text-slate-850 block font-black uppercase text-[8px] tracking-wider mb-0.5">La última escritura gana (LWW)</strong>
+                      <p className="text-[10px] text-slate-500">
+                        Si dos docentes en diferentes tablets modifican la misma mallas de notas sin conexión, prevalece el cambio del dispositivo con la marca de tiempo (timestamp local) más reciente.
+                      </p>
+                    </div>
+
+                    <div className="bg-slate-50 border border-slate-150 p-3 rounded-2xl">
+                      <strong className="text-slate-850 block font-black uppercase text-[8px] tracking-wider mb-0.5">Fusión Heurística (Faltas Tipo II/III)</strong>
+                      <p className="text-[10px] text-slate-500">
+                        Los registros del Observador de Convivencia y actas del Comité nunca se sobreescriben. Se apilan como folios secuenciales cronológicos para preservar la cadena de custodia legal escolar.
+                      </p>
+                    </div>
+                  </div>
+
+                  {syncErrors.length > 0 && (
+                    <div className="text-[10px] text-red-700 bg-red-50 border border-red-150 p-3.5 rounded-2xl space-y-1.5 font-bold">
+                      <span className="font-black uppercase tracking-wider block text-[8px]">LOG DE ERRORES DEL ÚLTIMO BARRIDO</span>
+                      <ul className="list-disc pl-4 space-y-1">
+                        {syncErrors.map((err, i) => (
+                          <li key={i}>{err}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </Card>
+
+                {/* Explicación Multiplataforma */}
+                <Card className="border-indigo-150 rounded-3xl p-5 bg-indigo-50/5 shadow-xs space-y-3 text-xs font-semibold text-indigo-950">
+                  <div className="flex items-center gap-1.5 text-indigo-900 font-black uppercase tracking-wider text-[9px]">
+                    <Sparkles className="w-4 h-4 text-indigo-600" />
+                    Arquitectura Multiplataforma
+                  </div>
+                  <p className="text-[10px] text-indigo-900/80 leading-relaxed font-semibold">
+                    El motor de sincronización (`OfflineSyncEngine.ts`) está construido en TypeScript puro desacoplado. Permite que la misma base lógica se use en:
+                  </p>
+                  <div className="grid grid-cols-3 gap-2 text-center text-[8px] font-black uppercase tracking-wider pt-1.5">
+                    <div className="bg-white border border-indigo-200 p-2 rounded-xl shadow-2xs">PWA Web</div>
+                    <div className="bg-white border border-indigo-200 p-2 rounded-xl shadow-2xs">Capacitor</div>
+                    <div className="bg-white border border-indigo-200 p-2 rounded-xl shadow-2xs">Mobile App</div>
+                  </div>
+                </Card>
               </div>
             </div>
           </div>
@@ -794,12 +1202,12 @@ export default function ObservacionesPage() {
   );
 }
 
-// Quick state helper
-function set_actaTopic(val: string) {
+// Quick state helpers
+function setActaTopic(val: string) {
   const el = document.querySelector('input[placeholder="Ej. Incidente de riña 9°A / Caso de acoso"]') as HTMLInputElement;
   if (el) el.value = val;
 }
-function set_actaDecision(val: string) {
+function setActaDecision(val: string) {
   const el = document.querySelector('textarea[placeholder="Describa el acuerdo restaurativo pactado con acudientes, plazos y responsables..."]') as HTMLTextAreaElement;
   if (el) el.value = val;
 }
