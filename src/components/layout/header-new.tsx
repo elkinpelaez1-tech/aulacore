@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Bell, Search, User, Calendar, Shield, Activity } from 'lucide-react';
+import { Bell, Search, User, Calendar, Shield, Activity, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -268,6 +268,15 @@ export function Header({ userName, userRole }: HeaderProps) {
       <div className="flex items-center justify-between px-6 py-3 gap-6">
         {/* Brand/Logo Indicator */}
         <div className="flex items-center gap-2">
+          {/* Mobile hamburger button */}
+          <button 
+            type="button"
+            onClick={() => window.dispatchEvent(new CustomEvent('toggle-mobile-sidebar'))}
+            className="lg:hidden w-8 h-8 flex items-center justify-center rounded-lg bg-slate-50 border border-slate-200 text-slate-600 hover:bg-slate-100 cursor-pointer shadow-xs shrink-0"
+            title="Abrir Menú"
+          >
+            <Menu className="w-4.5 h-4.5" />
+          </button>
           <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-150 p-1 shadow-inner">
             <img 
               src="/logo-aulacore.png" 

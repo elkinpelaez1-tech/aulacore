@@ -112,7 +112,14 @@ export function Sidebar({ userRole: _propRole }: SidebarProps) {
                   </span>
                 </div>
               )}
-              <Link href={item.href}>
+              <Link 
+                href={item.href}
+                onClick={() => {
+                  if (typeof window !== 'undefined') {
+                    window.dispatchEvent(new CustomEvent('close-mobile-sidebar'));
+                  }
+                }}
+              >
                 <Button
                   variant={isActive ? 'default' : 'ghost'}
                   className={cn(
