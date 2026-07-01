@@ -23,7 +23,7 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
   { name: 'Cobertura Educativa', href: '/territorio/cobertura', icon: Users },
   { name: 'Calidad Educativa', href: '/territorio/calidad', icon: Award },
   { name: 'Talento Humano', href: '/territorio/talento-humano', icon: Briefcase },
-  { name: 'Analítica Territorial', href: '/territorio/analitica', icon: TrendingUp },
+  { name: 'Inteligencia Educativa (CIE)', href: '/territorio/analitica', icon: TrendingUp },
   { name: 'Transformación Digital', href: '/territorio/transformacion-digital', icon: Laptop },
   { name: 'Infraestructura & PAE', href: '/territorio/infraestructura', icon: HardDrive },
   { name: 'Comunicaciones', href: '/territorio/comunicaciones', icon: Megaphone },

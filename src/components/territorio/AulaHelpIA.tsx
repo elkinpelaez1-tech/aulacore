@@ -199,6 +199,40 @@ export function AulaHelpIA() {
           `**Últimos Folios Registrados (Auditoría SHA-256)**:\n${runSummary}\n\n` +
           `*Nota: Todos los folios y timelines son inmutables y están firmados criptográficamente para auditoría fiscal.*`;
         related = ['cat-prioridad-inteligente', 'cat-acciones-pendientes'];
+      } else if (queryLower.includes('cie') || queryLower.includes('inteligencia educativa') || queryLower.includes('predictiv') || queryLower.includes('riesgo') || queryLower.includes('desercion') || queryLower.includes('ausentismo') || queryLower.includes('bullying') || queryLower.includes('pae')) {
+        const { getCIEIndicators } = require('@/services/cie-service');
+        const cieInds = getCIEIndicators();
+        
+        const matchedRisk = cieInds.find((ind: any) => 
+          queryLower.includes(ind.name.toLowerCase()) || 
+          queryLower.includes(ind.code.toLowerCase()) ||
+          queryLower.includes(ind.category.toLowerCase()) ||
+          ind.name.toLowerCase().split(' ').some((word: string) => word.length > 4 && queryLower.includes(word))
+        );
+        
+        if (matchedRisk) {
+          responseText = `**Ficha Metodológica del CIE: ${matchedRisk.name} (${matchedRisk.code})** 🧠\n\n` +
+            `*   **Tipo Analítico**: ${matchedRisk.type.toUpperCase()}\n` +
+            `*   **Categoría**: ${matchedRisk.category}\n` +
+            `*   **Objetivo**: ${matchedRisk.objective}\n` +
+            `*   **Fórmula de cálculo**: \`${matchedRisk.formula}\`\n` +
+            `*   **Variables analizadas**:\n` +
+            matchedRisk.variables.map((v: string) => `    *   ${v}`).join('\n') + `\n\n` +
+            `*   **Guía de Interpretación**: ${matchedRisk.interpretation}\n` +
+            `*   **Acciones Recomendadas por AulaCore**:\n` +
+            matchedRisk.recommendations.map((r: string) => `    *   ${r}`).join('\n') + `\n\n` +
+            (matchedRisk.mioTriggerEvent ? `*   **Automatización MIO asociada**: Despacha el evento \`${matchedRisk.mioTriggerEvent}\` al bus del MIO cuando se supera el umbral del ${matchedRisk.threshold}%.` : '');
+        } else {
+          responseText = `**Centro de Inteligencia Educativa (CIE) de AulaCore** 🧠\n\n` +
+            `El CIE es el núcleo de inteligencia y analítica transversal del sistema, estructurado en 4 capas analíticas:\n\n` +
+            `1.  **Descriptiva**: Reporta la cobertura actual (ej. Asistencia RFID consolidada).\n` +
+            `2.  **Diagnóstica**: Analiza brechas y causas de fallos (ej. Brecha digital veredal).\n` +
+            `3.  **Predictiva**: Alerta de riesgos futuros (ej. Riesgo de deserción escolar, salud mental, PAE).\n` +
+            `4.  **Prescriptiva**: Recomienda la reasignación de recursos en campo (ej. Ajuste de raciones del PAE).\n\n` +
+            `**Índice Global de Riesgo (IGR)**: Calificación consolidada municipal de 0 a 100% que resume el nivel de vulnerabilidad del territorio.\n\n` +
+            `*Tip: Pregúntame sobre un riesgo específico como "Riesgo de Deserción" o "Riesgo de Salud Mental" para desplegar su ficha metodológica.*`;
+        }
+        related = ['cat-vulnerabilidad', 'cat-prioridad-inteligente'];
       } else {
         // Buscar coincidencia semántica/texto en el glosario oficial
         const glossaryMatch = Object.values(HELP_GLOSSARY).find(item => 
