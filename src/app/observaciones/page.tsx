@@ -542,8 +542,8 @@ export default function ObservacionesPage() {
                           </div>
                         </div>
                         <div className="flex gap-2 justify-end pt-2 border-t border-slate-100">
-                          <Button type="button" variant="ghost" onClick={() => setShowLogroForm(false)} className="text-[10px] font-bold text-slate-500 hover:bg-slate-100 rounded-lg px-3 py-1.5 cursor-pointer">Cancelar</Button>
-                          <Button type="submit" className="text-[10px] font-bold bg-indigo-650 hover:bg-indigo-700 text-white rounded-lg px-3 py-1.5 cursor-pointer shadow-xs border-none">Guardar Mérito</Button>
+                          <button type="button" onClick={() => setShowLogroForm(false)} className="text-[10px] font-bold text-slate-500 bg-transparent hover:bg-slate-100 border-none rounded-lg px-3 py-1.5 cursor-pointer">Cancelar</button>
+                          <button type="submit" className="text-[10px] font-extrabold bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg px-4 py-2 cursor-pointer shadow-sm border-none transition-colors">Guardar Mérito</button>
                         </div>
                       </form>
                     </Card>
@@ -602,8 +602,8 @@ export default function ObservacionesPage() {
                             </div>
                           </div>
                           <div className="flex gap-2 justify-end pt-2 border-t border-slate-100">
-                            <Button type="button" variant="ghost" onClick={() => setShowFaltaForm(false)} className="text-[10px] font-bold text-slate-500 hover:bg-slate-100 rounded-lg px-3 py-1.5 cursor-pointer">Cancelar</Button>
-                            <Button type="submit" className="text-[10px] font-bold bg-indigo-650 hover:bg-indigo-700 text-white rounded-lg px-3 py-1.5 cursor-pointer shadow-xs border-none">Guardar Falta</Button>
+                            <button type="button" onClick={() => setShowFaltaForm(false)} className="text-[10px] font-bold text-slate-500 bg-transparent hover:bg-slate-100 border-none rounded-lg px-3 py-1.5 cursor-pointer">Cancelar</button>
+                            <button type="submit" className="text-[10px] font-extrabold bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg px-4 py-2 cursor-pointer shadow-sm border-none transition-colors">Guardar Falta</button>
                           </div>
                         </form>
                       </Card>
@@ -708,8 +708,8 @@ export default function ObservacionesPage() {
                       />
                     </div>
                     <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
-                      <Button type="button" variant="ghost" onClick={() => setShowActaForm(false)} className="text-[10px] font-bold text-slate-500 hover:bg-slate-100 rounded-lg px-2.5 py-1.5 cursor-pointer">Cancelar</Button>
-                      <Button type="submit" className="text-[10px] font-bold bg-indigo-650 hover:bg-indigo-700 text-white rounded-lg px-2.5 py-1.5 cursor-pointer shadow-xs border-none">Firmar y Registrar</Button>
+                      <button type="button" onClick={() => setShowActaForm(false)} className="text-[10px] font-bold text-slate-500 bg-transparent hover:bg-slate-100 border-none rounded-lg px-2.5 py-1.5 cursor-pointer">Cancelar</button>
+                      <button type="submit" className="text-[10px] font-extrabold bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg px-4 py-2 cursor-pointer shadow-sm border-none transition-colors">Firmar y Registrar</button>
                     </div>
                   </form>
                 </Card>
