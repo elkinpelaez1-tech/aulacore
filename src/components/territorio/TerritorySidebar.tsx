@@ -30,6 +30,7 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
   { name: 'Agenda Territorial', href: '/territorio/agenda', icon: Calendar },
   { name: 'Reportes Consolidados', href: '/territorio/reportes', icon: FileText },
   { name: 'Automatizaciones MIO', href: '/territorio/configuracion/automatizaciones', icon: Cpu },
+  { name: 'Centro de Integraciones', href: '/territorio/configuracion/integraciones', icon: Globe },
   { name: 'Configuración', href: '/territorio/configuracion', icon: Settings },
 ];
 
