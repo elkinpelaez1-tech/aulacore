@@ -47,7 +47,7 @@ export function TerritoryHeader() {
                 docente: 'Docente Territorial',
                 secretario_educacion: 'Secretario de Educación',
                 director_calidad: 'Director de Calidad',
-                director_tic: 'Director TIC',
+                director_tic: 'Director de Inspección, Vigilancia y Control',
                 director_cobertura: 'Director de Cobertura',
               };
               const label = roleLabels[data.role] || data.role;
@@ -171,7 +171,7 @@ export function TerritoryHeader() {
                 >
                   <option value="Secretario de Educación">Secretario de Educación</option>
                   <option value="Director de Calidad">Director de Calidad</option>
-                  <option value="Director TIC">Director TIC</option>
+                  <option value="Director de Inspección, Vigilancia y Control">Director de Inspección, Vigilancia y Control</option>
                   <option value="Director de Cobertura">Director de Cobertura</option>
                   <option value="Inspección y Vigilancia">Inspección y Vigilancia</option>
                 </select>
@@ -253,7 +253,7 @@ export function TerritoryHeader() {
                 </div>
                 <div className="flex justify-between items-center text-[11px]">
                   <span className="font-extrabold text-slate-700">Ing. Ricardo Vélez</span>
-                  <span>Director TIC</span>
+                  <span>Director de Inspección, Vigilancia y Control</span>
                 </div>
                 <div className="text-[10px] text-slate-400 font-bold pt-2 italic text-center">
                   [Estructura completa de organigrama y jerarquías configurable en fase posterior]

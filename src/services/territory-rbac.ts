@@ -7,7 +7,7 @@
 export type TerritoryRole = 
   | 'Secretario de Educación'
   | 'Director de Calidad'
-  | 'Director TIC'
+  | 'Director de Inspección, Vigilancia y Control'
   | 'Director de Cobertura'
   | 'Inspección y Vigilancia';
 
@@ -34,7 +34,9 @@ const PERMISSIONS_MATRIX: Record<TerritoryRole, TerritoryAction[]> = {
     'ajustar_umbrales_alertas',
     'acceder_motor_ia'
   ],
-  'Director TIC': [
+  'Director de Inspección, Vigilancia y Control': [
+    'emitir_circular',
+    'programar_visita',
     'ajustar_configuracion_secretaria',
     'ajustar_umbrales_alertas',
     'acceder_motor_ia'

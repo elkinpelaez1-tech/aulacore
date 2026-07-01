@@ -294,7 +294,7 @@ function ConfiguracionContent() {
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Director de Tecnología / TIC</label>
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Director de Inspección, Vigilancia y Control</label>
                       <input
                         type="text"
                         required
