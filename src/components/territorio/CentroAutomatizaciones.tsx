@@ -56,6 +56,61 @@ export function CentroAutomatizaciones() {
   const isTerritorialScope = pathname?.includes('/territorio') || currentRole === 'Secretario de Educación';
   const targetScope = isTerritorialScope ? 'territorial' : 'escolar';
 
+  // Traductores de JSON a Lenguaje Natural
+  const translateConditions = (conds: any): string => {
+    try {
+      const parsed = typeof conds === 'string' ? JSON.parse(conds) : conds;
+      const parts: string[] = [];
+      if (parsed.absences !== undefined) {
+        parts.push(`Inasistencia consecutiva ≥ ${parsed.absences} días`);
+      }
+      if (parsed.impact !== undefined) {
+        parts.push(`Impacto estimado ≥ ${parsed.impact} personas`);
+      }
+      if (parsed.score !== undefined) {
+        parts.push(`Calificación promedio ≤ ${parsed.score}`);
+      }
+      if (parsed.offlineHours !== undefined) {
+        parts.push(`Servidor desconectado ≥ ${parsed.offlineHours} horas`);
+      }
+      return parts.length > 0 ? parts.join(' Y ') : JSON.stringify(conds);
+    } catch (e) {
+      return JSON.stringify(conds);
+    }
+  };
+
+  const translateActionType = (type: string): string => {
+    const labels: Record<string, string> = {
+      create_cat_alert: 'Crear Alerta en CAT',
+      schedule_territorial_visit: 'Programar Visita de Inspección',
+      send_official_circular: 'Enviar Circular de Requerimiento',
+      generate_technical_report: 'Generar Reporte y Folio Criptográfico'
+    };
+    return labels[type] || type;
+  };
+
+  const translateActionParams = (type: string, params: any): string => {
+    try {
+      if (!params) return '';
+      const parsed = typeof params === 'string' ? JSON.parse(params) : params;
+      const parts: string[] = [];
+      if (type === 'create_cat_alert') {
+        parts.push(`Criticidad: ${parsed.severity || 'alto'}`);
+        parts.push(`Categoría: ${parsed.category || 'PAE'}`);
+      } else if (type === 'schedule_territorial_visit') {
+        parts.push(`Responsable: ${parsed.assigned_role || 'Inspección'}`);
+        parts.push(`Motivo: ${parsed.purpose || 'Auditoría'}`);
+      } else if (type === 'send_official_circular') {
+        parts.push(`Plantilla: ${parsed.template || 'Notificación'}`);
+      } else if (type === 'generate_technical_report') {
+        parts.push(`Expediente: ${parsed.docType || 'Auditoría'}`);
+      }
+      return parts.length > 0 ? `(${parts.join(', ')})` : '';
+    } catch (e) {
+      return '';
+    }
+  };
+
   // Cargar datos
   const loadData = () => {
     setRecipes(getMIORecipes().filter(r => r.scope === targetScope));
@@ -639,26 +694,36 @@ export function CentroAutomatizaciones() {
                     <span className="text-[9px] font-black text-indigo-650 bg-indigo-50 px-2 py-0.5 rounded-full uppercase tracking-wider">{selectedRecipe.code}</span>
                     <h5 className="text-sm font-black text-slate-800 mt-2">{selectedRecipe.name}</h5>
                   </div>
-                  <p className="text-[11px] font-semibold text-slate-500">{selectedRecipe.description}</p>
-                  
-                  <div className="pt-3 border-t border-slate-150 space-y-2">
+                                    <div className="pt-3 border-t border-slate-155 space-y-2">
                     <div>
                       <strong className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Evento Disparador</strong>
                       <span className="font-mono text-slate-800 font-bold block mt-0.5">{selectedRecipe.triggerType}</span>
                     </div>
                     <div>
                       <strong className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Condiciones Lógicas</strong>
-                      <span className="text-slate-800 font-bold block mt-0.5">
-                        {JSON.stringify(selectedRecipe.defaultConditions)}
+                      <span className="text-slate-850 font-extrabold block mt-0.5">
+                        {translateConditions(selectedRecipe.defaultConditions)}
+                      </span>
+                      <span className="text-[8px] text-slate-400 font-mono block mt-1">
+                        Código: {JSON.stringify(selectedRecipe.defaultConditions)}
                       </span>
                     </div>
                     <div>
                       <strong className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Acciones Gatilladas</strong>
                       <div className="space-y-1.5 mt-1">
                         {selectedRecipe.defaultActions.map((a, idx) => (
-                          <div key={idx} className="bg-slate-50 p-2 border border-slate-100 rounded-xl">
-                            <span className="font-bold text-indigo-900 block">{a.type}</span>
-                            {a.params && <span className="text-[10px] text-slate-450 block">{JSON.stringify(a.params)}</span>}
+                          <div key={idx} className="bg-slate-50 p-2.5 border border-slate-100 rounded-xl">
+                            <span className="font-extrabold text-indigo-950 block">{translateActionType(a.type)}</span>
+                            {a.params && (
+                              <span className="text-[10px] text-slate-655 font-bold block mt-0.5">
+                                {translateActionParams(a.type, a.params)}
+                              </span>
+                            )}
+                            {a.params && (
+                              <span className="text-[8px] text-slate-400 font-mono block mt-1">
+                                Parámetros: {JSON.stringify(a.params)}
+                              </span>
+                            )}
                           </div>
                         ))}
                       </div>
