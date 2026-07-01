@@ -49,7 +49,7 @@ export const MOCK_STUDENTS: StudentMockData[] = [
     behaviorRisk: 'Bajo',
     gpa: 4.5,
     attendanceRate: 98,
-    avatarUrl: 'https://i.pravatar.cc/150?u=s101',
+    avatarUrl: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&q=80&w=120',
     guardianName: 'Carlos González',
     alerts: []
   },
@@ -69,7 +69,7 @@ export const MOCK_STUDENTS: StudentMockData[] = [
     behaviorRisk: 'Medio',
     gpa: 2.8,
     attendanceRate: 85,
-    avatarUrl: 'https://i.pravatar.cc/150?u=s102',
+    avatarUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=120',
     guardianName: 'Sandra Martínez',
     alerts: [
       { id: 'a1', type: 'academico', message: 'Riesgo de pérdida en Matemáticas y Tecnología e Informática' }
@@ -91,7 +91,7 @@ export const MOCK_STUDENTS: StudentMockData[] = [
     behaviorRisk: 'Alto',
     gpa: 3.5,
     attendanceRate: 90,
-    avatarUrl: 'https://i.pravatar.cc/150?u=s103',
+    avatarUrl: 'https://images.unsplash.com/photo-1503919545889-aef636e10ad4?auto=format&fit=crop&q=80&w=120',
     guardianName: 'Luis Duque',
     alerts: [
       { id: 'a2', type: 'convivencia', message: 'Reporte tipo II pendiente de firma' }
@@ -113,7 +113,7 @@ export const MOCK_STUDENTS: StudentMockData[] = [
     behaviorRisk: 'Bajo',
     gpa: 0,
     attendanceRate: 40,
-    avatarUrl: 'https://i.pravatar.cc/150?u=s104',
+    avatarUrl: 'https://images.unsplash.com/photo-1509967419530-da38b4704bc6?auto=format&fit=crop&q=80&w=120',
     guardianName: 'Marta Gómez',
     alerts: [
       { id: 'a3', type: 'asistencia', message: 'Inasistencia consecutiva > 5 días' }
@@ -121,7 +121,7 @@ export const MOCK_STUDENTS: StudentMockData[] = [
   },
   {
     id: 's-105',
-    name: 'Alex Marín',
+    name: 'Alex Marín Restrepo',
     document: '1098765436',
     gender: 'Diverso',
     campus: 'Sede Principal',
@@ -135,13 +135,13 @@ export const MOCK_STUDENTS: StudentMockData[] = [
     behaviorRisk: 'Bajo',
     gpa: 4.8,
     attendanceRate: 100,
-    avatarUrl: 'https://i.pravatar.cc/150?u=s105',
-    guardianName: 'Paola Marín',
+    avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=120',
+    guardianName: 'Paola Restrepo',
     alerts: []
   },
   {
     id: 's-106',
-    name: 'Isabella Gómez',
+    name: 'Isabella Gómez Calle',
     document: '1098765437',
     gender: 'Niña',
     campus: 'Sede Norte',
@@ -155,15 +155,15 @@ export const MOCK_STUDENTS: StudentMockData[] = [
     behaviorRisk: 'Bajo',
     gpa: 3.0,
     attendanceRate: 95,
-    avatarUrl: 'https://i.pravatar.cc/150?u=s106',
-    guardianName: 'Claudia Pérez',
+    avatarUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=120',
+    guardianName: 'Claudia Calle',
     alerts: [
-      { id: 'a4', type: 'academico', message: 'PIAR en seguimiento' }
+      { id: 'a4', type: 'academico', message: 'PIAR en seguimiento por TDAH' }
     ]
   },
   {
     id: 's-107',
-    name: 'Sofía Ramírez',
+    name: 'Sofía Ramírez Castaño',
     document: '1098765438',
     gender: 'Niña',
     campus: 'Sede Principal',
@@ -177,16 +177,16 @@ export const MOCK_STUDENTS: StudentMockData[] = [
     behaviorRisk: 'Medio',
     gpa: 2.8,
     attendanceRate: 75,
-    avatarUrl: 'https://i.pravatar.cc/150?u=sofia_ramirez',
-    guardianName: 'Patricia Ramírez',
+    avatarUrl: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?auto=format&fit=crop&q=80&w=120',
+    guardianName: 'Patricia Castaño',
     alerts: [
       { id: 'a5', type: 'asistencia', message: 'Ausentismo recurrente (>20%)' },
-      { id: 'a6', type: 'academico', message: '3 materias perdidas en Periodo 4' }
+      { id: 'a6', type: 'academico', message: '3 materias perdidas en Periodo actual' }
     ]
   },
   {
     id: 's-108',
-    name: 'Mateo López',
+    name: 'Mateo López Vahos',
     document: '1098765439',
     gender: 'Niño',
     campus: 'Sede Principal',
@@ -200,15 +200,15 @@ export const MOCK_STUDENTS: StudentMockData[] = [
     behaviorRisk: 'Bajo',
     gpa: 3.4,
     attendanceRate: 82,
-    avatarUrl: 'https://i.pravatar.cc/150?u=mateo_lopez',
+    avatarUrl: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=120',
     guardianName: 'Felipe López',
     alerts: [
-      { id: 'a7', type: 'academico', message: 'Caída de GPA del 25% en las últimas 4 semanas' }
+      { id: 'a7', type: 'academico', message: 'Caída de rendimiento del 25% en las últimas semanas' }
     ]
   },
   {
     id: 's-109',
-    name: 'Laura Cortés',
+    name: 'Laura Cortés Osorio',
     document: '1098765440',
     gender: 'Niña',
     campus: 'Sede Norte',
@@ -222,15 +222,15 @@ export const MOCK_STUDENTS: StudentMockData[] = [
     behaviorRisk: 'Alto',
     gpa: 3.6,
     attendanceRate: 89,
-    avatarUrl: 'https://i.pravatar.cc/150?u=laura_cortes',
-    guardianName: 'Martha Cortés',
+    avatarUrl: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&q=80&w=120',
+    guardianName: 'Martha Osorio',
     alerts: [
-      { id: 'a8', type: 'convivencia', message: 'Patrón escalado de observaciones disciplinarias' }
+      { id: 'a8', type: 'convivencia', message: 'Patrón de intimidación (Bullying) bajo análisis' }
     ]
   },
   {
     id: 's-110',
-    name: 'Andrés Gómez',
+    name: 'Andrés Gómez Correa',
     document: '1098765441',
     gender: 'Niño',
     campus: 'Sede Principal',
@@ -244,11 +244,10 @@ export const MOCK_STUDENTS: StudentMockData[] = [
     behaviorRisk: 'Alto',
     gpa: 3.2,
     attendanceRate: 88,
-    avatarUrl: 'https://i.pravatar.cc/150?u=andres_gomez',
-    guardianName: 'Pedro Gómez',
+    avatarUrl: 'https://images.unsplash.com/photo-1488161628813-04466f872be2?auto=format&fit=crop&q=80&w=120',
+    guardianName: 'Pedro Correa',
     alerts: [
-      { id: 'a9', type: 'convivencia', message: 'Reincidencia convivencial: Acumula su tercera alerta grave del mes.' },
-      { id: 'a10', type: 'convivencia', message: 'Reporte tipo II pendiente de citación con acudiente.' }
+      { id: 'a9', type: 'convivencia', message: 'Faltas reiteradas en comedor escolar (Reporte del PAE)' }
     ]
   }
 ];

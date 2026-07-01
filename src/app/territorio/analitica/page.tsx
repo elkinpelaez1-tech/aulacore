@@ -103,7 +103,7 @@ export default function TerritoryCIEPage() {
     
     // Cargar corridas recientes simuladas
     if (typeof window !== 'undefined') {
-      const stored = sessionStorage.getItem('mio_runs');
+      const stored = sessionStorage.getItem('aulacore_mio_runs');
       if (stored) {
         try {
           setRecentRuns(JSON.parse(stored).slice(0, 5));
@@ -115,7 +115,7 @@ export default function TerritoryCIEPage() {
   const handleRefreshData = () => {
     setIndicators(getCIEIndicators());
     if (typeof window !== 'undefined') {
-      const stored = sessionStorage.getItem('mio_runs');
+      const stored = sessionStorage.getItem('aulacore_mio_runs');
       if (stored) {
         try {
           setRecentRuns(JSON.parse(stored).slice(0, 5));

@@ -281,14 +281,87 @@ export function getMIOProtocols(): MIOProtocol[] {
 export function getMIORuns(): MIORun[] {
   if (typeof window === 'undefined') return [];
   const saved = sessionStorage.getItem(MIO_RUNS_KEY);
-  if (!saved) return [];
+  if (!saved) {
+    const defaultRuns: MIORun[] = [
+      {
+        id: 'run-991',
+        recipeCode: 'R-001',
+        recipeName: 'Ausentismo Crítico',
+        folio: 10001,
+        triggerPayload: { student_name: 'Valentina Silva Martínez', absences: 6, school_name: 'I.E. Rural El Hatillo', school_id: 'school-1' },
+        status: 'Exitoso',
+        executionHash: 'sha256-a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2',
+        outcome: 'exitoso',
+        feedback: 'Se programó la visita del inspector y el acudiente firmó el compromiso de retorno.',
+        steps: [
+          { actionType: 'create_cat_alert', status: 'Exitoso', details: 'Alerta creada en el CAT con ID ALT-MIO-1A2B', executedAt: '2026-06-25T08:00:00Z' },
+          { actionType: 'schedule_field_visit', status: 'Exitoso', details: 'Visita agendada para el Inspector de Cobertura el 2026-06-27', executedAt: '2026-06-25T08:02:00Z' },
+          { actionType: 'send_official_circular', status: 'Exitoso', details: 'Circular enviada a Sandra Martínez (Acudiente)', executedAt: '2026-06-25T08:05:00Z' }
+        ],
+        createdAt: '2026-06-25T08:00:00Z',
+        completedAt: '2026-06-25T08:05:00Z',
+        userId: 'usr-admin-sed',
+        userRole: 'Secretario de Educación',
+        originModule: 'RFID Sensor Engine',
+        organizationName: 'Secretaría de Educación de Barbosa',
+        durationMs: 42
+      },
+      {
+        id: 'run-992',
+        recipeCode: 'R-006',
+        recipeName: 'Protocolo de Riñas y Acoso',
+        folio: 10002,
+        triggerPayload: { student_name: 'Andrés Gómez Correa', type: 'Tipo II', school_name: 'Colegio AulaCore Central', school_id: 'school-2' },
+        status: 'Exitoso',
+        executionHash: 'sha256-f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2a1b2c3d4e5',
+        outcome: 'exitoso',
+        feedback: 'Caso remitido a orientación psicopedagógica escolar y actas cargadas.',
+        steps: [
+          { actionType: 'create_cat_alert', status: 'Exitoso', details: 'Alerta asignada a psicología territorial en el CAT', executedAt: '2026-06-28T09:15:00Z' },
+          { actionType: 'schedule_field_visit', status: 'Exitoso', details: 'Visita extraordinaria de psicóloga agendada', executedAt: '2026-06-28T09:16:00Z' }
+        ],
+        createdAt: '2026-06-28T09:15:00Z',
+        completedAt: '2026-06-28T09:17:00Z',
+        userId: 'usr-coor-hatillo',
+        userRole: 'Coordinador',
+        originModule: 'Observador de Convivencia',
+        organizationName: 'Colegio AulaCore Central',
+        durationMs: 38
+      }
+    ];
+    sessionStorage.setItem(MIO_RUNS_KEY, JSON.stringify(defaultRuns));
+    return defaultRuns;
+  }
   return JSON.parse(saved);
 }
 
 export function getMIOOptimizations(): MIOOptimizationLog[] {
   if (typeof window === 'undefined') return [];
   const saved = sessionStorage.getItem(MIO_OPTIMIZATIONS_KEY);
-  if (!saved) return [];
+  if (!saved) {
+    const defaultOptimizations: MIOOptimizationLog[] = [
+      {
+        id: 'opt-991',
+        recipeCode: 'R-001',
+        recipeName: 'Ausentismo Crítico',
+        successRatio: 92.5,
+        recommendation: 'El canal de comunicación por WhatsApp ha demostrado reducir los tiempos de respuesta del acudiente en un 40%. Se sugiere consolidar esta circular.',
+        applied: true,
+        createdAt: '2026-06-26T10:00:00Z'
+      },
+      {
+        id: 'opt-992',
+        recipeCode: 'R-002',
+        recipeName: 'Alerta Académica',
+        successRatio: 72.0,
+        recommendation: 'Baja efectividad en el plan de mejoramiento básico. Se prescribe asociar de forma obligatoria tutorías presenciales los sábados.',
+        applied: false,
+        createdAt: '2026-06-29T14:30:00Z'
+      }
+    ];
+    sessionStorage.setItem(MIO_OPTIMIZATIONS_KEY, JSON.stringify(defaultOptimizations));
+    return defaultOptimizations;
+  }
   return JSON.parse(saved);
 }
 

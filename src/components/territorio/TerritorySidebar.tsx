@@ -38,7 +38,7 @@ export function TerritorySidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="w-64 bg-slate-900 text-slate-300 flex flex-col h-screen shrink-0 border-r border-slate-800">
+    <aside className="w-full h-full bg-slate-900 text-slate-300 flex flex-col border-r border-slate-800 select-none">
       {/* Brand Header */}
       <div className="p-6 border-b border-slate-800 flex items-center gap-3">
         <div className="w-8 h-8 rounded-xl bg-indigo-650 flex items-center justify-center text-white shrink-0 shadow-lg shadow-indigo-900/40">
@@ -64,6 +64,11 @@ export function TerritorySidebar() {
             <Link
               key={item.href}
               href={item.href}
+              onClick={() => {
+                if (typeof window !== 'undefined') {
+                  window.dispatchEvent(new CustomEvent('close-mobile-sidebar'));
+                }
+              }}
               className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 ${
                 isActive
                   ? 'bg-indigo-600 text-white shadow-md shadow-indigo-950/20'

@@ -8,7 +8,7 @@ import { Modal } from './Modal';
 import { 
   Search, Bell, User, MapPin, Sparkles, ChevronDown, 
   Settings, Key, LogOut, Info, ShieldCheck, Calendar, Users2, Landmark,
-  ShieldAlert, Mail, Phone, Lock, Activity
+  ShieldAlert, Mail, Phone, Lock, Activity, Menu
 } from 'lucide-react';
 
 export function TerritoryHeader() {
@@ -135,10 +135,21 @@ export function TerritoryHeader() {
 
   return (
     <header className="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between shrink-0 shadow-xs relative z-30">
-      {/* Left: Territory Title and Location (Click opens Organization modal) */}
-      <button 
-        onClick={() => setOrgOpen(true)}
-        className="flex items-center gap-3 min-w-0 hover:bg-slate-50 p-1.5 rounded-xl transition-all duration-200 text-left cursor-pointer border-none bg-transparent"
+      <div className="flex items-center gap-1">
+        {/* Mobile menu trigger */}
+        <button 
+          type="button"
+          onClick={() => window.dispatchEvent(new CustomEvent('toggle-mobile-sidebar'))}
+          className="lg:hidden w-9 h-9 flex items-center justify-center rounded-xl bg-slate-50 border border-slate-200 text-slate-600 hover:bg-slate-100 cursor-pointer shadow-xs shrink-0 mr-1"
+          title="Abrir Menú"
+        >
+          <Menu className="w-4.5 h-4.5" />
+        </button>
+
+        {/* Left: Territory Title and Location (Click opens Organization modal) */}
+        <button 
+          onClick={() => setOrgOpen(true)}
+          className="flex items-center gap-3 min-w-0 hover:bg-slate-50 p-1.5 rounded-xl transition-all duration-200 text-left cursor-pointer border-none bg-transparent"
         title="Ver Ficha de la Secretaría"
       >
         <MapPin className="w-4.5 h-4.5 text-indigo-650 shrink-0" />
@@ -152,6 +163,7 @@ export function TerritoryHeader() {
           </span>
         </div>
       </button>
+    </div>
 
       {/* Middle: Search bar (Simulated) */}
       <div className="hidden md:flex items-center bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 w-64 max-w-xs transition-all duration-200 focus-within:border-indigo-500 focus-within:bg-white">
