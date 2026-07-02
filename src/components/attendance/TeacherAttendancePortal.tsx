@@ -42,6 +42,34 @@ const INITIAL_CLASS_STUDENTS: StudentAttendanceItem[] = [
   { id: 'st-10', name: 'Mateo Álvarez', code: '9A-10', avatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 85 },
   { id: 'st-11', name: 'Daniela Salazar', code: '9A-11', avatar: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 97 },
   { id: 'st-12', name: 'Alejandro Gómez', code: '9A-12', avatar: 'https://images.unsplash.com/photo-1463453091185-61582044d556?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 89 },
+  { id: 'st-13', name: 'Mariana Castro', code: '9A-13', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 93 },
+  { id: 'st-14', name: 'Santiago Vargas', code: '9A-14', avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 87 },
+  { id: 'st-15', name: 'Isabella Rojas', code: '9A-15', avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 91 },
+  { id: 'st-16', name: 'Samuel Moreno', code: '9A-16', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 84 },
+  { id: 'st-17', name: 'Luciana Herrera', code: '9A-17', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 96 },
+  { id: 'st-18', name: 'Matías Jiménez', code: '9A-18', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 89 },
+  { id: 'st-19', name: 'Valeria Muñoz', code: '9A-19', avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 95 },
+  { id: 'st-20', name: 'Nicolás Rojas', code: '9A-20', avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 82 },
+  { id: 'st-21', name: 'Gabriela Díaz', code: '9A-21', avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 98 },
+  { id: 'st-22', name: 'Daniel Castro', code: '9A-22', avatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 86 },
+  { id: 'st-23', name: 'Salomé Ortiz', code: '9A-23', avatar: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 94 },
+  { id: 'st-24', name: 'Lucas Silva', code: '9A-24', avatar: 'https://images.unsplash.com/photo-1463453091185-61582044d556?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 88 },
+  { id: 'st-25', name: 'Antonella Núñez', code: '9A-25', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 92 },
+  { id: 'st-26', name: 'Emmanuel Vega', code: '9A-26', avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 85 },
+  { id: 'st-27', name: 'Samantha Peña', code: '9A-27', avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 91 },
+  { id: 'st-28', name: 'Benjamín Ruiz', code: '9A-28', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 83 },
+  { id: 'st-29', name: 'Julieta Mendoza', code: '9A-29', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 97 },
+  { id: 'st-30', name: 'Andrés Torres', code: '9A-30', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 89 },
+  { id: 'st-31', name: 'Natalia Acosta', code: '9A-31', avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 95 },
+  { id: 'st-32', name: 'Felipe Lozano', code: '9A-32', avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 86 },
+  { id: 'st-33', name: 'Manuela Beltrán', code: '9A-33', avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 93 },
+  { id: 'st-34', name: 'Simón Calderón', code: '9A-34', avatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 88 },
+  { id: 'st-35', name: 'Sara Pineda', code: '9A-35', avatar: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 96 },
+  { id: 'st-36', name: 'Gabriel Franco', code: '9A-36', avatar: 'https://images.unsplash.com/photo-1463453091185-61582044d556?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 84 },
+  { id: 'st-37', name: 'Paulina Cortés', code: '9A-37', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 94 },
+  { id: 'st-38', name: 'Jerónimo Marín', code: '9A-38', avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 87 },
+  { id: 'st-39', name: 'Miranda Ospina', code: '9A-39', avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 98 },
+  { id: 'st-40', name: 'Joaquín Zapata', code: '9A-40', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 90 },
 ];
 
 export function TeacherAttendancePortal() {
@@ -349,6 +377,85 @@ export function TeacherAttendancePortal() {
     s.code.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // Función dedicada para impresión limpia sin conflicto de capas de Chrome/Edge
+  const handlePrintSheet = () => {
+    const printElement = document.getElementById('printable-ocr-sheet');
+    if (!printElement) {
+      window.print();
+      return;
+    }
+
+    const printWindow = window.open('', '_blank', 'width=950,height=1100');
+    if (!printWindow) {
+      window.print();
+      return;
+    }
+
+    const contentHtml = printElement.innerHTML;
+    printWindow.document.open();
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html lang="es">
+      <head>
+        <meta charset="UTF-8">
+        <title>Planilla Asistencia OCR - ${selectedCourse}</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <style>
+          @page {
+            size: letter portrait;
+            margin: 0.35in;
+          }
+          * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            box-sizing: border-box;
+          }
+          body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: white !important;
+            color: #0f172a !important;
+            margin: 0;
+            padding: 5px;
+          }
+          table {
+            width: 100%;
+            border-collapse: collapse;
+          }
+          th, td {
+            border: 1.5px solid #0f172a;
+            padding: 4px 6px;
+            text-align: left;
+            font-size: 10px;
+          }
+          th {
+            background-color: #0f172a !important;
+            color: white !important;
+            font-weight: 900;
+            text-transform: uppercase;
+          }
+          tr:nth-child(even) {
+            background-color: #f8fafc !important;
+          }
+        </style>
+      </head>
+      <body>
+        <div style="width: 100%; max-width: 820px; margin: 0 auto;">
+          ${contentHtml}
+        </div>
+        <script>
+          window.onload = function() {
+            setTimeout(function() {
+              window.print();
+              window.close();
+            }, 600);
+          };
+        </script>
+      </body>
+      </html>
+    `);
+    printWindow.document.close();
+  };
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-24">
       {/* 🖨️ MODAL FORMATO IMPRIMIBLE OFICIAL OCR */}
@@ -356,8 +463,20 @@ export function TeacherAttendancePortal() {
         <>
           <style jsx global>{`
             @media print {
-              body * {
+              body {
+                background: white !important;
+              }
+              header, nav, aside, footer, button, .toast {
+                display: none !important;
+              }
+              body > *:not(#__next) {
+                display: none !important;
+              }
+              #__next * {
                 visibility: hidden !important;
+                backdrop-filter: none !important;
+                -webkit-backdrop-filter: none !important;
+                filter: none !important;
               }
               #printable-ocr-sheet, #printable-ocr-sheet * {
                 visibility: visible !important;
@@ -372,15 +491,16 @@ export function TeacherAttendancePortal() {
                 background: white !important;
                 box-shadow: none !important;
                 border: none !important;
+                z-index: 999999 !important;
               }
               @page {
                 size: letter portrait;
-                margin: 0.4in;
+                margin: 0.35in;
               }
             }
           `}</style>
-          <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-200 print:p-0 print:bg-white print:static print:z-auto print:block">
-            <div id="printable-ocr-sheet" className="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-slate-200 shadow-2xl flex flex-col print:max-h-none print:border-none print:shadow-none print:rounded-none print:w-full print:overflow-visible">
+          <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-200 print:p-0 print:bg-white print:static print:z-auto print:block print:backdrop-blur-none">
+            <div id="printable-ocr-sheet" className="bg-white rounded-3xl max-w-5xl w-full max-h-[90vh] overflow-y-auto border border-slate-200 shadow-2xl flex flex-col print:max-h-none print:border-none print:shadow-none print:rounded-none print:w-full print:overflow-visible">
               {/* Cabecera del Modal (Oculta al imprimir) */}
               <div className="p-5 bg-slate-900 text-white flex items-center justify-between rounded-t-3xl sticky top-0 z-10 print:hidden flex-wrap gap-3">
                 <div className="flex items-center gap-3">
@@ -388,13 +508,13 @@ export function TeacherAttendancePortal() {
                     <Printer className="w-5 h-5 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-base font-black">Vista Previa de Planilla OCR Imprimible</h3>
-                    <p className="text-xs text-slate-300">Formato oficial calibrado con marcas fiduciales para lectura automática por IA</p>
+                    <h3 className="text-base font-black">Vista Previa de Planilla OCR Imprimible ({totalStudents} Estudiantes)</h3>
+                    <p className="text-xs text-slate-300">Formato oficial colombiano calibrado con marcas fiduciales para lectura por IA</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <Button 
-                    onClick={() => window.print()}
+                    onClick={handlePrintSheet}
                     className="bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs px-5 py-2.5 rounded-xl shadow-md flex items-center gap-2 cursor-pointer"
                   >
                     <Printer className="w-4 h-4" />
@@ -417,7 +537,7 @@ export function TeacherAttendancePortal() {
                   <div className="text-center space-y-0.5">
                     <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 block print:text-[9px]">Ecosistema AulaCore – Interoperabilidad y SIMAT</span>
                     <h1 className="text-xl sm:text-2xl font-black uppercase tracking-tight print:text-lg">Planilla de Asistencia Docente para OCR</h1>
-                    <p className="text-xs font-bold text-slate-700 print:text-[10px]">Asignatura: <span className="underline decoration-indigo-600 font-black">{selectedCourse}</span> | Fecha: <span className="underline decoration-indigo-600">________________________</span></p>
+                    <p className="text-xs font-bold text-slate-700 print:text-[10px]">Asignatura: <span className="underline decoration-indigo-600 font-black">{selectedCourse}</span> | Aforo: <span className="font-black">{totalStudents}/40 Alumnos</span> | Fecha: <span className="underline decoration-indigo-600">____________________</span></p>
                   </div>
                   <div className="w-8 h-8 border-t-4 border-r-4 border-slate-900 sm:w-10 sm:h-10 shrink-0 print:w-7 print:h-7" />
                 </div>
@@ -438,39 +558,106 @@ export function TeacherAttendancePortal() {
                   </div>
                 </div>
 
-                {/* Tabla Oficial de Estudiantes para Imprimir */}
-                <div className="border-2 border-slate-900 rounded-xl overflow-hidden print:border print:rounded-lg">
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="bg-slate-900 text-white text-xs uppercase font-black tracking-wider print:text-[10px]">
-                        <th className="p-2.5 w-12 text-center border-r border-slate-700 print:p-1.5">No.</th>
-                        <th className="p-2.5 w-24 border-r border-slate-700 print:p-1.5">Código</th>
-                        <th className="p-2.5 border-r border-slate-700 print:p-1.5">Apellidos y Nombres del Estudiante</th>
-                        <th className="p-2.5 w-24 text-center bg-emerald-950/80 border-r border-slate-700 print:p-1.5 print:bg-slate-900">Asistió (✓)</th>
-                        <th className="p-2.5 w-24 text-center bg-red-950/80 border-r border-slate-700 print:p-1.5 print:bg-slate-900">Ausente (X)</th>
-                        <th className="p-2.5 w-24 text-center bg-amber-950/80 print:p-1.5 print:bg-slate-900">Retardo (R)</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-300 text-xs font-bold text-slate-900 print:text-[10px] print:divide-slate-200">
-                      {students.map((st, idx) => (
-                        <tr key={st.id} className={idx % 2 === 0 ? "bg-white" : "bg-slate-50/70"}>
-                          <td className="p-2.5 text-center font-black border-r border-slate-300 print:p-1.5">{idx + 1}</td>
-                          <td className="p-2.5 font-mono text-slate-600 border-r border-slate-300 print:p-1.5">{st.code}</td>
-                          <td className="p-2.5 font-black text-slate-900 border-r border-slate-300 uppercase print:p-1.5">{st.name}</td>
-                          <td className="p-2.5 text-center border-r border-slate-300 print:p-1.5">
-                            <div className="w-5 h-5 border-2 border-slate-400 rounded mx-auto print:w-4 print:h-4 print:border-slate-600" />
-                          </td>
-                          <td className="p-2.5 text-center border-r border-slate-300 print:p-1.5">
-                            <div className="w-5 h-5 border-2 border-slate-400 rounded mx-auto print:w-4 print:h-4 print:border-slate-600" />
-                          </td>
-                          <td className="p-2.5 text-center print:p-1.5">
-                            <div className="w-5 h-5 border-2 border-slate-400 rounded mx-auto print:w-4 print:h-4 print:border-slate-600" />
-                          </td>
+                {/* Tabla Oficial de Estudiantes para Imprimir (2 Columnas para estándar colombiano de 40 alumnos) */}
+                {students.length > 20 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 print:grid-cols-2 print:gap-4">
+                    {/* Columna Izquierda: Alumnos 1 al 20 */}
+                    <div className="border-2 border-slate-900 rounded-xl overflow-hidden print:border print:rounded-lg">
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="bg-slate-900 text-white text-[10px] uppercase font-black tracking-wider print:text-[9px]">
+                            <th className="p-2 w-8 text-center border-r border-slate-700 print:p-1">No.</th>
+                            <th className="p-2 w-14 border-r border-slate-700 print:p-1">Código</th>
+                            <th className="p-2 border-r border-slate-700 print:p-1">Estudiante</th>
+                            <th className="p-2 w-12 text-center bg-emerald-950/80 border-r border-slate-700 print:p-1 print:bg-slate-900">✓</th>
+                            <th className="p-2 w-12 text-center bg-red-950/80 print:p-1 print:bg-slate-900">X</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-300 text-[11px] font-bold text-slate-900 print:text-[9.5px] print:divide-slate-200">
+                          {students.slice(0, Math.ceil(students.length / 2)).map((st, idx) => (
+                            <tr key={st.id} className={idx % 2 === 0 ? "bg-white" : "bg-slate-50/70"}>
+                              <td className="p-1.5 text-center font-black border-r border-slate-300 print:p-1">{idx + 1}</td>
+                              <td className="p-1.5 font-mono text-slate-600 border-r border-slate-300 print:p-1">{st.code}</td>
+                              <td className="p-1.5 font-black text-slate-900 border-r border-slate-300 uppercase truncate max-w-[150px] print:p-1 print:max-w-[130px]">{st.name}</td>
+                              <td className="p-1.5 text-center border-r border-slate-300 print:p-1">
+                                <div className="w-4 h-4 border-2 border-slate-400 rounded mx-auto print:border-slate-700" />
+                              </td>
+                              <td className="p-1.5 text-center print:p-1">
+                                <div className="w-4 h-4 border-2 border-slate-400 rounded mx-auto print:border-slate-700" />
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Columna Derecha: Alumnos 21 al 40 */}
+                    <div className="border-2 border-slate-900 rounded-xl overflow-hidden print:border print:rounded-lg">
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="bg-slate-900 text-white text-[10px] uppercase font-black tracking-wider print:text-[9px]">
+                            <th className="p-2 w-8 text-center border-r border-slate-700 print:p-1">No.</th>
+                            <th className="p-2 w-14 border-r border-slate-700 print:p-1">Código</th>
+                            <th className="p-2 border-r border-slate-700 print:p-1">Estudiante</th>
+                            <th className="p-2 w-12 text-center bg-emerald-950/80 border-r border-slate-700 print:p-1 print:bg-slate-900">✓</th>
+                            <th className="p-2 w-12 text-center bg-red-950/80 print:p-1 print:bg-slate-900">X</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-300 text-[11px] font-bold text-slate-900 print:text-[9.5px] print:divide-slate-200">
+                          {students.slice(Math.ceil(students.length / 2)).map((st, idx) => {
+                            const actualIdx = idx + Math.ceil(students.length / 2);
+                            return (
+                              <tr key={st.id} className={idx % 2 === 0 ? "bg-white" : "bg-slate-50/70"}>
+                                <td className="p-1.5 text-center font-black border-r border-slate-300 print:p-1">{actualIdx + 1}</td>
+                                <td className="p-1.5 font-mono text-slate-600 border-r border-slate-300 print:p-1">{st.code}</td>
+                                <td className="p-1.5 font-black text-slate-900 border-r border-slate-300 uppercase truncate max-w-[150px] print:p-1 print:max-w-[130px]">{st.name}</td>
+                                <td className="p-1.5 text-center border-r border-slate-300 print:p-1">
+                                  <div className="w-4 h-4 border-2 border-slate-400 rounded mx-auto print:border-slate-700" />
+                                </td>
+                                <td className="p-1.5 text-center print:p-1">
+                                  <div className="w-4 h-4 border-2 border-slate-400 rounded mx-auto print:border-slate-700" />
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="border-2 border-slate-900 rounded-xl overflow-hidden print:border print:rounded-lg">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="bg-slate-900 text-white text-xs uppercase font-black tracking-wider print:text-[10px]">
+                          <th className="p-2.5 w-12 text-center border-r border-slate-700 print:p-1.5">No.</th>
+                          <th className="p-2.5 w-24 border-r border-slate-700 print:p-1.5">Código</th>
+                          <th className="p-2.5 border-r border-slate-700 print:p-1.5">Apellidos y Nombres del Estudiante</th>
+                          <th className="p-2.5 w-24 text-center bg-emerald-950/80 border-r border-slate-700 print:p-1.5 print:bg-slate-900">Asistió (✓)</th>
+                          <th className="p-2.5 w-24 text-center bg-red-950/80 border-r border-slate-700 print:p-1.5 print:bg-slate-900">Ausente (X)</th>
+                          <th className="p-2.5 w-24 text-center bg-amber-950/80 print:p-1.5 print:bg-slate-900">Retardo (R)</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                      </thead>
+                      <tbody className="divide-y divide-slate-300 text-xs font-bold text-slate-900 print:text-[10px] print:divide-slate-200">
+                        {students.map((st, idx) => (
+                          <tr key={st.id} className={idx % 2 === 0 ? "bg-white" : "bg-slate-50/70"}>
+                            <td className="p-2.5 text-center font-black border-r border-slate-300 print:p-1.5">{idx + 1}</td>
+                            <td className="p-2.5 font-mono text-slate-600 border-r border-slate-300 print:p-1.5">{st.code}</td>
+                            <td className="p-2.5 font-black text-slate-900 border-r border-slate-300 uppercase print:p-1.5">{st.name}</td>
+                            <td className="p-2.5 text-center border-r border-slate-300 print:p-1.5">
+                              <div className="w-5 h-5 border-2 border-slate-400 rounded mx-auto print:w-4 print:h-4 print:border-slate-600" />
+                            </td>
+                            <td className="p-2.5 text-center border-r border-slate-300 print:p-1.5">
+                              <div className="w-5 h-5 border-2 border-slate-400 rounded mx-auto print:w-4 print:h-4 print:border-slate-600" />
+                            </td>
+                            <td className="p-2.5 text-center print:p-1.5">
+                              <div className="w-5 h-5 border-2 border-slate-400 rounded mx-auto print:w-4 print:h-4 print:border-slate-600" />
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
 
                 {/* Marcas Fiduciales Inferiores y Firmas */}
                 <div className="pt-6 flex justify-between items-end print:pt-4">
@@ -478,7 +665,7 @@ export function TeacherAttendancePortal() {
                   <div className="text-center space-y-1 pb-1">
                     <div className="w-56 border-b-2 border-slate-900 mx-auto" />
                     <span className="text-[10px] font-black uppercase text-slate-700 block print:text-[9px]">Firma y Cédula del Docente Responsable</span>
-                    <span className="text-[8px] text-slate-500 font-mono block print:text-[7px]">Hash de Verificación OCR: AUC-{selectedCourse}-20250528-SIMAT</span>
+                    <span className="text-[8px] text-slate-500 font-mono block print:text-[7px]">Hash de Verificación OCR: AUC-{selectedCourse}-20250528-SIMAT | {totalStudents} Alumnos</span>
                   </div>
                   <div className="w-8 h-8 border-b-4 border-r-4 border-slate-900 sm:w-10 sm:h-10 shrink-0 print:w-7 print:h-7" />
                 </div>
