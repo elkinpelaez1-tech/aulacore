@@ -887,7 +887,7 @@ export default function DashboardPage() {
                             directorInitials: 'LM',
                             avatarColor: 'bg-purple-100 text-purple-700',
                             students: 32, 
-                            gpa: 8.2, 
+                            gpa: 4.1, 
                             attendance: 94.2, 
                             cases: '1 Grave',
                             casesColor: 'bg-orange-50 text-orange-700 border-orange-100',
@@ -901,7 +901,7 @@ export default function DashboardPage() {
                             directorInitials: 'CL',
                             avatarColor: 'bg-blue-100 text-blue-700',
                             students: 28, 
-                            gpa: 7.9, 
+                            gpa: 3.9, 
                             attendance: 88.5, 
                             cases: '2 Leves',
                             casesColor: 'bg-blue-50 text-blue-700 border-blue-100',
@@ -915,7 +915,7 @@ export default function DashboardPage() {
                             directorInitials: 'DR',
                             avatarColor: 'bg-emerald-100 text-emerald-700',
                             students: 30, 
-                            gpa: 8.5, 
+                            gpa: 4.5, 
                             attendance: 96.1, 
                             cases: '0 Casos',
                             casesColor: 'bg-slate-50 text-slate-500 border-slate-100',
@@ -925,7 +925,7 @@ export default function DashboardPage() {
                           }
                         ].map((row) => (
                           <TableRow key={row.course} className="hover:bg-slate-50/50 transition-colors">
-                            <TableCell className="font-extrabold text-slate-950 text-base pl-6">{row.course}</TableCell>
+                            <TableCell className="font-extrabold text-slate-955 text-base pl-6">{row.course}</TableCell>
                             <TableCell>
                               <div className="flex items-center gap-2">
                                 <div className={cn("w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ring-2 ring-slate-100", row.avatarColor)}>
@@ -937,16 +937,16 @@ export default function DashboardPage() {
                             <TableCell className="text-center font-extrabold text-slate-850 text-sm">{row.students} alumnos</TableCell>
                             <TableCell>
                               <div className="flex items-center gap-3 w-40">
-                                <span className="font-black text-slate-950 text-sm min-w-10">{row.gpa} / 10</span>
+                                <span className="font-black text-slate-950 text-sm min-w-10">{row.gpa} / 5.0</span>
                                 <div className="flex-1 bg-slate-100 h-2 rounded-full overflow-hidden border border-slate-200/50 shadow-inner">
                                   <div 
                                     className={cn(
                                       "h-full rounded-full transition-all duration-500",
-                                      row.gpa >= 8.5 && "bg-emerald-500",
-                                      row.gpa >= 7.5 && row.gpa < 8.5 && "bg-blue-500",
-                                      row.gpa < 7.5 && "bg-red-500"
+                                      row.gpa >= 4.0 && "bg-emerald-500",
+                                      row.gpa >= 3.5 && row.gpa < 4.0 && "bg-blue-500",
+                                      row.gpa < 3.5 && "bg-red-500"
                                     )} 
-                                    style={{ width: `${row.gpa * 10}%` }} 
+                                    style={{ width: `${row.gpa * 20}%` }} 
                                   />
                                 </div>
                               </div>
@@ -1393,7 +1393,7 @@ export default function DashboardPage() {
                       </div>
                       <div>
                         <span className="text-xs text-slate-400 font-extrabold uppercase tracking-wider block">Conducta</span>
-                        <span className="text-base font-black text-slate-200">{MOCK_STUDENTS[0].behaviorScore}/10</span>
+                        <span className="text-base font-black text-slate-200">10/10</span>
                       </div>
                       <div>
                         <span className="text-xs text-slate-400 font-extrabold uppercase tracking-wider block">Riesgo</span>
@@ -1459,20 +1459,20 @@ export default function DashboardPage() {
                         <TableBody>
                           <TableRow className="hover:bg-slate-50/50 transition-colors">
                             <TableCell className="font-bold text-slate-955 text-sm pl-3 py-2 flex items-center gap-1.5">
-                              <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150" className="w-5 h-5 rounded-full object-cover" />
-                              Juan García
+                              <img src={MOCK_STUDENTS[6].avatar} className="w-5 h-5 rounded-full object-cover" />
+                              {MOCK_STUDENTS[6].name}
                             </TableCell>
-                            <TableCell className="text-sm font-extrabold text-red-700 text-center py-2">6.1</TableCell>
+                            <TableCell className="text-sm font-extrabold text-red-700 text-center py-2">{MOCK_STUDENTS[6].gpa}</TableCell>
                             <TableCell className="pr-3 py-2 text-right">
                               <span className="text-xs bg-red-100 text-red-800 font-black px-1.5 py-0.5 rounded">Crítico</span>
                             </TableCell>
                           </TableRow>
                           <TableRow className="hover:bg-slate-50/50 transition-colors">
                             <TableCell className="font-bold text-slate-955 text-sm pl-3 py-2 flex items-center gap-1.5">
-                              <div className="w-5 h-5 rounded-full bg-slate-200 flex items-center justify-center text-xs font-bold">MD</div>
-                              Mateo Díaz
+                              <img src={MOCK_STUDENTS[1].avatar} className="w-5 h-5 rounded-full object-cover" />
+                              {MOCK_STUDENTS[1].name}
                             </TableCell>
-                            <TableCell className="text-sm font-extrabold text-red-700 text-center py-2">4.2</TableCell>
+                            <TableCell className="text-sm font-extrabold text-red-700 text-center py-2">{MOCK_STUDENTS[1].gpa}</TableCell>
                             <TableCell className="pr-3 py-2 text-right">
                               <span className="text-xs bg-red-100 text-red-800 font-black px-1.5 py-0.5 rounded">Crítico</span>
                             </TableCell>
