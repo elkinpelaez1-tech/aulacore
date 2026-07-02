@@ -580,7 +580,7 @@ export default function ObservacionesPage() {
                         <Button 
                           onClick={() => { setShowLogroForm(true); setShowFaltaForm(false); }}
                           size="sm" 
-                          className="bg-indigo-50 hover:bg-indigo-100 text-indigo-755 border border-indigo-100 font-bold text-[10px] rounded-lg px-2 py-1 flex items-center gap-0.5 cursor-pointer shadow-xs animate-fade-in"
+                          className="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[11px] rounded-xl px-3 py-1.5 flex items-center gap-1 cursor-pointer shadow-md animate-fade-in transition-transform hover:scale-105"
                         >
                           <Plus className="w-3.5 h-3.5" /> Registrar Logro
                         </Button>
@@ -617,7 +617,7 @@ export default function ObservacionesPage() {
                         <Button 
                           onClick={() => { setShowFaltaForm(true); setShowLogroForm(false); }}
                           size="sm" 
-                          className="bg-red-50 hover:bg-red-100 text-red-755 border border-red-100 font-bold text-[10px] rounded-lg px-2 py-1 flex items-center gap-0.5 cursor-pointer shadow-xs animate-fade-in"
+                          className="bg-red-600 hover:bg-red-700 text-white font-extrabold text-[11px] rounded-xl px-3 py-1.5 flex items-center gap-1 cursor-pointer shadow-md animate-fade-in transition-transform hover:scale-105"
                         >
                           <Plus className="w-3.5 h-3.5" /> Registrar Falta
                         </Button>
@@ -702,7 +702,7 @@ export default function ObservacionesPage() {
                         </div>
                         <div className="flex gap-2 justify-end pt-2 border-t border-slate-100">
                           <button type="button" onClick={() => setShowLogroForm(false)} className="text-[10px] font-bold text-slate-500 bg-transparent hover:bg-slate-100 border-none rounded-lg px-3 py-1.5 cursor-pointer">Cancelar</button>
-                          <button type="submit" className="text-[10px] font-extrabold bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg px-4 py-2 cursor-pointer shadow-sm border-none transition-colors">Guardar Mérito</button>
+                          <button type="submit" className="text-[10px] font-extrabold bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg px-4 py-2 cursor-pointer shadow-sm border-none transition-colors">Guardar Mérito</button>
                         </div>
                       </form>
                     </Card>
@@ -762,7 +762,7 @@ export default function ObservacionesPage() {
                           </div>
                           <div className="flex gap-2 justify-end pt-2 border-t border-slate-100">
                             <button type="button" onClick={() => setShowFaltaForm(false)} className="text-[10px] font-bold text-slate-500 bg-transparent hover:bg-slate-100 border-none rounded-lg px-3 py-1.5 cursor-pointer">Cancelar</button>
-                            <button type="submit" className="text-[10px] font-extrabold bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg px-4 py-2 cursor-pointer shadow-sm border-none transition-colors">Guardar Falta</button>
+                            <button type="submit" className="text-[10px] font-extrabold bg-red-600 hover:bg-red-700 text-white rounded-lg px-4 py-2 cursor-pointer shadow-sm border-none transition-colors">Guardar Falta</button>
                           </div>
                         </form>
                       </Card>
