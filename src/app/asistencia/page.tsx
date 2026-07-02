@@ -17,10 +17,12 @@ import {
 } from '@/lib/data/attendance-store';
 import { MOCK_STUDENTS } from '@/lib/data/mock-students';
 import { MOCK_COURSES } from '@/lib/data/mock-courses';
+import { TeacherAttendancePortal } from '@/components/attendance/TeacherAttendancePortal';
 
 export default function AsistenciaHibridaPage() {
   const [logs, setLogs] = useState<AttendanceRecord[]>(INITIAL_ATTENDANCE_LOGS);
   const [toast, setToast] = useState<{ title: string; message: string; type?: 'success' | 'warning' } | null>(null);
+  const [mainTab, setMainTab] = useState<'DOCENTE' | 'CONSOLE'>('DOCENTE');
 
   // Active Simulation states
   const [rfidStudent, setRfidStudent] = useState('s-107');
@@ -200,9 +202,51 @@ export default function AsistenciaHibridaPage() {
 
   const counts = getSummaryCounts();
 
+  if (mainTab === 'DOCENTE') {
+    return (
+      <AppLayout>
+        <div className="space-y-6 animate-in fade-in duration-300">
+          <div className="bg-slate-900 p-1.5 rounded-2xl flex items-center gap-2 max-w-xl mx-auto shadow-md border border-slate-800">
+            <button
+              onClick={() => setMainTab('DOCENTE')}
+              className="flex-1 py-2.5 px-4 rounded-xl font-black text-xs sm:text-sm transition-all flex items-center justify-center gap-2 cursor-pointer bg-indigo-600 text-white shadow-lg scale-[1.01]"
+            >
+              <Smartphone className="w-4 h-4 text-indigo-300" />
+              <span>👩‍🏫 Toma en Clase (Docentes)</span>
+            </button>
+            <button
+              onClick={() => setMainTab('CONSOLE')}
+              className="flex-1 py-2.5 px-4 rounded-xl font-black text-xs sm:text-sm transition-all flex items-center justify-center gap-2 cursor-pointer text-slate-400 hover:text-white hover:bg-slate-800/60"
+            >
+              <Activity className="w-4 h-4 text-emerald-300" />
+              <span>🏢 Consola RFID & MIO</span>
+            </button>
+          </div>
+          <TeacherAttendancePortal />
+        </div>
+      </AppLayout>
+    );
+  }
+
   return (
     <AppLayout>
       <div className="space-y-6 animate-in fade-in duration-300">
+        <div className="bg-slate-900 p-1.5 rounded-2xl flex items-center gap-2 max-w-xl mx-auto shadow-md border border-slate-800">
+          <button
+            onClick={() => setMainTab('DOCENTE')}
+            className="flex-1 py-2.5 px-4 rounded-xl font-black text-xs sm:text-sm transition-all flex items-center justify-center gap-2 cursor-pointer text-slate-400 hover:text-white hover:bg-slate-800/60"
+          >
+            <Smartphone className="w-4 h-4 text-indigo-300" />
+            <span>👩‍🏫 Toma en Clase (Docentes)</span>
+          </button>
+          <button
+            onClick={() => setMainTab('CONSOLE')}
+            className="flex-1 py-2.5 px-4 rounded-xl font-black text-xs sm:text-sm transition-all flex items-center justify-center gap-2 cursor-pointer bg-indigo-600 text-white shadow-lg scale-[1.01]"
+          >
+            <Activity className="w-4 h-4 text-emerald-300" />
+            <span>🏢 Consola RFID & MIO</span>
+          </button>
+        </div>
         
         {/* HEADER BAR */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
