@@ -555,11 +555,11 @@ export function TeacherAttendancePortal() {
       {/* 🟢 MÉTODO 1: DESLIZAMIENTO MÓVIL (SWIPE) */}
       {method === 'SWIPE' && (
         <div className="space-y-4 animate-in fade-in duration-300">
-          <div className="flex justify-between items-center px-2">
-            <span className="text-xs font-extrabold uppercase tracking-wider text-slate-400">
+          <div className="flex justify-between items-center px-2 flex-wrap gap-2">
+            <span className="text-xs font-black uppercase tracking-wider text-slate-800">
               Listado de Estudiantes ({filteredStudents.length})
             </span>
-            <span className="text-[11px] text-indigo-400 font-bold bg-indigo-950/60 px-2.5 py-1 rounded-lg border border-indigo-900/40 hidden sm:inline-block">
+            <span className="text-xs text-white font-black bg-indigo-950 px-3.5 py-1.5 rounded-xl border border-indigo-700 shadow-md inline-block tracking-wide">
               💡 Tip: Deslice la tarjeta a la derecha (Presente) o izquierda (Ausente)
             </span>
           </div>
