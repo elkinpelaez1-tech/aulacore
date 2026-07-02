@@ -128,7 +128,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         avatar_url: currentUser.user_metadata?.avatar_url || '',
       };
 
-      const userRoles = (rolesData?.map((r: any) => r.role) || []) as string[];
+      let userRoles = (rolesData?.map((r: any) => r.role) || []) as string[];
+      
+      // Fallback para correos de demostración institucionales si la tabla user_roles no tiene el registro o está en entorno de prueba
+      if (userRoles.length === 0 && currentUser.email) {
+        const emailLower = currentUser.email.toLowerCase();
+        if (emailLower.includes('rector@')) userRoles = ['rector'];
+        else if (emailLower.includes('director@')) userRoles = ['director_grupo'];
+        else if (emailLower.includes('coordinador@')) userRoles = ['coordinador'];
+        else if (emailLower.includes('docente@') || emailLower.includes('prof@')) userRoles = ['docente'];
+        else if (emailLower.includes('secretaria@')) userRoles = ['secretaria'];
+        else if (emailLower.includes('padre@')) userRoles = ['padre_familia'];
+        else if (emailLower.includes('estudiante@')) userRoles = ['estudiante'];
+        else if (emailLower.includes('superadmin@') || emailLower.includes('admin@')) userRoles = ['super_admin'];
+      }
       const defaultInstId = rolesData && rolesData.length > 0 ? rolesData[0].institution_id : null;
 
       setProfile(userProfile);
@@ -174,12 +187,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setActiveInstitution(MOCK_DEMO_INSTITUTION);
       }
 
-      // Determinar el rol activo
+      // Determinar el rol activo (garantizar que director_grupo y otros roles no adopten el rol de rector por caché en localStorage)
       if (userRoles.length > 0) {
         const savedRole = typeof window !== 'undefined' ? localStorage.getItem('aulacore-user-role') as UserRole : null;
-        const canSwitchRoles = userRoles.includes('super_admin') || userRoles.includes('rector') || userRoles.includes('coordinador') || userRoles.includes('secretaria') || userRoles.includes('director_grupo');
+        const isSuperAdmin = userRoles.includes('super_admin');
         
-        if (savedRole && (userRoles.includes(savedRole) || canSwitchRoles)) {
+        if (savedRole && (userRoles.includes(savedRole) || isSuperAdmin)) {
           setActiveRoleState(savedRole);
         } else {
           let selectedRole: UserRole = userRoles[0] as UserRole;

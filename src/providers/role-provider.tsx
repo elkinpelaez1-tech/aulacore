@@ -34,14 +34,10 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
     
     if (savedRole) {
       setLocalRoleState(savedRole);
-    } else {
-      localStorage.setItem('aulacore-user-role', 'rector');
     }
     
     if (savedName) {
       setLocalNameState(savedName);
-    } else {
-      localStorage.setItem('aulacore-user-name', 'Dr. Ramírez');
     }
 
     if (savedDemoName) {

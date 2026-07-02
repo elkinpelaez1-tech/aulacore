@@ -234,6 +234,9 @@ function LoginContent() {
     setLoading(true);
     setError(null);
     setSuccess(false);
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('aulacore-user-role');
+    }
 
     try {
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
