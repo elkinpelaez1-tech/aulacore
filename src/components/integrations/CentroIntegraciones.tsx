@@ -596,47 +596,136 @@ No se detecta ninguna anomalía en el flujo de interoperabilidad con el ecosiste
       )}
 
       {/* Header y Visión Estratégica */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-gradient-to-r from-slate-900 via-slate-900 to-indigo-950/40 border border-slate-800 p-6 rounded-3xl shadow-xl">
-        <div className="space-y-1.5 max-w-3xl">
-          <div className="flex items-center gap-2">
-            <span className="bg-indigo-600/30 text-indigo-400 border border-indigo-500/30 text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full flex items-center gap-1">
-              <Globe className="w-3 h-3" /> Biblioteca Oficial de Conectores
-            </span>
-            <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
-              Arquitectura Multitenant Desacoplada
-            </span>
+      <div className="bg-gradient-to-r from-slate-900 via-slate-900 to-indigo-950/40 border border-slate-800 p-6 rounded-3xl shadow-xl space-y-2">
+        <div className="flex items-center gap-2">
+          <span className="bg-indigo-600/30 text-indigo-400 border border-indigo-500/30 text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full flex items-center gap-1">
+            <Globe className="w-3 h-3" /> Biblioteca Oficial de Conectores
+          </span>
+          <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
+            Arquitectura Multitenant Desacoplada
+          </span>
+        </div>
+        <h1 className="text-2xl md:text-3xl font-black tracking-tight text-white flex items-center gap-2.5">
+          {title}
+        </h1>
+        <p className="text-xs md:text-sm text-slate-300 font-semibold leading-relaxed max-w-4xl">
+          {subtitle}. Punto único de administración, monitoreo y autodiagnóstico con AulaHelp IA para todas las conexiones institucionales, ministeriales y externas.
+        </p>
+      </div>
+
+      {/* 📊 GRID EJECUTIVO DE KPIs DE INTEROPERABILIDAD (8 Tarjetas) */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
+        {/* Card 1: Disponibles */}
+        <div className="bg-slate-900/90 border border-slate-800 p-3.5 rounded-2xl flex flex-col justify-between hover:border-slate-700 transition-all shadow-sm">
+          <div className="flex justify-between items-start">
+            <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Disponibles</span>
+            <div className="p-1.5 rounded-lg bg-slate-800 text-indigo-400">
+              <Layers className="w-3.5 h-3.5" />
+            </div>
           </div>
-          <h1 className="text-2xl md:text-3xl font-black tracking-tight text-white flex items-center gap-2.5">
-            {title}
-          </h1>
-          <p className="text-xs md:text-sm text-slate-300 font-semibold leading-relaxed">
-            {subtitle}. Punto único de administración, monitoreo y autodiagnóstico con AulaHelp IA para todas las conexiones institucionales, ministeriales y externas.
-          </p>
+          <div className="mt-2">
+            <span className="text-xl font-black text-white">{totalCount}</span>
+            <span className="text-[9px] text-slate-500 font-bold block">Conectores oficiales</span>
+          </div>
         </div>
 
-        {/* Panel de Estado de Salud Global */}
-        <div className="flex flex-wrap md:flex-nowrap items-center gap-3 bg-slate-950/80 border border-slate-800/80 p-3.5 rounded-2xl shrink-0">
-          <div className="text-center px-3 border-r border-slate-800">
-            <span className="text-[10px] font-extrabold text-slate-400 block uppercase">Conectores</span>
-            <span className="text-lg font-black text-white">{totalCount}</span>
+        {/* Card 2: Activas */}
+        <div className="bg-slate-900/90 border border-emerald-900/40 p-3.5 rounded-2xl flex flex-col justify-between hover:border-emerald-700 transition-all shadow-sm">
+          <div className="flex justify-between items-start">
+            <span className="text-[10px] font-extrabold text-emerald-400 uppercase tracking-wider block">Activas</span>
+            <div className="p-1.5 rounded-lg bg-emerald-950 text-emerald-400">
+              <CheckCircle2 className="w-3.5 h-3.5" />
+            </div>
           </div>
-          <div className="text-center px-3 border-r border-slate-800 flex flex-col items-center">
-            <span className="text-[10px] font-extrabold text-emerald-400 flex items-center gap-1 uppercase">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /> Operando
+          <div className="mt-2">
+            <span className="text-xl font-black text-emerald-400">{activeCount}</span>
+            <span className="text-[9px] text-emerald-500/80 font-bold block flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Operando 100%
             </span>
-            <span className="text-lg font-black text-emerald-400">{activeCount}</span>
           </div>
-          <div className="text-center px-3 border-r border-slate-800 flex flex-col items-center">
-            <span className="text-[10px] font-extrabold text-amber-400 flex items-center gap-1 uppercase">
-              <span className="w-2 h-2 rounded-full bg-amber-500" /> Lentitud
-            </span>
-            <span className="text-lg font-black text-amber-400">{warningCount}</span>
+        </div>
+
+        {/* Card 3: Requieren Atención */}
+        <div className="bg-slate-900/90 border border-amber-900/40 p-3.5 rounded-2xl flex flex-col justify-between hover:border-amber-700 transition-all shadow-sm">
+          <div className="flex justify-between items-start">
+            <span className="text-[10px] font-extrabold text-amber-400 uppercase tracking-wider block">Atención</span>
+            <div className="p-1.5 rounded-lg bg-amber-950 text-amber-400">
+              <AlertTriangle className="w-3.5 h-3.5" />
+            </div>
           </div>
-          <div className="text-center px-3 flex flex-col items-center">
-            <span className="text-[10px] font-extrabold text-red-400 flex items-center gap-1 uppercase">
-              <span className="w-2 h-2 rounded-full bg-red-500" /> Error
-            </span>
-            <span className="text-lg font-black text-red-400">{errorCount}</span>
+          <div className="mt-2">
+            <span className="text-xl font-black text-amber-400">{warningCount}</span>
+            <span className="text-[9px] text-amber-500/80 font-bold block">Lentitud / Cola MIO</span>
+          </div>
+        </div>
+
+        {/* Card 4: Con Error */}
+        <div className="bg-slate-900/90 border border-red-900/40 p-3.5 rounded-2xl flex flex-col justify-between hover:border-red-700 transition-all shadow-sm">
+          <div className="flex justify-between items-start">
+            <span className="text-[10px] font-extrabold text-red-400 uppercase tracking-wider block">Con Error</span>
+            <div className="p-1.5 rounded-lg bg-red-950 text-red-400">
+              <AlertCircle className="w-3.5 h-3.5" />
+            </div>
+          </div>
+          <div className="mt-2">
+            <span className="text-xl font-black text-red-400">{errorCount}</span>
+            <span className="text-[9px] text-red-500/80 font-bold block">Auth / Token fallido</span>
+          </div>
+        </div>
+
+        {/* Card 5: Latencia Promedio */}
+        <div className="bg-slate-900/90 border border-slate-800 p-3.5 rounded-2xl flex flex-col justify-between hover:border-slate-700 transition-all shadow-sm">
+          <div className="flex justify-between items-start">
+            <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Latencia Prom.</span>
+            <div className="p-1.5 rounded-lg bg-slate-800 text-indigo-400">
+              <Zap className="w-3.5 h-3.5" />
+            </div>
+          </div>
+          <div className="mt-2">
+            <span className="text-xl font-black text-white">165 ms</span>
+            <span className="text-[9px] text-emerald-400 font-bold block">⚡ Óptima en bus</span>
+          </div>
+        </div>
+
+        {/* Card 6: Sincronizaciones Hoy */}
+        <div className="bg-slate-900/90 border border-slate-800 p-3.5 rounded-2xl flex flex-col justify-between hover:border-slate-700 transition-all shadow-sm">
+          <div className="flex justify-between items-start">
+            <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Sincroniz. Hoy</span>
+            <div className="p-1.5 rounded-lg bg-slate-800 text-blue-400">
+              <RefreshCw className="w-3.5 h-3.5" />
+            </div>
+          </div>
+          <div className="mt-2">
+            <span className="text-xl font-black text-white">14,820</span>
+            <span className="text-[9px] text-emerald-400 font-bold block">🔄 +12.4% vs. ayer</span>
+          </div>
+        </div>
+
+        {/* Card 7: Eventos Enviados */}
+        <div className="bg-slate-900/90 border border-slate-800 p-3.5 rounded-2xl flex flex-col justify-between hover:border-slate-700 transition-all shadow-sm">
+          <div className="flex justify-between items-start">
+            <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Enviados (Out)</span>
+            <div className="p-1.5 rounded-lg bg-slate-800 text-purple-400">
+              <ExternalLink className="w-3.5 h-3.5" />
+            </div>
+          </div>
+          <div className="mt-2">
+            <span className="text-xl font-black text-white">8,410</span>
+            <span className="text-[9px] text-slate-500 font-bold block">📤 Webhooks / Alertas</span>
+          </div>
+        </div>
+
+        {/* Card 8: Eventos Recibidos */}
+        <div className="bg-slate-900/90 border border-slate-800 p-3.5 rounded-2xl flex flex-col justify-between hover:border-slate-700 transition-all shadow-sm">
+          <div className="flex justify-between items-start">
+            <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Recibidos (In)</span>
+            <div className="p-1.5 rounded-lg bg-slate-800 text-teal-400">
+              <Database className="w-3.5 h-3.5" />
+            </div>
+          </div>
+          <div className="mt-2">
+            <span className="text-xl font-black text-white">6,410</span>
+            <span className="text-[9px] text-slate-500 font-bold block">📥 SIMAT, RFID, Pagos</span>
           </div>
         </div>
       </div>
