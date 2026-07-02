@@ -173,19 +173,19 @@ export function TeacherAttendancePortal() {
     const isLate = student.status === 'LATE';
 
     return (
-      <div className="relative overflow-hidden rounded-2xl select-none bg-slate-900/60 border border-slate-800 transition-all mb-2.5">
+      <div className="relative overflow-hidden rounded-2xl select-none bg-slate-100 border border-slate-200/80 transition-all mb-2.5 shadow-2xs hover:shadow-sm">
         {/* Fondo revelado al deslizar */}
         <div className="absolute inset-0 flex items-center justify-between px-6 pointer-events-none font-bold text-xs uppercase tracking-wider">
-          <div className={cn("flex items-center gap-2 text-emerald-400 transition-opacity", translateX > 20 ? "opacity-100" : "opacity-0")}>
+          <div className={cn("flex items-center gap-2 text-emerald-600 transition-opacity", translateX > 20 ? "opacity-100" : "opacity-0")}>
             <div className="p-1.5 rounded-full bg-emerald-500/20">
-              <UserCheck className="w-4 h-4 text-emerald-400" />
+              <UserCheck className="w-4 h-4 text-emerald-600" />
             </div>
             <span>Deslizar derecha Asistió</span>
           </div>
-          <div className={cn("flex items-center gap-2 text-red-400 transition-opacity ml-auto", translateX < -20 ? "opacity-100" : "opacity-0")}>
+          <div className={cn("flex items-center gap-2 text-red-600 transition-opacity ml-auto", translateX < -20 ? "opacity-100" : "opacity-0")}>
             <span>Deslizar izquierda No asistió</span>
             <div className="p-1.5 rounded-full bg-red-500/20">
-              <UserX className="w-4 h-4 text-red-400" />
+              <UserX className="w-4 h-4 text-red-600" />
             </div>
           </div>
         </div>
@@ -194,10 +194,10 @@ export function TeacherAttendancePortal() {
         <div 
           className={cn(
             "relative z-10 flex items-center justify-between p-3.5 sm:p-4 rounded-2xl transition-transform cursor-grab active:cursor-grabbing",
-            isPresent && "bg-emerald-950/40 border-l-4 border-l-emerald-500",
-            isAbsent && "bg-red-950/40 border-l-4 border-l-red-500",
-            isLate && "bg-amber-950/40 border-l-4 border-l-amber-500",
-            !isPresent && !isAbsent && !isLate && "bg-slate-900"
+            isPresent && "bg-emerald-50/90 border-l-4 border-l-emerald-500 border border-emerald-200 shadow-sm",
+            isAbsent && "bg-red-50/90 border-l-4 border-l-red-500 border border-red-200 shadow-sm",
+            isLate && "bg-amber-50/90 border-l-4 border-l-amber-500 border border-amber-200 shadow-sm",
+            !isPresent && !isAbsent && !isLate && "bg-white border border-slate-200/80 hover:border-slate-300"
           )}
           style={{ transform: `translateX(${translateX}px)` }}
           onTouchStart={(e) => handleStart(e.touches[0].clientX)}
@@ -215,7 +215,7 @@ export function TeacherAttendancePortal() {
                 alt={student.name} 
                 className={cn(
                   "w-11 h-11 rounded-full object-cover border-2 shadow-sm",
-                  isPresent ? "border-emerald-500" : isAbsent ? "border-red-500" : "border-slate-700"
+                  isPresent ? "border-emerald-500" : isAbsent ? "border-red-500" : "border-slate-200"
                 )}
               />
               {student.isRisk && (
@@ -227,19 +227,19 @@ export function TeacherAttendancePortal() {
 
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="font-bold text-sm sm:text-base text-white truncate">{student.name}</span>
-                <span className="text-[10px] font-mono text-slate-400 bg-slate-800 px-1.5 py-0.5 rounded">{student.code}</span>
+                <span className="font-extrabold text-sm sm:text-base text-slate-900 truncate">{student.name}</span>
+                <span className="text-[10px] font-bold text-slate-600 bg-slate-100 border border-slate-200/60 px-1.5 py-0.5 rounded">{student.code}</span>
               </div>
               
               <div className="flex items-center gap-2 mt-0.5">
                 <span className={cn(
                   "text-[10px] font-bold flex items-center gap-1",
-                  student.attendanceRate < 80 ? "text-red-400" : "text-slate-400"
+                  student.attendanceRate < 80 ? "text-red-600" : "text-slate-500"
                 )}>
                   <Activity className="w-3 h-3" /> Histórico: {student.attendanceRate}%
                 </span>
                 {student.lastNote && (
-                  <span className="text-[9px] text-amber-400/90 font-medium bg-amber-950/50 px-1.5 py-0.5 rounded border border-amber-900/40 hidden sm:inline-block">
+                  <span className="text-[9px] text-amber-800 font-semibold bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200/80 hidden sm:inline-block">
                     📌 {student.lastNote}
                   </span>
                 )}
@@ -255,7 +255,7 @@ export function TeacherAttendancePortal() {
                 "p-2 sm:px-3 sm:py-1.5 rounded-xl text-xs font-bold flex items-center gap-1 transition-all cursor-pointer border",
                 isPresent 
                   ? "bg-emerald-600 text-white border-emerald-500 shadow-md scale-105" 
-                  : "bg-slate-800/80 text-slate-400 border-slate-700 hover:bg-emerald-950/60 hover:text-emerald-400 hover:border-emerald-800"
+                  : "bg-slate-50 text-slate-600 border-slate-200/80 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300 shadow-2xs"
               )}
               title="Marcar Asistió (Deslizar derecha)"
             >
@@ -269,7 +269,7 @@ export function TeacherAttendancePortal() {
                 "p-2 sm:px-3 sm:py-1.5 rounded-xl text-xs font-bold flex items-center gap-1 transition-all cursor-pointer border",
                 isAbsent 
                   ? "bg-red-600 text-white border-red-500 shadow-md scale-105" 
-                  : "bg-slate-800/80 text-slate-400 border-slate-700 hover:bg-red-950/60 hover:text-red-400 hover:border-red-800"
+                  : "bg-slate-50 text-slate-600 border-slate-200/80 hover:bg-red-50 hover:text-red-700 hover:border-red-300 shadow-2xs"
               )}
               title="Marcar No Asistió (Deslizar izquierda)"
             >
@@ -283,7 +283,7 @@ export function TeacherAttendancePortal() {
                 "p-2 rounded-xl text-xs font-bold transition-all cursor-pointer border",
                 isLate 
                   ? "bg-amber-600 text-white border-amber-500 shadow-md" 
-                  : "bg-slate-800/80 text-slate-400 border-slate-700 hover:bg-amber-950/60 hover:text-amber-400 hover:border-amber-800"
+                  : "bg-slate-50 text-slate-600 border-slate-200/80 hover:bg-amber-50 hover:text-amber-700 hover:border-amber-300 shadow-2xs"
               )}
               title="Marcar Retardo / Excusa"
             >
@@ -421,13 +421,13 @@ export function TeacherAttendancePortal() {
       </div>
 
       {/* BANNER DE COMPATIBILIDAD OFFLINE E INDEXEDDB */}
-      <div className="bg-gradient-to-r from-indigo-950/60 via-slate-900 to-slate-900 border border-indigo-900/40 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
+      <div className="bg-gradient-to-r from-indigo-50/80 via-blue-50/40 to-slate-50 border border-indigo-200/80 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-2xs">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 shrink-0">
+          <div className="p-2.5 rounded-xl bg-indigo-100 text-indigo-700 border border-indigo-200 shrink-0">
             <Database className="w-5 h-5" />
           </div>
           <div>
-            <h4 className="text-xs sm:text-sm font-black text-white flex items-center gap-2">
+            <h4 className="text-xs sm:text-sm font-black text-slate-900 flex items-center gap-2">
               Arquitectura Offline-First (Resiliencia para Zonas Rurales y Urbanas)
               {offlineQueue > 0 && (
                 <span className="bg-amber-500 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded-full animate-pulse">
@@ -435,8 +435,8 @@ export function TeacherAttendancePortal() {
                 </span>
               )}
             </h4>
-            <p className="text-xs text-slate-400 font-medium mt-0.5">
-              Los tres métodos funcionan al 100% sin internet. Los datos se almacenan de inmediato en <strong className="text-indigo-300">IndexedDB local</strong> y se sincronizan con la secretaría al detectar red.
+            <p className="text-xs text-slate-600 font-medium mt-0.5">
+              Los tres métodos funcionan al 100% sin internet. Los datos se almacenan de inmediato en <strong className="text-indigo-700">IndexedDB local</strong> y se sincronizan con la secretaría al detectar red.
             </p>
           </div>
         </div>
@@ -445,11 +445,11 @@ export function TeacherAttendancePortal() {
           <button 
             onClick={() => setIsOffline(!isOffline)}
             className={cn(
-              "text-[10px] font-bold px-3 py-2 rounded-xl border transition-all cursor-pointer flex items-center gap-1.5 w-full sm:w-auto justify-center",
-              isOffline ? "bg-amber-950 text-amber-300 border-amber-800" : "bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-750"
+              "text-[10px] font-bold px-3 py-2 rounded-xl border transition-all cursor-pointer flex items-center gap-1.5 w-full sm:w-auto justify-center shadow-2xs",
+              isOffline ? "bg-amber-100 text-amber-800 border-amber-300" : "bg-white text-slate-700 border-slate-300 hover:bg-slate-100"
             )}
           >
-            {isOffline ? <WifiOff className="w-3.5 h-3.5" /> : <Wifi className="w-3.5 h-3.5" />}
+            {isOffline ? <WifiOff className="w-3.5 h-3.5 text-amber-700" /> : <Wifi className="w-3.5 h-3.5 text-emerald-600" />}
             {isOffline ? "Simular Conectar Internet" : "Simular Corte (Modo Offline)"}
           </button>
 
@@ -467,19 +467,19 @@ export function TeacherAttendancePortal() {
       </div>
 
       {/* PESTAÑAS DE LOS 3 MÉTODOS DE CAPTURA */}
-      <div className="bg-slate-900 border border-slate-800 p-2 rounded-2xl flex flex-col sm:flex-row items-center gap-2 shadow-sm">
+      <div className="bg-slate-100/90 border border-slate-200/80 p-1.5 rounded-2xl flex flex-col sm:flex-row items-center gap-2 shadow-2xs">
         <button 
           onClick={() => setMethod('SWIPE')}
           className={cn(
             "flex-1 w-full py-3 px-4 rounded-xl font-extrabold text-xs sm:text-sm transition-all cursor-pointer flex items-center justify-center gap-2 border",
             method === 'SWIPE' 
-              ? "bg-indigo-600 text-white border-indigo-500 shadow-lg scale-[1.01]" 
-              : "bg-slate-800/60 text-slate-400 border-transparent hover:bg-slate-800 hover:text-slate-200"
+              ? "bg-white text-indigo-700 border-slate-200/80 shadow-md font-black scale-[1.01]" 
+              : "bg-transparent text-slate-600 border-transparent hover:bg-white/60 hover:text-slate-900"
           )}
         >
-          <Smartphone className="w-4 h-4 text-indigo-300" />
+          <Smartphone className={cn("w-4 h-4", method === 'SWIPE' ? "text-indigo-600" : "text-slate-400")} />
           <span>1. Deslizamiento (Swipe Móvil)</span>
-          <span className="bg-indigo-950 text-indigo-300 text-[9px] px-1.5 py-0.5 rounded font-black hidden lg:inline">RÁPIDO &lt; 1 MIN</span>
+          <span className="bg-indigo-100 text-indigo-800 text-[9px] px-1.5 py-0.5 rounded font-black hidden lg:inline">RÁPIDO &lt; 1 MIN</span>
         </button>
 
         <button 
@@ -487,13 +487,13 @@ export function TeacherAttendancePortal() {
           className={cn(
             "flex-1 w-full py-3 px-4 rounded-xl font-extrabold text-xs sm:text-sm transition-all cursor-pointer flex items-center justify-center gap-2 border",
             method === 'OCR' 
-              ? "bg-indigo-600 text-white border-indigo-500 shadow-lg scale-[1.01]" 
-              : "bg-slate-800/60 text-slate-400 border-transparent hover:bg-slate-800 hover:text-slate-200"
+              ? "bg-white text-emerald-700 border-slate-200/80 shadow-md font-black scale-[1.01]" 
+              : "bg-transparent text-slate-600 border-transparent hover:bg-white/60 hover:text-slate-900"
           )}
         >
-          <Camera className="w-4 h-4 text-emerald-300" />
+          <Camera className={cn("w-4 h-4", method === 'OCR' ? "text-emerald-600" : "text-slate-400")} />
           <span>2. Fotografía (IA + OCR)</span>
-          <span className="bg-emerald-950 text-emerald-300 text-[9px] px-1.5 py-0.5 rounded font-black hidden lg:inline">COLEGIOS RURALES</span>
+          <span className="bg-emerald-100 text-emerald-800 text-[9px] px-1.5 py-0.5 rounded font-black hidden lg:inline">COLEGIOS RURALES</span>
         </button>
 
         <button 
@@ -501,51 +501,51 @@ export function TeacherAttendancePortal() {
           className={cn(
             "flex-1 w-full py-3 px-4 rounded-xl font-extrabold text-xs sm:text-sm transition-all cursor-pointer flex items-center justify-center gap-2 border",
             method === 'MANUAL' 
-              ? "bg-indigo-600 text-white border-indigo-500 shadow-lg scale-[1.01]" 
-              : "bg-slate-800/60 text-slate-400 border-transparent hover:bg-slate-800 hover:text-slate-200"
+              ? "bg-white text-amber-800 border-slate-200/80 shadow-md font-black scale-[1.01]" 
+              : "bg-transparent text-slate-600 border-transparent hover:bg-white/60 hover:text-slate-900"
           )}
         >
-          <CheckSquare className="w-4 h-4 text-amber-300" />
+          <CheckSquare className={cn("w-4 h-4", method === 'MANUAL' ? "text-amber-600" : "text-slate-400")} />
           <span>3. Manual Tradicional</span>
-          <span className="bg-amber-950 text-amber-300 text-[9px] px-1.5 py-0.5 rounded font-black hidden lg:inline">ESCRITORIO / MULTI</span>
+          <span className="bg-amber-100 text-amber-800 text-[9px] px-1.5 py-0.5 rounded font-black hidden lg:inline">ESCRITORIO / MULTI</span>
         </button>
       </div>
 
       {/* BARRA DE ACCIONES Y BUSCADOR (COMÚN PARA MÉTODOS 1 Y 3) */}
       {method !== 'OCR' && (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-slate-900 border border-slate-800 p-4 rounded-2xl">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white border border-slate-200/80 p-4 rounded-2xl shadow-sm">
           <div className="relative w-full sm:w-80">
-            <Search className="absolute left-3.5 top-3 w-4 h-4 text-slate-500" />
+            <Search className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
             <Input 
               placeholder="Buscar por nombre o código..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 bg-slate-950 border-slate-800 text-white text-xs font-semibold rounded-xl h-10 w-full"
+              className="pl-10 bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400 font-semibold rounded-xl h-10 w-full focus:bg-white focus:border-indigo-500"
             />
           </div>
 
           <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
             <button 
               onClick={() => handleMarkAll('PRESENT')}
-              className="bg-emerald-950 hover:bg-emerald-900 text-emerald-400 border border-emerald-800 text-xs font-bold px-3 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shrink-0"
+              className="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200/80 text-xs font-bold px-3.5 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shrink-0 shadow-2xs"
             >
-              <UserCheck className="w-3.5 h-3.5" />
+              <UserCheck className="w-3.5 h-3.5 text-emerald-600" />
               Marcar Todos Presentes (🟢)
             </button>
 
             <button 
               onClick={() => handleMarkAll('ABSENT')}
-              className="bg-red-950 hover:bg-red-900 text-red-400 border border-red-800 text-xs font-bold px-3 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shrink-0"
+              className="bg-red-50 hover:bg-red-100 text-red-800 border border-red-200/80 text-xs font-bold px-3.5 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shrink-0 shadow-2xs"
             >
-              <UserX className="w-3.5 h-3.5" />
+              <UserX className="w-3.5 h-3.5 text-red-600" />
               Restantes Ausentes
             </button>
 
             <button 
               onClick={handleReset}
-              className="bg-slate-800 hover:bg-slate-750 text-slate-300 border border-slate-700 text-xs font-bold px-3 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shrink-0"
+              className="bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-250 text-xs font-bold px-3.5 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shrink-0 shadow-2xs"
             >
-              <RefreshCcw className="w-3.5 h-3.5" />
+              <RefreshCcw className="w-3.5 h-3.5 text-slate-500" />
               Reiniciar
             </button>
           </div>
@@ -578,37 +578,37 @@ export function TeacherAttendancePortal() {
           
           {/* PASO 1: VISOR DE CÁMARA */}
           {ocrStep === 'CAMERA' && (
-            <Card className="bg-slate-900 border-slate-800 rounded-3xl p-6 shadow-xl space-y-6 text-center border">
+            <Card className="bg-white border-slate-200/80 rounded-3xl p-6 shadow-sm space-y-6 text-center border">
               <div className="space-y-2">
-                <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-black uppercase px-3 py-1 rounded-full inline-flex items-center gap-1">
-                  <Sparkles className="w-3 h-3" /> Motor de Reconocimiento OCR AulaCore
+                <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-black uppercase px-3 py-1 rounded-full inline-flex items-center gap-1">
+                  <Sparkles className="w-3 h-3 text-emerald-600" /> Motor de Reconocimiento OCR AulaCore
                 </span>
-                <h3 className="text-xl font-black text-white">Escaneo Inteligente de Listado en Papel</h3>
-                <p className="text-xs text-slate-400 font-medium max-w-lg mx-auto">
+                <h3 className="text-xl font-black text-slate-900">Escaneo Inteligente de Listado en Papel</h3>
+                <p className="text-xs text-slate-500 font-medium max-w-lg mx-auto">
                   Tome una foto del formato impreso donde marcó asistencia con chulos (✓), equis (X) o círculos. La IA asociará los nombres del curso automáticamente.
                 </p>
               </div>
 
               {/* Marco de visor simulado */}
-              <div className="relative aspect-3/4 sm:aspect-video max-w-xl mx-auto bg-slate-950 border-2 border-dashed border-indigo-500/50 rounded-3xl overflow-hidden flex flex-col items-center justify-center p-6 shadow-inner group">
-                <div className="absolute inset-4 border border-indigo-500/30 rounded-2xl pointer-events-none flex flex-col justify-between p-4">
+              <div className="relative aspect-3/4 sm:aspect-video max-w-xl mx-auto bg-slate-50 border-2 border-dashed border-indigo-300 rounded-3xl overflow-hidden flex flex-col items-center justify-center p-6 shadow-inner group">
+                <div className="absolute inset-4 border border-indigo-300/60 rounded-2xl pointer-events-none flex flex-col justify-between p-4">
                   <div className="flex justify-between">
-                    <span className="w-4 h-4 border-t-2 border-l-2 border-indigo-400" />
-                    <span className="w-4 h-4 border-t-2 border-r-2 border-indigo-400" />
+                    <span className="w-4 h-4 border-t-2 border-l-2 border-indigo-500" />
+                    <span className="w-4 h-4 border-t-2 border-r-2 border-indigo-500" />
                   </div>
                   <div className="text-center">
-                    <span className="bg-slate-900/90 text-indigo-300 font-mono text-[10px] px-3 py-1 rounded-full border border-indigo-500/30 shadow">
+                    <span className="bg-white/95 text-indigo-800 font-mono text-[10px] px-3 py-1 rounded-full border border-indigo-200 shadow-2xs font-bold">
                       🎯 Alinee las columnas de Nombres y Asistencia aquí
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="w-4 h-4 border-b-2 border-l-2 border-indigo-400" />
-                    <span className="w-4 h-4 border-b-2 border-r-2 border-indigo-400" />
+                    <span className="w-4 h-4 border-b-2 border-l-2 border-indigo-500" />
+                    <span className="w-4 h-4 border-b-2 border-r-2 border-indigo-500" />
                   </div>
                 </div>
 
-                <Camera className="w-16 h-16 text-indigo-500/40 group-hover:scale-110 transition-transform mb-3" />
-                <span className="text-sm font-black text-slate-300">Formato de Asistencia 9°A Matemáticas</span>
+                <Camera className="w-16 h-16 text-indigo-400 group-hover:scale-110 transition-transform mb-3" />
+                <span className="text-sm font-black text-slate-800">Formato de Asistencia 9°A Matemáticas</span>
                 <span className="text-xs text-slate-500 mt-1">Asegure buena luz y enfoque sin reflejos</span>
               </div>
 
@@ -617,14 +617,14 @@ export function TeacherAttendancePortal() {
                 <Button 
                   variant="outline" 
                   onClick={handleStartOcrScan}
-                  className="bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-750 font-bold rounded-2xl h-12 px-5 cursor-pointer"
+                  className="bg-slate-100 text-slate-700 border-slate-250 hover:bg-slate-200 font-bold rounded-2xl h-12 px-5 cursor-pointer shadow-2xs"
                 >
-                  <ImageIcon className="w-4 h-4 mr-2 text-indigo-400" /> Subir Foto de Galería
+                  <ImageIcon className="w-4 h-4 mr-2 text-indigo-600" /> Subir Foto de Galería
                 </Button>
 
                 <Button 
                   onClick={handleStartOcrScan}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm rounded-2xl h-14 px-8 shadow-xl hover:scale-105 transition-all cursor-pointer"
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm rounded-2xl h-14 px-8 shadow-md hover:scale-105 transition-all cursor-pointer"
                 >
                   <Camera className="w-5 h-5 mr-2" /> Tomar Fotografía e Identificar
                 </Button>
@@ -634,12 +634,12 @@ export function TeacherAttendancePortal() {
 
           {/* PASO 2: PROCESANDO OCR */}
           {ocrStep === 'PROCESSING' && (
-            <Card className="bg-slate-900 border-slate-800 rounded-3xl p-12 shadow-xl text-center space-y-6 border">
+            <Card className="bg-white border-slate-200/80 rounded-3xl p-12 shadow-sm text-center space-y-6 border">
               <div className="relative w-32 h-32 mx-auto flex items-center justify-center">
                 <svg className="w-full h-full animate-spin-slow" viewBox="0 0 100 100">
-                  <circle className="text-slate-800 stroke-current" strokeWidth="8" cx="50" cy="50" r="40" fill="transparent" />
+                  <circle className="text-slate-100 stroke-current" strokeWidth="8" cx="50" cy="50" r="40" fill="transparent" />
                   <circle 
-                    className="text-indigo-500 stroke-current transition-all duration-300" 
+                    className="text-indigo-600 stroke-current transition-all duration-300" 
                     strokeWidth="8" 
                     strokeDasharray={251.2} 
                     strokeDashoffset={251.2 - (251.2 * ocrProgress) / 100} 
@@ -651,14 +651,14 @@ export function TeacherAttendancePortal() {
                   />
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center font-black">
-                  <span className="text-2xl text-white">{ocrProgress}%</span>
-                  <span className="text-[9px] text-indigo-400 uppercase tracking-widest">OCR IA</span>
+                  <span className="text-2xl text-slate-900">{ocrProgress}%</span>
+                  <span className="text-[9px] text-indigo-600 uppercase tracking-widest font-bold">OCR IA</span>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <h3 className="text-lg font-black text-white">Reconociendo texto e identificando marcas...</h3>
-                <p className="text-xs text-slate-400 font-medium max-w-md mx-auto">
+                <h3 className="text-lg font-black text-slate-900">Reconociendo texto e identificando marcas...</h3>
+                <p className="text-xs text-slate-500 font-medium max-w-md mx-auto">
                   La IA está correlacionando las firmas y casillas marcadas con el padrón oficial del SIMAT para 9°A.
                 </p>
               </div>
@@ -666,7 +666,7 @@ export function TeacherAttendancePortal() {
               <Button 
                 variant="outline" 
                 onClick={() => setOcrStep('CAMERA')}
-                className="bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-750 font-bold rounded-xl px-6 cursor-pointer"
+                className="bg-slate-100 text-slate-700 border-slate-250 hover:bg-slate-200 font-bold rounded-xl px-6 cursor-pointer shadow-2xs"
               >
                 Cancelar Escaneo
               </Button>
@@ -675,33 +675,33 @@ export function TeacherAttendancePortal() {
 
           {/* PASO 3: REVISIÓN DE OCR */}
           {ocrStep === 'REVIEW' && (
-            <Card className="bg-slate-900 border-slate-800 rounded-3xl p-6 shadow-xl space-y-6 border">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+            <Card className="bg-white border-slate-200/80 rounded-3xl p-6 shadow-sm space-y-6 border">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
                 <div>
-                  <h3 className="text-base sm:text-lg font-black text-white flex items-center gap-2">
-                    <Sparkles className="w-5 h-5 text-emerald-400" /> Revisar Asistencia Detectada por IA
+                  <h3 className="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
+                    <Sparkles className="w-5 h-5 text-emerald-600" /> Revisar Asistencia Detectada por IA
                   </h3>
-                  <p className="text-xs text-slate-400 font-medium mt-0.5">
-                    Precisión general del reconocimiento: <strong className="text-emerald-400 font-bold">97.4%</strong>. Verifique y corrija si es necesario antes de guardar.
+                  <p className="text-xs text-slate-500 font-medium mt-0.5">
+                    Precisión general del reconocimiento: <strong className="text-emerald-700 font-bold">97.4%</strong>. Verifique y corrija si es necesario antes de guardar.
                   </p>
                 </div>
-                <Badge className="bg-indigo-950 text-indigo-300 border-indigo-800 font-bold px-3 py-1">
+                <Badge className="bg-indigo-50 text-indigo-800 border-indigo-200 font-bold px-3 py-1">
                   8 estudiantes procesados
                 </Badge>
               </div>
 
               <div className="space-y-2.5">
                 {ocrResults.map(res => (
-                  <div key={res.id} className="flex items-center justify-between p-3.5 bg-slate-950/80 border border-slate-800 rounded-2xl">
+                  <div key={res.id} className="flex items-center justify-between p-3.5 bg-slate-50 border border-slate-200/80 rounded-2xl shadow-2xs">
                     <div className="flex items-center gap-3">
                       <div className={cn(
-                        "w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs",
-                        res.status === 'PRESENT' ? "bg-emerald-950 text-emerald-400" : "bg-red-950 text-red-400"
+                        "w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shadow-2xs",
+                        res.status === 'PRESENT' ? "bg-emerald-100 text-emerald-800 border border-emerald-300" : "bg-red-100 text-red-800 border border-red-300"
                       )}>
                         {res.status === 'PRESENT' ? '✓' : 'X'}
                       </div>
                       <div>
-                        <span className="font-bold text-sm text-white block">{res.name}</span>
+                        <span className="font-extrabold text-sm text-slate-900 block">{res.name}</span>
                         <span className="text-[10px] text-slate-500 font-semibold">Confianza IA: {res.confidence}%</span>
                       </div>
                     </div>
@@ -712,11 +712,11 @@ export function TeacherAttendancePortal() {
                           setOcrResults(prev => prev.map(r => r.id === res.id ? { ...r, status: r.status === 'PRESENT' ? 'ABSENT' : 'PRESENT' } : r));
                         }}
                         className={cn(
-                          "px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer flex items-center gap-1",
-                          res.status === 'PRESENT' ? "bg-emerald-950 text-emerald-400 border-emerald-800" : "bg-red-950 text-red-400 border-red-800"
+                          "px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer flex items-center gap-1 shadow-2xs",
+                          res.status === 'PRESENT' ? "bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-300" : "bg-red-50 hover:bg-red-100 text-red-800 border-red-300"
                         )}
                       >
-                        {res.status === 'PRESENT' ? <Check className="w-3.5 h-3.5" /> : <X className="w-3.5 h-3.5" />}
+                        {res.status === 'PRESENT' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <X className="w-3.5 h-3.5 text-red-600" />}
                         <span>{res.status === 'PRESENT' ? 'Asistió' : 'No Asistió'}</span>
                       </button>
                     </div>
@@ -724,18 +724,18 @@ export function TeacherAttendancePortal() {
                 ))}
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
                 <Button 
                   variant="outline" 
                   onClick={() => setOcrStep('CAMERA')}
-                  className="bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-750 font-bold rounded-xl cursor-pointer"
+                  className="bg-slate-100 text-slate-700 border-slate-250 hover:bg-slate-200 font-bold rounded-xl cursor-pointer shadow-2xs"
                 >
                   Volver a Tomar Foto
                 </Button>
 
                 <Button 
                   onClick={handleSaveOcrResults}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs px-6 py-2.5 rounded-xl cursor-pointer shadow-lg"
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs px-6 py-2.5 rounded-xl cursor-pointer shadow-md"
                 >
                   Confirmar y Guardar Asistencia
                 </Button>
@@ -745,25 +745,25 @@ export function TeacherAttendancePortal() {
 
           {/* PASO 4: GUARDADO EXITOSO OCR */}
           {ocrStep === 'SAVED' && (
-            <Card className="bg-slate-900 border-emerald-800/50 rounded-3xl p-8 shadow-xl text-center space-y-6 border">
-              <div className="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center mx-auto shadow-lg animate-bounce">
+            <Card className="bg-white border-emerald-300 rounded-3xl p-8 shadow-sm text-center space-y-6 border">
+              <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-300 flex items-center justify-center mx-auto shadow-sm animate-bounce">
                 <Check className="w-8 h-8" />
               </div>
 
               <div className="space-y-2">
-                <h3 className="text-xl font-black text-white">¡Asistencia Registrada Correctamente!</h3>
-                <p className="text-xs text-slate-400 font-medium max-w-md mx-auto">
-                  El listado se ha vinculado al curso <strong className="text-indigo-300">9°A - Matemáticas</strong> y está en proceso de dispersión hacia el CAT y MIO.
+                <h3 className="text-xl font-black text-slate-900">¡Asistencia Registrada Correctamente!</h3>
+                <p className="text-xs text-slate-500 font-medium max-w-md mx-auto">
+                  El listado se ha vinculado al curso <strong className="text-indigo-600">9°A - Matemáticas</strong> y está en proceso de dispersión hacia el CAT y MIO.
                 </p>
               </div>
 
-              <div className="flex items-center justify-center gap-4 max-w-sm mx-auto bg-slate-950 p-4 rounded-2xl border border-slate-800">
-                <div className="text-center px-4 border-r border-slate-800">
-                  <span className="text-lg font-black text-emerald-400">6</span>
+              <div className="flex items-center justify-center gap-4 max-w-sm mx-auto bg-slate-50 p-4 rounded-2xl border border-slate-200 shadow-2xs">
+                <div className="text-center px-4 border-r border-slate-200">
+                  <span className="text-lg font-black text-emerald-700">6</span>
                   <span className="text-[10px] font-bold text-slate-500 uppercase block">Asistieron</span>
                 </div>
                 <div className="text-center px-4">
-                  <span className="text-lg font-black text-red-400">2</span>
+                  <span className="text-lg font-black text-red-700">2</span>
                   <span className="text-[10px] font-bold text-slate-500 uppercase block">No Asistieron</span>
                 </div>
               </div>
@@ -772,14 +772,14 @@ export function TeacherAttendancePortal() {
                 <Button 
                   variant="outline" 
                   onClick={() => setMethod('SWIPE')}
-                  className="bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-750 font-bold rounded-xl cursor-pointer"
+                  className="bg-slate-100 text-slate-700 border-slate-250 hover:bg-slate-200 font-bold rounded-xl cursor-pointer shadow-2xs"
                 >
                   Ver Listado en Vivo
                 </Button>
 
                 <Button 
                   onClick={() => { setOcrStep('CAMERA'); showToastMsg('Listo para Nuevo Curso', 'Seleccione otra asignatura arriba para continuar.'); }}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs px-6 rounded-xl cursor-pointer"
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs px-6 rounded-xl cursor-pointer shadow-md"
                 >
                   Escanear Otro Listado
                 </Button>
@@ -793,11 +793,11 @@ export function TeacherAttendancePortal() {
       {/* 📋 MÉTODO 3: REGISTRO MANUAL TRADICIONAL */}
       {method === 'MANUAL' && (
         <div className="space-y-4 animate-in fade-in duration-300">
-          <Card className="bg-slate-900 border-slate-800 rounded-3xl overflow-hidden shadow-xl border">
-            <div className="p-4 bg-slate-950 border-b border-slate-800 flex items-center justify-between flex-wrap gap-3">
+          <Card className="bg-white border-slate-200/80 rounded-3xl overflow-hidden shadow-sm border">
+            <div className="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between flex-wrap gap-3">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-black text-white uppercase tracking-wider">Tabla de Registro Manual (Escritorio / Múltiple)</span>
-                <Badge className="bg-indigo-950 text-indigo-300 border-indigo-800 text-[10px] font-bold">
+                <span className="text-xs font-black text-slate-800 uppercase tracking-wider">Tabla de Registro Manual (Escritorio / Múltiple)</span>
+                <Badge className="bg-indigo-50 text-indigo-800 border-indigo-200 text-[10px] font-bold">
                   {selectedIds.length} seleccionados
                 </Badge>
               </div>
@@ -810,7 +810,7 @@ export function TeacherAttendancePortal() {
                     if (selectedIds.length === filteredStudents.length) setSelectedIds([]);
                     else setSelectedIds(filteredStudents.map(s => s.id));
                   }}
-                  className="bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-750 text-xs font-bold h-8 cursor-pointer"
+                  className="bg-white text-slate-700 border-slate-300 hover:bg-slate-100 text-xs font-bold h-8 cursor-pointer shadow-2xs"
                 >
                   {selectedIds.length === filteredStudents.length ? "Desmarcar Todos" : "Seleccionar Todos"}
                 </Button>
@@ -824,7 +824,7 @@ export function TeacherAttendancePortal() {
                         setSelectedIds([]);
                         showToastMsg('Acción Masiva', `Se marcaron ${selectedIds.length} estudiantes como Presente.`, 'success');
                       }}
-                      className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold h-8 cursor-pointer"
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold h-8 cursor-pointer shadow-2xs"
                     >
                       ✓ Marcar Presentes
                     </Button>
@@ -836,7 +836,7 @@ export function TeacherAttendancePortal() {
                         setSelectedIds([]);
                         showToastMsg('Acción Masiva', `Se marcaron ${selectedIds.length} estudiantes como Ausente.`, 'alert');
                       }}
-                      className="bg-red-600 hover:bg-red-700 text-white text-xs font-bold h-8 cursor-pointer"
+                      className="bg-red-600 hover:bg-red-700 text-white text-xs font-bold h-8 cursor-pointer shadow-2xs"
                     >
                       X Marcar Ausentes
                     </Button>
@@ -848,7 +848,7 @@ export function TeacherAttendancePortal() {
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-slate-800 bg-slate-950/40 text-[10px] font-extrabold uppercase text-slate-400 tracking-wider">
+                  <tr className="border-b border-slate-200 bg-slate-50/80 text-[10px] font-extrabold uppercase text-slate-500 tracking-wider">
                     <th className="p-3.5 w-12 text-center">Sel</th>
                     <th className="p-3.5">Estudiante</th>
                     <th className="p-3.5">Código</th>
@@ -857,11 +857,11 @@ export function TeacherAttendancePortal() {
                     <th className="p-3.5 text-right">Acción Rápida</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60 text-xs font-semibold text-slate-300">
+                <tbody className="divide-y divide-slate-100 text-xs font-semibold text-slate-700">
                   {filteredStudents.map(student => {
                     const isSelected = selectedIds.includes(student.id);
                     return (
-                      <tr key={student.id} className={cn("hover:bg-slate-800/40 transition-colors", isSelected && "bg-indigo-950/20")}>
+                      <tr key={student.id} className={cn("hover:bg-slate-50 transition-colors", isSelected && "bg-indigo-50/60")}>
                         <td className="p-3.5 text-center">
                           <input 
                             type="checkbox" 
@@ -869,23 +869,23 @@ export function TeacherAttendancePortal() {
                             onChange={() => {
                               setSelectedIds(prev => isSelected ? prev.filter(i => i !== student.id) : [...prev, student.id]);
                             }}
-                            className="w-4 h-4 rounded border-slate-700 bg-slate-900 text-indigo-600 focus:ring-0 cursor-pointer"
+                            className="w-4 h-4 rounded border-slate-300 bg-white text-indigo-600 focus:ring-0 cursor-pointer"
                           />
                         </td>
                         <td className="p-3.5">
                           <div className="flex items-center gap-2.5">
-                            <img src={student.avatar} alt={student.name} className="w-8 h-8 rounded-full object-cover border border-slate-700" />
+                            <img src={student.avatar} alt={student.name} className="w-8 h-8 rounded-full object-cover border border-slate-200 shadow-2xs" />
                             <div>
-                              <span className="font-bold text-white block">{student.name}</span>
-                              {student.lastNote && <span className="text-[10px] text-amber-400 font-normal">📌 {student.lastNote}</span>}
+                              <span className="font-extrabold text-slate-900 block">{student.name}</span>
+                              {student.lastNote && <span className="text-[10px] text-amber-800 font-semibold">📌 {student.lastNote}</span>}
                             </div>
                           </div>
                         </td>
-                        <td className="p-3.5 font-mono text-slate-400 text-[11px]">{student.code}</td>
+                        <td className="p-3.5 font-bold text-slate-600 text-[11px]">{student.code}</td>
                         <td className="p-3.5">
                           <span className={cn(
                             "px-2 py-0.5 rounded text-[10px] font-bold",
-                            student.attendanceRate < 80 ? "bg-red-950 text-red-400 border border-red-900" : "bg-slate-800 text-slate-400"
+                            student.attendanceRate < 80 ? "bg-red-50 text-red-700 border border-red-200" : "bg-slate-100 text-slate-600 border border-slate-200/60"
                           )}>
                             {student.attendanceRate}%
                           </span>
@@ -893,10 +893,10 @@ export function TeacherAttendancePortal() {
                         <td className="p-3.5 text-center">
                           <Badge className={cn(
                             "text-[10px] font-black uppercase px-2.5 py-1",
-                            student.status === 'PRESENT' && "bg-emerald-950 text-emerald-400 border-emerald-800",
-                            student.status === 'ABSENT' && "bg-red-950 text-red-400 border-red-800",
-                            student.status === 'LATE' && "bg-amber-950 text-amber-400 border-amber-800",
-                            student.status === 'PENDING' && "bg-slate-800 text-slate-400 border-slate-700"
+                            student.status === 'PRESENT' && "bg-emerald-50 text-emerald-800 border-emerald-300",
+                            student.status === 'ABSENT' && "bg-red-50 text-red-800 border-red-300",
+                            student.status === 'LATE' && "bg-amber-50 text-amber-800 border-amber-300",
+                            student.status === 'PENDING' && "bg-slate-100 text-slate-600 border-slate-200/80"
                           )}>
                             {student.status === 'PRESENT' ? '✓ Asistió' : student.status === 'ABSENT' ? 'X Ausente' : student.status === 'LATE' ? '⏳ Retardo' : '• Pendiente'}
                           </Badge>
@@ -905,19 +905,19 @@ export function TeacherAttendancePortal() {
                           <div className="inline-flex items-center gap-1">
                             <button 
                               onClick={() => handleUpdateStatus(student.id, 'PRESENT')}
-                              className="px-2.5 py-1 rounded bg-emerald-950/60 hover:bg-emerald-900 text-emerald-400 text-[10px] font-bold border border-emerald-800/60 cursor-pointer transition-colors"
+                              className="px-2.5 py-1 rounded bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[10px] font-bold border border-emerald-200 cursor-pointer transition-colors shadow-2xs"
                             >
                               Presente
                             </button>
                             <button 
                               onClick={() => handleUpdateStatus(student.id, 'ABSENT')}
-                              className="px-2.5 py-1 rounded bg-red-950/60 hover:bg-red-900 text-red-400 text-[10px] font-bold border border-red-800/60 cursor-pointer transition-colors"
+                              className="px-2.5 py-1 rounded bg-red-50 hover:bg-red-100 text-red-800 text-[10px] font-bold border border-red-200 cursor-pointer transition-colors shadow-2xs"
                             >
                               Ausente
                             </button>
                             <button 
                               onClick={() => handleUpdateStatus(student.id, 'LATE')}
-                              className="px-2 py-1 rounded bg-amber-950/60 hover:bg-amber-900 text-amber-400 text-[10px] font-bold border border-amber-800/60 cursor-pointer transition-colors"
+                              className="px-2 py-1 rounded bg-amber-50 hover:bg-amber-100 text-amber-800 text-[10px] font-bold border border-amber-200 cursor-pointer transition-colors shadow-2xs"
                             >
                               Retardo
                             </button>
@@ -934,22 +934,22 @@ export function TeacherAttendancePortal() {
       )}
 
       {/* FOOTER EJECUTIVO FIJO ESTILO MÓVIL (RESUMEN EN VIVO) */}
-      <div className="fixed bottom-0 left-0 right-0 lg:left-60 z-40 bg-slate-950/95 border-t border-slate-800 p-4 backdrop-blur-md shadow-2xl">
+      <div className="fixed bottom-0 left-0 right-0 lg:left-60 z-40 bg-white/95 border-t border-slate-200 p-4 backdrop-blur-md shadow-[0_-4px_20px_rgba(0,0,0,0.06)]">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-4 sm:gap-6">
             <div className="text-center">
-              <span className="text-xs sm:text-sm font-black text-red-400 block">{absentCount}</span>
-              <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider">No asistieron</span>
+              <span className="text-xs sm:text-sm font-black text-red-600 block">{absentCount}</span>
+              <span className="text-[9px] font-extrabold text-slate-500 uppercase tracking-wider">No asistieron</span>
             </div>
 
-            <div className="text-center border-l border-slate-800 pl-4 sm:pl-6">
-              <span className="text-xs sm:text-sm font-black text-amber-400 block">{pendingCount}</span>
-              <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider">Pendientes</span>
+            <div className="text-center border-l border-slate-200 pl-4 sm:pl-6">
+              <span className="text-xs sm:text-sm font-black text-amber-600 block">{pendingCount}</span>
+              <span className="text-[9px] font-extrabold text-slate-500 uppercase tracking-wider">Pendientes</span>
             </div>
 
-            <div className="text-center border-l border-slate-800 pl-4 sm:pl-6">
-              <span className="text-xs sm:text-sm font-black text-emerald-400 block">{presentCount}</span>
-              <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider">Asistieron</span>
+            <div className="text-center border-l border-slate-200 pl-4 sm:pl-6">
+              <span className="text-xs sm:text-sm font-black text-emerald-600 block">{presentCount}</span>
+              <span className="text-[9px] font-extrabold text-slate-500 uppercase tracking-wider">Asistieron</span>
             </div>
           </div>
 
@@ -962,7 +962,7 @@ export function TeacherAttendancePortal() {
                   'success'
                 );
               }}
-              className="w-full sm:w-auto bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-black text-xs sm:text-sm px-8 py-6 rounded-2xl shadow-xl transition-all hover:scale-[1.02] cursor-pointer flex items-center justify-center gap-2"
+              className="w-full sm:w-auto bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-black text-xs sm:text-sm px-8 py-6 rounded-2xl shadow-md transition-all hover:scale-[1.02] cursor-pointer flex items-center justify-center gap-2"
             >
               <span>Finalizar y Guardar ({totalStudents - pendingCount}/{totalStudents})</span>
               <ArrowRight className="w-4 h-4" />
@@ -972,58 +972,58 @@ export function TeacherAttendancePortal() {
       </div>
 
       {/* PANEL INTEGRACIÓN ECOSISTEMA AULACORE */}
-      <div className="mt-8 bg-slate-900/60 border border-slate-800 p-5 rounded-3xl space-y-4">
-        <div className="flex items-center gap-2 border-b border-slate-800 pb-3">
-          <Activity className="w-4 h-4 text-indigo-400" />
-          <h3 className="text-xs font-black uppercase tracking-wider text-white">
+      <div className="mt-8 bg-gradient-to-r from-slate-50 to-indigo-50/40 border border-slate-200/80 p-5 rounded-3xl space-y-4 shadow-sm">
+        <div className="flex items-center gap-2 border-b border-slate-200/80 pb-3">
+          <Activity className="w-4 h-4 text-indigo-600" />
+          <h3 className="text-xs font-black uppercase tracking-wider text-slate-800">
             Ingesta e Interoperabilidad en el Ecosistema AulaCore (En Vivo)
           </h3>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-xs">
-          <div className="bg-slate-950 p-3 rounded-2xl border border-slate-800 space-y-1">
-            <span className="text-[10px] font-extrabold text-slate-400 block uppercase">1. Observador</span>
-            <span className="font-bold text-emerald-400 flex items-center gap-1">
+          <div className="bg-white p-3 rounded-2xl border border-slate-200/80 space-y-1 shadow-2xs">
+            <span className="text-[10px] font-extrabold text-slate-500 block uppercase">1. Observador</span>
+            <span className="font-bold text-emerald-700 flex items-center gap-1">
               <Check className="w-3.5 h-3.5" /> Anotación Autom.
             </span>
             <span className="text-[9px] text-slate-500 block">Registra historial en hoja de vida</span>
           </div>
 
-          <div className="bg-slate-950 p-3 rounded-2xl border border-slate-800 space-y-1">
-            <span className="text-[10px] font-extrabold text-slate-400 block uppercase">2. Bus MIO</span>
-            <span className="font-bold text-indigo-400 flex items-center gap-1">
+          <div className="bg-white p-3 rounded-2xl border border-slate-200/80 space-y-1 shadow-2xs">
+            <span className="text-[10px] font-extrabold text-slate-500 block uppercase">2. Bus MIO</span>
+            <span className="font-bold text-indigo-700 flex items-center gap-1">
               <Zap className="w-3.5 h-3.5" /> Sincronizado
             </span>
             <span className="text-[9px] text-slate-500 block">Cola asíncrona SIMAT activa</span>
           </div>
 
-          <div className="bg-slate-950 p-3 rounded-2xl border border-slate-800 space-y-1">
-            <span className="text-[10px] font-extrabold text-slate-400 block uppercase">3. Alertas CAT</span>
-            <span className="font-bold text-amber-400 flex items-center gap-1">
+          <div className="bg-white p-3 rounded-2xl border border-slate-200/80 space-y-1 shadow-2xs">
+            <span className="text-[10px] font-extrabold text-slate-500 block uppercase">3. Alertas CAT</span>
+            <span className="font-bold text-amber-700 flex items-center gap-1">
               <ShieldAlert className="w-3.5 h-3.5" /> Umbral &gt; 20%
             </span>
             <span className="text-[9px] text-slate-500 block">Aviso a padres por WhatsApp/SMS</span>
           </div>
 
-          <div className="bg-slate-950 p-3 rounded-2xl border border-slate-800 space-y-1">
-            <span className="text-[10px] font-extrabold text-slate-400 block uppercase">4. CIE Analítica</span>
-            <span className="font-bold text-blue-400 flex items-center gap-1">
+          <div className="bg-white p-3 rounded-2xl border border-slate-200/80 space-y-1 shadow-2xs">
+            <span className="text-[10px] font-extrabold text-slate-500 block uppercase">4. CIE Analítica</span>
+            <span className="font-bold text-blue-700 flex items-center gap-1">
               <Activity className="w-3.5 h-3.5" /> Mapa de Calor
             </span>
             <span className="text-[9px] text-slate-500 block">Actualiza ausentismo municipal</span>
           </div>
 
-          <div className="bg-slate-950 p-3 rounded-2xl border border-slate-800 space-y-1">
-            <span className="text-[10px] font-extrabold text-slate-400 block uppercase">5. AulaHelp IA</span>
-            <span className="font-bold text-purple-400 flex items-center gap-1">
+          <div className="bg-white p-3 rounded-2xl border border-slate-200/80 space-y-1 shadow-2xs">
+            <span className="text-[10px] font-extrabold text-slate-500 block uppercase">5. AulaHelp IA</span>
+            <span className="font-bold text-purple-700 flex items-center gap-1">
               <Sparkles className="w-3.5 h-3.5" /> Copiloto Activo
             </span>
             <span className="text-[9px] text-slate-500 block">Sugiere tutorías para rezagados</span>
           </div>
 
-          <div className="bg-slate-950 p-3 rounded-2xl border border-slate-800 space-y-1">
-            <span className="text-[10px] font-extrabold text-slate-400 block uppercase">6. Modo Offline</span>
-            <span className={cn("font-bold flex items-center gap-1", isOffline ? "text-amber-400" : "text-emerald-400")}>
+          <div className="bg-white p-3 rounded-2xl border border-slate-200/80 space-y-1 shadow-2xs">
+            <span className="text-[10px] font-extrabold text-slate-500 block uppercase">6. Modo Offline</span>
+            <span className={cn("font-bold flex items-center gap-1", isOffline ? "text-amber-700" : "text-emerald-700")}>
               {isOffline ? <WifiOff className="w-3.5 h-3.5" /> : <Wifi className="w-3.5 h-3.5" />}
               {isOffline ? "IndexedDB Guardando" : "Conexión 100%"}
             </span>
