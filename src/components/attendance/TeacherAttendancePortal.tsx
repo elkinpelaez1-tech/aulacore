@@ -353,112 +353,139 @@ export function TeacherAttendancePortal() {
     <div className="space-y-6 max-w-7xl mx-auto pb-24">
       {/* 🖨️ MODAL FORMATO IMPRIMIBLE OFICIAL OCR */}
       {showPrintModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-200 print:p-0 print:bg-white print:static print:z-auto print:block">
-          <div className="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-slate-200 shadow-2xl flex flex-col print:max-h-none print:border-none print:shadow-none print:rounded-none print:w-full">
-            {/* Cabecera del Modal (Oculta al imprimir) */}
-            <div className="p-5 bg-slate-900 text-white flex items-center justify-between rounded-t-3xl sticky top-0 z-10 print:hidden flex-wrap gap-3">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-indigo-600 rounded-xl">
-                  <Printer className="w-5 h-5 text-white" />
+        <>
+          <style jsx global>{`
+            @media print {
+              body * {
+                visibility: hidden !important;
+              }
+              #printable-ocr-sheet, #printable-ocr-sheet * {
+                visibility: visible !important;
+              }
+              #printable-ocr-sheet {
+                position: absolute !important;
+                left: 0 !important;
+                top: 0 !important;
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 10px !important;
+                background: white !important;
+                box-shadow: none !important;
+                border: none !important;
+              }
+              @page {
+                size: letter portrait;
+                margin: 0.4in;
+              }
+            }
+          `}</style>
+          <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-200 print:p-0 print:bg-white print:static print:z-auto print:block">
+            <div id="printable-ocr-sheet" className="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-slate-200 shadow-2xl flex flex-col print:max-h-none print:border-none print:shadow-none print:rounded-none print:w-full print:overflow-visible">
+              {/* Cabecera del Modal (Oculta al imprimir) */}
+              <div className="p-5 bg-slate-900 text-white flex items-center justify-between rounded-t-3xl sticky top-0 z-10 print:hidden flex-wrap gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-indigo-600 rounded-xl">
+                    <Printer className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-black">Vista Previa de Planilla OCR Imprimible</h3>
+                    <p className="text-xs text-slate-300">Formato oficial calibrado con marcas fiduciales para lectura automática por IA</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-base font-black">Vista Previa de Planilla OCR Imprimible</h3>
-                  <p className="text-xs text-slate-300">Formato oficial calibrado con marcas fiduciales para lectura automática por IA</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button 
-                  onClick={() => window.print()}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs px-5 py-2.5 rounded-xl shadow-md flex items-center gap-2 cursor-pointer"
-                >
-                  <Printer className="w-4 h-4" />
-                  <span>Imprimir / Descargar PDF</span>
-                </Button>
-                <button 
-                  onClick={() => setShowPrintModal(false)}
-                  className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors cursor-pointer"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-
-            {/* CUERPO IMPRIMIBLE DEL FORMATO */}
-            <div className="p-8 sm:p-12 space-y-6 text-slate-900 relative print:p-6 print:space-y-4">
-              {/* Marcas Fiduciales Superiores */}
-              <div className="flex justify-between items-center pb-4 border-b-2 border-slate-900">
-                <div className="w-8 h-8 border-t-4 border-l-4 border-slate-900 sm:w-10 sm:h-10 shrink-0" />
-                <div className="text-center space-y-1">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 block">Ecosistema AulaCore – Interoperabilidad y SIMAT</span>
-                  <h1 className="text-xl sm:text-2xl font-black uppercase tracking-tight">Planilla de Asistencia Docente para OCR</h1>
-                  <p className="text-xs font-bold text-slate-700">Asignatura: <span className="underline decoration-indigo-600 font-black">{selectedCourse}</span> | Fecha: <span className="underline decoration-indigo-600">________________________</span></p>
-                </div>
-                <div className="w-8 h-8 border-t-4 border-r-4 border-slate-900 sm:w-10 sm:h-10 shrink-0" />
-              </div>
-
-              {/* Instrucciones de Llenado para el Docente */}
-              <div className="bg-slate-100 border border-slate-300 p-3.5 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between text-xs gap-3 print:bg-slate-50">
-                <div className="flex items-center gap-2 font-bold text-slate-800">
-                  <span className="bg-slate-900 text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px] shrink-0 font-black">1</span>
-                  <span>Use lapicero negro o azul oscuro.</span>
-                </div>
-                <div className="flex items-center gap-2 font-bold text-slate-800">
-                  <span className="bg-slate-900 text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px] shrink-0 font-black">2</span>
-                  <span>Marque Asistió con chulo (✓) o cruz (X).</span>
-                </div>
-                <div className="flex items-center gap-2 font-bold text-slate-800">
-                  <span className="bg-slate-900 text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px] shrink-0 font-black">3</span>
-                  <span>Tome la foto encuadrando las esquinas.</span>
+                <div className="flex items-center gap-2">
+                  <Button 
+                    onClick={() => window.print()}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs px-5 py-2.5 rounded-xl shadow-md flex items-center gap-2 cursor-pointer"
+                  >
+                    <Printer className="w-4 h-4" />
+                    <span>Imprimir / Descargar PDF</span>
+                  </Button>
+                  <button 
+                    onClick={() => setShowPrintModal(false)}
+                    className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors cursor-pointer"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
                 </div>
               </div>
 
-              {/* Tabla Oficial de Estudiantes para Imprimir */}
-              <div className="border-2 border-slate-900 rounded-xl overflow-hidden">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="bg-slate-900 text-white text-xs uppercase font-black tracking-wider">
-                      <th className="p-3 w-16 text-center border-r border-slate-700">No.</th>
-                      <th className="p-3 w-28 border-r border-slate-700">Código</th>
-                      <th className="p-3 border-r border-slate-700">Apellidos y Nombres del Estudiante</th>
-                      <th className="p-3 w-28 text-center bg-emerald-950/80 border-r border-slate-700">Asistió (✓)</th>
-                      <th className="p-3 w-28 text-center bg-red-950/80 border-r border-slate-700">Ausente (X)</th>
-                      <th className="p-3 w-28 text-center bg-amber-950/80">Retardo (R)</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-300 text-xs font-bold text-slate-900">
-                    {students.map((st, idx) => (
-                      <tr key={st.id} className={idx % 2 === 0 ? "bg-white" : "bg-slate-50/70"}>
-                        <td className="p-3 text-center font-black border-r border-slate-300">{idx + 1}</td>
-                        <td className="p-3 font-mono text-slate-600 border-r border-slate-300">{st.code}</td>
-                        <td className="p-3 font-black text-slate-900 border-r border-slate-300 uppercase">{st.name}</td>
-                        <td className="p-3 text-center border-r border-slate-300">
-                          <div className="w-6 h-6 border-2 border-slate-400 rounded mx-auto" />
-                        </td>
-                        <td className="p-3 text-center border-r border-slate-300">
-                          <div className="w-6 h-6 border-2 border-slate-400 rounded mx-auto" />
-                        </td>
-                        <td className="p-3 text-center">
-                          <div className="w-6 h-6 border-2 border-slate-400 rounded mx-auto" />
-                        </td>
+              {/* CUERPO IMPRIMIBLE DEL FORMATO */}
+              <div className="p-8 sm:p-10 space-y-5 text-slate-900 relative print:p-2 print:space-y-3">
+                {/* Marcas Fiduciales Superiores */}
+                <div className="flex justify-between items-center pb-3 border-b-2 border-slate-900 print:pb-2">
+                  <div className="w-8 h-8 border-t-4 border-l-4 border-slate-900 sm:w-10 sm:h-10 shrink-0 print:w-7 print:h-7" />
+                  <div className="text-center space-y-0.5">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 block print:text-[9px]">Ecosistema AulaCore – Interoperabilidad y SIMAT</span>
+                    <h1 className="text-xl sm:text-2xl font-black uppercase tracking-tight print:text-lg">Planilla de Asistencia Docente para OCR</h1>
+                    <p className="text-xs font-bold text-slate-700 print:text-[10px]">Asignatura: <span className="underline decoration-indigo-600 font-black">{selectedCourse}</span> | Fecha: <span className="underline decoration-indigo-600">________________________</span></p>
+                  </div>
+                  <div className="w-8 h-8 border-t-4 border-r-4 border-slate-900 sm:w-10 sm:h-10 shrink-0 print:w-7 print:h-7" />
+                </div>
+
+                {/* Instrucciones de Llenado para el Docente */}
+                <div className="bg-slate-100 border border-slate-300 p-3 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between text-xs gap-2 print:bg-slate-50 print:p-2 print:text-[10px]">
+                  <div className="flex items-center gap-2 font-bold text-slate-800">
+                    <span className="bg-slate-900 text-white w-4 h-4 rounded-full flex items-center justify-center text-[9px] shrink-0 font-black">1</span>
+                    <span>Use lapicero negro o azul oscuro.</span>
+                  </div>
+                  <div className="flex items-center gap-2 font-bold text-slate-800">
+                    <span className="bg-slate-900 text-white w-4 h-4 rounded-full flex items-center justify-center text-[9px] shrink-0 font-black">2</span>
+                    <span>Marque Asistió con chulo (✓) o cruz (X).</span>
+                  </div>
+                  <div className="flex items-center gap-2 font-bold text-slate-800">
+                    <span className="bg-slate-900 text-white w-4 h-4 rounded-full flex items-center justify-center text-[9px] shrink-0 font-black">3</span>
+                    <span>Tome la foto encuadrando las esquinas.</span>
+                  </div>
+                </div>
+
+                {/* Tabla Oficial de Estudiantes para Imprimir */}
+                <div className="border-2 border-slate-900 rounded-xl overflow-hidden print:border print:rounded-lg">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-slate-900 text-white text-xs uppercase font-black tracking-wider print:text-[10px]">
+                        <th className="p-2.5 w-12 text-center border-r border-slate-700 print:p-1.5">No.</th>
+                        <th className="p-2.5 w-24 border-r border-slate-700 print:p-1.5">Código</th>
+                        <th className="p-2.5 border-r border-slate-700 print:p-1.5">Apellidos y Nombres del Estudiante</th>
+                        <th className="p-2.5 w-24 text-center bg-emerald-950/80 border-r border-slate-700 print:p-1.5 print:bg-slate-900">Asistió (✓)</th>
+                        <th className="p-2.5 w-24 text-center bg-red-950/80 border-r border-slate-700 print:p-1.5 print:bg-slate-900">Ausente (X)</th>
+                        <th className="p-2.5 w-24 text-center bg-amber-950/80 print:p-1.5 print:bg-slate-900">Retardo (R)</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Marcas Fiduciales Inferiores y Firmas */}
-              <div className="pt-8 flex justify-between items-end">
-                <div className="w-8 h-8 border-b-4 border-l-4 border-slate-900 sm:w-10 sm:h-10 shrink-0" />
-                <div className="text-center space-y-1 pb-2">
-                  <div className="w-64 border-b-2 border-slate-900 mx-auto" />
-                  <span className="text-[11px] font-black uppercase text-slate-700 block">Firma y Cédula del Docente Responsable</span>
-                  <span className="text-[9px] text-slate-500 font-mono block">Hash de Verificación OCR: AUC-{selectedCourse}-20250528-SIMAT</span>
+                    </thead>
+                    <tbody className="divide-y divide-slate-300 text-xs font-bold text-slate-900 print:text-[10px] print:divide-slate-200">
+                      {students.map((st, idx) => (
+                        <tr key={st.id} className={idx % 2 === 0 ? "bg-white" : "bg-slate-50/70"}>
+                          <td className="p-2.5 text-center font-black border-r border-slate-300 print:p-1.5">{idx + 1}</td>
+                          <td className="p-2.5 font-mono text-slate-600 border-r border-slate-300 print:p-1.5">{st.code}</td>
+                          <td className="p-2.5 font-black text-slate-900 border-r border-slate-300 uppercase print:p-1.5">{st.name}</td>
+                          <td className="p-2.5 text-center border-r border-slate-300 print:p-1.5">
+                            <div className="w-5 h-5 border-2 border-slate-400 rounded mx-auto print:w-4 print:h-4 print:border-slate-600" />
+                          </td>
+                          <td className="p-2.5 text-center border-r border-slate-300 print:p-1.5">
+                            <div className="w-5 h-5 border-2 border-slate-400 rounded mx-auto print:w-4 print:h-4 print:border-slate-600" />
+                          </td>
+                          <td className="p-2.5 text-center print:p-1.5">
+                            <div className="w-5 h-5 border-2 border-slate-400 rounded mx-auto print:w-4 print:h-4 print:border-slate-600" />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
-                <div className="w-8 h-8 border-b-4 border-r-4 border-slate-900 sm:w-10 sm:h-10 shrink-0" />
+
+                {/* Marcas Fiduciales Inferiores y Firmas */}
+                <div className="pt-6 flex justify-between items-end print:pt-4">
+                  <div className="w-8 h-8 border-b-4 border-l-4 border-slate-900 sm:w-10 sm:h-10 shrink-0 print:w-7 print:h-7" />
+                  <div className="text-center space-y-1 pb-1">
+                    <div className="w-56 border-b-2 border-slate-900 mx-auto" />
+                    <span className="text-[10px] font-black uppercase text-slate-700 block print:text-[9px]">Firma y Cédula del Docente Responsable</span>
+                    <span className="text-[8px] text-slate-500 font-mono block print:text-[7px]">Hash de Verificación OCR: AUC-{selectedCourse}-20250528-SIMAT</span>
+                  </div>
+                  <div className="w-8 h-8 border-b-4 border-r-4 border-slate-900 sm:w-10 sm:h-10 shrink-0 print:w-7 print:h-7" />
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        </>
       )}
 
       {/* Toast Notificador */}
