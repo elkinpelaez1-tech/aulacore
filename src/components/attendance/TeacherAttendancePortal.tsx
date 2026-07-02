@@ -7,7 +7,7 @@ import {
   X, ChevronRight, UserCheck, UserX, FileText, Share2, Upload, Wifi, 
   WifiOff, Play, Send, Award, Search, Filter, HelpCircle, Layers, 
   Sliders, Calendar, ArrowRight, Eye, CheckSquare, Square, User, Zap,
-  ChevronLeft, Image as ImageIcon, Flashlight, RefreshCcw
+  ChevronLeft, Image as ImageIcon, Flashlight, RefreshCcw, Printer, Download
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -52,6 +52,7 @@ export function TeacherAttendancePortal() {
   const [isOffline, setIsOffline] = useState(false);
   const [offlineQueue, setOfflineQueue] = useState<number>(0);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [showPrintModal, setShowPrintModal] = useState(false);
   
   // OCR Flow States
   const [ocrStep, setOcrStep] = useState<'CAMERA' | 'PROCESSING' | 'REVIEW' | 'SAVED'>('CAMERA');
@@ -350,6 +351,116 @@ export function TeacherAttendancePortal() {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-24">
+      {/* 🖨️ MODAL FORMATO IMPRIMIBLE OFICIAL OCR */}
+      {showPrintModal && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-200 print:p-0 print:bg-white print:static print:z-auto print:block">
+          <div className="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-slate-200 shadow-2xl flex flex-col print:max-h-none print:border-none print:shadow-none print:rounded-none print:w-full">
+            {/* Cabecera del Modal (Oculta al imprimir) */}
+            <div className="p-5 bg-slate-900 text-white flex items-center justify-between rounded-t-3xl sticky top-0 z-10 print:hidden flex-wrap gap-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-indigo-600 rounded-xl">
+                  <Printer className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-base font-black">Vista Previa de Planilla OCR Imprimible</h3>
+                  <p className="text-xs text-slate-300">Formato oficial calibrado con marcas fiduciales para lectura automática por IA</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button 
+                  onClick={() => window.print()}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs px-5 py-2.5 rounded-xl shadow-md flex items-center gap-2 cursor-pointer"
+                >
+                  <Printer className="w-4 h-4" />
+                  <span>Imprimir / Descargar PDF</span>
+                </Button>
+                <button 
+                  onClick={() => setShowPrintModal(false)}
+                  className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* CUERPO IMPRIMIBLE DEL FORMATO */}
+            <div className="p-8 sm:p-12 space-y-6 text-slate-900 relative print:p-6 print:space-y-4">
+              {/* Marcas Fiduciales Superiores */}
+              <div className="flex justify-between items-center pb-4 border-b-2 border-slate-900">
+                <div className="w-8 h-8 border-t-4 border-l-4 border-slate-900 sm:w-10 sm:h-10 shrink-0" />
+                <div className="text-center space-y-1">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 block">Ecosistema AulaCore – Interoperabilidad y SIMAT</span>
+                  <h1 className="text-xl sm:text-2xl font-black uppercase tracking-tight">Planilla de Asistencia Docente para OCR</h1>
+                  <p className="text-xs font-bold text-slate-700">Asignatura: <span className="underline decoration-indigo-600 font-black">{selectedCourse}</span> | Fecha: <span className="underline decoration-indigo-600">________________________</span></p>
+                </div>
+                <div className="w-8 h-8 border-t-4 border-r-4 border-slate-900 sm:w-10 sm:h-10 shrink-0" />
+              </div>
+
+              {/* Instrucciones de Llenado para el Docente */}
+              <div className="bg-slate-100 border border-slate-300 p-3.5 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between text-xs gap-3 print:bg-slate-50">
+                <div className="flex items-center gap-2 font-bold text-slate-800">
+                  <span className="bg-slate-900 text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px] shrink-0 font-black">1</span>
+                  <span>Use lapicero negro o azul oscuro.</span>
+                </div>
+                <div className="flex items-center gap-2 font-bold text-slate-800">
+                  <span className="bg-slate-900 text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px] shrink-0 font-black">2</span>
+                  <span>Marque Asistió con chulo (✓) o cruz (X).</span>
+                </div>
+                <div className="flex items-center gap-2 font-bold text-slate-800">
+                  <span className="bg-slate-900 text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px] shrink-0 font-black">3</span>
+                  <span>Tome la foto encuadrando las esquinas.</span>
+                </div>
+              </div>
+
+              {/* Tabla Oficial de Estudiantes para Imprimir */}
+              <div className="border-2 border-slate-900 rounded-xl overflow-hidden">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-slate-900 text-white text-xs uppercase font-black tracking-wider">
+                      <th className="p-3 w-16 text-center border-r border-slate-700">No.</th>
+                      <th className="p-3 w-28 border-r border-slate-700">Código</th>
+                      <th className="p-3 border-r border-slate-700">Apellidos y Nombres del Estudiante</th>
+                      <th className="p-3 w-28 text-center bg-emerald-950/80 border-r border-slate-700">Asistió (✓)</th>
+                      <th className="p-3 w-28 text-center bg-red-950/80 border-r border-slate-700">Ausente (X)</th>
+                      <th className="p-3 w-28 text-center bg-amber-950/80">Retardo (R)</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-300 text-xs font-bold text-slate-900">
+                    {students.map((st, idx) => (
+                      <tr key={st.id} className={idx % 2 === 0 ? "bg-white" : "bg-slate-50/70"}>
+                        <td className="p-3 text-center font-black border-r border-slate-300">{idx + 1}</td>
+                        <td className="p-3 font-mono text-slate-600 border-r border-slate-300">{st.code}</td>
+                        <td className="p-3 font-black text-slate-900 border-r border-slate-300 uppercase">{st.name}</td>
+                        <td className="p-3 text-center border-r border-slate-300">
+                          <div className="w-6 h-6 border-2 border-slate-400 rounded mx-auto" />
+                        </td>
+                        <td className="p-3 text-center border-r border-slate-300">
+                          <div className="w-6 h-6 border-2 border-slate-400 rounded mx-auto" />
+                        </td>
+                        <td className="p-3 text-center">
+                          <div className="w-6 h-6 border-2 border-slate-400 rounded mx-auto" />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Marcas Fiduciales Inferiores y Firmas */}
+              <div className="pt-8 flex justify-between items-end">
+                <div className="w-8 h-8 border-b-4 border-l-4 border-slate-900 sm:w-10 sm:h-10 shrink-0" />
+                <div className="text-center space-y-1 pb-2">
+                  <div className="w-64 border-b-2 border-slate-900 mx-auto" />
+                  <span className="text-[11px] font-black uppercase text-slate-700 block">Firma y Cédula del Docente Responsable</span>
+                  <span className="text-[9px] text-slate-500 font-mono block">Hash de Verificación OCR: AUC-{selectedCourse}-20250528-SIMAT</span>
+                </div>
+                <div className="w-8 h-8 border-b-4 border-r-4 border-slate-900 sm:w-10 sm:h-10 shrink-0" />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Toast Notificador */}
       {toast && (
         <div className={cn(
@@ -589,6 +700,31 @@ export function TeacherAttendancePortal() {
                 </p>
               </div>
 
+              {/* 📥 BOTÓN DESCARGAR FORMATO OFICIAL OCR */}
+              <div className="bg-gradient-to-r from-indigo-50/90 via-blue-50/50 to-emerald-50/80 border border-indigo-200/80 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4 text-left shadow-2xs">
+                <div className="flex items-center gap-3.5">
+                  <div className="p-3 rounded-2xl bg-indigo-600 text-white shadow-sm shrink-0">
+                    <Printer className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-black text-slate-900 flex items-center gap-2 flex-wrap">
+                      Formato Oficial Imprimible para OCR ({selectedCourse})
+                      <Badge className="bg-emerald-600 text-white border-none text-[9px] font-black uppercase">Fiducial 4-Puntos</Badge>
+                    </h4>
+                    <p className="text-xs text-slate-600 font-medium mt-0.5 leading-relaxed">
+                      Descargue o imprima la planilla con el listado del curso. Diligencie las asistencias a mano (✓ o X) y tome la foto para cargarlo automáticamente.
+                    </p>
+                  </div>
+                </div>
+                <Button 
+                  onClick={() => setShowPrintModal(true)}
+                  className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs px-6 py-6 rounded-xl shadow-md transition-all shrink-0 cursor-pointer flex items-center justify-center gap-2 hover:scale-[1.02]"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>Generar Formato PDF</span>
+                </Button>
+              </div>
+
               {/* Marco de visor simulado */}
               <div className="relative aspect-3/4 sm:aspect-video max-w-xl mx-auto bg-slate-50 border-2 border-dashed border-indigo-300 rounded-3xl overflow-hidden flex flex-col items-center justify-center p-6 shadow-inner group">
                 <div className="absolute inset-4 border border-indigo-300/60 rounded-2xl pointer-events-none flex flex-col justify-between p-4">
@@ -613,20 +749,30 @@ export function TeacherAttendancePortal() {
               </div>
 
               {/* Botones de disparo */}
-              <div className="flex items-center justify-center gap-4 pt-2">
+              <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 pt-4">
+                <Button 
+                  onClick={() => setShowPrintModal(true)}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs sm:text-sm rounded-2xl h-14 px-6 shadow-md hover:scale-105 transition-all cursor-pointer flex items-center gap-2 border-2 border-indigo-400/40 animate-pulse"
+                >
+                  <Printer className="w-5 h-5 shrink-0" />
+                  <span>📥 Descargar Formato PDF (Llenar a Mano)</span>
+                </Button>
+
                 <Button 
                   variant="outline" 
                   onClick={handleStartOcrScan}
-                  className="bg-slate-100 text-slate-700 border-slate-250 hover:bg-slate-200 font-bold rounded-2xl h-12 px-5 cursor-pointer shadow-2xs"
+                  className="bg-slate-100 text-slate-700 border-slate-250 hover:bg-slate-200 font-bold rounded-2xl h-14 px-5 cursor-pointer shadow-2xs flex items-center gap-2"
                 >
-                  <ImageIcon className="w-4 h-4 mr-2 text-indigo-600" /> Subir Foto de Galería
+                  <ImageIcon className="w-5 h-5 text-indigo-600 shrink-0" /> 
+                  <span>Subir Foto de Galería</span>
                 </Button>
 
                 <Button 
                   onClick={handleStartOcrScan}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm rounded-2xl h-14 px-8 shadow-md hover:scale-105 transition-all cursor-pointer"
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs sm:text-sm rounded-2xl h-14 px-6 shadow-md hover:scale-105 transition-all cursor-pointer flex items-center gap-2"
                 >
-                  <Camera className="w-5 h-5 mr-2" /> Tomar Fotografía e Identificar
+                  <Camera className="w-5 h-5 shrink-0" /> 
+                  <span>Tomar Fotografía e Identificar</span>
                 </Button>
               </div>
             </Card>
@@ -972,62 +1118,62 @@ export function TeacherAttendancePortal() {
       </div>
 
       {/* PANEL INTEGRACIÓN ECOSISTEMA AULACORE */}
-      <div className="mt-8 bg-gradient-to-r from-slate-50 to-indigo-50/40 border border-slate-200/80 p-5 rounded-3xl space-y-4 shadow-sm">
-        <div className="flex items-center gap-2 border-b border-slate-200/80 pb-3">
-          <Activity className="w-4 h-4 text-indigo-600" />
-          <h3 className="text-xs font-black uppercase tracking-wider text-slate-800">
+      <div className="mt-8 bg-gradient-to-r from-slate-50 via-white to-indigo-50/40 border border-slate-200/80 p-6 rounded-3xl space-y-5 shadow-sm">
+        <div className="flex items-center gap-2.5 border-b border-slate-200/80 pb-3.5">
+          <Activity className="w-5 h-5 text-indigo-600" />
+          <h3 className="text-sm sm:text-base font-black uppercase tracking-wider text-slate-900">
             Ingesta e Interoperabilidad en el Ecosistema AulaCore (En Vivo)
           </h3>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-xs">
-          <div className="bg-white p-3 rounded-2xl border border-slate-200/80 space-y-1 shadow-2xs">
-            <span className="text-[10px] font-extrabold text-slate-500 block uppercase">1. Observador</span>
-            <span className="font-bold text-emerald-700 flex items-center gap-1">
-              <Check className="w-3.5 h-3.5" /> Anotación Autom.
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="bg-white p-4 rounded-2xl border border-slate-200/80 space-y-1.5 shadow-2xs hover:shadow-md transition-shadow">
+            <span className="text-xs font-black text-slate-500 block uppercase tracking-wider">1. Observador</span>
+            <span className="text-sm font-black text-emerald-700 flex items-center gap-1.5">
+              <Check className="w-4 h-4 shrink-0" /> Anotación Autom.
             </span>
-            <span className="text-[9px] text-slate-500 block">Registra historial en hoja de vida</span>
+            <span className="text-xs font-semibold text-slate-600 block leading-relaxed">Registra historial en hoja de vida</span>
           </div>
 
-          <div className="bg-white p-3 rounded-2xl border border-slate-200/80 space-y-1 shadow-2xs">
-            <span className="text-[10px] font-extrabold text-slate-500 block uppercase">2. Bus MIO</span>
-            <span className="font-bold text-indigo-700 flex items-center gap-1">
-              <Zap className="w-3.5 h-3.5" /> Sincronizado
+          <div className="bg-white p-4 rounded-2xl border border-slate-200/80 space-y-1.5 shadow-2xs hover:shadow-md transition-shadow">
+            <span className="text-xs font-black text-slate-500 block uppercase tracking-wider">2. Bus MIO</span>
+            <span className="text-sm font-black text-indigo-700 flex items-center gap-1.5">
+              <Zap className="w-4 h-4 shrink-0" /> Sincronizado
             </span>
-            <span className="text-[9px] text-slate-500 block">Cola asíncrona SIMAT activa</span>
+            <span className="text-xs font-semibold text-slate-600 block leading-relaxed">Cola asíncrona SIMAT activa</span>
           </div>
 
-          <div className="bg-white p-3 rounded-2xl border border-slate-200/80 space-y-1 shadow-2xs">
-            <span className="text-[10px] font-extrabold text-slate-500 block uppercase">3. Alertas CAT</span>
-            <span className="font-bold text-amber-700 flex items-center gap-1">
-              <ShieldAlert className="w-3.5 h-3.5" /> Umbral &gt; 20%
+          <div className="bg-white p-4 rounded-2xl border border-slate-200/80 space-y-1.5 shadow-2xs hover:shadow-md transition-shadow">
+            <span className="text-xs font-black text-slate-500 block uppercase tracking-wider">3. Alertas CAT</span>
+            <span className="text-sm font-black text-amber-700 flex items-center gap-1.5">
+              <ShieldAlert className="w-4 h-4 shrink-0" /> Umbral &gt; 20%
             </span>
-            <span className="text-[9px] text-slate-500 block">Aviso a padres por WhatsApp/SMS</span>
+            <span className="text-xs font-semibold text-slate-600 block leading-relaxed">Aviso a padres por WhatsApp/SMS</span>
           </div>
 
-          <div className="bg-white p-3 rounded-2xl border border-slate-200/80 space-y-1 shadow-2xs">
-            <span className="text-[10px] font-extrabold text-slate-500 block uppercase">4. CIE Analítica</span>
-            <span className="font-bold text-blue-700 flex items-center gap-1">
-              <Activity className="w-3.5 h-3.5" /> Mapa de Calor
+          <div className="bg-white p-4 rounded-2xl border border-slate-200/80 space-y-1.5 shadow-2xs hover:shadow-md transition-shadow">
+            <span className="text-xs font-black text-slate-500 block uppercase tracking-wider">4. CIE Analítica</span>
+            <span className="text-sm font-black text-blue-700 flex items-center gap-1.5">
+              <Activity className="w-4 h-4 shrink-0" /> Mapa de Calor
             </span>
-            <span className="text-[9px] text-slate-500 block">Actualiza ausentismo municipal</span>
+            <span className="text-xs font-semibold text-slate-600 block leading-relaxed">Actualiza ausentismo municipal</span>
           </div>
 
-          <div className="bg-white p-3 rounded-2xl border border-slate-200/80 space-y-1 shadow-2xs">
-            <span className="text-[10px] font-extrabold text-slate-500 block uppercase">5. AulaHelp IA</span>
-            <span className="font-bold text-purple-700 flex items-center gap-1">
-              <Sparkles className="w-3.5 h-3.5" /> Copiloto Activo
+          <div className="bg-white p-4 rounded-2xl border border-slate-200/80 space-y-1.5 shadow-2xs hover:shadow-md transition-shadow">
+            <span className="text-xs font-black text-slate-500 block uppercase tracking-wider">5. AulaHelp IA</span>
+            <span className="text-sm font-black text-purple-700 flex items-center gap-1.5">
+              <Sparkles className="w-4 h-4 shrink-0" /> Copiloto Activo
             </span>
-            <span className="text-[9px] text-slate-500 block">Sugiere tutorías para rezagados</span>
+            <span className="text-xs font-semibold text-slate-600 block leading-relaxed">Sugiere tutorías para rezagados</span>
           </div>
 
-          <div className="bg-white p-3 rounded-2xl border border-slate-200/80 space-y-1 shadow-2xs">
-            <span className="text-[10px] font-extrabold text-slate-500 block uppercase">6. Modo Offline</span>
-            <span className={cn("font-bold flex items-center gap-1", isOffline ? "text-amber-700" : "text-emerald-700")}>
-              {isOffline ? <WifiOff className="w-3.5 h-3.5" /> : <Wifi className="w-3.5 h-3.5" />}
+          <div className="bg-white p-4 rounded-2xl border border-slate-200/80 space-y-1.5 shadow-2xs hover:shadow-md transition-shadow">
+            <span className="text-xs font-black text-slate-500 block uppercase tracking-wider">6. Modo Offline</span>
+            <span className={cn("text-sm font-black flex items-center gap-1.5", isOffline ? "text-amber-700" : "text-emerald-700")}>
+              {isOffline ? <WifiOff className="w-4 h-4 shrink-0" /> : <Wifi className="w-4 h-4 shrink-0" />}
               {isOffline ? "IndexedDB Guardando" : "Conexión 100%"}
             </span>
-            <span className="text-[9px] text-slate-500 block">Resiliencia sin internet garantizada</span>
+            <span className="text-xs font-semibold text-slate-600 block leading-relaxed">Resiliencia sin internet garantizada</span>
           </div>
         </div>
       </div>
