@@ -9,6 +9,7 @@ import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { GradesOverview } from '@/components/grades/GradesOverview';
 import { SubjectCardsGrid } from '@/components/grades/SubjectCardsGrid';
+import { GroupDirectorGradesPortal } from '@/components/grades/GroupDirectorGradesPortal';
 
 export default function NotasPage() {
   const { userRole } = useRole();
@@ -25,6 +26,14 @@ export default function NotasPage() {
       <div className="flex items-center justify-center min-h-screen bg-slate-50">
         <p className="text-slate-500 font-bold animate-pulse">Redirigiendo al Student Success Center...</p>
       </div>
+    );
+  }
+
+  if (userRole === 'director_grupo') {
+    return (
+      <AppLayout>
+        <GroupDirectorGradesPortal />
+      </AppLayout>
     );
   }
 

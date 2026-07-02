@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { useRole } from '@/providers/role-provider';
 
 export type AttendanceStatus = 'PENDING' | 'PRESENT' | 'ABSENT' | 'LATE' | 'EXCUSED';
 export type CaptureMethod = 'SWIPE' | 'OCR' | 'MANUAL';
@@ -73,8 +74,9 @@ const INITIAL_CLASS_STUDENTS: StudentAttendanceItem[] = [
 ];
 
 export function TeacherAttendancePortal() {
+  const { userRole } = useRole();
   const [method, setMethod] = useState<CaptureMethod>('SWIPE');
-  const [selectedCourse, setSelectedCourse] = useState('9A-MATH');
+  const [selectedCourse, setSelectedCourse] = useState(userRole === 'director_grupo' ? '10A-DIR' : '9A-MATH');
   const [students, setStudents] = useState<StudentAttendanceItem[]>(INITIAL_CLASS_STUDENTS);
   const [searchQuery, setSearchQuery] = useState('');
   const [isOffline, setIsOffline] = useState(false);
@@ -741,10 +743,11 @@ export function TeacherAttendancePortal() {
               onChange={(e) => setSelectedCourse(e.target.value)}
               className="bg-slate-900 text-white font-bold text-xs rounded-xl px-3 py-2 border border-slate-700 outline-none focus:border-indigo-500 cursor-pointer w-full sm:w-auto"
             >
-              <option value="9A-MATH">📐 9°A – Matemáticas (07:00 - 08:30)</option>
-              <option value="10B-PHYS">⚡ 10°B – Física Avanzada (08:30 - 10:00)</option>
-              <option value="11A-CALC">📈 11°A – Cálculo y Geometría (10:30 - 12:00)</option>
-              <option value="8C-STAT">📊 8°C – Estadística (12:00 - 01:30)</option>
+              <option value="10A-DIR">🎓 10°A – Dirección de Grupo y Matemáticas (07:00 - 08:30)</option>
+              <option value="9A-MATH">📐 9°A – Matemáticas (08:30 - 10:00)</option>
+              <option value="10B-PHYS">⚡ 10°B – Física Avanzada (10:30 - 12:00)</option>
+              <option value="11A-CALC">📈 11°A – Cálculo y Geometría (12:00 - 01:30)</option>
+              <option value="8C-STAT">📊 8°C – Estadística (01:30 - 03:00)</option>
             </select>
           </div>
 

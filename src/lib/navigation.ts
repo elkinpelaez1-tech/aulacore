@@ -190,7 +190,7 @@ export const NAVIGATION_MENUS: Record<UserRole, NavItem[]> = {
       icon: BrainCircuit,
     },
     {
-      label: 'Asistencia QR',
+      label: 'Asistencia',
       href: '/asistencia',
       icon: QrCode,
     },
@@ -203,6 +203,11 @@ export const NAVIGATION_MENUS: Record<UserRole, NavItem[]> = {
       label: 'Alertas',
       href: '/alertas',
       icon: AlertCircle,
+    },
+    {
+      label: 'Calificaciones',
+      href: '/notas',
+      icon: PenTool,
     },
     {
       label: 'Proyecto Educativo (PEI)',
