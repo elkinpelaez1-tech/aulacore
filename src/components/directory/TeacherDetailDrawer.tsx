@@ -2,12 +2,11 @@
 
 import React from 'react';
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-} from "@/components/ui/sheet";
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { TeacherMockData, TeacherStatus } from '@/lib/data/mock-teachers';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Mail, Phone, BookOpen, Clock, AlertCircle, MapPin, GraduationCap } from 'lucide-react';
@@ -35,13 +34,13 @@ export function TeacherDetailDrawer({ teacher, isOpen, onOpenChange }: Props) {
   const statusStyle = statusColors[teacher.status];
 
   return (
-    <Sheet open={isOpen} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-md md:max-w-lg p-0 flex flex-col bg-slate-50 overflow-hidden border-l border-slate-200 shadow-2xl">
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent showCloseButton={true} className="w-[96vw] sm:max-w-2xl md:max-w-3xl lg:max-w-4xl max-h-[90vh] p-0 flex flex-col bg-slate-50 overflow-hidden rounded-2xl border border-slate-200 shadow-2xl animate-in zoom-in-95 duration-200">
         
         {/* Header Decorator */}
         <div className={cn("w-full h-3 shrink-0", statusStyle.dot)} />
 
-        <ScrollArea className="flex-1 h-full">
+        <ScrollArea className="flex-1 h-full max-h-[calc(90vh-12px)]">
           <div className="p-6">
             
             {/* Identity Header */}
@@ -59,12 +58,12 @@ export function TeacherDetailDrawer({ teacher, isOpen, onOpenChange }: Props) {
                 <div className={cn("absolute -bottom-1 -right-1 w-4 h-4 border-2 border-white rounded-full", statusStyle.dot)} />
               </div>
               <div className="pt-1">
-                <SheetTitle className="text-xl font-black text-slate-900 leading-tight">
+                <DialogTitle className="text-xl font-black text-slate-900 leading-tight">
                   {teacher.name}
-                </SheetTitle>
-                <SheetDescription className="text-sm font-semibold text-slate-500 mb-2">
+                </DialogTitle>
+                <DialogDescription className="text-sm font-semibold text-slate-500 mb-2">
                   CC. {teacher.document}
-                </SheetDescription>
+                </DialogDescription>
                 <span className={cn("inline-flex items-center px-2 py-0.5 rounded text-[10px] font-extrabold uppercase tracking-wider border whitespace-nowrap w-fit shrink-0", statusStyle.bg, statusStyle.text, statusStyle.border)}>
                   {teacher.status}
                 </span>
@@ -158,7 +157,7 @@ export function TeacherDetailDrawer({ teacher, isOpen, onOpenChange }: Props) {
 
           </div>
         </ScrollArea>
-      </SheetContent>
-    </Sheet>
+      </DialogContent>
+    </Dialog>
   );
 }
