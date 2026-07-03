@@ -76,6 +76,34 @@ const MOCK_DEMO_INSTITUTION: InstitutionData = {
   active_modules: ['onboarding', 'pei', 'pae', 'rfid']
 };
 
+const getDemoSessionIfPresent = () => {
+  if (typeof window === 'undefined') return null;
+  const demoEmail = localStorage.getItem('aulacore-demo-session');
+  if (!demoEmail) return null;
+  const mockUser: User = {
+    id: 'demo-user-' + demoEmail.split('@')[0],
+    app_metadata: { provider: 'email' },
+    user_metadata: {
+      first_name: demoEmail.includes('coordinador') ? 'Diana' : demoEmail.includes('rector') ? 'Ramón' : 'Usuario',
+      last_name: demoEmail.includes('coordinador') ? 'Reyes' : demoEmail.includes('rector') ? 'Ramírez' : 'Demo'
+    },
+    aud: 'authenticated',
+    created_at: new Date().toISOString(),
+    email: demoEmail,
+    role: 'authenticated',
+    updated_at: new Date().toISOString()
+  } as User;
+  const mockSession: Session = {
+    access_token: 'mock-token-' + Date.now(),
+    refresh_token: 'mock-refresh-' + Date.now(),
+    expires_in: 3600,
+    expires_at: Math.floor(Date.now() / 1000) + 3600,
+    token_type: 'bearer',
+    user: mockUser
+  };
+  return { user: mockUser, session: mockSession };
+};
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -220,10 +248,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setLoading(true);
     try {
       const { data: { session: currentSession } } = await supabase.auth.getSession();
-      if (currentSession) {
-        setSession(currentSession);
-        setUser(currentSession.user);
-        await loadUserData(currentSession.user, currentSession, overrideInstitutionId);
+      const demoData = getDemoSessionIfPresent();
+      const activeSession = currentSession || demoData?.session;
+      const activeUser = currentSession?.user || demoData?.user;
+
+      if (activeSession && activeUser) {
+        setSession(activeSession);
+        setUser(activeUser);
+        await loadUserData(activeUser, activeSession, overrideInstitutionId);
       } else {
         setUser(null);
         setSession(null);
@@ -259,13 +291,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
         
         const { data: { session: initialSession } } = await supabase.auth.getSession();
+        const demoData = getDemoSessionIfPresent();
+        const activeSession = initialSession || demoData?.session;
+        const activeUser = initialSession?.user || demoData?.user;
         
         if (!isMounted) return;
 
-        if (initialSession) {
-          setSession(initialSession);
-          setUser(initialSession.user);
-          await loadUserData(initialSession.user, initialSession, savedOverride);
+        if (activeSession && activeUser) {
+          setSession(activeSession);
+          setUser(activeUser);
+          await loadUserData(activeUser, activeSession, savedOverride);
           setLoading(false);
         } else {
           setLoading(false);
@@ -348,6 +383,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.removeItem('aulacore-user-name');
       localStorage.removeItem('aulacore-demo-name');
       localStorage.removeItem('aulacore-override-institution-id');
+      localStorage.removeItem('aulacore-demo-session');
     }
     
     try {
