@@ -1922,7 +1922,7 @@ export default function DashboardPage() {
                     onClick={() => setSelectedSubject('Matemáticas')}
                     className={cn(
                       "text-xs font-bold px-3 py-1.5 rounded-md cursor-pointer transition border-none outline-none",
-                      selectedSubject === 'Matemáticas' ? "bg-white text-emerald-955 shadow-sm font-black" : "text-white hover:bg-white/10 bg-transparent"
+                      selectedSubject === 'Matemáticas' ? "bg-white text-slate-950 shadow-md font-black" : "text-white hover:bg-white/10 bg-transparent"
                     )}
                   >
                     Matemáticas
@@ -1931,7 +1931,7 @@ export default function DashboardPage() {
                     onClick={() => setSelectedSubject('Ciencias Naturales y Educación Ambiental')}
                     className={cn(
                       "text-xs font-bold px-3 py-1.5 rounded-md cursor-pointer transition border-none outline-none",
-                      selectedSubject === 'Ciencias Naturales y Educación Ambiental' ? "bg-white text-emerald-955 shadow-sm font-black" : "text-white hover:bg-white/10 bg-transparent"
+                      selectedSubject === 'Ciencias Naturales y Educación Ambiental' ? "bg-white text-slate-950 shadow-md font-black" : "text-white hover:bg-white/10 bg-transparent"
                     )}
                   >
                     Ciencias Naturales

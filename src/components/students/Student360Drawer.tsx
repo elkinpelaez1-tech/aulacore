@@ -2,9 +2,9 @@
 
 import React, { useState } from 'react';
 import {
-  Sheet,
-  SheetContent,
-} from "@/components/ui/sheet";
+  Dialog,
+  DialogContent,
+} from "@/components/ui/dialog";
 import { StudentMockData } from '@/lib/data/mock-students';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { AlertCircle, User, GraduationCap, ShieldAlert, FileText, History, Activity, MapPin, X, CheckCircle2, Calendar, Clock, MessageSquare, Phone, Download } from 'lucide-react';
@@ -403,8 +403,8 @@ Admisiones y Matriculas AulaCore
   };
 
   return (
-    <Sheet open={isOpen} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-3xl md:max-w-4xl p-0 flex bg-white overflow-hidden border-l border-slate-200 shadow-2xl">
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent showCloseButton={false} className="w-[96vw] sm:max-w-4xl md:max-w-5xl lg:max-w-6xl h-[90vh] max-h-[90vh] p-0 flex flex-row bg-white overflow-hidden rounded-2xl border border-slate-200 shadow-2xl animate-in zoom-in-95 duration-200">
         
         {/* LEFT SIDEBAR */}
         <div className="w-64 bg-slate-50 border-r border-slate-200 flex flex-col hidden sm:flex shrink-0 relative">
@@ -440,12 +440,13 @@ Admisiones y Matriculas AulaCore
         {/* RIGHT CONTENT AREA */}
         <div className="flex-1 flex flex-col min-w-0 bg-white relative">
           
-          {/* Mobile close button */}
+          {/* Botón de cierre para tarjeta modal */}
           <button 
             onClick={() => onOpenChange(false)}
-            className="absolute top-4 right-4 z-50 p-2 bg-slate-100 hover:bg-slate-200 rounded-full text-slate-500 transition-colors sm:hidden"
+            className="absolute top-4 right-4 z-50 p-2 bg-slate-100 hover:bg-slate-200 hover:text-slate-800 rounded-full text-slate-500 transition-all cursor-pointer shadow-sm active:scale-95"
+            title="Cerrar tarjeta modal"
           >
-            <X className="w-4 h-4" />
+            <X className="w-5 h-5" />
           </button>
 
           {/* STICKY HEADER */}
@@ -978,11 +979,9 @@ Admisiones y Matriculas AulaCore
           </ScrollArea>
         </div>
 
-      </SheetContent>
-
-      {/* Floating toast notification inside drawer */}
+      {/* Floating toast notification inside modal */}
       {toast && (
-        <div className="fixed bottom-6 right-6 z-[99999] bg-white border border-slate-200 shadow-2xl rounded-2xl p-4 max-w-sm flex items-start gap-3 animate-in slide-in-from-bottom-5 duration-300">
+        <div className="absolute bottom-6 right-6 z-[99999] bg-white border border-slate-200 shadow-2xl rounded-2xl p-4 max-w-sm flex items-start gap-3 animate-in slide-in-from-bottom-5 duration-300">
           <div className="w-8 h-8 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0">
             <CheckCircle2 className="w-4 h-4 text-emerald-600 animate-bounce" />
           </div>
@@ -993,6 +992,7 @@ Admisiones y Matriculas AulaCore
         </div>
       )}
 
-    </Sheet>
+      </DialogContent>
+    </Dialog>
   );
 }

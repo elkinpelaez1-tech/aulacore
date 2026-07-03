@@ -45,6 +45,14 @@ const DEMO_ACCOUNTS: DemoAccount[] = [
     bgGradient: 'from-blue-550 to-blue-600 shadow-blue-500/10'
   },
   {
+    email: 'coordinador@aulacore.com',
+    role: 'coordinador',
+    name: 'Lic. Diana Reyes',
+    desc: 'Supervisión académica y convivencia',
+    color: 'bg-indigo-600 border-indigo-200 text-indigo-700',
+    bgGradient: 'from-indigo-550 to-indigo-600 shadow-indigo-500/10'
+  },
+  {
     email: 'director@aulacore.com',
     role: 'director_grupo',
     name: 'Lic. Patricia Martínez',
