@@ -331,6 +331,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           router.replace('/dashboard');
         }
       } else {
+        // Verificar si hay sesión demo offline antes de destruir
+        const demoData = getDemoSessionIfPresent();
+        if (demoData?.session && demoData?.user) {
+          console.log('Manteniendo sesión demo offline activa en onAuthStateChange...');
+          setSession(demoData.session);
+          setUser(demoData.user);
+          const savedOverride = typeof window !== 'undefined' ? localStorage.getItem('aulacore-override-institution-id') : null;
+          await loadUserData(demoData.user, demoData.session, savedOverride);
+          setLoading(false);
+          if (pathname === '/login') {
+            router.replace('/dashboard');
+          }
+          return;
+        }
+
         // Sesión destruida
         setUser(null);
         setSession(null);
