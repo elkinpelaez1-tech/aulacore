@@ -4,7 +4,6 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { useAuth } from '@/providers/auth-provider';
 import { 
   Wand2, 
   Building2, 
@@ -48,20 +47,8 @@ const BASE_MENU_GROUPS = [
 
 export function SettingsSidebar() {
   const pathname = usePathname();
-  const { roles } = useAuth();
-  const isSuperAdmin = (roles as string[])?.includes('super_admin') || false;
 
   const menuGroups = [...BASE_MENU_GROUPS];
-  if (isSuperAdmin) {
-    menuGroups.push({
-      label: 'Administración SaaS Global',
-      items: [
-        { name: 'Consola SaaS', href: '/configuracion/saas', icon: Building2 },
-        { name: 'Nuevo Colegio (Tenant)', href: '/configuracion/nuevo-colegio', icon: UserPlus },
-        { name: 'Auditoría Onboardings', href: '/configuracion/auditoria', icon: ShieldCheck },
-      ]
-    });
-  }
 
   return (
     <aside className="w-64 shrink-0 bg-white border-r border-slate-200 min-h-[calc(100vh-theme(spacing.16))] flex flex-col py-6 px-4">
