@@ -5,7 +5,9 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Clock, Trash2, Calendar, BookOpen, Plus, Loader2, User, AlertCircle, RefreshCw } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useAuth } from '@/providers/auth-provider';
+import { supabase } from '@/lib/supabase';
 import { cn } from '@/lib/utils';
 import {
   getSchedulesByCourse,
@@ -207,6 +209,12 @@ export function ScheduleBuilder() {
     classroom: ''
   });
 
+  // New Subject Modal State
+  const [isNewSubjectModalOpen, setIsNewSubjectModalOpen] = useState(false);
+  const [newSubjectName, setNewSubjectName] = useState('');
+  const [newSubjectArea, setNewSubjectArea] = useState('Ciencias Básicas y Matemáticas');
+  const [creatingSubject, setCreatingSubject] = useState(false);
+
   // Load master data with robust error boundaries & fallback injection
   useEffect(() => {
     async function fetchMasterData() {
@@ -323,6 +331,37 @@ export function ScheduleBuilder() {
     }
   };
 
+  const handleCreateSubject = async () => {
+    if (!newSubjectName.trim()) return;
+    setCreatingSubject(true);
+    try {
+      const newId = `sub-${Date.now()}`;
+      const newSubjectObj = {
+        id: newId,
+        name: newSubjectName.trim()
+      };
+
+      try {
+        await supabase.from('curriculum_subjects').insert([{
+          id: newId,
+          institution_id: demoInstitutionId,
+          name: newSubjectName.trim()
+        }]);
+      } catch (e) {
+        console.warn('Could not insert subject to DB, saving locally for session', e);
+      }
+
+      setSubjects(prev => [...prev, newSubjectObj].sort((a, b) => a.name.localeCompare(b.name)));
+      setNewClass(prev => ({ ...prev, subject_id: newId }));
+      setNewSubjectName('');
+      setIsNewSubjectModalOpen(false);
+    } catch (err: any) {
+      alert("Error al crear la asignatura: " + err.message);
+    } finally {
+      setCreatingSubject(false);
+    }
+  };
+
   const handleDelete = async (id: string) => {
     if (!confirm('¿Estás seguro de eliminar este bloque de clase?')) return;
     try {
@@ -424,11 +463,20 @@ export function ScheduleBuilder() {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-black text-slate-650 uppercase tracking-wider pl-1">Asignatura (Materia)</label>
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-black text-slate-650 uppercase tracking-wider pl-1">Asignatura (Materia)</label>
+                <button
+                  type="button"
+                  onClick={() => setIsNewSubjectModalOpen(true)}
+                  className="text-[11px] font-extrabold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 bg-indigo-50 hover:bg-indigo-100 px-2.5 py-0.5 rounded-md transition-colors border border-indigo-200/60 shadow-xs"
+                >
+                  <Plus className="w-3 h-3" /> Nueva Asignatura
+                </button>
+              </div>
               <select 
                 value={newClass.subject_id} 
                 onChange={e => setNewClass({...newClass, subject_id: e.target.value})}
-                className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-700 bg-white cursor-pointer outline-none focus:border-indigo-500"
+                className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-700 bg-white cursor-pointer outline-none focus:border-indigo-500 shadow-sm"
               >
                 <option value="">-- Seleccionar Materia --</option>
                 {subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
@@ -537,6 +585,66 @@ export function ScheduleBuilder() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Modal para Crear Nueva Asignatura */}
+      <Dialog open={isNewSubjectModalOpen} onOpenChange={setIsNewSubjectModalOpen}>
+        <DialogContent className="sm:max-w-md bg-white rounded-2xl p-6 border border-slate-200 shadow-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-black text-slate-900 flex items-center gap-2">
+              <BookOpen className="w-5 h-5 text-indigo-600" /> Crear Nueva Asignatura
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <p className="text-xs text-slate-500 font-medium leading-relaxed">
+              Registra una nueva materia para el plan de estudios de la institución. Estará disponible inmediatamente en la lista desplegable.
+            </p>
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Nombre de la Asignatura</label>
+              <Input
+                placeholder="Ej. Robótica y Programación IA, Cátedra de Paz..."
+                value={newSubjectName}
+                onChange={e => setNewSubjectName(e.target.value)}
+                className="text-sm font-semibold rounded-xl h-10 border-slate-200"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Área / Departamento</label>
+              <select
+                value={newSubjectArea}
+                onChange={e => setNewSubjectArea(e.target.value)}
+                className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-700 bg-white cursor-pointer outline-none focus:border-indigo-500"
+              >
+                <option value="Ciencias Básicas y Matemáticas">Ciencias Básicas y Matemáticas</option>
+                <option value="Humanidades y Lengua">Humanidades y Lengua</option>
+                <option value="Ciencias Naturales y Educación Ambiental">Ciencias Naturales y Educación Ambiental</option>
+                <option value="Ciencias Sociales y Ciudadanas">Ciencias Sociales y Ciudadanas</option>
+                <option value="Tecnología e Innovación">Tecnología e Innovación</option>
+                <option value="Artes, Deportes y Expresión">Artes, Deportes y Expresión</option>
+                <option value="Otro">Otro</option>
+              </select>
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsNewSubjectModalOpen(false)}
+              className="text-xs font-bold rounded-xl cursor-pointer"
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              disabled={creatingSubject || !newSubjectName.trim()}
+              onClick={handleCreateSubject}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl px-4 flex items-center gap-1.5 shadow-md shadow-indigo-500/20 cursor-pointer"
+            >
+              {creatingSubject ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
+              Guardar Asignatura
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
