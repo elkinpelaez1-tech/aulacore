@@ -20,7 +20,7 @@ import {
   Database,
 } from 'lucide-react';
 
-export type UserRole = 'rector' | 'coordinador' | 'director_grupo' | 'docente' | 'secretaria' | 'padre_familia' | 'estudiante';
+export type UserRole = 'super_admin' | 'rector' | 'coordinador' | 'director_grupo' | 'docente' | 'secretaria' | 'padre_familia' | 'estudiante';
 
 export interface NavItem {
   label: string;
@@ -37,6 +37,29 @@ export interface NavMenu {
 }
 
 export const NAVIGATION_MENUS: Record<UserRole, NavItem[]> = {
+  super_admin: [
+    {
+      label: 'Panel Super Admin SaaS',
+      href: '/configuracion/saas',
+      icon: LayoutDashboard,
+      badge: '13',
+    },
+    {
+      label: 'Centros y Colegios',
+      href: '/configuracion/saas',
+      icon: Users,
+    },
+    {
+      label: 'Alerta Temprana CAT',
+      href: '/configuracion/saas',
+      icon: AlertCircle,
+    },
+    {
+      label: 'Configuración Global',
+      href: '/configuracion/saas',
+      icon: Settings,
+    },
+  ],
   rector: [
     {
       label: 'Dashboard',
@@ -377,6 +400,7 @@ export const NAVIGATION_MENUS: Record<UserRole, NavItem[]> = {
 };
 
 export const ROLE_DISPLAY_NAMES: Record<UserRole, string> = {
+  super_admin: 'Super Administrador SaaS',
   rector: 'Rector',
   coordinador: 'Coordinador Académico/Convivencial',
   director_grupo: 'Director de Grupo',

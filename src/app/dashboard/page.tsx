@@ -457,6 +457,30 @@ export default function DashboardPage() {
     <AppLayout>
       <div className="space-y-6 animate-fade-in">
         {/* ========================================================= */}
+        {/* ROL: SUPER ADMIN (Redirección o Banner Ejecutivo SaaS) */}
+        {/* ========================================================= */}
+        {userRole === 'super_admin' && (
+          <div className="bg-gradient-to-r from-indigo-950 via-slate-900 to-indigo-950 p-8 rounded-3xl text-white shadow-2xl border border-indigo-500/30 text-center space-y-4 my-8">
+            <div className="w-16 h-16 bg-indigo-500/20 rounded-2xl mx-auto flex items-center justify-center border border-indigo-400/30">
+              <Sparkles className="w-8 h-8 text-indigo-400 animate-pulse" />
+            </div>
+            <h2 className="text-3xl font-extrabold">Bienvenido al Centro de Control AulaCore (Super Admin SaaS)</h2>
+            <p className="text-slate-300 max-w-xl mx-auto text-sm leading-relaxed">
+              Estás conectado con el rol de fabricante y administración global. Tu panel de gobernanza con los 13 Módulos Enterprise (Ficha 360°, Telemetría, Modo Soporte, CRM y Licencias) se encuentra en la sección especializada.
+            </p>
+            <div className="pt-2">
+              <a
+                href="/configuracion/saas"
+                className="inline-flex items-center gap-2 px-8 py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-black rounded-2xl shadow-lg shadow-indigo-600/30 transition-all hover:scale-105"
+              >
+                Ir al Panel Super Admin SaaS
+                <ArrowRight className="w-5 h-5" />
+              </a>
+            </div>
+          </div>
+        )}
+
+        {/* ========================================================= */}
         {/* ROL: ESTUDIANTE (Panel Personal) */}
         {/* ========================================================= */}
         {userRole === 'estudiante' && <StudentDashboard />}

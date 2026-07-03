@@ -36,6 +36,11 @@ export interface RoleScopePermissions {
 }
 
 export const ROLE_SCOPE_MAP: Record<UserRole, RoleScopePermissions> = {
+  super_admin: {
+    role_scope: 'global',
+    can_switch_roles: true,
+    visible_roles: ['super_admin', 'rector', 'coordinador', 'director_grupo', 'docente', 'secretaria', 'padre_familia', 'estudiante']
+  },
   rector: {
     role_scope: 'global',
     can_switch_roles: true,

@@ -37,6 +37,14 @@ interface DemoAccount {
 
 const DEMO_ACCOUNTS: DemoAccount[] = [
   {
+    email: 'superadmin@aulacore.com',
+    role: 'super_admin' as any,
+    name: 'Ing. Carlos Mendoza (SaaS)',
+    desc: 'Fabricante y Centro de Control 360°',
+    color: 'bg-indigo-900 border-indigo-400 text-indigo-300',
+    bgGradient: 'from-indigo-950 to-slate-900 shadow-indigo-500/20'
+  },
+  {
     email: 'rector@aulacore.com',
     role: 'rector',
     name: 'Dr. Ramón Ramírez',
@@ -236,13 +244,19 @@ function LoginContent() {
     if (typeof window === 'undefined') return;
     const m = mail.toLowerCase();
     localStorage.setItem('aulacore-demo-session', mail);
-    if (m.includes('rector')) localStorage.setItem('aulacore-user-role', 'rector');
+    if (m.includes('superadmin') || m.includes('admin') || m.includes('saas')) localStorage.setItem('aulacore-user-role', 'super_admin');
+    else if (m.includes('rector')) localStorage.setItem('aulacore-user-role', 'rector');
     else if (m.includes('coordinador')) localStorage.setItem('aulacore-user-role', 'coordinador');
     else if (m.includes('director')) localStorage.setItem('aulacore-user-role', 'director_grupo');
     else if (m.includes('docente') || m.includes('prof')) localStorage.setItem('aulacore-user-role', 'docente');
     else if (m.includes('secretaria')) localStorage.setItem('aulacore-user-role', 'secretaria');
     else if (m.includes('padre')) localStorage.setItem('aulacore-user-role', 'padre_familia');
     else if (m.includes('estudiante')) localStorage.setItem('aulacore-user-role', 'estudiante');
+  };
+
+  const getTargetUrl = (mail: string) => {
+    const m = mail.toLowerCase();
+    return (m.includes('superadmin') || m.includes('admin') || m.includes('saas')) ? '/configuracion/saas' : '/dashboard';
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -272,7 +286,7 @@ function LoginContent() {
           assignRoleFromEmail(email);
           setSuccess(true);
           await refreshSession();
-          window.location.href = '/dashboard';
+          window.location.href = getTargetUrl(email);
           return;
         }
         throw signInError;
@@ -283,7 +297,7 @@ function LoginContent() {
       }
       setSuccess(true);
       await refreshSession();
-      window.location.href = '/dashboard';
+      window.location.href = getTargetUrl(email);
     } catch (err: any) {
       console.error('Error al iniciar sesión:', err);
       let userFriendlyError = err.message || 'Ocurrió un error inesperado al intentar iniciar sesión.';
@@ -310,7 +324,7 @@ function LoginContent() {
     assignRoleFromEmail(demoEmail);
     setSuccess(true);
     await refreshSession();
-    window.location.href = '/dashboard';
+    window.location.href = getTargetUrl(demoEmail);
   };
 
   const handleCopy = (text: string, index: number) => {
