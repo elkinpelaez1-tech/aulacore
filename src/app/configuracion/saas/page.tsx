@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { useAuth, InstitutionData } from '@/providers/auth-provider';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
@@ -42,8 +42,9 @@ const IMPLEMENTATION_STAGES = [
   { id: 'operacion_stable', name: 'Operación estable', defaultResponsible: 'Soporte AulaCore' }
 ];
 
-export default function SaasConsolePage() {
+function SaasConsoleContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { allInstitutions, roles, overrideInstitutionId: savedOverride, setOverrideInstitutionId, refreshSession } = useAuth();
   const activeSimulatedName = allInstitutions?.find(i => i.id === savedOverride)?.name || '';
 
@@ -55,6 +56,18 @@ export default function SaasConsolePage() {
   const [activeTab, setActiveTab] = useState<string>('dashboard');
   const [supportModalTenant, setSupportModalTenant] = useState<any | null>(null);
   const [supportModalOpen, setSupportModalOpen] = useState(false);
+
+  const urlTab = searchParams?.get('tab');
+  useEffect(() => {
+    if (urlTab && urlTab !== activeTab) {
+      setActiveTab(urlTab);
+    }
+  }, [urlTab]);
+
+  const handleTabChange = (tabId: string) => {
+    setActiveTab(tabId);
+    router.push(`/configuracion/saas?tab=${tabId}`, { scroll: false });
+  };
 
   // Listado de inquilinos
   const [institutions, setInstitutions] = useState<any[]>([]);
@@ -612,7 +625,7 @@ export default function SaasConsolePage() {
           ].map(tab => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => handleTabChange(tab.id)}
               className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
                 activeTab === tab.id 
                   ? 'bg-indigo-600 text-white shadow-md font-black' 
@@ -639,7 +652,7 @@ export default function SaasConsolePage() {
           ].map(tab => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => handleTabChange(tab.id)}
               className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
                 activeTab === tab.id 
                   ? 'bg-purple-600 text-white shadow-md font-black' 
@@ -664,7 +677,7 @@ export default function SaasConsolePage() {
           ].map(tab => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => handleTabChange(tab.id)}
               className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
                 activeTab === tab.id 
                   ? 'bg-emerald-600 text-white shadow-md font-black' 
@@ -721,5 +734,13 @@ export default function SaasConsolePage() {
         onConfirmSupportMode={handleConfirmSupportMode}
       />
     </div>
+  );
+}
+
+export default function SaasConsolePage() {
+  return (
+    <Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold">Cargando consola SaaS...</div>}>
+      <SaasConsoleContent />
+    </Suspense>
   );
 }

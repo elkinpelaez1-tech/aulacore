@@ -33,11 +33,11 @@ export function Sidebar({ userRole: _propRole }: SidebarProps) {
   const rawMenuItems = NAVIGATION_MENUS[userRole] || [];
   const menuItemsList = [...rawMenuItems];
   
-  if (isSuperAdmin) {
-    if (!menuItemsList.some(item => item.href === '/configuracion/saas')) {
+  if (isSuperAdmin && userRole !== 'super_admin') {
+    if (!menuItemsList.some(item => item.href.startsWith('/configuracion/saas'))) {
       menuItemsList.push({
         label: 'Consola SaaS',
-        href: '/configuracion/saas',
+        href: '/configuracion/saas?tab=dashboard',
         icon: Database,
         header: 'Administración Global'
       });
@@ -93,13 +93,13 @@ export function Sidebar({ userRole: _propRole }: SidebarProps) {
         {menuItems.map((item) => {
           const Icon = item.icon;
           
-          // Check query parameters to highlight correct tab for padre_familia
           const itemPathname = item.href.split('?')[0];
           const itemTab = item.href.includes('?tab=') ? item.href.split('?tab=')[1] : null;
-          const currentTab = searchParams.get('tab') || 'actividad';
+          const defaultTab = userRole === 'super_admin' ? 'dashboard' : 'actividad';
+          const currentTab = searchParams.get('tab') || defaultTab;
           
-          const isActive = userRole === 'padre_familia'
-            ? (pathname === itemPathname && (!itemTab || itemTab === currentTab))
+          const isActive = item.href.includes('?tab=')
+            ? (pathname === itemPathname && itemTab === currentTab)
             : (pathname === item.href || pathname.startsWith(item.href + '/'));
 
           return (

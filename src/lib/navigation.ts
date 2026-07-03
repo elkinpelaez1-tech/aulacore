@@ -18,6 +18,10 @@ import {
   ClipboardList,
   Utensils,
   Database,
+  ShieldCheck,
+  CreditCard,
+  Activity,
+  HardDrive,
 } from 'lucide-react';
 
 export type UserRole = 'super_admin' | 'rector' | 'coordinador' | 'director_grupo' | 'docente' | 'secretaria' | 'padre_familia' | 'estudiante';
@@ -40,23 +44,38 @@ export const NAVIGATION_MENUS: Record<UserRole, NavItem[]> = {
   super_admin: [
     {
       label: 'Panel Super Admin SaaS',
-      href: '/configuracion/saas',
+      href: '/configuracion/saas?tab=dashboard',
       icon: LayoutDashboard,
       badge: '13',
     },
     {
       label: 'Centros y Colegios',
-      href: '/configuracion/saas',
+      href: '/configuracion/saas?tab=colegios',
       icon: Users,
     },
     {
       label: 'Alerta Temprana CAT',
-      href: '/configuracion/saas',
+      href: '/configuracion/saas?tab=alertas_saas',
       icon: AlertCircle,
     },
     {
+      label: 'Customer Success',
+      href: '/configuracion/saas?tab=customer_success',
+      icon: TrendingUp,
+    },
+    {
+      label: 'Facturación & Planes',
+      href: '/configuracion/saas?tab=facturacion',
+      icon: CreditCard,
+    },
+    {
+      label: 'Auditoría & Soporte',
+      href: '/configuracion/saas?tab=auditoria',
+      icon: ShieldCheck,
+    },
+    {
       label: 'Configuración Global',
-      href: '/configuracion/saas',
+      href: '/configuracion/saas?tab=configuracion_global',
       icon: Settings,
     },
   ],
