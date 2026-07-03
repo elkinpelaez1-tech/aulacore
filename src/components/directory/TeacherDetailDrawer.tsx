@@ -35,13 +35,14 @@ export function TeacherDetailDrawer({ teacher, isOpen, onOpenChange }: Props) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent showCloseButton={true} className="w-[96vw] sm:max-w-2xl md:max-w-3xl lg:max-w-4xl max-h-[90vh] p-0 flex flex-col bg-slate-50 overflow-hidden rounded-2xl border border-slate-200 shadow-2xl animate-in zoom-in-95 duration-200">
+      <DialogContent showCloseButton={true} className="w-[96vw] sm:max-w-2xl md:max-w-3xl lg:max-w-4xl h-[85vh] max-h-[85vh] p-0 flex flex-col bg-slate-50 overflow-hidden rounded-2xl border border-slate-200 shadow-2xl animate-in zoom-in-95 duration-200 gap-0">
         
         {/* Header Decorator */}
         <div className={cn("w-full h-3 shrink-0", statusStyle.dot)} />
 
-        <ScrollArea className="flex-1 h-full max-h-[calc(90vh-12px)]">
-          <div className="p-6">
+        <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+          <ScrollArea className="flex-1 h-full">
+            <div className="p-6 pb-12">
             
             {/* Identity Header */}
             <div className="flex items-start gap-4 mb-8">
@@ -157,6 +158,7 @@ export function TeacherDetailDrawer({ teacher, isOpen, onOpenChange }: Props) {
 
           </div>
         </ScrollArea>
+        </div>
       </DialogContent>
     </Dialog>
   );
