@@ -232,6 +232,19 @@ function LoginContent() {
     setBannerIndex((prevIndex) => (prevIndex + 1) % CAROUSEL_BANNERS.length);
   };
 
+  const assignRoleFromEmail = (mail: string) => {
+    if (typeof window === 'undefined') return;
+    const m = mail.toLowerCase();
+    localStorage.setItem('aulacore-demo-session', mail);
+    if (m.includes('rector')) localStorage.setItem('aulacore-user-role', 'rector');
+    else if (m.includes('coordinador')) localStorage.setItem('aulacore-user-role', 'coordinador');
+    else if (m.includes('director')) localStorage.setItem('aulacore-user-role', 'director_grupo');
+    else if (m.includes('docente') || m.includes('prof')) localStorage.setItem('aulacore-user-role', 'docente');
+    else if (m.includes('secretaria')) localStorage.setItem('aulacore-user-role', 'secretaria');
+    else if (m.includes('padre')) localStorage.setItem('aulacore-user-role', 'padre_familia');
+    else if (m.includes('estudiante')) localStorage.setItem('aulacore-user-role', 'estudiante');
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
@@ -256,9 +269,7 @@ function LoginContent() {
       if (signInError) {
         if (email.toLowerCase().includes('@aulacore.com')) {
           console.log('Fallo inicio en Supabase para cuenta institucional, activando sesión demo offline...');
-          if (typeof window !== 'undefined') {
-            localStorage.setItem('aulacore-demo-session', email);
-          }
+          assignRoleFromEmail(email);
           setSuccess(true);
           await refreshSession();
           window.location.href = '/dashboard';
@@ -267,8 +278,12 @@ function LoginContent() {
         throw signInError;
       }
 
+      if (email.toLowerCase().includes('@aulacore.com')) {
+        assignRoleFromEmail(email);
+      }
       setSuccess(true);
       await refreshSession();
+      window.location.href = '/dashboard';
     } catch (err: any) {
       console.error('Error al iniciar sesión:', err);
       let userFriendlyError = err.message || 'Ocurrió un error inesperado al intentar iniciar sesión.';
@@ -283,10 +298,19 @@ function LoginContent() {
     }
   };
 
-  const handleDemoClick = (demoEmail: string) => {
+  const handleDemoClick = async (demoEmail: string) => {
     setEmail(demoEmail);
     setPassword('AulaCore2026!');
     setError(null);
+    setLoading(true);
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('aulacore-user-role');
+      localStorage.removeItem('aulacore-demo-session');
+    }
+    assignRoleFromEmail(demoEmail);
+    setSuccess(true);
+    await refreshSession();
+    window.location.href = '/dashboard';
   };
 
   const handleCopy = (text: string, index: number) => {

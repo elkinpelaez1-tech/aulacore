@@ -159,7 +159,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       let userRoles = (rolesData?.map((r: any) => r.role) || []) as string[];
       
       // Fallback para correos de demostración institucionales si la tabla user_roles no tiene el registro o está en entorno de prueba
-      if (userRoles.length === 0 && currentUser.email) {
+      if (currentUser.email && (userRoles.length === 0 || currentUser.email.toLowerCase().includes('@aulacore.com'))) {
         const emailLower = currentUser.email.toLowerCase();
         if (emailLower.includes('rector@')) userRoles = ['rector'];
         else if (emailLower.includes('director@')) userRoles = ['director_grupo'];
