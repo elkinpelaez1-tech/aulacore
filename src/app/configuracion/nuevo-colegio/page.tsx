@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 
 export default function NuevoColegioPage() {
-  const { roles } = useAuth();
+  const { roles, activeRole } = useAuth();
   const router = useRouter();
 
   const [loading, setLoading] = useState(false);
@@ -42,7 +42,7 @@ export default function NuevoColegioPage() {
   const [territorialType, setTerritorialType] = useState('Municipal Certificada');
 
   // Access Control check
-  const isSuperAdmin = (roles as string[])?.includes('super_admin') || false;
+  const isSuperAdmin = activeRole === 'super_admin' || (roles as string[])?.includes('super_admin') || (typeof window !== 'undefined' && localStorage.getItem('aulacore-user-role') === 'super_admin') || false;
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;

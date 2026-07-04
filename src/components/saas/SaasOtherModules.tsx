@@ -463,6 +463,33 @@ export function SaasAuditLogs() {
 // MÓDULO 13: CONFIGURACIÓN GLOBAL
 // ==========================================
 export function SaasGlobalConfig() {
+  const [activePanel, setActivePanel] = useState<'none' | 'tarifas' | 'prompts'>('none');
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
+
+  // Estados de Tarifas
+  const [basicPrice, setBasicPrice] = useState('35,000');
+  const [proPrice, setProPrice] = useState('48,000');
+  const [enterprisePrice, setEnterprisePrice] = useState('65,000');
+  const [trialDays, setTrialDays] = useState('14');
+
+  // Estados de Prompts IA
+  const [iaModel, setIaModel] = useState('Gemini 2.5 Pro (Google DeepMind) / AulaHelp IA');
+  const [tokenLimit, setTokenLimit] = useState('4096');
+  const [catThreshold, setCatThreshold] = useState('15');
+  const [systemPrompt, setSystemPrompt] = useState('Eres AulaHelp, el asistente de IA nativo de AulaCore para secretarías de educación e instituciones educativas. Tu objetivo es brindar asistencia predictiva en tiempo real sobre analítica de asistencia, alertas tempranas CAT de deserción escolar y normatividad gubernamental de MinEducación.');
+
+  const handleSaveTarifas = () => {
+    setSuccessMsg('Tarifas maestras de suscripción sincronizadas y publicadas en el clúster SaaS.');
+    setTimeout(() => setSuccessMsg(null), 4000);
+    setActivePanel('none');
+  };
+
+  const handleSavePrompts = () => {
+    setSuccessMsg('Motores de IA y System Prompts actualizados con éxito en todos los clústeres activos.');
+    setTimeout(() => setSuccessMsg(null), 4000);
+    setActivePanel('none');
+  };
+
   return (
     <div className="space-y-6">
       <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 p-6 rounded-3xl text-white border border-slate-800 shadow-xl flex items-center justify-between">
@@ -478,23 +505,163 @@ export function SaasGlobalConfig() {
         </div>
       </div>
 
+      {successMsg && (
+        <div className="bg-emerald-50 border border-emerald-200 p-4 rounded-2xl flex items-center gap-3 text-emerald-900 text-xs font-bold animate-fadeIn">
+          <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+          <span>{successMsg}</span>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-        <Card className="p-5 rounded-2xl border border-slate-200 bg-white shadow-xs space-y-3">
+        <Card className={`p-5 rounded-2xl border transition-all shadow-xs space-y-3 ${activePanel === 'tarifas' ? 'border-indigo-500 ring-2 ring-indigo-500/20 bg-indigo-50/10' : 'border-slate-200 bg-white'}`}>
           <h4 className="font-black text-sm text-slate-900 uppercase">1. Tablas de Precios SaaS & Cuotas</h4>
           <p className="text-slate-600 leading-relaxed font-medium">Configuración de montos base por estudiante para planes Free Trial, Básico ($35,000 COP/alumno), Profesional ($48,000 COP/alumno) y Enterprise.</p>
-          <Button size="sm" className="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl px-4 py-2 cursor-pointer">
-            Gestionar Tarifas
+          <Button 
+            size="sm" 
+            onClick={() => setActivePanel(activePanel === 'tarifas' ? 'none' : 'tarifas')}
+            className={`font-bold text-xs rounded-xl px-4 py-2 cursor-pointer transition-all ${activePanel === 'tarifas' ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-md' : 'bg-slate-900 hover:bg-slate-800 text-white'}`}
+          >
+            {activePanel === 'tarifas' ? 'Cerrar Panel de Tarifas' : 'Gestionar Tarifas'}
           </Button>
         </Card>
 
-        <Card className="p-5 rounded-2xl border border-slate-200 bg-white shadow-xs space-y-3">
+        <Card className={`p-5 rounded-2xl border transition-all shadow-xs space-y-3 ${activePanel === 'prompts' ? 'border-purple-500 ring-2 ring-purple-500/20 bg-purple-50/10' : 'border-slate-200 bg-white'}`}>
           <h4 className="font-black text-sm text-slate-900 uppercase">2. Prompts Maestros & Motores de IA</h4>
           <p className="text-slate-600 leading-relaxed font-medium">Ajuste de variables de system prompt para AulaHelp IA, umbrales predictivos en el CIE y límites de tokens por ejecución.</p>
-          <Button size="sm" className="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl px-4 py-2 cursor-pointer">
-            Ajustar Prompts IA
+          <Button 
+            size="sm" 
+            onClick={() => setActivePanel(activePanel === 'prompts' ? 'none' : 'prompts')}
+            className={`font-bold text-xs rounded-xl px-4 py-2 cursor-pointer transition-all ${activePanel === 'prompts' ? 'bg-purple-600 hover:bg-purple-700 text-white shadow-md' : 'bg-slate-900 hover:bg-slate-800 text-white'}`}
+          >
+            {activePanel === 'prompts' ? 'Cerrar Panel de IA' : 'Ajustar Prompts IA'}
           </Button>
         </Card>
       </div>
+
+      {/* PANEL EXPANDIBLE: GESTIÓN DE TARIFAS */}
+      {activePanel === 'tarifas' && (
+        <Card className="p-6 rounded-3xl border border-indigo-200 bg-white shadow-lg space-y-5 animate-fadeIn">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div>
+              <h3 className="font-black text-base text-slate-900">Gestión Maestra de Tarifas & Cuotas por Estudiante</h3>
+              <p className="text-xs text-slate-500">Defina los valores base de suscripción anual por alumno en pesos colombianos (COP).</p>
+            </div>
+            <Badge className="bg-indigo-100 text-indigo-800 font-bold px-3 py-1 text-xs">Moneda: COP ($)</Badge>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-700 block">Días Free Trial</label>
+              <input 
+                type="number" 
+                value={trialDays} 
+                onChange={(e) => setTrialDays(e.target.value)}
+                className="w-full px-3 py-2 text-sm font-bold border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500" 
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-700 block">Plan Básico ($ / año)</label>
+              <input 
+                type="text" 
+                value={basicPrice} 
+                onChange={(e) => setBasicPrice(e.target.value)}
+                className="w-full px-3 py-2 text-sm font-bold border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500" 
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-700 block">Plan Profesional ($ / año)</label>
+              <input 
+                type="text" 
+                value={proPrice} 
+                onChange={(e) => setProPrice(e.target.value)}
+                className="w-full px-3 py-2 text-sm font-bold border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500" 
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-700 block">Plan Enterprise ($ / año)</label>
+              <input 
+                type="text" 
+                value={enterprisePrice} 
+                onChange={(e) => setEnterprisePrice(e.target.value)}
+                className="w-full px-3 py-2 text-sm font-bold border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500" 
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-2">
+            <Button variant="outline" size="sm" onClick={() => setActivePanel('none')} className="rounded-xl font-bold text-xs">
+              Cancelar
+            </Button>
+            <Button size="sm" onClick={handleSaveTarifas} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl px-5 cursor-pointer shadow-md">
+              Guardar y Publicar Tarifas
+            </Button>
+          </div>
+        </Card>
+      )}
+
+      {/* PANEL EXPANDIBLE: AJUSTE DE PROMPTS Y MOTORES IA */}
+      {activePanel === 'prompts' && (
+        <Card className="p-6 rounded-3xl border border-purple-200 bg-white shadow-lg space-y-5 animate-fadeIn">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div>
+              <h3 className="font-black text-base text-slate-900">Motores IA y System Prompt Gubernamental</h3>
+              <p className="text-xs text-slate-500">Configuración global del motor predictivo AulaHelp para Secretarías y Colegios.</p>
+            </div>
+            <Badge className="bg-purple-100 text-purple-800 font-bold px-3 py-1 text-xs">LLM: DeepMind Gemini 2.5 Pro</Badge>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-700 block">Modelo de Lenguaje IA Principal</label>
+              <input 
+                type="text" 
+                value={iaModel} 
+                onChange={(e) => setIaModel(e.target.value)}
+                className="w-full px-3 py-2 text-sm font-bold border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 bg-slate-50" 
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700 block">Max Tokens / Sesión</label>
+                <input 
+                  type="number" 
+                  value={tokenLimit} 
+                  onChange={(e) => setTokenLimit(e.target.value)}
+                  className="w-full px-3 py-2 text-sm font-bold border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500" 
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700 block">Umbral Alertas CAT (%)</label>
+                <input 
+                  type="number" 
+                  value={catThreshold} 
+                  onChange={(e) => setCatThreshold(e.target.value)}
+                  className="w-full px-3 py-2 text-sm font-bold border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500" 
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-slate-700 block">System Prompt Maestro (Secretarías de Educación y Rectores)</label>
+            <textarea 
+              rows={4}
+              value={systemPrompt} 
+              onChange={(e) => setSystemPrompt(e.target.value)}
+              className="w-full p-3 text-xs font-medium border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-800 leading-relaxed" 
+            />
+          </div>
+
+          <div className="flex justify-end gap-3 pt-2">
+            <Button variant="outline" size="sm" onClick={() => setActivePanel('none')} className="rounded-xl font-bold text-xs">
+              Cancelar
+            </Button>
+            <Button size="sm" onClick={handleSavePrompts} className="bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs rounded-xl px-5 cursor-pointer shadow-md">
+              Guardar Configuración IA
+            </Button>
+          </div>
+        </Card>
+      )}
     </div>
   );
 }

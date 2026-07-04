@@ -19,7 +19,7 @@ export function Sidebar({ userRole: _propRole }: SidebarProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const isSuperAdmin = (roles as string[])?.includes('super_admin') || false;
+  const isSuperAdmin = userRole === 'super_admin' || (roles as string[])?.includes('super_admin') || (typeof window !== 'undefined' && localStorage.getItem('aulacore-user-role') === 'super_admin') || false;
   const schoolName = activeInstitution?.name || 'AulaCore';
   const logoUrl = activeInstitution?.logo_url || '/logo-aulacore.png';
   const isCustom = !!activeInstitution?.logo_url || (activeInstitution?.id !== '11111111-1111-1111-1111-111111111111');

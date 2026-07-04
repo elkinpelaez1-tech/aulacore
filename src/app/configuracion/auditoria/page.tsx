@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 
 export default function OnboardingAuditoriaPage() {
-  const { roles, institutionId } = useAuth();
+  const { roles, activeRole, institutionId } = useAuth();
   const router = useRouter();
 
   const [loading, setLoading] = useState(false);
@@ -29,7 +29,7 @@ export default function OnboardingAuditoriaPage() {
   const [students, setStudents] = useState<any[]>([]);
 
   // Access Control check
-  const isSuperAdmin = (roles as string[])?.includes('super_admin') || false;
+  const isSuperAdmin = activeRole === 'super_admin' || (roles as string[])?.includes('super_admin') || (typeof window !== 'undefined' && localStorage.getItem('aulacore-user-role') === 'super_admin') || false;
 
   useEffect(() => {
     if (isSuperAdmin) {

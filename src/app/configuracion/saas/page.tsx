@@ -45,7 +45,7 @@ const IMPLEMENTATION_STAGES = [
 function SaasConsoleContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { allInstitutions, roles, overrideInstitutionId: savedOverride, setOverrideInstitutionId, refreshSession } = useAuth();
+  const { allInstitutions, roles, activeRole, overrideInstitutionId: savedOverride, setOverrideInstitutionId, refreshSession } = useAuth();
   const activeSimulatedName = allInstitutions?.find(i => i.id === savedOverride)?.name || '';
 
   const [loading, setLoading] = useState(false);
@@ -96,7 +96,15 @@ function SaasConsoleContent() {
   const [recentLogs, setRecentLogs] = useState<any[]>([]);
   const [loading360, setLoading360] = useState(false);
 
-  // Formulario de Edición de Licencia
+  // Filtros de tabla
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('ALL');
+  const [planFilter, setPlanFilter] = useState<string>('ALL');
+  const [selectedCity, setSelectedCity] = useState<string>('ALL');
+  const [selectedOrgType, setSelectedOrgType] = useState<string>('ALL');
+
+  // Modal Crear/Editar Inquilino
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingInstId, setEditingInstId] = useState<string | null>(null);
   const [editPlan, setEditPlan] = useState('free_trial');
   const [editStatus, setEditStatus] = useState('active');
@@ -105,7 +113,7 @@ function SaasConsoleContent() {
   // Chart rendering safety for Next SSR
   const [chartMounted, setChartMounted] = useState(false);
 
-  const isSuperAdmin = (roles as string[])?.includes('super_admin') || false;
+  const isSuperAdmin = activeRole === 'super_admin' || (roles as string[])?.includes('super_admin') || (typeof window !== 'undefined' && localStorage.getItem('aulacore-user-role') === 'super_admin') || false;
 
   useEffect(() => {
     if (allInstitutions && allInstitutions.length > 0) {

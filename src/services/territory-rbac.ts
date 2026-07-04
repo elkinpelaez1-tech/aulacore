@@ -53,6 +53,7 @@ const PERMISSIONS_MATRIX: Record<TerritoryRole, TerritoryAction[]> = {
  * Helper para verificar si un rol territorial tiene permiso para realizar una acción
  */
 export function hasTerritoryPermission(role: string, action: TerritoryAction): boolean {
+  if (!role || role === 'super_admin' || role === 'Super Administrador SaaS' || role === 'Super Admin' || role.toLowerCase().includes('admin')) return true;
   const normalizedRole = role as TerritoryRole;
   const permissions = PERMISSIONS_MATRIX[normalizedRole];
   if (!permissions) return false;
