@@ -359,7 +359,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setLoading(false);
 
         // Si está en una ruta protegida, redirigir al login
-        if (pathname !== '/login' && pathname !== '/') {
+        if (pathname !== '/login' && pathname !== '/' && !pathname?.startsWith('/territorio')) {
           router.replace('/login');
         }
       }
@@ -374,7 +374,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Redirigir si cambia la ruta y no hay sesión (protección de rutas cliente)
   useEffect(() => {
     if (!loading) {
-      if (!session && pathname !== '/login' && pathname !== '/') {
+      if (!session && pathname !== '/login' && pathname !== '/' && !pathname?.startsWith('/territorio')) {
         router.replace('/login');
       } else if (session && pathname === '/login') {
         router.replace('/dashboard');

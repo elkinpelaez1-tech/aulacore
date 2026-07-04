@@ -45,6 +45,14 @@ const DEMO_ACCOUNTS: DemoAccount[] = [
     bgGradient: 'from-indigo-950 to-slate-900 shadow-indigo-500/20'
   },
   {
+    email: 'secretario@sed.gov.co',
+    role: 'secretario_educacion' as any,
+    name: 'Dr. Alejandro Gómez (SED)',
+    desc: 'Portal Territorial Gubernamental y CAT',
+    color: 'bg-amber-600 border-amber-300 text-amber-300',
+    bgGradient: 'from-amber-950 to-slate-900 shadow-amber-500/20'
+  },
+  {
     email: 'rector@aulacore.com',
     role: 'rector',
     name: 'Dr. Ramón Ramírez',
@@ -250,12 +258,16 @@ function LoginContent() {
     else if (m.includes('director')) localStorage.setItem('aulacore-user-role', 'director_grupo');
     else if (m.includes('docente') || m.includes('prof')) localStorage.setItem('aulacore-user-role', 'docente');
     else if (m.includes('secretaria')) localStorage.setItem('aulacore-user-role', 'secretaria');
+    else if (m.includes('secretario') || m.includes('sed.gov') || m.includes('territorio') || m.includes('alcaldia') || m.includes('gob')) localStorage.setItem('aulacore-user-role', 'secretario_educacion');
     else if (m.includes('padre')) localStorage.setItem('aulacore-user-role', 'padre_familia');
     else if (m.includes('estudiante')) localStorage.setItem('aulacore-user-role', 'estudiante');
   };
 
   const getTargetUrl = (mail: string) => {
     const m = mail.toLowerCase();
+    if (m.includes('secretario') || m.includes('sed.gov') || m.includes('territorio') || m.includes('alcaldia') || m.includes('gob')) {
+      return '/territorio';
+    }
     return (m.includes('superadmin') || m.includes('admin') || m.includes('saas')) ? '/configuracion/saas' : '/dashboard';
   };
 
@@ -281,7 +293,7 @@ function LoginContent() {
       });
 
       if (signInError) {
-        if (email.toLowerCase().includes('@aulacore.com')) {
+        if (email.toLowerCase().includes('@aulacore.com') || email.toLowerCase().includes('@sed.gov.co') || email.toLowerCase().includes('territorio') || email.toLowerCase().includes('secretario')) {
           console.log('Fallo inicio en Supabase para cuenta institucional, activando sesión demo offline...');
           assignRoleFromEmail(email);
           setSuccess(true);
@@ -292,7 +304,7 @@ function LoginContent() {
         throw signInError;
       }
 
-      if (email.toLowerCase().includes('@aulacore.com')) {
+      if (email.toLowerCase().includes('@aulacore.com') || email.toLowerCase().includes('@sed.gov.co') || email.toLowerCase().includes('territorio') || email.toLowerCase().includes('secretario')) {
         assignRoleFromEmail(email);
       }
       setSuccess(true);

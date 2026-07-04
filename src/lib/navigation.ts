@@ -22,6 +22,7 @@ import {
   CreditCard,
   Activity,
   HardDrive,
+  Globe,
 } from 'lucide-react';
 
 export type UserRole = 'super_admin' | 'rector' | 'coordinador' | 'director_grupo' | 'docente' | 'secretaria' | 'padre_familia' | 'estudiante';
@@ -47,6 +48,12 @@ export const NAVIGATION_MENUS: Record<UserRole, NavItem[]> = {
       href: '/configuracion/saas?tab=dashboard',
       icon: LayoutDashboard,
       badge: '13',
+    },
+    {
+      label: 'Portal Territorial (SED)',
+      href: '/territorio',
+      icon: Globe,
+      badge: 'SED',
     },
     {
       label: 'Centros y Colegios',
@@ -85,6 +92,12 @@ export const NAVIGATION_MENUS: Record<UserRole, NavItem[]> = {
       href: '/dashboard',
       icon: LayoutDashboard,
       badge: '2',
+    },
+    {
+      label: 'Portal Territorial (SED)',
+      href: '/territorio',
+      icon: Globe,
+      badge: 'SED',
     },
     {
       label: 'Directores de Grupo',
@@ -418,8 +431,9 @@ export const NAVIGATION_MENUS: Record<UserRole, NavItem[]> = {
   ],
 };
 
-export const ROLE_DISPLAY_NAMES: Record<UserRole, string> = {
+export const ROLE_DISPLAY_NAMES: Record<string, string> = {
   super_admin: 'Super Administrador SaaS',
+  secretario_educacion: 'Secretario de Educación',
   rector: 'Rector',
   coordinador: 'Coordinador Académico/Convivencial',
   director_grupo: 'Director de Grupo',
