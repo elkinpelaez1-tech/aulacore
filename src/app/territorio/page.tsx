@@ -10,7 +10,8 @@ import { getTerritorialKpis, TerritorialKpis } from '@/services/territory-servic
 import { 
   Building, Users, Award, ShieldAlert, 
   CheckCircle2, Laptop, Calendar, AlertTriangle,
-  ArrowRight, Megaphone, PlusCircle, FileText, Sparkles, UserCheck, Settings, Users2, Cpu
+  ArrowRight, Megaphone, PlusCircle, FileText, Sparkles, UserCheck, Settings, Users2, Cpu,
+  Info, Utensils, UserMinus, GraduationCap, TrendingUp, BrainCircuit
 } from 'lucide-react';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, 
@@ -47,6 +48,74 @@ const COBERTURA_HISTORICA = [
   { name: '2025', matricula: 33800, cupos: 35500 },
   { name: '2026', matricula: 34250, cupos: 36000 },
 ];
+
+// Helper: Gauge Circular Ejecutivo para Tarjetas de Dolor
+function ExecutiveCircularGauge({
+  value,
+  progressPercent,
+  label,
+  sublabel,
+  status,
+  statusColor,
+  color,
+}: {
+  value: number;
+  progressPercent?: number;
+  label: string;
+  sublabel: string;
+  status: string;
+  statusColor: string;
+  color: string;
+}) {
+  const radius = 48;
+  const circumference = 2 * Math.PI * radius;
+  const arcCircumference = circumference * (240 / 360);
+  const percentToDraw = progressPercent !== undefined ? progressPercent : value;
+  const strokeDashoffset = arcCircumference - (arcCircumference * Math.min(percentToDraw, 100)) / 100;
+
+  return (
+    <div className="relative w-36 h-36 flex flex-col items-center justify-center shrink-0 mx-auto">
+      <svg className="w-full h-full transform rotate-[150deg]" viewBox="0 0 120 120">
+        {/* Fondo del arco */}
+        <circle
+          cx="60"
+          cy="60"
+          r={radius}
+          stroke="#f1f5f9"
+          strokeWidth="10"
+          fill="transparent"
+          strokeDasharray={`${arcCircumference} ${circumference}`}
+          strokeLinecap="round"
+        />
+        {/* Progreso del arco */}
+        <circle
+          cx="60"
+          cy="60"
+          r={radius}
+          stroke={color}
+          strokeWidth="10"
+          fill="transparent"
+          strokeDasharray={`${arcCircumference} ${circumference}`}
+          strokeDashoffset={strokeDashoffset}
+          strokeLinecap="round"
+          className="transition-all duration-1000 ease-out"
+        />
+      </svg>
+      {/* Texto en el centro */}
+      <div className="absolute inset-0 flex flex-col items-center justify-center pt-2 text-center pointer-events-none">
+        <span className="text-2xl font-black tracking-tight leading-none" style={{ color }}>
+          {label}
+        </span>
+        <span className="text-[10px] font-bold text-slate-500 leading-tight mt-1">
+          {sublabel}
+        </span>
+        <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full border bg-white mt-1 shadow-2xs ${statusColor}`}>
+          {status}
+        </span>
+      </div>
+    </div>
+  );
+}
 
 export default function TerritoryDashboardPage() {
   // Filtros
@@ -97,7 +166,302 @@ export default function TerritoryDashboardPage() {
 
   return (
     <div className="p-6 space-y-6">
-      {/* Bienvenida Ejecutiva Personalizada */}
+      {/* --- DASHBOARD EJECUTIVO TERRITORIAL (1er Pantallazo) --- */}
+      <div className="text-center space-y-1.5 pt-1 pb-2">
+        <h1 className="text-xl sm:text-2xl font-black text-slate-850 tracking-tight">
+          Los 3 dolores que más impactan la educación del territorio hoy
+        </h1>
+        <p className="text-xs font-bold text-slate-500">
+          Información consolidada de {loading ? '...' : totalSchools} instituciones educativas y {loading ? '...' : (kpis?.totalStudents || 20000).toLocaleString()} estudiantes
+        </p>
+      </div>
+
+      {/* LAS 3 TARJETAS DE DOLOR PRINCIPAL */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Tarjeta 1: Nivel Académico */}
+        <div className="bg-white rounded-3xl p-5 shadow-xs border border-slate-200 flex flex-col justify-between space-y-4 hover:shadow-md transition-all duration-200">
+          <div className="flex items-start gap-3">
+            <div className="w-7 h-7 rounded-lg bg-blue-600 text-white font-black text-xs flex items-center justify-center shrink-0 shadow-sm">
+              1
+            </div>
+            <div className="min-w-0 flex-1">
+              <h3 className="text-xs font-black text-slate-850 uppercase tracking-wider leading-tight">
+                Nivel Académico del Municipio
+              </h3>
+              <p className="text-[11px] text-slate-500 font-medium mt-0.5">
+                ¿Cómo estamos forming a nuestros estudiantes?
+              </p>
+            </div>
+            <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+              <GraduationCap className="w-5 h-5" />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 items-center gap-4 my-2">
+            <ExecutiveCircularGauge
+              value={56}
+              progressPercent={56}
+              label="56%"
+              sublabel="Nivel Académico"
+              status="MEDIO"
+              statusColor="text-blue-700 border-blue-200 bg-blue-50"
+              color="#2563eb"
+            />
+            <div className="space-y-2 text-xs border-l sm:border-l sm:border-slate-100 sm:pl-4">
+              <div className="flex justify-between items-center">
+                <span className="font-semibold text-slate-600">Avanzado</span>
+                <span className="font-black text-emerald-600">22%</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="font-semibold text-slate-600">Satisfactorio</span>
+                <span className="font-black text-blue-600">34%</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="font-semibold text-slate-600">Básico</span>
+                <span className="font-black text-amber-600">28%</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="font-semibold text-slate-600">Insuficiente</span>
+                <span className="font-black text-rose-600">16%</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-blue-50/70 border border-blue-200/60 rounded-2xl p-3 flex items-start gap-2.5 text-blue-900 font-semibold text-xs leading-snug">
+            <Info className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+            <span>Solo 56 de cada 100 estudiantes alcanzan el nivel académico esperado.</span>
+          </div>
+        </div>
+
+        {/* Tarjeta 2: Deserción Escolar */}
+        <div className="bg-white rounded-3xl p-5 shadow-xs border border-slate-200 flex flex-col justify-between space-y-4 hover:shadow-md transition-all duration-200">
+          <div className="flex items-start gap-3">
+            <div className="w-7 h-7 rounded-lg bg-rose-600 text-white font-black text-xs flex items-center justify-center shrink-0 shadow-sm">
+              2
+            </div>
+            <div className="min-w-0 flex-1">
+              <h3 className="text-xs font-black text-slate-850 uppercase tracking-wider leading-tight">
+                Deserción Escolar en el Municipio
+              </h3>
+              <p className="text-[11px] text-slate-500 font-medium mt-0.5">
+                ¿Cuántos estudiantes están abandonando sus estudios?
+              </p>
+            </div>
+            <div className="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
+              <UserMinus className="w-5 h-5" />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 items-center gap-4 my-2">
+            <ExecutiveCircularGauge
+              value={4.8}
+              progressPercent={28}
+              label="4,8%"
+              sublabel="Tasa de Deserción"
+              status="ALTA"
+              statusColor="text-rose-700 border-rose-200 bg-rose-50"
+              color="#dc2626"
+            />
+            <div className="bg-rose-50/50 border border-rose-100 rounded-2xl p-3.5 text-center flex flex-col justify-center items-center">
+              <span className="text-[11px] font-bold text-slate-600 leading-tight">
+                Estudiantes en riesgo de desertar
+              </span>
+              <span className="text-3xl font-black text-rose-600 my-1.5 tracking-tight">
+                962
+              </span>
+              <span className="text-[10px] text-slate-500 font-bold">
+                de 20.000 estudiantes
+              </span>
+            </div>
+          </div>
+
+          <div className="bg-rose-50/70 border border-rose-200/60 rounded-2xl p-3 flex items-start gap-2.5 text-rose-900 font-semibold text-xs leading-snug">
+            <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+            <span>Casi 5 de cada 100 estudiantes no continúan sus estudios. ¡Podemos actuar a tiempo!</span>
+          </div>
+        </div>
+
+        {/* Tarjeta 3: Cumplimiento PAE */}
+        <div className="bg-white rounded-3xl p-5 shadow-xs border border-slate-200 flex flex-col justify-between space-y-4 hover:shadow-md transition-all duration-200">
+          <div className="flex items-start gap-3">
+            <div className="w-7 h-7 rounded-lg bg-emerald-600 text-white font-black text-xs flex items-center justify-center shrink-0 shadow-sm">
+              3
+            </div>
+            <div className="min-w-0 flex-1">
+              <h3 className="text-xs font-black text-slate-850 uppercase tracking-wider leading-tight">
+                Cumplimiento Programa de Alimentación Escolar (PAE)
+              </h3>
+              <p className="text-[11px] text-slate-500 font-medium mt-0.5">
+                ¿Estamos garantizando una alimentación oportuna y de calidad?
+              </p>
+            </div>
+            <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+              <Utensils className="w-5 h-5" />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 items-center gap-4 my-2">
+            <ExecutiveCircularGauge
+              value={72}
+              progressPercent={72}
+              label="72%"
+              sublabel="Cumplimiento PAE"
+              status="MEDIO"
+              statusColor="text-emerald-700 border-emerald-200 bg-emerald-50"
+              color="#10b981"
+            />
+            <div className="space-y-2.5 text-xs border-l sm:border-l sm:border-slate-100 sm:pl-4">
+              <div className="flex justify-between items-center">
+                <span className="font-semibold text-slate-600">Cumple</span>
+                <span className="font-black text-emerald-600">72%</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="font-semibold text-slate-600">En Riesgo</span>
+                <span className="font-black text-amber-500">18%</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="font-semibold text-slate-600">No Cumple</span>
+                <span className="font-black text-rose-600">10%</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-emerald-50/70 border border-emerald-200/60 rounded-2xl p-3 flex items-start gap-2.5 text-emerald-900 font-semibold text-xs leading-snug">
+            <Info className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+            <span>72 de cada 100 raciones programadas se están entregando correctamente.</span>
+          </div>
+        </div>
+      </div>
+
+      {/* BANDA HORIZONTAL TIPO INSIGHT IA */}
+      <div className="bg-gradient-to-r from-indigo-700 via-indigo-600 to-blue-600 text-white p-4 sm:p-5 rounded-2xl shadow-lg flex flex-col sm:flex-row items-center justify-between gap-4 border border-indigo-500/30">
+        <div className="flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center shrink-0">
+            <BrainCircuit className="w-5 h-5 text-indigo-200 animate-pulse" />
+          </div>
+          <span className="text-xs sm:text-sm font-extrabold tracking-wide leading-snug">
+            AulaCore convierte estos datos en decisiones oportunas para mejorar la educación del territorio.
+          </span>
+        </div>
+        <Link 
+          href="/territorio/alertas" 
+          className="bg-white text-indigo-700 font-black text-xs px-5 py-2.5 rounded-xl shadow-md hover:bg-indigo-50 transition-all flex items-center gap-2 shrink-0 cursor-pointer group"
+        >
+          <Sparkles className="w-4 h-4 text-indigo-600 group-hover:rotate-12 transition-transform" />
+          Ver Recomendaciones IA
+          <ArrowRight className="w-3.5 h-3.5 ml-0.5 group-hover:translate-x-1 transition-transform" />
+        </Link>
+      </div>
+
+      {/* LAS 5 TARJETAS RESUMEN REORGANIZADAS DEBAJO DEL DASHBOARD EJECUTIVO */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        {/* Instituciones Educativas */}
+        <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs flex flex-col justify-between space-y-3 hover:border-slate-300 transition-all">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-slate-600">Instituciones Educativas</span>
+            <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+              <Building className="w-4 h-4" />
+            </div>
+          </div>
+          <div>
+            <span className="text-2xl font-black text-slate-850 block leading-tight">
+              {loading ? '...' : String(kpis?.totalSchools || 34)}
+            </span>
+            <span className="text-[10px] font-semibold text-slate-400 block mt-0.5">
+              8 Oficiales • 26 Privadas
+            </span>
+          </div>
+          <Link href="/territorio/instituciones" className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 pt-1 border-t border-slate-100 group">
+            Ver detalle <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+          </Link>
+        </div>
+
+        {/* Estudiantes Matriculados */}
+        <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs flex flex-col justify-between space-y-3 hover:border-slate-300 transition-all">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-slate-600">Estudiantes Matriculados</span>
+            <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+              <Users className="w-4 h-4" />
+            </div>
+          </div>
+          <div>
+            <span className="text-2xl font-black text-slate-850 block leading-tight">
+              {loading ? '...' : (kpis?.totalStudents || 20000).toLocaleString()}
+            </span>
+            <span className="text-[10px] font-semibold text-slate-400 block mt-0.5">
+              9.638 Oficiales • 10.225 Privadas
+            </span>
+          </div>
+          <Link href="/territorio/cobertura" className="text-[11px] font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 pt-1 border-t border-slate-100 group">
+            Ver detalle <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+          </Link>
+        </div>
+
+        {/* Docentes */}
+        <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs flex flex-col justify-between space-y-3 hover:border-slate-300 transition-all">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-slate-600">Docentes</span>
+            <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+              <UserCheck className="w-4 h-4" />
+            </div>
+          </div>
+          <div>
+            <span className="text-2xl font-black text-slate-850 block leading-tight">
+              {loading ? '...' : (kpis?.totalTeachers || 1250).toLocaleString()}
+            </span>
+            <span className="text-[10px] font-semibold text-slate-400 block mt-0.5">
+              Activos en plataforma
+            </span>
+          </div>
+          <Link href="/territorio/talento-humano" className="text-[11px] font-bold text-emerald-600 hover:text-emerald-800 flex items-center gap-1 pt-1 border-t border-slate-100 group">
+            Ver detalle <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+          </Link>
+        </div>
+
+        {/* Alertas Activas */}
+        <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs flex flex-col justify-between space-y-3 hover:border-slate-300 transition-all">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-slate-600">Alertas Activas</span>
+            <div className="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
+              <AlertTriangle className="w-4 h-4" />
+            </div>
+          </div>
+          <div>
+            <span className="text-2xl font-black text-rose-600 block leading-tight">
+              12
+            </span>
+            <span className="text-[10px] font-semibold text-slate-400 block mt-0.5">
+              Requieren atención
+            </span>
+          </div>
+          <Link href="/territorio/alertas" className="text-[11px] font-bold text-rose-600 hover:text-rose-800 flex items-center gap-1 pt-1 border-t border-slate-100 group">
+            Ver todas <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+          </Link>
+        </div>
+
+        {/* Indicadores Clave */}
+        <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs flex flex-col justify-between space-y-3 hover:border-slate-300 transition-all">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-slate-600">Indicadores Clave</span>
+            <div className="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
+              <TrendingUp className="w-4 h-4" />
+            </div>
+          </div>
+          <div>
+            <span className="text-2xl font-black text-slate-850 block leading-tight">
+              28
+            </span>
+            <span className="text-[10px] font-semibold text-slate-400 block mt-0.5">
+              En monitoreo
+            </span>
+          </div>
+          <Link href="/territorio/analitica" className="text-[11px] font-bold text-purple-600 hover:text-purple-800 flex items-center gap-1 pt-1 border-t border-slate-100 group">
+            Ver todos <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+          </Link>
+        </div>
+      </div>
+
+      {/* --- CONSOLA EJECUTIVA Y SEGUIMIENTO OPERATIVO (Manteniendo contenido existente) --- */}
       <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white rounded-3xl p-6 shadow-md border border-indigo-950 space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
@@ -177,17 +541,8 @@ export default function TerritoryDashboardPage() {
         onResetFilters={handleResetFilters}
       />
 
-      {/* Fila 1 de KPIs de Primer Nivel - Estructura y Cobertura */}
+      {/* Indicadores Operativos Complementarios */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <KpiCard
-          title="Total de Instituciones"
-          value={loading ? '...' : String(kpis?.totalSchools || 0)}
-          description="Colegios registrados"
-          trend={{ value: 0, isPositive: true, label: 'real' }}
-          icon={Building}
-          iconColorClass="text-indigo-650"
-          iconBgClass="bg-indigo-50"
-        />
         <KpiCard
           title="Sedes Educativas"
           value={kpis?.totalCampuses || 'Pendiente'}
@@ -195,15 +550,6 @@ export default function TerritoryDashboardPage() {
           icon={Settings}
           iconColorClass="text-slate-550"
           iconBgClass="bg-slate-50"
-        />
-        <KpiCard
-          title="Estudiantes Activos"
-          value={loading ? '...' : (kpis?.totalStudents || 0).toLocaleString()}
-          description="Fichas de alumnos activas"
-          trend={{ value: 0, isPositive: true, label: 'real' }}
-          icon={Users}
-          iconColorClass="text-blue-650"
-          iconBgClass="bg-blue-50"
         />
         <KpiCard
           title="Matrícula Consolidada"
@@ -214,33 +560,13 @@ export default function TerritoryDashboardPage() {
           iconColorClass="text-emerald-650"
           iconBgClass="bg-emerald-50"
         />
-      </div>
-
-      {/* Fila 2 de KPIs de Primer Nivel - Personal y Transformación */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <KpiCard
-          title="Docentes Registrados"
-          value={loading ? '...' : String(kpis?.totalTeachers || 0)}
-          description="Cuentas docentes activas"
-          icon={Users2}
+          title="Directivos y Administrativos"
+          value={loading ? '...' : String((kpis?.totalDirectives || 0) + (kpis?.totalAdministratives || 0))}
+          description="Rectores, coordinadores y admin"
+          icon={Award}
           iconColorClass="text-indigo-650"
           iconBgClass="bg-indigo-50"
-        />
-        <KpiCard
-          title="Directivos Docentes"
-          value={loading ? '...' : String(kpis?.totalDirectives || 0)}
-          description="Rectores y coordinadores"
-          icon={Award}
-          iconColorClass="text-emerald-650"
-          iconBgClass="bg-emerald-50"
-        />
-        <KpiCard
-          title="Personal Administrativo"
-          value={loading ? '...' : String(kpis?.totalAdministratives || 0)}
-          description="Secretarias vinculadas"
-          icon={FileText}
-          iconColorClass="text-blue-650"
-          iconBgClass="bg-blue-50"
         />
         <KpiCard
           title="Madurez Digital General"
