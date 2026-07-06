@@ -133,6 +133,18 @@ export const HELP_GLOSSARY: Record<string, HelpItem> = {
     bestPractices: 'Mantener las integraciones RFID y notas activas para alimentar los widgets analíticos sin retrasos.',
     caseStudy: 'La Gobernación de Antioquia redujo el tiempo de resolución del CAT de 12 días a 48 horas al visualizar semanalmente los KPIs de efectividad de los inspectores.',
     regulation: 'Métricas oficiales del Plan de Desarrollo Institucional.'
+  },
+  'ev-evaluadas-ia': {
+    id: 'ev-evaluadas-ia',
+    title: 'Ev. Evaluadas IA (Evaluaciones por Inteligencia Artificial)',
+    tooltip: 'Total de exámenes, talleres y pruebas calificados automáticamente por el motor de IA de AulaCore en el territorio.',
+    whatIs: 'Representa el número de actividades evaluativas y exámenes de estudiantes que han sido calificados, procesados y analizados en tiempo real por los algoritmos de Inteligencia Artificial de AulaCore en todas las instituciones de la jurisdicción.',
+    whyImportant: 'Demuestra el ahorro masivo de carga operativa para los docentes (eliminando calificar cerros de papel manuales) y proporciona a la Secretaría una radiografía académica en vivo, alimentando el motor predictivo de alertas CAT para intervenir antes de terminar el año.',
+    howCalculated: 'Suma consolidada de entregas de evaluaciones, talleres y pruebas estandarizadas procesadas por el módulo de evaluación curricular asistida por IA en las sedes activas.',
+    decisions: 'Identificar al instante qué colegios, grados y competencias específicas (ej. matemáticas o lenguaje) presentan vacíos de aprendizaje para ordenar refuerzos o tutorías con la Agenda Territorial.',
+    bestPractices: 'Fomentar en los colegios el uso de pruebas con calificación automática para obtener reportes psicométricos al momento de finalizar cada examen.',
+    caseStudy: 'Al procesar 18,450 evaluaciones en el periodo actual (+12.3% de adopción), la Secretaría de Educación detectó una brecha en comprensión lectora en grado 9° y programó talleres de refuerzo antes del examen nacional.',
+    regulation: 'Directivas de Innovación Curricular y Políticas de Evaluación Docente del MEN.'
   }
 };
 

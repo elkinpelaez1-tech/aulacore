@@ -91,5 +91,18 @@ export const HELP_KNOWLEDGE_BASE: Record<string, HelpArticle> = {
     bestPractices: 'Monitorear la correlación de Pearson en la sección de Analítica Territorial para evaluar el impacto de las inversiones.',
     caseStudy: 'Al subir el IRT al 28%, la Secretaría activó una mesa de calidad asignando rutas de transporte escolar rurales adicionales.',
     relatedArticleIds: ['que-es-matricula-consolidada', 'cat-ie-criticas']
+  },
+  'que-son-evaluaciones-ia': {
+    id: 'que-son-evaluaciones-ia',
+    category: 'calidad',
+    title: '¿Qué significa Ev. Evaluadas IA y cómo impacta al municipio?',
+    whatIs: 'El indicador de "Evaluaciones Evaluadas por Inteligencia Artificial" representa el número total de exámenes, pruebas y actividades que han sido calificados y analizados automáticamente por los algoritmos de AulaCore en el territorio.',
+    whyImportant: 'Demuestra el ahorro de miles de horas de trabajo operativo para los docentes del municipio y le proporciona a la Secretaría una radiografía académica en tiempo real, en lugar de esperar pruebas anuales externas.',
+    howCalculated: 'Conteo consolidado de pruebas y actividades evaluativas procesadas por el motor de calificación asistida por IA en los colegios de la jurisdicción.',
+    decisions: 'Tomar decisiones de intervención curricular oportunas, como ordenar refuerzos pedagógicos en matemáticas o lenguaje antes de terminar el año escolar.',
+    bestPractices: 'Fomentar la capacitación de los docentes en la creación de talleres con calificación IA dentro de la Agenda Territorial.',
+    caseStudy: 'Al procesarse 18,450 evaluaciones con un crecimiento del 12.3%, la Secretaría identificó un desfase en álgebra en grado 8° y despachó una circular pedagógica de refuerzo en 48 horas.',
+    regulation: 'Directivas del MEN sobre Innovación Pedagógica y Transformación Digital Escolar.',
+    relatedArticleIds: ['cat-prioridad-inteligente', 'cat-vulnerabilidad']
   }
 };

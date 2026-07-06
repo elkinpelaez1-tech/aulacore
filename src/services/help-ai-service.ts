@@ -131,6 +131,8 @@ export async function askAulaHelpIA(
       matchedArticle = HELP_KNOWLEDGE_BASE['cat-acciones-pendientes'];
     } else if (lowerQuery.includes('vulnerabilidad') || lowerQuery.includes('irt')) {
       matchedArticle = HELP_KNOWLEDGE_BASE['cat-vulnerabilidad'];
+    } else if (lowerQuery.includes('evaluad') || lowerQuery.includes('evaluacion') || lowerQuery.includes('18450') || lowerQuery.includes('calidad') || lowerQuery.includes('pruebas')) {
+      matchedArticle = HELP_KNOWLEDGE_BASE['que-son-evaluaciones-ia'];
     }
   }
 
