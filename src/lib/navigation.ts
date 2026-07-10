@@ -94,12 +94,6 @@ export const NAVIGATION_MENUS: Record<UserRole, NavItem[]> = {
       badge: '2',
     },
     {
-      label: 'Portal Territorial (SED)',
-      href: '/territorio',
-      icon: Globe,
-      badge: 'SED',
-    },
-    {
       label: 'Directores de Grupo',
       href: '/directores',
       icon: Users,
