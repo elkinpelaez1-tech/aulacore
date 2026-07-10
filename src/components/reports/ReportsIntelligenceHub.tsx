@@ -73,7 +73,7 @@ export function ReportsIntelligenceHub() {
         
         {activeTab === 'ejecutivo' && (
           <div className="space-y-6">
-            <ExecutiveKPIs />
+            <ExecutiveKPIs onNavigateTab={(tab) => setActiveTab(tab)} />
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
               <AcademicTrendChart />
               <AlertDistributionChart />
