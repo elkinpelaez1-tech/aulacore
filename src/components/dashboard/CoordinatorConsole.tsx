@@ -31,6 +31,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { DocumentEngine } from '@/components/document-engine/DocumentEngine';
 import { SchedulePreviewWidget } from './shared/SchedulePreviewWidget';
+import { RectorExecutiveSummary } from './RectorExecutiveSummary';
 
 export function CoordinatorConsole() {
   const [isDocEngineOpen, setIsDocEngineOpen] = useState(false);
@@ -169,8 +170,11 @@ export function CoordinatorConsole() {
 
   return (
     <div className="space-y-6 animate-fade-in pb-12">
+      {/* 1. PRIMER PANTALLAZO COORDINACIÓN: RESUMEN INSTITUCIONAL & MÉTRICAS EJECUTIVAS */}
+      <RectorExecutiveSummary roleTitle="coordinador" />
+
       {/* ========================================================= */}
-      {/* 🏛️ SECCIÓN 1: HEADER & KPI CARDS                          */}
+      {/* 🏛️ SECCIÓN 2: HEADER & KPI CARDS                          */}
       {/* ========================================================= */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-200 pb-5">
         <div>

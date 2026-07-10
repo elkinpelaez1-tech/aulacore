@@ -133,7 +133,11 @@ function MiniSparkline({ color }: { color: 'emerald' | 'rose' | 'blue' }) {
   );
 }
 
-export function RectorExecutiveSummary() {
+export interface RectorExecutiveSummaryProps {
+  roleTitle?: string;
+}
+
+export function RectorExecutiveSummary({ roleTitle = 'Rector' }: RectorExecutiveSummaryProps = {}) {
   return (
     <div className="space-y-6 animate-fade-in">
       {/* 1. Cabecera Ejecutiva (Saludo y Fecha institucional) */}
@@ -141,7 +145,7 @@ export function RectorExecutiveSummary() {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-              ¡Buenos días, Rector! 👋
+              ¡Buenos días, {roleTitle}! 👋
             </h1>
           </div>
           <p className="text-sm font-bold text-slate-500 mt-1">
