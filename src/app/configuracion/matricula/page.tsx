@@ -604,9 +604,11 @@ export default function MatriculaPage() {
 
     const isCompleteMatricula = missingDocs.length === 0;
 
+    const institutionName = (typeof window !== 'undefined' && localStorage.getItem('aulacore_institution_name')) || 'INSTITUCIÓN EDUCATIVA SAN JOSÉ';
+
     const waMessageText = isCompleteMatricula
-      ? `🟢 *AULACORE - NOTIFICACIÓN DE MATRÍCULA*\n\n¡Hola, *${guardianName}*! 👋\n\nLe informamos desde la Institución Educativa que su hijo(a) *${formData.studentName || 'el estudiante'}* (Doc: ${formData.studentId || 'N/A'}) ha sido *MATRICULADO CON ÉXITO* en la plataforma AulaCore.\n\n✅ *Estado:* Matrícula 100% Formalizada y Aprobada.\n✅ *Expediente:* Completo y validado.\n\n¡Le damos una cordial bienvenida al año escolar 2026! 🚀🏛️`
-      : `🟡 *AULACORE - NOTIFICACIÓN DE PRE-MATRÍCULA*\n\n¡Hola, *${guardianName}*! 👋\n\nLe informamos desde la Institución Educativa que su hijo(a) *${formData.studentName || 'el estudiante'}* (Doc: ${formData.studentId || 'N/A'}) quedó *PRE-MATRICULADO CON ÉXITO* en la plataforma AulaCore.\n\n⚠️ *Estado:* Pre-Matrícula activa hasta formalizar la documentación pendiente.\n📌 *Documentos o requisitos solicitados que aún faltan:*\n${missingDocs.map(d => `• ${d}`).join('\n')}\n\nPor favor acerque o cargue los documentos pendientes para formalizar la matrícula al 100%. ¡Muchas gracias!`;
+      ? `🟢 *${institutionName} - NOTIFICACIÓN DE MATRÍCULA*\n\n¡Hola, *${guardianName}*! 👋\n\nLe informamos desde la ${institutionName} que su hijo(a) *${formData.studentName || 'el estudiante'}* (Doc: ${formData.studentId || 'N/A'}) ha sido *MATRICULADO CON ÉXITO*.\n\n✅ *Estado:* Matrícula 100% Formalizada y Aprobada.\n✅ *Expediente:* Completo y validado.\n\n¡Le damos una cordial bienvenida al año escolar 2026! 🚀🏛️`
+      : `🟡 *${institutionName} - NOTIFICACIÓN DE PRE-MATRÍCULA*\n\n¡Hola, *${guardianName}*! 👋\n\nLe informamos desde la ${institutionName} que su hijo(a) *${formData.studentName || 'el estudiante'}* (Doc: ${formData.studentId || 'N/A'}) quedó *PRE-MATRICULADO CON ÉXITO*.\n\n⚠️ *Estado:* Pre-Matrícula activa hasta formalizar la documentación pendiente.\n📌 *Documentos o requisitos solicitados que aún faltan:*\n${missingDocs.map(d => `• ${d}`).join('\n')}\n\nPor favor acerque o cargue los documentos pendientes en la institución para formalizar la matrícula al 100%. ¡Muchas gracias!`;
 
     const waLink = `https://wa.me/${phoneClean || '573000000000'}?text=${encodeURIComponent(waMessageText)}`;
 
