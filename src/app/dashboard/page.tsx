@@ -70,6 +70,7 @@ import { CurriculumBuilder } from '@/components/dashboard/CurriculumBuilder';
 import { StudentDashboard } from '@/components/dashboard/StudentDashboard';
 import { DocumentEngine, DocumentType } from '@/components/document-engine/DocumentEngine';
 import { SecretaryConsole } from '@/components/dashboard/SecretaryConsole';
+import { RectorExecutiveSummary } from '@/components/dashboard/RectorExecutiveSummary';
 
 export default function DashboardPage() {
   const { userRole, userName } = useRole();
@@ -550,6 +551,8 @@ export default function DashboardPage() {
 
             {rectorTab === 'institutional' && (
               <>
+                {/* 1. PRIMER PANTALLAZO RECTORÍA: RESUMEN INSTITUCIONAL & MÉTRICAS EJECUTIVAS */}
+                <RectorExecutiveSummary />
 
             {/* Diagnóstico IA Reporte */}
             {iaReport && (
