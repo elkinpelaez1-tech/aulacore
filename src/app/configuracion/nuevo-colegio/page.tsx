@@ -18,6 +18,7 @@ export default function NuevoColegioPage() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [createdInstData, setCreatedInstData] = useState<{ institution_id?: string; message?: string } | null>(null);
 
   // Form States
   const [name, setName] = useState('');
@@ -75,7 +76,7 @@ export default function NuevoColegioPage() {
     setError(null);
 
     try {
-      // 1. Insert new organization
+      // 1. Prepare payload for atomic provisioning
       const newInst: any = {
         name,
         slug,
@@ -98,93 +99,26 @@ export default function NuevoColegioPage() {
         territorial_type: orgType === 'secretaria' ? territorialType || null : null
       };
 
-      const { data: instData, error: instError } = await supabase
-        .from('institutions')
-        .insert([newInst])
-        .select()
-        .single();
+      // 2. Ejecutar mediante función RPC transaccional atómica
+      const { data: rpcData, error: rpcError }: any = await supabase.rpc('create_school', { p_payload: newInst });
 
-      if (instError || !instData) {
-        throw new Error(instError?.message || 'Error al guardar la organización.');
+      if (rpcError) {
+        throw new Error(rpcError.message || 'Error en la función transaccional create_school.');
       }
 
-      const newInstId = instData.id;
-
-      // Si es de tipo "secretaria", finalizamos exitosamente aquí omitiendo periodos y años académicos
-      if (orgType === 'secretaria') {
-        setSuccess(true);
-        setName('');
-        setSlug('');
-        setNit('');
-        setDaneCode('');
-        setResolution('');
-        setDepartment('');
-        setMunicipality('');
-        setLoading(false);
-        return;
-      }
-
-      // 2. Insert Default Academic Settings (solo para colegios)
-      const { error: settingsError } = await supabase
-        .from('institution_academic_settings')
-        .insert([{
-          institution_id: newInstId,
-          grading_scale_type: 'numeric_1_5',
-          min_passing_grade: 3.00,
-          min_attendance_percentage: 80.00,
-          decimal_places: 2,
-          average_calculation_type: 'weighted_periods',
-          allow_recovery: true,
-          recovery_max_grade: 3.00,
-          country: 'Colombia',
-          calendar_type: 'calendar_a'
-        }]);
-
-      if (settingsError) {
-        console.error('Error insertando configuraciones académicas:', settingsError);
-      }
-
-      // 3. Insert Active Academic Year
-      const { data: yearData, error: yearError } = await supabase
-        .from('academic_years')
-        .insert([{
-          institution_id: newInstId,
-          year: new Date().getFullYear(),
-          is_active: true
-        }])
-        .select()
-        .single();
-
-      if (yearError) {
-        console.error('Error insertando año lectivo:', yearError);
-      }
-
-      // 4. Insert Default Periods
-      if (yearData) {
-        const defaultPeriods = [
-          { academic_year_id: yearData.id, name: 'Primer Periodo', code: 'P1', start_date: '2026-01-15', end_date: '2026-04-15', weight: 30.00, status: 'closed' },
-          { academic_year_id: yearData.id, name: 'Segundo Periodo', code: 'P2', start_date: '2026-04-16', end_date: '2026-08-15', weight: 30.00, status: 'active' },
-          { academic_year_id: yearData.id, name: 'Tercer Periodo', code: 'P3', start_date: '2026-08-16', end_date: '2026-11-25', weight: 40.00, status: 'inactive' }
-        ];
-        const { error: periodsError } = await supabase
-          .from('academic_periods')
-          .insert(defaultPeriods);
-        
-        if (periodsError) {
-          console.error('Error insertando periodos:', periodsError);
-        }
-      }
-
+      setCreatedInstData(rpcData);
       setSuccess(true);
-      // Clean form
+      // Limpiar formulario
       setName('');
       setSlug('');
       setRectorName('');
       setNit('');
       setDaneCode('');
       setResolution('');
+      setDepartment('');
+      setMunicipality('');
     } catch (err: any) {
-      console.error(err);
+      console.error('Error aprovisionando colegio:', err);
       setError(err.message || 'Ocurrió un error inesperado al aprovisionar la organización.');
     } finally {
       setLoading(false);
@@ -234,7 +168,9 @@ export default function NuevoColegioPage() {
               <CheckCircle2 className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-bold text-emerald-900 text-sm">Colegio aprovisionado con éxito</h3>
+              <h3 className="font-bold text-emerald-900 text-sm">
+                {createdInstData?.message || 'Colegio aprovisionado con éxito'}
+              </h3>
               <p className="text-xs text-emerald-700 mt-1 max-w-xl">
                 Se ha creado el inquilino en la base de datos de AulaCore. Hemos configurado automáticamente sus reglas de negocio iniciales, escala de calificación, año escolar vigente 2026 y tres periodos académicos predeterminados.
               </p>
