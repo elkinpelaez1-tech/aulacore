@@ -18,7 +18,7 @@ export default function NuevoColegioPage() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [createdInstData, setCreatedInstData] = useState<{ institution_id?: string; message?: string } | null>(null);
+  const [createdInstData, setCreatedInstData] = useState<{ institution_id?: string; message?: string; email?: string } | null>(null);
 
   // Form States
   const [name, setName] = useState('');
@@ -29,6 +29,8 @@ export default function NuevoColegioPage() {
   const [resolution, setResolution] = useState('');
   const [legalNature, setLegalNature] = useState('Privada');
   const [rectorName, setRectorName] = useState('');
+  const [rectorEmail, setRectorEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [secretaryName, setSecretaryName] = useState('');
   const [primaryColor, setPrimaryColor] = useState('#6366f1');
   const [sidebarColor, setSidebarColor] = useState('slate-900');
@@ -86,6 +88,8 @@ export default function NuevoColegioPage() {
         resolution: orgType === 'school' ? resolution || null : null,
         legal_nature: orgType === 'school' ? legalNature : 'Pública',
         rector_name: orgType === 'school' ? rectorName || null : null,
+        email: rectorEmail || null,
+        phone: phone || null,
         secretary_name: orgType === 'school' ? secretaryName || null : null,
         primary_color: primaryColor,
         sidebar_color: sidebarColor,
@@ -106,12 +110,33 @@ export default function NuevoColegioPage() {
         throw new Error(rpcError.message || 'Error en la función transaccional create_school.');
       }
 
-      setCreatedInstData(rpcData);
+      // 3. Si se ingresó correo del rector, disparar registro automático e invitación oficial en el servidor
+      if (rectorEmail && rpcData?.institution_id) {
+        try {
+          await fetch('/api/saas/invite-client', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email: rectorEmail,
+              name: rectorName || name,
+              phone: phone || null,
+              institutionId: rpcData.institution_id,
+              institutionName: name
+            })
+          });
+        } catch (invErr) {
+          console.warn('Advertencia en registro/invitación en segundo plano:', invErr);
+        }
+      }
+
+      setCreatedInstData({ ...rpcData, email: rectorEmail });
       setSuccess(true);
       // Limpiar formulario
       setName('');
       setSlug('');
       setRectorName('');
+      setRectorEmail('');
+      setPhone('');
       setNit('');
       setDaneCode('');
       setResolution('');
@@ -174,6 +199,16 @@ export default function NuevoColegioPage() {
               <p className="text-xs text-emerald-700 mt-1 max-w-xl">
                 Se ha creado el inquilino en la base de datos de AulaCore. Hemos configurado automáticamente sus reglas de negocio iniciales, escala de calificación, año escolar vigente 2026 y tres periodos académicos predeterminados.
               </p>
+              {createdInstData?.email && (
+                <div className="mt-3 p-3 bg-emerald-100/70 border border-emerald-300 rounded-xl text-xs text-emerald-900 space-y-1">
+                  <span className="font-extrabold block uppercase tracking-wider text-[10px] text-emerald-750">Registro e Invitación Automática</span>
+                  <div><strong>Correo Registrado:</strong> {createdInstData.email}</div>
+                  <div><strong>Rol Asignado:</strong> Rector / Administrador Escolar</div>
+                  <div className="text-[11px] text-emerald-800 mt-1">
+                    ✨ Hemos despachado un correo oficial de bienvenida e invitación de acceso a la cuenta del directivo.
+                  </div>
+                </div>
+              )}
               <div className="mt-4 flex gap-3">
                 <Button 
                   onClick={() => setSuccess(false)}
@@ -338,6 +373,30 @@ export default function NuevoColegioPage() {
                   value={rectorName} 
                   onChange={(e) => setRectorName(e.target.value)} 
                   placeholder="Ej. Dra. Mariana Restrepo"
+                  className="w-full text-xs font-semibold text-slate-850 px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-indigo-700 flex items-center gap-1">
+                  <span>Correo del Rector / Cliente (Envío de Invitación)</span>
+                  <span className="text-red-500">*</span>
+                </label>
+                <input 
+                  type="email" 
+                  value={rectorEmail} 
+                  onChange={(e) => setRectorEmail(e.target.value)} 
+                  placeholder="Ej. rectoria@colegio.edu.co"
+                  className="w-full text-xs font-semibold text-slate-850 px-3.5 py-2.5 bg-indigo-50/30 border border-indigo-200 rounded-xl focus:border-indigo-500 focus:outline-none"
+                />
+                <span className="text-[10px] text-indigo-600 font-semibold block">Se le enviará automáticamente un correo oficial de bienvenida y acceso al sistema.</span>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700">Teléfono / WhatsApp Directo</label>
+                <input 
+                  type="text" 
+                  value={phone} 
+                  onChange={(e) => setPhone(e.target.value)} 
+                  placeholder="Ej. +57 310 458 9021"
                   className="w-full text-xs font-semibold text-slate-850 px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none"
                 />
               </div>

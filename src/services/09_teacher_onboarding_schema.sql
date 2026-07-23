@@ -124,23 +124,31 @@ BEGIN
 END;
 $$;
 
--- 4. CREAR EL BUCKET DE STORAGE PARA ONBOARDING DE DOCENTES
+-- 4. CREAR EL BUCKET DE STORAGE PRIVADO PARA ONBOARDING DE DOCENTES (P0-02 PRIVACIDAD)
 INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 VALUES (
   'teacher-onboarding', 
   'teacher-onboarding', 
-  true, 
+  false, -- Bucket PRIVADO: Documentos y cédulas de docentes protegidos
   10485760, -- Límite de 10MB
   ARRAY['image/jpeg', 'image/png', 'application/pdf']
-) ON CONFLICT (id) DO NOTHING;
+) ON CONFLICT (id) DO UPDATE SET public = false;
 
 -- POLÍTICAS DE ACCESO PARA EL BUCKET EN STORAGE.OBJECTS
 DROP POLICY IF EXISTS "Permitir subida pública de archivos" ON storage.objects;
-CREATE POLICY "Permitir subida pública de archivos"
+CREATE POLICY "Permitir subida de archivos docente"
   ON storage.objects FOR INSERT
   WITH CHECK (bucket_id = 'teacher-onboarding');
 
 DROP POLICY IF EXISTS "Permitir lectura pública de archivos" ON storage.objects;
-CREATE POLICY "Permitir lectura pública de archivos"
+CREATE POLICY "Lectura privada de archivos de docente por directivos autorizados"
   ON storage.objects FOR SELECT
-  USING (bucket_id = 'teacher-onboarding');
+  TO authenticated
+  USING (
+    bucket_id = 'teacher-onboarding'
+    AND EXISTS (
+      SELECT 1 FROM public.user_roles ur
+      WHERE ur.user_id = auth.uid()
+        AND ur.role IN ('rector', 'coordinador', 'secretaria', 'super_admin')
+    )
+  );

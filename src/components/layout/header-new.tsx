@@ -85,7 +85,7 @@ interface HeaderProps {
 
 export function Header({ userName, userRole }: HeaderProps) {
   const router = useRouter();
-  const { userRole: activeRole, setUserRole, setUserName } = useRole();
+  const { userRole: activeRole, setUserRole } = useRole();
   const { signOut, roles, user } = useAuth();
 
   // Estado Offline / Conectividad
@@ -241,7 +241,6 @@ export function Header({ userName, userRole }: HeaderProps) {
   const handleSaveProfile = () => {
     localStorage.setItem(`aulacore-profile-name-${activeRole}`, profileName);
     localStorage.setItem(`aulacore-profile-email-${activeRole}`, profileEmail);
-    setUserName(profileName);
     setIsProfileOpen(false);
   };
 
@@ -259,6 +258,8 @@ export function Header({ userName, userRole }: HeaderProps) {
       ]);
     }
   }, []);
+
+  if (!activeRole) return null;
 
   const permissions = ROLE_SCOPE_MAP[activeRole] || {
     role_scope: 'global',
@@ -483,7 +484,7 @@ export function Header({ userName, userRole }: HeaderProps) {
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel className="text-slate-500 text-xs">DEMO: Alternar Rol</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                {allowedRoles.map((role) => (
+                {allowedRoles.map((role: UserRole) => (
                   <DropdownMenuItem
                     key={role}
                     className={cn(

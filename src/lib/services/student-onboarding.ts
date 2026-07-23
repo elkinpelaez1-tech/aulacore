@@ -49,7 +49,32 @@ export interface StudentOnboardingData {
   updated_at?: string;
 }
 
-// 1. SUBIR ARCHIVO A STORAGE (Usando bucket student-onboarding)
+// Helper para obtener URL firmada temporal de archivos privados del estudiante (P0-02 Privacidad)
+export async function getStudentFileSignedUrl(pathOrUrl: string, expiresIn = 3600): Promise<string> {
+  if (!pathOrUrl) return '';
+
+  // Si se pasa una URL pública antigua o ruta completa, extraer el path relativo dentro del bucket
+  let path = pathOrUrl;
+  if (pathOrUrl.includes('/student-onboarding/')) {
+    const parts = pathOrUrl.split('/student-onboarding/');
+    if (parts.length > 1) {
+      path = parts[1].split('?')[0];
+    }
+  }
+
+  const { data, error } = await supabase.storage
+    .from('student-onboarding')
+    .createSignedUrl(path, expiresIn);
+
+  if (error || !data?.signedUrl) {
+    console.error('Error al generar URL firmada temporal para student-onboarding:', error);
+    return pathOrUrl;
+  }
+
+  return data.signedUrl;
+}
+
+// 1. SUBIR ARCHIVO A STORAGE PRIVADO (Usando bucket student-onboarding con protección P0-02)
 export async function uploadStudentFile(
   file: File,
   folder: string,
@@ -84,12 +109,9 @@ export async function uploadStudentFile(
     throw error;
   }
 
-  // Obtener URL pública
-  const { data: { publicUrl } } = supabase.storage
-    .from('student-onboarding')
-    .getPublicUrl(path);
-
-  return publicUrl;
+  // Obtener URL firmada temporal (válida por 24 horas para visualización inmediata en sesión o revisión)
+  const signedUrl = await getStudentFileSignedUrl(path, 86400);
+  return signedUrl || path;
 }
 
 // 2. REGISTRAR ONBOARDING (INSERTAR EN DB)

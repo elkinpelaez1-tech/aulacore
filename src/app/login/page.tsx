@@ -293,8 +293,9 @@ function LoginContent() {
       });
 
       if (signInError) {
-        if (email.toLowerCase().includes('@aulacore.com') || email.toLowerCase().includes('@sed.gov.co') || email.toLowerCase().includes('territorio') || email.toLowerCase().includes('secretario')) {
-          console.log('Fallo inicio en Supabase para cuenta institucional, activando sesión demo offline...');
+        // EN PRODUCCIÓN: JAMÁS PERMITIR ACCESO DEMO OFFLINE ANTE CREDENCIALES INVÁLIDAS
+        if (process.env.NODE_ENV !== 'production' && (email.toLowerCase().includes('@aulacore.com') || email.toLowerCase().includes('@sed.gov.co') || email.toLowerCase().includes('territorio') || email.toLowerCase().includes('secretario'))) {
+          console.log('Fallo inicio en Supabase en DEV, activando sesión demo offline...');
           assignRoleFromEmail(email);
           setSuccess(true);
           await refreshSession();
@@ -333,10 +334,35 @@ function LoginContent() {
       localStorage.removeItem('aulacore-user-role');
       localStorage.removeItem('aulacore-demo-session');
     }
-    assignRoleFromEmail(demoEmail);
-    setSuccess(true);
-    await refreshSession();
-    window.location.href = getTargetUrl(demoEmail);
+
+    try {
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: demoEmail,
+        password: 'AulaCore2026!',
+      });
+
+      if (signInError) {
+        // En producción no existe bypass: si las credenciales en Supabase no coinciden, se rechaza
+        if (process.env.NODE_ENV === 'production') {
+          throw signInError;
+        }
+        // Solo en desarrollo se permite sesión simulada
+        assignRoleFromEmail(demoEmail);
+        setSuccess(true);
+        await refreshSession();
+        window.location.href = getTargetUrl(demoEmail);
+        return;
+      }
+
+      assignRoleFromEmail(demoEmail);
+      setSuccess(true);
+      await refreshSession();
+      window.location.href = getTargetUrl(demoEmail);
+    } catch (err: any) {
+      console.error('Error en autenticación de cuenta demo:', err);
+      setError('En producción, esta cuenta demo requiere credenciales válidas en Supabase Auth.');
+      setLoading(false);
+    }
   };
 
   const handleCopy = (text: string, index: number) => {

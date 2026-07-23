@@ -524,7 +524,7 @@ export default function PeiPage() {
   };
 
   // Escudo contra problemas de hidratación
-  if (!mounted) return null;
+  if (!mounted || !userRole) return null;
 
   // ROL BLOCKING SCREEN (Para estudiantes y padres de familia)
   if (userRole === 'estudiante' || userRole === 'padre_familia') {

@@ -2,120 +2,51 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { UserRole } from '@/lib/navigation';
-import { useAuth } from '@/providers/auth-provider';
-
-import { InstitutionData } from '@/providers/auth-provider';
+import { useAuth, InstitutionData } from '@/providers/auth-provider';
 
 interface RoleContextType {
-  userRole: UserRole;
+  userRole: UserRole | null;
   setUserRole: (role: UserRole) => void;
   userName: string;
-  setUserName: (name: string) => void;
   mounted: boolean;
-  institutionId: string;
+  institutionId: string | null;
   activeInstitution: InstitutionData | null;
 }
 
 const RoleContext = createContext<RoleContextType | undefined>(undefined);
 
 export function RoleProvider({ children }: { children: React.ReactNode }) {
-  const { profile, activeRole, setActiveRole, isAuthenticated, loading, roles, institutionId, activeInstitution } = useAuth();
+  const { profile, activeRole, setActiveRole, isAuthenticated, loading, institutionId, activeInstitution } = useAuth();
   
-  const [localRole, setLocalRoleState] = useState<UserRole>('rector');
-  const [localName, setLocalNameState] = useState<string>('Dr. Ramírez');
-  const [customDemoName, setCustomDemoName] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
 
-  // Cargar desde localStorage tras montar para simulación local si no hay sesión activa
+  // Se considera montado cuando cargó el cliente para evitar errores de hidratación
   useEffect(() => {
-    const savedRole = localStorage.getItem('aulacore-user-role') as UserRole;
-    const savedName = localStorage.getItem('aulacore-user-name');
-    const savedDemoName = localStorage.getItem('aulacore-demo-name');
-    
-    if (savedRole) {
-      setLocalRoleState(savedRole);
-    }
-    
-    if (savedName) {
-      setLocalNameState(savedName);
-    }
-
-    if (savedDemoName) {
-      setCustomDemoName(savedDemoName);
-    }
-    
     setMounted(true);
   }, []);
 
-  // Consumir datos reales del AuthProvider si el usuario está autenticado en Supabase
-  const userRole = isAuthenticated && activeRole ? activeRole : localRole;
+  const userRole = activeRole;
   
-  // Se considera simulado si el usuario está autenticado pero el rol activo no es uno de sus roles reales en la DB
-  const isSimulatedRole = !!(
-    isAuthenticated && 
-    Array.isArray(roles) && 
-    roles.includes && 
-    !roles.includes(userRole)
-  );
-
-  const userName = (isAuthenticated && !isSimulatedRole && profile && profile.first_name)
+  // Nombre 100% real traído desde public.profiles a través de AuthProvider
+  const userName = (isAuthenticated && profile && profile.first_name)
     ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Usuario'
-    : (customDemoName || localName || 'Usuario');
+    : 'Usuario';
 
-  const setUserRole = (role: UserRole) => {
-    // Nombres realistas por rol para simulación local o recuperados de localStorage
-    let name = 'Dr. Ramírez';
-    const savedCustomName = localStorage.getItem(`aulacore-profile-name-${role}`);
-    if (savedCustomName) {
-      name = savedCustomName;
-    } else {
-      if (role === 'super_admin') name = 'Elkin Peláez';
-      else if (role === 'rector') name = 'Dr. Ramírez';
-      else if (role === 'coordinador') name = 'Dra. Diana Carolina Reyes';
-      else if (role === 'director_grupo') name = 'Lic. Martínez';
-      else if (role === 'docente') name = 'Prof. Gómez';
-      else if (role === 'secretaria') name = 'Dra. Elena Toro';
-      else if (role === 'padre_familia') name = 'Carlos Ortiz';
-      else if (role === 'estudiante') name = 'Tomas Villa';
-    }
-
+  const handleSetUserRole = (role: UserRole) => {
     if (isAuthenticated) {
       setActiveRole(role);
-      setLocalNameState(name);
-      localStorage.setItem('aulacore-user-name', name);
-      setCustomDemoName(null);
-      localStorage.removeItem('aulacore-demo-name');
-    } else {
-      setLocalRoleState(role);
-      localStorage.setItem('aulacore-user-role', role);
-      setLocalNameState(name);
-      localStorage.setItem('aulacore-user-name', name);
-      setCustomDemoName(null);
-      localStorage.removeItem('aulacore-demo-name');
     }
   };
 
-  const setUserName = (name: string) => {
-    setLocalNameState(name);
-    localStorage.setItem('aulacore-user-name', name);
-    setCustomDemoName(name);
-    localStorage.setItem('aulacore-demo-name', name);
-    localStorage.setItem(`aulacore-profile-name-${userRole}`, name);
-  };
-
-  // Se considera montado cuando cargó el cliente local para evitar errores de hidratación
   const isMounted = mounted;
-
-  const fallbackInstitutionId = institutionId || '11111111-1111-1111-1111-111111111111';
 
   return (
     <RoleContext.Provider value={{ 
       userRole, 
-      setUserRole, 
+      setUserRole: handleSetUserRole, 
       userName, 
-      setUserName, 
       mounted: isMounted, 
-      institutionId: fallbackInstitutionId, 
+      institutionId, 
       activeInstitution 
     }}>
       {children}

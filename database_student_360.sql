@@ -181,34 +181,96 @@ alter table public.attendance_records enable row level security;
 alter table public.behavioral_logs enable row level security;
 alter table public.early_alerts enable row level security;
 
--- Políticas para settings, years y periods (Lectura autenticados, Escritura Rector/Admin)
-create policy "Lectura general de configuraciones a autenticados"
-  on public.institution_academic_settings for select to authenticated using (true);
-create policy "Escritura de configuraciones exclusiva para Rector/Admin"
+-- Políticas para settings, years y periods (Lectura por colegio, Escritura Rector del colegio o SuperAdmin)
+create policy "Lectura configuraciones por colegio"
+  on public.institution_academic_settings for select to authenticated
+  using (
+    institution_id in (select public.get_auth_user_institution_ids())
+    or public.is_super_admin()
+  );
+
+create policy "Escritura configuraciones por rector del colegio o superadmin"
   on public.institution_academic_settings for all to authenticated
-  using (exists (select 1 from public.user_roles ur where ur.user_id = auth.uid() and ur.role = 'rector'));
+  using (
+    public.is_super_admin()
+    or (
+      institution_id in (select public.get_auth_user_institution_ids())
+      and exists (select 1 from public.user_roles ur where ur.user_id = auth.uid() and ur.role = 'rector')
+    )
+  );
 
-create policy "Lectura de años lectivos a autenticados"
-  on public.academic_years for select to authenticated using (true);
-create policy "Escritura de años lectivos exclusiva a Rector/Admin"
+create policy "Lectura años lectivos por colegio"
+  on public.academic_years for select to authenticated
+  using (
+    institution_id in (select public.get_auth_user_institution_ids())
+    or public.is_super_admin()
+  );
+
+create policy "Escritura años lectivos por rector del colegio"
   on public.academic_years for all to authenticated
-  using (exists (select 1 from public.user_roles ur where ur.user_id = auth.uid() and ur.role = 'rector'));
+  using (
+    public.is_super_admin()
+    or (
+      institution_id in (select public.get_auth_user_institution_ids())
+      and exists (select 1 from public.user_roles ur where ur.user_id = auth.uid() and ur.role = 'rector')
+    )
+  );
 
-create policy "Lectura de periodos a autenticados"
-  on public.academic_periods for select to authenticated using (true);
-create policy "Escritura de periodos exclusiva a Rector/Admin"
+create policy "Lectura periodos del colegio"
+  on public.academic_periods for select to authenticated
+  using (
+    public.is_super_admin()
+    or exists (
+      select 1 from public.academic_years ay
+      where ay.id = academic_periods.academic_year_id
+        and ay.institution_id in (select public.get_auth_user_institution_ids())
+    )
+  );
+
+create policy "Escritura periodos por rector del colegio"
   on public.academic_periods for all to authenticated
-  using (exists (select 1 from public.user_roles ur where ur.user_id = auth.uid() and ur.role = 'rector'));
+  using (
+    public.is_super_admin()
+    or exists (
+      select 1 from public.academic_years ay
+      where ay.id = academic_periods.academic_year_id
+        and ay.institution_id in (select public.get_auth_user_institution_ids())
+        and exists (select 1 from public.user_roles ur where ur.user_id = auth.uid() and ur.role = 'rector')
+    )
+  );
 
 -- Políticas para courses, students y enrollments
-create policy "Lectura general de cursos a autenticados"
-  on public.courses for select to authenticated using (true);
-create policy "Lectura general de estudiantes a autenticados"
-  on public.students for select to authenticated using (true);
-create policy "Lectura general de matrículas a autenticados"
-  on public.student_enrollments for select to authenticated using (true);
+create policy "Lectura de courses por colegio"
+  on public.courses for select to authenticated
+  using (
+    institution_id in (select public.get_auth_user_institution_ids())
+    or public.is_super_admin()
+  );
 
--- Políticas de escritura académica restringida a roles de sistema
+create policy "Lectura de estudiantes por colegio o propio"
+  on public.students for select to authenticated
+  using (
+    id = auth.uid()
+    or public.is_super_admin()
+    or exists (
+      select 1 from public.user_roles ur
+      where ur.user_id = students.id
+        and ur.institution_id in (select public.get_auth_user_institution_ids())
+    )
+  );
+
+create policy "Lectura de matrículas por colegio del curso"
+  on public.student_enrollments for select to authenticated
+  using (
+    public.is_super_admin()
+    or exists (
+      select 1 from public.courses c
+      where c.id = student_enrollments.course_id
+        and c.institution_id in (select public.get_auth_user_institution_ids())
+    )
+  );
+
+-- Políticas de escritura académica reservada al sistema
 create policy "Escritura de cursos reservada al sistema"
   on public.courses for all to service_role using (true);
 create policy "Escritura de estudiantes reservada al sistema"
@@ -216,30 +278,120 @@ create policy "Escritura de estudiantes reservada al sistema"
 create policy "Escritura de matrículas reservada al sistema"
   on public.student_enrollments for all to service_role using (true);
 
--- Políticas para academic_records, attendance_records, behavioral_logs y early_alerts (Lectura general, Escritura Docentes/Rectores)
-create policy "Lectura de notas generales a autenticados"
-  on public.academic_records for select to authenticated using (true);
-create policy "Gestión de notas a Rectores y Docentes"
+-- Políticas para academic_records, attendance_records, behavioral_logs y early_alerts
+create policy "Lectura de notas por colegio o propio"
+  on public.academic_records for select to authenticated
+  using (
+    student_id = auth.uid()
+    or public.is_super_admin()
+    or exists (
+      select 1 from public.user_roles ur
+      where ur.user_id = academic_records.student_id
+        and ur.institution_id in (select public.get_auth_user_institution_ids())
+    )
+  );
+
+create policy "Gestión de notas a Rectores y Docentes del colegio"
   on public.academic_records for all to authenticated
-  using (exists (select 1 from public.user_roles ur where ur.user_id = auth.uid() and ur.role in ('rector', 'docente', 'director_grupo')));
+  using (
+    public.is_super_admin()
+    or (
+      exists (
+        select 1 from public.user_roles ur
+        where ur.user_id = academic_records.student_id
+          and ur.institution_id in (select public.get_auth_user_institution_ids())
+      )
+      and exists (
+        select 1 from public.user_roles ur
+        where ur.user_id = auth.uid() and ur.role in ('rector', 'docente', 'director_grupo')
+      )
+    )
+  );
 
-create policy "Lectura de asistencia general a autenticados"
-  on public.attendance_records for select to authenticated using (true);
-create policy "Gestión de asistencia a Rectores y Docentes"
+create policy "Lectura de asistencia por colegio o propio"
+  on public.attendance_records for select to authenticated
+  using (
+    student_id = auth.uid()
+    or public.is_super_admin()
+    or exists (
+      select 1 from public.user_roles ur
+      where ur.user_id = attendance_records.student_id
+        and ur.institution_id in (select public.get_auth_user_institution_ids())
+    )
+  );
+
+create policy "Gestión de asistencia a Rectores y Docentes del colegio"
   on public.attendance_records for all to authenticated
-  using (exists (select 1 from public.user_roles ur where ur.user_id = auth.uid() and ur.role in ('rector', 'docente', 'director_grupo')));
+  using (
+    public.is_super_admin()
+    or (
+      exists (
+        select 1 from public.user_roles ur
+        where ur.user_id = attendance_records.student_id
+          and ur.institution_id in (select public.get_auth_user_institution_ids())
+      )
+      and exists (
+        select 1 from public.user_roles ur
+        where ur.user_id = auth.uid() and ur.role in ('rector', 'docente', 'director_grupo')
+      )
+    )
+  );
 
-create policy "Lectura de observador general a autenticados"
-  on public.behavioral_logs for select to authenticated using (true);
-create policy "Gestión de observador a Rectores y Docentes"
+create policy "Lectura de observador por colegio autorizado"
+  on public.behavioral_logs for select to authenticated
+  using (
+    public.is_super_admin()
+    or exists (
+      select 1 from public.user_roles ur
+      where ur.user_id = behavioral_logs.student_id
+        and ur.institution_id in (select public.get_auth_user_institution_ids())
+    )
+  );
+
+create policy "Gestión de observador a Rectores y Docentes del colegio"
   on public.behavioral_logs for all to authenticated
-  using (exists (select 1 from public.user_roles ur where ur.user_id = auth.uid() and ur.role in ('rector', 'docente', 'director_grupo')));
+  using (
+    public.is_super_admin()
+    or (
+      exists (
+        select 1 from public.user_roles ur
+        where ur.user_id = behavioral_logs.student_id
+          and ur.institution_id in (select public.get_auth_user_institution_ids())
+      )
+      and exists (
+        select 1 from public.user_roles ur
+        where ur.user_id = auth.uid() and ur.role in ('rector', 'docente', 'director_grupo')
+      )
+    )
+  );
 
-create policy "Lectura de alertas a autenticados"
-  on public.early_alerts for select to authenticated using (true);
-create policy "Gestión de alertas a Rectores y Directores"
+create policy "Lectura de alertas por colegio autorizado"
+  on public.early_alerts for select to authenticated
+  using (
+    public.is_super_admin()
+    or exists (
+      select 1 from public.user_roles ur
+      where ur.user_id = early_alerts.student_id
+        and ur.institution_id in (select public.get_auth_user_institution_ids())
+    )
+  );
+
+create policy "Gestión de alertas a Rectores y Directores del colegio"
   on public.early_alerts for all to authenticated
-  using (exists (select 1 from public.user_roles ur where ur.user_id = auth.uid() and ur.role in ('rector', 'director_grupo')));
+  using (
+    public.is_super_admin()
+    or (
+      exists (
+        select 1 from public.user_roles ur
+        where ur.user_id = early_alerts.student_id
+          and ur.institution_id in (select public.get_auth_user_institution_ids())
+      )
+      and exists (
+        select 1 from public.user_roles ur
+        where ur.user_id = auth.uid() and ur.role in ('rector', 'director_grupo')
+      )
+    )
+  );
 
 -- -----------------------------------------------------------------
 -- 4. SEMILLA DE DATOS CONFIGURADOS EN CALENDARIO DINÁMICO

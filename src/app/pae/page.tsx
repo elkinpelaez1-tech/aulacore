@@ -579,7 +579,7 @@ export default function PaePage() {
     } catch (e) {}
   };
 
-  if (!mounted) return null;
+  if (!mounted || !userRole) return null;
 
   // Acceso denegado a estudiantes y padres
   if (userRole === 'estudiante' || userRole === 'padre_familia') {

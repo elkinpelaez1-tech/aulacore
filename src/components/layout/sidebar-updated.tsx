@@ -30,6 +30,8 @@ export function Sidebar({ userRole: _propRole }: SidebarProps) {
     '/migracion': 'onboarding',
   };
 
+  if (!userRole) return null;
+
   const rawMenuItems = NAVIGATION_MENUS[userRole] || [];
   const menuItemsList = [...rawMenuItems];
   

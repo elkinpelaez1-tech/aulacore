@@ -1,58 +1,10 @@
 -- =========================================================================================
--- 🛡️ AULACORE ENTERPRISE - P0-05: ATOMIC SCHOOL PROVISIONING RPC & RLS HARDENING
+-- 🛡️ AULACORE ENTERPRISE - ACTUALIZACIÓN DE RPC create_school (EMAIL & TELÉFONO)
 -- =========================================================================================
--- Descripción: Función RPC transaccional atomizada (create_school) como PUNTO ÚNICO DE
---              ENTRADA para el aprovisionamiento de instituciones académicas.
---              Autorización basada EXCLUSIVAMENTE en public.user_roles (role = 'super_admin')
---              utilizando auth.uid(), alineado con la arquitectura de control de acceso de AulaCore.
+-- Descripción: Actualiza la función transaccional create_school para guardar el correo
+--              oficial del cliente (email) y el teléfono directivo desde el primer momento.
 -- =========================================================================================
 
--- -----------------------------------------------------------------------------------------
--- 1. POLÍTICAS RLS DE ESCRITURA (INSERT) EXCLUSIVAS PARA SUPER ADMINISTRADOR SaaS
--- -----------------------------------------------------------------------------------------
-DROP POLICY IF EXISTS "Superadmin puede insertar instituciones" ON public.institutions;
-CREATE POLICY "Superadmin puede insertar instituciones"
-  ON public.institutions FOR INSERT TO authenticated
-  WITH CHECK (
-    EXISTS (
-      SELECT 1 FROM public.user_roles
-      WHERE user_id = auth.uid() AND role = 'super_admin'
-    )
-  );
-
-DROP POLICY IF EXISTS "Superadmin puede insertar settings academicos" ON public.institution_academic_settings;
-CREATE POLICY "Superadmin puede insertar settings academicos"
-  ON public.institution_academic_settings FOR INSERT TO authenticated
-  WITH CHECK (
-    EXISTS (
-      SELECT 1 FROM public.user_roles
-      WHERE user_id = auth.uid() AND role = 'super_admin'
-    )
-  );
-
-DROP POLICY IF EXISTS "Superadmin puede insertar años academicos" ON public.academic_years;
-CREATE POLICY "Superadmin puede insertar años academicos"
-  ON public.academic_years FOR INSERT TO authenticated
-  WITH CHECK (
-    EXISTS (
-      SELECT 1 FROM public.user_roles
-      WHERE user_id = auth.uid() AND role = 'super_admin'
-    )
-  );
-
-DROP POLICY IF EXISTS "Superadmin puede insertar periodos academicos" ON public.academic_periods;
-CREATE POLICY "Superadmin puede insertar periodos academicos"
-  ON public.academic_periods FOR INSERT TO authenticated
-  WITH CHECK (
-    EXISTS (
-      SELECT 1 FROM public.user_roles
-      WHERE user_id = auth.uid() AND role = 'super_admin'
-    )
-  );
-
--- -----------------------------------------------------------------------------------------
--- 2. FUNCIÓN RPC TRANSACCIONAL ATÓMICA: create_school
--- -----------------------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION public.create_school(p_payload jsonb)
 RETURNS jsonb
 LANGUAGE plpgsql
@@ -68,11 +20,10 @@ BEGIN
   v_org_type := COALESCE(p_payload->>'organization_type', 'school');
   v_current_year := EXTRACT(YEAR FROM CURRENT_DATE);
 
-  RAISE LOG '[create_school] Inicio. user=% slug=% tipo=%', auth.uid(), p_payload->>'slug', v_org_type;
+  RAISE LOG '[create_school] Inicio. user=% slug=% tipo=% email=%', auth.uid(), p_payload->>'slug', v_org_type, p_payload->>'email';
 
   -- 1. Validación estricta de sesión activa y autorización EXCLUSIVA contra public.user_roles
   IF auth.uid() IS NULL THEN
-    RAISE LOG '[create_school] ERROR: Intento de invocación sin sesión (auth.uid IS NULL).';
     RAISE EXCEPTION 'Usuario no autenticado. Debe iniciar sesión para aprovisionar organizaciones.';
   END IF;
 
@@ -80,11 +31,10 @@ BEGIN
     SELECT 1 FROM public.user_roles
     WHERE user_id = auth.uid() AND role = 'super_admin'
   ) THEN
-    RAISE LOG '[create_school] ERROR: Usuario % denegado. No posee el rol super_admin en public.user_roles.', auth.uid();
     RAISE EXCEPTION 'Acceso denegado. Solo el Super Administrador SaaS registrado en user_roles puede aprovisionar nuevas organizaciones.';
   END IF;
 
-  -- 2. Validaciones obligatorias de negocio en el motor
+  -- 2. Validaciones obligatorias de negocio
   IF trim(coalesce(p_payload->>'name', '')) = '' THEN
     RAISE EXCEPTION 'El nombre de la institución es obligatorio.';
   END IF;
@@ -101,8 +51,7 @@ BEGIN
     RAISE EXCEPTION 'Ya existe una institución registrada con ese slug. Por favor elija un slug único.';
   END IF;
 
-  -- 3. Insertar Organización Principal (institutions)
-  RAISE LOG '[create_school] Insertando organización principal (tipo: %)...', v_org_type;
+  -- 3. Insertar Organización Principal (institutions con email y phone)
   INSERT INTO public.institutions (
     name,
     slug,
@@ -113,6 +62,8 @@ BEGIN
     legal_nature,
     rector_name,
     secretary_name,
+    email,
+    phone,
     primary_color,
     sidebar_color,
     plan_type,
@@ -134,6 +85,8 @@ BEGIN
     COALESCE(p_payload->>'legal_nature', 'Privada'),
     NULLIF(trim(p_payload->>'rector_name'), ''),
     NULLIF(trim(p_payload->>'secretary_name'), ''),
+    NULLIF(trim(p_payload->>'email'), ''),
+    NULLIF(trim(p_payload->>'phone'), ''),
     COALESCE(p_payload->>'primary_color', '#6366f1'),
     COALESCE(p_payload->>'sidebar_color', 'slate-900'),
     COALESCE(p_payload->>'plan_type', 'free_trial'),
@@ -147,12 +100,8 @@ BEGIN
   )
   RETURNING id INTO v_new_inst_id;
 
-  RAISE LOG '[create_school] Institución insertada con ID: %', v_new_inst_id;
-
   -- 4. Si es institución educativa (colegio), generar estructura académica base atómicamente
   IF v_org_type = 'school' THEN
-    RAISE LOG '[create_school] Generando estructura académica base (Settings, Año %, Periodos)...', v_current_year;
-    
     -- A. Configuración académica por defecto
     INSERT INTO public.institution_academic_settings (
       institution_id,
@@ -208,11 +157,7 @@ BEGIN
         (v_year_id, 'Segundo Periodo', 'P2', (v_current_year || '-04-16')::date, (v_current_year || '-08-15')::date, 30.00, 'active'),
         (v_year_id, 'Tercer Periodo', 'P3', (v_current_year || '-08-16')::date, (v_current_year || '-11-25')::date, 40.00, 'inactive');
     END IF;
-
-    RAISE LOG '[create_school] Estructura académica creada con éxito. Año ID: %', v_year_id;
   END IF;
-
-  RAISE LOG '[create_school] Aprovisionamiento atómico FINALIZADO y CONFIRMADO para Institución ID: %', v_new_inst_id;
 
   RETURN jsonb_build_object(
     'success', true,
@@ -224,16 +169,9 @@ BEGIN
 EXCEPTION
   WHEN OTHERS THEN
     RAISE LOG '[create_school] EXCEPCIÓN CRÍTICA - Ejecutando ROLLBACK total en Institución %: %', p_payload->>'slug', SQLERRM;
-    RAISE EXCEPTION 'Error transaccional aprovisionando colegio (Rollback total ejecutado): %', SQLERRM;
+    RAISE EXCEPTION 'Error transaccional aprovisionando colegio: %', SQLERRM;
 END;
 $$;
 
--- -----------------------------------------------------------------------------------------
--- 3. DOCUMENTACIÓN Y PERMISOS DE EJECUCIÓN (REVOKE / GRANT)
--- -----------------------------------------------------------------------------------------
-COMMENT ON FUNCTION public.create_school(jsonb)
-IS 'Único punto autorizado para aprovisionar instituciones en AulaCore. Valida estricta autenticación y rol super_admin en public.user_roles usando auth.uid().';
-
-REVOKE ALL ON FUNCTION public.create_school(jsonb) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.create_school(jsonb) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.create_school(jsonb) TO service_role;

@@ -6,7 +6,7 @@ import { UserRole } from '@/lib/navigation';
 import { User, Session } from '@supabase/supabase-js';
 import { useRouter, usePathname } from 'next/navigation';
 
-interface AuthProfile {
+export interface AuthProfile {
   first_name: string;
   last_name: string;
   avatar_url: string;
@@ -57,56 +57,6 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const MOCK_DEMO_INSTITUTION: InstitutionData = {
-  id: '11111111-1111-1111-1111-111111111111',
-  name: 'Gimnasio Campestre AulaCore',
-  slug: 'aulacore-central',
-  logo_url: null,
-  slogan: 'Liderazgo, Ciencia y Convivencia para el Futuro',
-  nit: '900.123.456-7',
-  dane_code: '111001012345',
-  resolution: 'Resolución 1234 del 12 de Octubre de 2022 - MinEducación',
-  legal_nature: 'Privada',
-  rector_name: 'Dra. Mariana Restrepo Restrepo',
-  secretary_name: 'Dr. Carlos Mario Hoyos',
-  primary_color: '#6366f1',
-  sidebar_color: 'slate-900',
-  plan_type: 'enterprise',
-  subscription_status: 'active',
-  active_modules: ['onboarding', 'pei', 'pae', 'rfid']
-};
-
-const getDemoSessionIfPresent = () => {
-  if (typeof window === 'undefined') return null;
-  // EN PRODUCCIÓN JAMÁS DEBE PERMITIRSE SESIÓN DEMO OFFLINE O BYPASS DE SUPABASE AUTH
-  if (process.env.NODE_ENV === 'production') return null;
-
-  const demoEmail = localStorage.getItem('aulacore-demo-session');
-  if (!demoEmail) return null;
-  const mockUser: User = {
-    id: 'demo-user-' + demoEmail.split('@')[0],
-    app_metadata: { provider: 'email' },
-    user_metadata: {
-      first_name: demoEmail.includes('coordinador') ? 'Diana' : demoEmail.includes('rector') ? 'Ramón' : 'Usuario',
-      last_name: demoEmail.includes('coordinador') ? 'Reyes' : demoEmail.includes('rector') ? 'Ramírez' : 'Demo'
-    },
-    aud: 'authenticated',
-    created_at: new Date().toISOString(),
-    email: demoEmail,
-    role: 'authenticated',
-    updated_at: new Date().toISOString()
-  } as User;
-  const mockSession: Session = {
-    access_token: 'mock-token-' + Date.now(),
-    refresh_token: 'mock-refresh-' + Date.now(),
-    expires_in: 3600,
-    expires_at: Math.floor(Date.now() / 1000) + 3600,
-    token_type: 'bearer',
-    user: mockUser
-  };
-  return { user: mockUser, session: mockSession };
-};
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -116,7 +66,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState<boolean>(true);
   
   const [institutionId, setInstitutionId] = useState<string | null>(null);
-  const [activeInstitution, setActiveInstitution] = useState<InstitutionData | null>(MOCK_DEMO_INSTITUTION);
+  const [activeInstitution, setActiveInstitution] = useState<InstitutionData | null>(null);
   const [overrideInstitutionId, setOverrideInstitutionIdState] = useState<string | null>(null);
   const [allInstitutions, setAllInstitutions] = useState<InstitutionData[]>([]);
   
@@ -134,7 +84,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Función para cargar los datos del usuario desde la base de datos pública
+  // Función para cargar los datos del usuario 100% desde la base de datos pública
   const loadUserData = async (currentUser: User, currentSession: Session, overrideId?: string | null) => {
     try {
       // 1. Consultar perfil en public.profiles
@@ -144,41 +94,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .eq('id', currentUser.id)
         .maybeSingle();
 
+      if (profileError) console.error('Error cargando perfil desde Supabase:', profileError);
+
+      const userProfile = profileData || {
+        first_name: currentUser.user_metadata?.first_name || 'Usuario',
+        last_name: currentUser.user_metadata?.last_name || 'Nuevo',
+        avatar_url: currentUser.user_metadata?.avatar_url || '',
+      };
+
+      setProfile(userProfile as AuthProfile);
+
       // 2. Consultar roles asignados en public.user_roles (incluyendo institution_id)
       const { data: rolesData, error: rolesError } = await supabase
         .from('user_roles')
         .select('role, institution_id')
         .eq('user_id', currentUser.id);
 
-      if (profileError) console.error('Error cargando perfil:', profileError);
-      if (rolesError) console.error('Error cargando roles:', rolesError);
+      if (rolesError) console.error('Error cargando roles desde Supabase:', rolesError);
 
-      const userProfile = profileData || {
-        first_name: currentUser.user_metadata?.first_name || 'Usuario',
-        last_name: currentUser.user_metadata?.last_name || 'AulaCore',
-        avatar_url: currentUser.user_metadata?.avatar_url || '',
-      };
+      const userRoles = (rolesData?.map((r: any) => r.role) || []) as UserRole[];
+      setRoles(userRoles);
 
-      let userRoles = (rolesData?.map((r: any) => r.role) || []) as string[];
-      
-      // Fallback para correos de demostración institucionales si la tabla user_roles no tiene el registro o está en entorno de prueba
-      if (currentUser.email && (userRoles.length === 0 || currentUser.email.toLowerCase().includes('@aulacore.com') || currentUser.email.toLowerCase() === 'elkinpelaez1@gmail.com')) {
-        const emailLower = currentUser.email.toLowerCase();
-        if (emailLower === 'elkinpelaez1@gmail.com' || emailLower.includes('superadmin@') || emailLower.includes('admin@')) userRoles = ['super_admin'];
-        else if (emailLower.includes('rector@')) userRoles = ['rector'];
-        else if (emailLower.includes('director@')) userRoles = ['director_grupo'];
-        else if (emailLower.includes('coordinador@')) userRoles = ['coordinador'];
-        else if (emailLower.includes('docente@') || emailLower.includes('prof@')) userRoles = ['docente'];
-        else if (emailLower.includes('secretaria@')) userRoles = ['secretaria'];
-        else if (emailLower.includes('padre@')) userRoles = ['padre_familia'];
-        else if (emailLower.includes('estudiante@')) userRoles = ['estudiante'];
-      }
       const defaultInstId = rolesData && rolesData.length > 0 ? rolesData[0].institution_id : null;
 
-      setProfile(userProfile);
-      setRoles(userRoles as UserRole[]);
-
-      // Cargar todas las instituciones si es super_admin
+      // 3. Cargar todas las instituciones si es super_admin
       let allInstsData: any[] = [];
       if (userRoles.includes('super_admin')) {
         const { data: allInsts } = await supabase
@@ -191,7 +130,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
 
-      // Determinar institutionId activo
+      // 4. Determinar institutionId activo
       const savedOverride = typeof window !== 'undefined' ? localStorage.getItem('aulacore-override-institution-id') : null;
       const activeId = (userRoles.includes('super_admin') && (overrideId || savedOverride)) 
         ? (overrideId || savedOverride) 
@@ -199,7 +138,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       setInstitutionId(activeId);
 
-      // Cargar detalles de la institución activa
+      // 5. Cargar detalles de la institución activa si existe
       if (activeId) {
         const { data: instData, error: instErr } = await supabase
           .from('institutions')
@@ -210,34 +149,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (instData && !instErr) {
           setActiveInstitution(instData as any);
         } else {
-          setActiveInstitution({
-            ...MOCK_DEMO_INSTITUTION,
-            id: activeId,
-            name: activeId === '11111111-1111-1111-1111-111111111111' ? 'Gimnasio Campestre AulaCore' : 'Colegio Piloto AulaCore'
-          });
+          setActiveInstitution(null);
         }
       } else {
-        setActiveInstitution(MOCK_DEMO_INSTITUTION);
+        setActiveInstitution(null);
       }
 
-      // Determinar el rol activo (garantizar que director_grupo y otros roles no adopten el rol de rector por caché en localStorage)
+      // 6. Determinar el rol activo sin forzar variables quemadas
       if (userRoles.length > 0) {
         const savedRole = typeof window !== 'undefined' ? localStorage.getItem('aulacore-user-role') as UserRole : null;
-        const isSuperAdmin = userRoles.includes('super_admin');
-        const hasNoInstitutions = isSuperAdmin && allInstsData.length === 0;
         
-        // Si es super_admin y acaba de limpiar la BD (no hay colegios reales), FORZAR siempre a 'super_admin' para que no quede atrapado en el mock
-        if (isSuperAdmin && hasNoInstitutions) {
-          setActiveRoleState('super_admin');
-          if (typeof window !== 'undefined') localStorage.setItem('aulacore-user-role', 'super_admin');
-        } else if (savedRole && (userRoles.includes(savedRole) || isSuperAdmin)) {
+        // Si el rol guardado es válido para el usuario, usarlo. Si no, aplicar jerarquía.
+        if (savedRole && userRoles.includes(savedRole)) {
           setActiveRoleState(savedRole);
         } else {
-          let selectedRole: UserRole = userRoles[0] as UserRole;
-          const hierarchy: string[] = ['super_admin', 'rector', 'coordinador', 'director_grupo', 'docente', 'secretaria', 'padre_familia'];
+          let selectedRole: UserRole = userRoles[0];
+          const hierarchy: UserRole[] = ['super_admin', 'rector', 'coordinador', 'director_grupo', 'docente', 'secretaria', 'padre_familia', 'estudiante'];
           for (const role of hierarchy) {
             if (userRoles.includes(role)) {
-              selectedRole = role as UserRole;
+              selectedRole = role;
               break;
             }
           }
@@ -248,6 +178,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       } else {
         setActiveRoleState(null);
+        if (typeof window !== 'undefined') localStorage.removeItem('aulacore-user-role');
       }
     } catch (err) {
       console.error('Error en loadUserData:', err);
@@ -258,14 +189,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setLoading(true);
     try {
       const { data: { session: currentSession } } = await supabase.auth.getSession();
-      const demoData = getDemoSessionIfPresent();
-      const activeSession = currentSession || demoData?.session;
-      const activeUser = currentSession?.user || demoData?.user;
 
-      if (activeSession && activeUser) {
-        setSession(activeSession);
-        setUser(activeUser);
-        await loadUserData(activeUser, activeSession, overrideInstitutionId);
+      if (currentSession && currentSession.user) {
+        setSession(currentSession);
+        setUser(currentSession.user);
+        await loadUserData(currentSession.user, currentSession, overrideInstitutionId);
       } else {
         setUser(null);
         setSession(null);
@@ -273,7 +201,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setRoles([]);
         setActiveRoleState(null);
         setInstitutionId(null);
-        setActiveInstitution(MOCK_DEMO_INSTITUTION);
+        setActiveInstitution(null);
       }
     } catch (err) {
       console.error('Error al refrescar sesión:', err);
@@ -282,93 +210,69 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Escuchar cambios en overrideInstitutionId
   useEffect(() => {
     if (user && session) {
       loadUserData(user, session, overrideInstitutionId);
     }
   }, [overrideInstitutionId]);
 
-  // Escuchar cambios en el estado de autenticación (onAuthStateChange)
   useEffect(() => {
     let isMounted = true;
 
     const initializeAuth = async () => {
       try {
         const savedOverride = typeof window !== 'undefined' ? localStorage.getItem('aulacore-override-institution-id') : null;
-        if (savedOverride) {
-          setOverrideInstitutionIdState(savedOverride);
-        }
+        if (savedOverride) setOverrideInstitutionIdState(savedOverride);
         
-        const { data: { session: initialSession } } = await supabase.auth.getSession();
-        const demoData = getDemoSessionIfPresent();
-        const activeSession = initialSession || demoData?.session;
-        const activeUser = initialSession?.user || demoData?.user;
+        const { data: { session: initialSession }, error } = await supabase.auth.getSession();
         
         if (!isMounted) return;
 
-        if (activeSession && activeUser) {
-          setSession(activeSession);
-          setUser(activeUser);
-          await loadUserData(activeUser, activeSession, savedOverride);
-          setLoading(false);
+        if (initialSession && initialSession.user && !error) {
+          setSession(initialSession);
+          setUser(initialSession.user);
+          await loadUserData(initialSession.user, initialSession, savedOverride);
         } else {
-          setLoading(false);
+          // Limpiar si hay error o no hay sesión real
+          setUser(null);
+          setSession(null);
         }
       } catch (err) {
         console.error('Error inicializando autenticación:', err);
+      } finally {
         if (isMounted) setLoading(false);
       }
     };
 
     initializeAuth();
 
-    // Suscribirse a cambios del estado de auth
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: any, newSession: any) => {
       if (!isMounted) return;
 
-      console.log(`Evento de Auth detectado: ${event}`);
+      console.log(`[Supabase Auth] Evento detectado: ${event}`);
 
-      if (newSession) {
+      if (newSession && newSession.user) {
         setSession(newSession);
         setUser(newSession.user);
         const savedOverride = typeof window !== 'undefined' ? localStorage.getItem('aulacore-override-institution-id') : null;
         await loadUserData(newSession.user, newSession, savedOverride);
         setLoading(false);
         
-        // Redirigir al dashboard si está en el login
         if (pathname === '/login') {
           router.replace('/dashboard');
         }
-      } else {
-        // Verificar si hay sesión demo offline antes de destruir
-        const demoData = getDemoSessionIfPresent();
-        if (demoData?.session && demoData?.user) {
-          console.log('Manteniendo sesión demo offline activa en onAuthStateChange...');
-          setSession(demoData.session);
-          setUser(demoData.user);
-          const savedOverride = typeof window !== 'undefined' ? localStorage.getItem('aulacore-override-institution-id') : null;
-          await loadUserData(demoData.user, demoData.session, savedOverride);
-          setLoading(false);
-          if (pathname === '/login') {
-            router.replace('/dashboard');
-          }
-          return;
-        }
-
-        // Sesión destruida
+      } else if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
         setUser(null);
         setSession(null);
         setProfile(null);
         setRoles([]);
         setActiveRoleState(null);
         setInstitutionId(null);
-        setActiveInstitution(MOCK_DEMO_INSTITUTION);
+        setActiveInstitution(null);
         setOverrideInstitutionIdState(null);
         setAllInstitutions([]);
         setLoading(false);
 
-        // Si está en una ruta protegida, redirigir al login
         if (pathname !== '/login' && pathname !== '/' && !pathname?.startsWith('/territorio')) {
           router.replace('/login');
         }
@@ -379,9 +283,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isMounted = false;
       subscription.unsubscribe();
     };
-  }, []); // Run only on mount
+  }, []);
 
-  // Redirigir si cambia la ruta y no hay sesión (protección de rutas cliente)
   useEffect(() => {
     if (!loading) {
       if (!session && pathname !== '/login' && pathname !== '/' && !pathname?.startsWith('/territorio')) {
@@ -393,54 +296,55 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [pathname, session, loading, router]);
 
   const setActiveRole = (role: UserRole) => {
-    setActiveRoleState(role);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('aulacore-user-role', role);
-      const name = profile ? `${profile.first_name} ${profile.last_name}` : 'Usuario';
-      localStorage.setItem('aulacore-user-name', name);
+    // Validar que el usuario realmente tiene este rol antes de cambiarlo
+    if (roles.includes(role)) {
+      setActiveRoleState(role);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('aulacore-user-role', role);
+      }
+    } else {
+      console.warn(`Intento de cambio a rol no autorizado: ${role}`);
     }
   };
 
   const signOut = async () => {
     setLoading(true);
     
-    // 1. Limpieza inmediata en estados reactivos
-    setUser(null);
-    setSession(null);
-    setProfile(null);
-    setRoles([]);
-    setActiveRoleState(null);
-    setInstitutionId(null);
-    setActiveInstitution(MOCK_DEMO_INSTITUTION);
-    setOverrideInstitutionIdState(null);
-    setAllInstitutions([]);
-
-    // 2. Limpieza robusta de almacenamiento local (tokens sb-* y estados aulacore-*)
-    if (typeof window !== 'undefined') {
-      const keysToRemove: string[] = [];
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && (key.startsWith('aulacore-') || key.startsWith('sb-'))) {
-          keysToRemove.push(key);
-        }
-      }
-      keysToRemove.forEach(key => localStorage.removeItem(key));
-      sessionStorage.clear();
-    }
-    
-    // 3. Esperar cierre real de sesión en Supabase con timeout de seguridad
     try {
-      await Promise.race([
-        supabase.auth.signOut(),
-        new Promise(resolve => setTimeout(resolve, 1500))
-      ]);
+      // 1. Esperar cierre real de sesión en el backend Supabase
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
+      // 2. Limpieza inmediata y robusta de estados de React
+      setUser(null);
+      setSession(null);
+      setProfile(null);
+      setRoles([]);
+      setActiveRoleState(null);
+      setInstitutionId(null);
+      setActiveInstitution(null);
+      setOverrideInstitutionIdState(null);
+      setAllInstitutions([]);
+      
+      // 3. Limpiar TODO el Storage para evitar que Mocks o cachés anteriores sobrevivan
+      if (typeof window !== 'undefined') {
+        localStorage.clear();
+        sessionStorage.clear();
+      }
+
+      // 4. Redirección limpia mediante el enrutador de Next.js en vez de window.location
+      router.replace('/login');
     } catch (err) {
-      console.error('Error llamando a signOut:', err);
+      console.error('Error durante el cierre de sesión:', err);
+      // Forzar limpieza y salida si Supabase falla
+      if (typeof window !== 'undefined') {
+        localStorage.clear();
+        sessionStorage.clear();
+        window.location.href = '/login';
+      }
+    } finally {
+      setLoading(false);
     }
-    
-    setLoading(false);
-    // 4. Redirección limpia al login al finalizar la limpieza de sesión
-    window.location.href = '/login';
   };
 
   const isAuthenticated = !!user;

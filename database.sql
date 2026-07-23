@@ -47,11 +47,38 @@ alter table public.institutions enable row level security;
 alter table public.profiles enable row level security;
 alter table public.user_roles enable row level security;
 
+-- Funciones auxiliares multi-tenant de alto rendimiento para RLS
+create or replace function public.get_auth_user_institution_ids()
+returns setof uuid
+language sql
+security definer
+stable
+as $$
+  select institution_id
+  from public.user_roles
+  where user_id = auth.uid() and institution_id is not null;
+$$;
+
+create or replace function public.is_super_admin()
+returns boolean
+language sql
+security definer
+stable
+as $$
+  select exists (
+    select 1 from public.user_roles
+    where user_id = auth.uid() and role = 'super_admin'
+  );
+$$;
+
 -- Políticas para institutions
-create policy "Permitir lectura de instituciones a usuarios autenticados"
+create policy "Lectura de instituciones por tenant o superadmin"
   on public.institutions for select
   to authenticated
-  using (true);
+  using (
+    id in (select public.get_auth_user_institution_ids())
+    or public.is_super_admin()
+  );
 
 create policy "Restringir escritura de instituciones a administradores globales"
   on public.institutions for all
@@ -59,10 +86,18 @@ create policy "Restringir escritura de instituciones a administradores globales"
   using (true);
 
 -- Políticas para profiles
-create policy "Permitir lectura de perfiles a usuarios autenticados"
+create policy "Lectura de perfiles del mismo colegio o propio"
   on public.profiles for select
   to authenticated
-  using (true);
+  using (
+    id = auth.uid()
+    or public.is_super_admin()
+    or exists (
+      select 1 from public.user_roles ur
+      where ur.user_id = profiles.id
+        and ur.institution_id in (select public.get_auth_user_institution_ids())
+    )
+  );
 
 create policy "Permitir a usuarios actualizar su propio perfil"
   on public.profiles for update
@@ -71,10 +106,21 @@ create policy "Permitir a usuarios actualizar su propio perfil"
   with check (auth.uid() = id);
 
 -- Políticas para user_roles
-create policy "Permitir a usuarios ver sus propios roles asignados"
+create policy "Lectura de roles propia o directivos del mismo colegio"
   on public.user_roles for select
   to authenticated
-  using (auth.uid() = user_id);
+  using (
+    user_id = auth.uid()
+    or public.is_super_admin()
+    or (
+      institution_id in (select public.get_auth_user_institution_ids())
+      and exists (
+        select 1 from public.user_roles admin_ur
+        where admin_ur.user_id = auth.uid()
+          and admin_ur.role in ('rector', 'coordinador', 'secretaria')
+      )
+    )
+  );
 
 create policy "Restringir modificación de roles a servicio administrativo"
   on public.user_roles for all

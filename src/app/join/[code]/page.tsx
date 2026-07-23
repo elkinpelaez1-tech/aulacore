@@ -25,7 +25,7 @@ import { supabase } from '@/lib/supabase';
 export default function JoinOnboardingPage() {
   const params = useParams();
   const router = useRouter();
-  const { setUserRole, setUserName } = useRole();
+  const { setUserRole } = useRole();
   const code = (params?.code as string) || '';
 
   // Onboarding activation details if act- prefix
@@ -158,7 +158,6 @@ export default function JoinOnboardingPage() {
   const handleEnterDashboard = async () => {
     // Dynamically set local state role and name to allow Rector-style showcase!
     setUserRole(selectedRole);
-    setUserName(fullName);
     
     if (code.toLowerCase().startsWith('act-')) {
       const onboardingId = code.substring(4);

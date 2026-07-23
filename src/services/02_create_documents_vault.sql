@@ -74,25 +74,52 @@ alter table public.institution_documents enable row level security;
 alter table public.institution_document_audit enable row level security;
 
 -- Políticas para plantillas
-create policy "Lectura de plantillas a autenticados"
-  on public.institution_document_templates for select to authenticated using (true);
+create policy "Lectura plantillas por colegio"
+  on public.institution_document_templates for select to authenticated
+  using (
+    institution_id in (select public.get_auth_user_institution_ids())
+    or public.is_super_admin()
+  );
 
-create policy "Gestión de plantillas reservada a Rectores"
+create policy "Gestión de plantillas reservada a Rectores del colegio"
   on public.institution_document_templates for all to authenticated
-  using (exists (select 1 from public.user_roles ur where ur.user_id = auth.uid() and ur.role = 'rector'));
+  using (
+    public.is_super_admin()
+    or (
+      institution_id in (select public.get_auth_user_institution_ids())
+      and exists (select 1 from public.user_roles ur where ur.user_id = auth.uid() and ur.role = 'rector')
+    )
+  );
 
--- Políticas para documentos (La validación pública debe poder leer de forma anónima)
-create policy "Lectura pública anónima por código de verificación"
+-- Políticas para documentos (Aislamiento por colegio, salvo consulta por código de verificación)
+create policy "Lectura documentos por colegio o verificacion"
   on public.institution_documents for select to anon, authenticated
-  using (true);
+  using (
+    (auth.uid() is not null and (
+      institution_id in (select public.get_auth_user_institution_ids())
+      or student_id = auth.uid()
+      or public.is_super_admin()
+    ))
+    or verification_code is not null
+  );
 
-create policy "Creación de documentos a Rectores, Directores y Docentes"
+create policy "Creación de documentos a Rectores, Directores y Docentes del colegio"
   on public.institution_documents for insert to authenticated
-  with check (exists (select 1 from public.user_roles ur where ur.user_id = auth.uid() and ur.role in ('rector', 'director_grupo', 'docente', 'secretaria')));
+  with check (
+    institution_id in (select public.get_auth_user_institution_ids())
+    and exists (select 1 from public.user_roles ur where ur.user_id = auth.uid() and ur.role in ('rector', 'director_grupo', 'docente', 'secretaria'))
+  );
 
-create policy "Actualización de estado a Rectores, Directores, Padres y Docentes"
+create policy "Actualización de estado a autorizados del colegio"
   on public.institution_documents for update to authenticated
-  using (true) with check (true);
+  using (
+    institution_id in (select public.get_auth_user_institution_ids())
+    or public.is_super_admin()
+  )
+  with check (
+    institution_id in (select public.get_auth_user_institution_ids())
+    or public.is_super_admin()
+  );
 
 -- Políticas para logs de auditoría
 create policy "Lectura de auditoría a personal autorizado"

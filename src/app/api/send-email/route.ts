@@ -1,7 +1,49 @@
 import { NextResponse } from 'next/server';
+import { createServerClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
 
 export async function POST(request: Request) {
   try {
+    // 1. VALIDACIÓN DE AUTENTICACIÓN / AUTORIZACIÓN (P0-03 API HARDENING)
+    // Evita open mail relay o suplantación institucional por anónimos.
+    const cookieStore = await cookies();
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+
+    let isAuthenticated = false;
+
+    // A. Validar Header interno de Servicio (para tareas automatizadas cron o servidor a servidor)
+    const authHeader = request.headers.get('authorization') || '';
+    const internalServiceSecret = process.env.INTERNAL_API_SECRET || '';
+    if (internalServiceSecret && authHeader === `Bearer ${internalServiceSecret}`) {
+      isAuthenticated = true;
+    }
+
+    // B. Validar Sesión de Usuario en Supabase Auth vía cookies
+    if (!isAuthenticated && supabaseUrl && supabaseAnonKey) {
+      const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+        cookies: {
+          getAll() {
+            return cookieStore.getAll();
+          },
+          setAll() {},
+        },
+      });
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        isAuthenticated = true;
+      }
+    }
+
+    // Si estamos en entorno productivo y no está autenticado ni por sesión ni por token de servicio
+    if (!isAuthenticated && process.env.NODE_ENV === 'production') {
+      return NextResponse.json(
+        { error: 'No autorizado. Debe iniciar sesión para despachar correos institucionales.' },
+        { status: 401 }
+      );
+    }
+
     const { to, subject, message, category, recipientName } = await request.json();
 
     if (!to || !subject || !message) {

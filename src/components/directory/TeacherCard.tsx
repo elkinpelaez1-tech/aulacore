@@ -81,7 +81,7 @@ export function TeacherCard({ teacher, onClick }: Props) {
           category: emailCategory,
           sentAt: new Date().toISOString(),
           senderRole: 'Coordinador',
-          senderName: 'Dr. Ramírez'
+          senderName: 'Coordinador(a)'
         };
         localStorage.setItem(localKey, JSON.stringify([newLog, ...existingLogs]));
       })

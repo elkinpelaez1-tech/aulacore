@@ -8,11 +8,31 @@ export async function middleware(request: NextRequest) {
     },
   });
 
+  const pathname = request.nextUrl.pathname;
+
+  // 1. INVENTARIO DE RUTAS PÚBLICAS (ESTRICTAMENTE NECESARIAS - ALLOW LIST EXCLUSIVA)
+  const publicPaths = [
+    '/login',
+    '/verify',
+    '/join',
+    '/transparencia',
+    '/api' // Endpoints públicos como webhook/notificación (auditar independientemente en P1)
+  ];
+
+  const isPublicPath = publicPaths.some(
+    (path) => pathname === path || pathname.startsWith(path + '/')
+  );
+
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
-  // Si faltan las claves, permitir el paso (para evitar bloqueos en el build o desarrollo local sin env)
+  // Si faltan las claves en entorno de producción para una ruta NO pública, bloquear el acceso por defecto
   if (!supabaseUrl || !supabaseAnonKey) {
+    if (!isPublicPath && process.env.NODE_ENV === 'production') {
+      const url = request.nextUrl.clone();
+      url.pathname = '/login';
+      return NextResponse.redirect(url);
+    }
     return response;
   }
 
@@ -40,45 +60,31 @@ export async function middleware(request: NextRequest) {
       }
     );
 
-    // Refrescar el token del usuario si está expirado (importante para mantener la sesión)
+    // Refrescar el token y validar la sesión activa (SSR segura en el Edge)
     const { data: { user } } = await supabase.auth.getUser();
 
-    // Rutas que requieren autenticación
-    const protectedPaths = [
-      '/dashboard',
-      '/directores',
-      '/docentes',
-      '/estudiantes',
-      '/cursos',
-      '/reportes',
-      '/alertas',
-      '/configuracion',
-      '/asistencia',
-      '/observaciones',
-      '/notas',
-      '/evaluaciones',
-      '/documentos',
-      '/mi-hijo'
-    ];
-    
-    const pathname = request.nextUrl.pathname;
-    const isProtected = protectedPaths.some((path) => pathname === path || pathname.startsWith(path + '/'));
-
-    if (isProtected && !user) {
-      // Si no está autenticado, redirigir a /login
-      const url = request.nextUrl.clone();
-      url.pathname = '/login';
-      return NextResponse.redirect(url);
-    }
-
+    // 2. REDIRECCIÓN DE USUARIO LOGUEADO INTENTANDO IR A /LOGIN
     if (pathname === '/login' && user) {
-      // Si está autenticado e intenta ir a /login, redirigir a /dashboard
       const url = request.nextUrl.clone();
       url.pathname = '/dashboard';
       return NextResponse.redirect(url);
     }
+
+    // 3. ESTRATEGIA DEFAULT DENY: CUALQUIER RUTA NO PÚBLICA REQUIERE AUTENTICACIÓN
+    if (!isPublicPath && !user) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/login';
+      url.searchParams.set('redirectTo', pathname);
+      return NextResponse.redirect(url);
+    }
   } catch (error) {
-    console.error('Error en middleware de autenticación:', error);
+    console.error('[Security Middleware] Error verificando sesión:', error);
+    // En caso de fallo criptográfico o de conexión al verificar sesión en ruta protegida, DENY BY DEFAULT
+    if (!isPublicPath) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/login';
+      return NextResponse.redirect(url);
+    }
   }
 
   return response;
@@ -91,8 +97,8 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * - images, logos, logos/assets (static files)
+     * - images, logos, assets (static files)
      */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)',
   ],
 };

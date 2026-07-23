@@ -14,7 +14,7 @@ interface RootLayoutProps {
 export function RootLayout({ children, userRole: _propRole, userName: _propName }: RootLayoutProps) {
   const { userRole, userName, mounted, activeInstitution } = useRole();
 
-  if (!mounted) {
+  if (!mounted || !userRole) {
     return (
       <div className="flex h-screen bg-slate-50 items-center justify-center">
         <div className="flex flex-col items-center gap-3">

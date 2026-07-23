@@ -25,7 +25,7 @@ export function PrintPreviewModal({ isOpen, onClose, evaluation, onSaveAndPublis
     slogan: 'Liderazgo, Ciencia y Excelencia',
     primaryColor: '#4f46e5',
     nit: '901.234.567-8',
-    rectorName: 'Dr. Ramírez',
+    rectorName: 'Rector(a)',
     daneCode: '111001032541'
   });
 

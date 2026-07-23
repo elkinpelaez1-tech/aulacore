@@ -4,6 +4,7 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { useAuth, InstitutionData } from '@/providers/auth-provider';
+import { useSaasMetrics } from '@/hooks/useSaasMetrics';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
@@ -45,7 +46,7 @@ const IMPLEMENTATION_STAGES = [
 function SaasConsoleContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { allInstitutions, roles, activeRole, overrideInstitutionId: savedOverride, setOverrideInstitutionId, refreshSession } = useAuth();
+  const { user, allInstitutions, roles, activeRole, overrideInstitutionId: savedOverride, setOverrideInstitutionId, refreshSession } = useAuth();
   const activeSimulatedName = allInstitutions?.find(i => i.id === savedOverride)?.name || '';
 
   const [loading, setLoading] = useState(false);
@@ -73,22 +74,8 @@ function SaasConsoleContent() {
   const [institutions, setInstitutions] = useState<any[]>([]);
   const [instMetrics, setInstMetrics] = useState<Record<string, any>>({});
   
-  // Estadísticas globales del Dashboard
-  const [globalStats, setGlobalStats] = useState({
-    totalInsts: 0,
-    activeInsts: 0,
-    implInsts: 0,
-    suspInsts: 0,
-    totalStudents: 0,
-    totalTeachers: 0,
-    totalUsers: 0,
-    totalGrades: 0,
-    totalAttendance: 0,
-    totalAlerts: 0,
-    totalStorage: '1.25 GB',
-    uptime: '99.98%',
-    activeUsersOnline: 8
-  });
+  // Estadísticas globales del Dashboard conectadas a la base de datos SaaS
+  const { metrics: globalStats, loading: loadingStats } = useSaasMetrics();
 
   // Drawer Lateral de Vista 360
   const [selectedInst360, setSelectedInst360] = useState<any | null>(null);
@@ -259,22 +246,6 @@ function SaasConsoleContent() {
       const totalStudents = rolesData?.filter(r => r.role === 'estudiante').length || 0;
       const totalTeachers = rolesData?.filter(r => r.role === 'docente').length || 0;
       const totalUsers = rolesData?.length || 0;
-
-      setGlobalStats({
-        totalInsts: insts.length,
-        activeInsts: active,
-        implInsts: impl,
-        suspInsts: susp,
-        totalStudents,
-        totalTeachers,
-        totalUsers,
-        totalGrades: gradesData?.length || 0,
-        totalAttendance: attendanceData?.length || 0,
-        totalAlerts: alertsData?.filter(a => a.status === 'open').length || 0,
-        totalStorage: (insts.length * 0.45 + 0.35).toFixed(2) + ' GB',
-        uptime: '99.98%',
-        activeUsersOnline: Math.floor(Math.random() * 4) + 6
-      });
 
     } catch (e) {
       console.error('Error calculando métricas:', e);
@@ -498,6 +469,9 @@ function SaasConsoleContent() {
 
   const handleStopSimulate = () => {
     setOverrideInstitutionId(null);
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('aulacore-support-mode');
+    }
     setSuccess('Simulación finalizada. Restaurado a su inquilino de origen.');
     setTimeout(() => setSuccess(null), 4000);
   };
@@ -526,16 +500,20 @@ function SaasConsoleContent() {
 
   const handleConfirmSupportMode = async (tenantId: string, tenantName: string, reason: string) => {
     try {
-      await supabase.from('migration_audit_logs').insert({
-        institution_id: tenantId,
-        user_id: (await supabase.auth.getUser()).data.user?.id || 'super-admin',
-        module_type: 'MODO_SOPORTE_RBAC',
-        file_name: `Motivo: ${reason}`,
-        records_count: 1,
-        status: 'Exitoso'
-      });
+      // Intentar registrar en auditoría sin bloquear el flujo principal (máximo 1.5s de espera)
+      await Promise.race([
+        supabase.from('migration_audit_logs').insert({
+          institution_id: tenantId,
+          user_id: user?.id || 'super-admin',
+          module_type: 'MODO_SOPORTE_RBAC',
+          file_name: `Motivo: ${reason}`,
+          records_count: 1,
+          status: 'Exitoso'
+        }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Audit log timeout')), 1500))
+      ]);
     } catch (e) {
-      console.warn('Error audit log:', e);
+      console.warn('Registro de auditoría en segundo plano o timeout:', e);
     }
 
     if (typeof window !== 'undefined') {
@@ -546,7 +524,7 @@ function SaasConsoleContent() {
         timestamp: new Date().toISOString()
       }));
     }
-    await setOverrideInstitutionId(tenantId);
+    setOverrideInstitutionId(tenantId);
     router.push('/dashboard');
   };
 
@@ -701,7 +679,7 @@ function SaasConsoleContent() {
       {/* RENDERIZADO DEL MÓDULO SELECCIONADO */}
       <div className="transition-all duration-300">
         {activeTab === 'dashboard' && <SaasDashboard stats={globalStats} />}
-        {activeTab === 'alertas_saas' && <SaasAlertsCenter institutions={institutions} />}
+        {activeTab === 'alertas_saas' && <SaasAlertsCenter />}
         {activeTab === 'facturacion' && <SaasBilling />}
         {activeTab === 'colegios' && (
           <SaasClientsTable 

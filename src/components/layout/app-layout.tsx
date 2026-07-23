@@ -30,7 +30,7 @@ export function AppLayout({ children, userRole: _propRole, userName: _propName, 
     };
   }, []);
 
-  if (!mounted) {
+  if (!mounted || !userRole) {
     return (
       <div className="flex h-screen bg-slate-50 items-center justify-center">
         <div className="flex flex-col items-center gap-3">
