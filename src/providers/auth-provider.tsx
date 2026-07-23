@@ -86,17 +86,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Función para cargar los datos del usuario 100% desde la base de datos pública
   const loadUserData = async (currentUser: User, currentSession: Session, overrideId?: string | null) => {
-    console.log('[Auth] loadUserData started for user', currentUser.id);
+    console.log('[Auth Audit] loadUserData started');
+    console.log('[Auth Audit] 1. auth.uid() ->', currentUser.id);
+    console.log('[Auth Audit] 2. email autenticado ->', currentUser.email);
+    
     try {
       console.log('[Auth] Fetching profile...');
       // 1. Consultar perfil en public.profiles
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
-        .select('first_name, last_name, avatar_url')
+        .select('*')
         .eq('id', currentUser.id)
         .maybeSingle();
 
-      if (profileError) console.error('[Auth] Error cargando perfil desde Supabase:', profileError);
+      console.log('[Auth Audit] 4. Resultado completo de public.profiles ->', { profileData, profileError });
 
       const userProfile = profileData || {
         first_name: currentUser.user_metadata?.first_name || 'Usuario',
@@ -104,20 +107,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         avatar_url: currentUser.user_metadata?.avatar_url || '',
       };
       
-      console.log('[Auth] Profile loaded', userProfile);
       setProfile(userProfile as AuthProfile);
 
       console.log('[Auth] Fetching user roles...');
       // 2. Consultar roles asignados en public.user_roles (incluyendo institution_id)
       const { data: rolesData, error: rolesError } = await supabase
         .from('user_roles')
-        .select('role, institution_id')
+        .select('*')
         .eq('user_id', currentUser.id);
 
-      if (rolesError) console.error('[Auth] Error cargando roles desde Supabase:', rolesError);
+      console.log('[Auth Audit] 3. Resultado completo de public.user_roles ->', { rolesData, rolesError });
 
       const userRoles = (rolesData?.map((r: any) => r.role) || []) as UserRole[];
-      console.log('[Auth] Roles loaded', userRoles);
       setRoles(userRoles);
 
       const defaultInstId = rolesData && rolesData.length > 0 ? rolesData[0].institution_id : null;
@@ -125,15 +126,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // 3. Cargar todas las instituciones si es super_admin
       let allInstsData: any[] = [];
       if (userRoles.includes('super_admin')) {
-        console.log('[Auth] User is super_admin. Fetching all institutions...');
-        const { data: allInsts } = await supabase
+        const { data: allInsts, error: allInstsError } = await supabase
           .from('institutions')
           .select('*')
           .order('name');
+          
+        if (allInstsError) console.error('[Auth Audit] Error fetching institutions:', allInstsError);
+        
         if (allInsts) {
           allInstsData = allInsts;
           setAllInstitutions(allInsts as any);
-          console.log(`[Auth] Loaded ${allInsts.length} institutions`);
         }
       }
 
@@ -143,12 +145,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         ? (overrideId || savedOverride) 
         : defaultInstId;
 
-      console.log('[Auth] Setting institution ID to', activeId);
       setInstitutionId(activeId);
 
       // 5. Cargar detalles de la institución activa si existe
       if (activeId) {
-        console.log('[Auth] Fetching active institution data for', activeId);
         const { data: instData, error: instErr } = await supabase
           .from('institutions')
           .select('*')
@@ -165,13 +165,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       // 6. Determinar el rol activo sin forzar variables quemadas
+      console.log('[Auth Audit] 5. activeRole antes de asignarse -> null o guardado. userRoles encontrados:', userRoles);
+      
       if (userRoles.length > 0) {
         const savedRole = typeof window !== 'undefined' ? localStorage.getItem('aulacore-user-role') as UserRole : null;
         
         // Si el rol guardado es válido para el usuario, usarlo. Si no, aplicar jerarquía.
         if (savedRole && userRoles.includes(savedRole)) {
-          console.log('[Auth] Active role restored from localStorage', savedRole);
           setActiveRoleState(savedRole);
+          console.log('[Auth Audit] 6. activeRole después de asignarse (desde localStorage) ->', savedRole);
         } else {
           let selectedRole: UserRole = userRoles[0];
           const hierarchy: UserRole[] = ['super_admin', 'rector', 'coordinador', 'director_grupo', 'docente', 'secretaria', 'padre_familia', 'estudiante'];
@@ -181,20 +183,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               break;
             }
           }
-          console.log('[Auth] Active role assigned from hierarchy', selectedRole);
           setActiveRoleState(selectedRole);
+          console.log('[Auth Audit] 6. activeRole después de asignarse (desde jerarquía) ->', selectedRole);
           if (typeof window !== 'undefined') {
             localStorage.setItem('aulacore-user-role', selectedRole);
           }
         }
       } else {
-        console.log('[Auth] No roles found. Setting active role to null.');
         setActiveRoleState(null);
+        console.log('[Auth Audit] 6. activeRole después de asignarse (ningún rol disponible) -> null');
         if (typeof window !== 'undefined') localStorage.removeItem('aulacore-user-role');
       }
       console.log('[Auth] loadUserData finished successfully');
     } catch (err) {
-      console.error('[Auth] Error en loadUserData:', err);
+      console.error('[Auth Audit] Exception thrown in loadUserData:', err);
     }
   };
 
