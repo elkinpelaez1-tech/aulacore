@@ -71,7 +71,7 @@ const MOCK_SAAS_ALERTS: SaasAlert[] = [
     id: 'alt-saas-105',
     category: 'backup_status',
     priority: 'baja',
-    tenantName: 'Ecosistema Global AulaCore (82 Tenants)',
+    tenantName: 'Ecosistema Global AulaCore (0 Tenants)',
     title: 'Respaldo Nocturno Inmutable Completado',
     description: 'El snapshot nocturno de Supabase Postgres y almacenamiento S3 se ejecutó con 100% de éxito en todas las instancias activas.',
     timestamp: 'Hoy, 03:00 AM',

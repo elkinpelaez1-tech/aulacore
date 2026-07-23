@@ -54,7 +54,7 @@ export function SaasDashboard({ stats }: SaasDashboardProps) {
               </div>
             </div>
             <div className="space-y-0.5">
-              <span className="text-2xl font-black text-slate-900 font-mono">$84,500,000</span>
+              <span className="text-2xl font-black text-slate-900 font-mono">$84</span>
               <span className="text-[10px] font-bold text-emerald-600 block flex items-center gap-1">
                 <TrendingUp className="w-3.5 h-3.5" />
                 +12.4% vs mes anterior (COP)
@@ -70,7 +70,7 @@ export function SaasDashboard({ stats }: SaasDashboardProps) {
               </div>
             </div>
             <div className="space-y-0.5">
-              <span className="text-2xl font-black text-slate-900 font-mono">$1,014,000,000</span>
+              <span className="text-2xl font-black text-slate-900 font-mono">$</span>
               <span className="text-[10px] font-bold text-indigo-600 block">
                 🚀 Superando meta anual del Q2
               </span>
@@ -100,7 +100,7 @@ export function SaasDashboard({ stats }: SaasDashboardProps) {
               </div>
             </div>
             <div className="space-y-0.5">
-              <span className="text-2xl font-black text-slate-900 font-mono">+6 Clientes</span>
+              <span className="text-2xl font-black text-slate-900 font-mono">0 Clientes</span>
               <span className="text-[10px] font-bold text-purple-600 block">
                 4 Colegios y 2 Secretarías nuevas
               </span>
@@ -113,7 +113,7 @@ export function SaasDashboard({ stats }: SaasDashboardProps) {
           <div className="p-3.5 rounded-xl bg-blue-50/60 border border-blue-200 flex items-center justify-between">
             <div>
               <span className="text-[10px] font-extrabold text-blue-700 uppercase block">En Prueba (Free Trial)</span>
-              <span className="text-base font-black text-blue-950 mt-0.5 block">12 Tenants</span>
+              <span className="text-base font-black text-blue-950 mt-0.5 block">0 Tenants</span>
             </div>
             <Clock className="w-5 h-5 text-blue-500" />
           </div>
@@ -121,7 +121,7 @@ export function SaasDashboard({ stats }: SaasDashboardProps) {
           <div className="p-3.5 rounded-xl bg-emerald-50/60 border border-emerald-200 flex items-center justify-between">
             <div>
               <span className="text-[10px] font-extrabold text-emerald-700 uppercase block">Clientes Activos</span>
-              <span className="text-base font-black text-emerald-950 mt-0.5 block">82 Tenants</span>
+              <span className="text-base font-black text-emerald-950 mt-0.5 block">0 Tenants</span>
             </div>
             <CheckCircle2 className="w-5 h-5 text-emerald-500" />
           </div>
@@ -129,7 +129,7 @@ export function SaasDashboard({ stats }: SaasDashboardProps) {
           <div className="p-3.5 rounded-xl bg-amber-50/60 border border-amber-200 flex items-center justify-between">
             <div>
               <span className="text-[10px] font-extrabold text-amber-700 uppercase block">Por Vencer (&lt; 30d)</span>
-              <span className="text-base font-black text-amber-950 mt-0.5 block">4 Tenants</span>
+              <span className="text-base font-black text-amber-950 mt-0.5 block">0 Tenants</span>
             </div>
             <AlertCircle className="w-5 h-5 text-amber-500" />
           </div>
@@ -137,7 +137,7 @@ export function SaasDashboard({ stats }: SaasDashboardProps) {
           <div className="p-3.5 rounded-xl bg-red-50/60 border border-red-200 flex items-center justify-between">
             <div>
               <span className="text-[10px] font-extrabold text-red-700 uppercase block">Suspendidos</span>
-              <span className="text-base font-black text-red-950 mt-0.5 block">2 Tenants</span>
+              <span className="text-base font-black text-red-950 mt-0.5 block">0 Tenants</span>
             </div>
             <Server className="w-5 h-5 text-red-500" />
           </div>
@@ -158,7 +158,7 @@ export function SaasDashboard({ stats }: SaasDashboardProps) {
             </div>
             <div>
               <span className="text-[10px] font-bold text-slate-400 uppercase block">Estudiantes Administrados</span>
-              <span className="text-2xl font-black text-slate-900 mt-0.5 block font-mono">48,250</span>
+              <span className="text-2xl font-black text-slate-900 mt-0.5 block font-mono">0</span>
               <span className="text-[10px] font-bold text-emerald-600 block mt-0.5">● Alumnos en 14 departamentos</span>
             </div>
           </Card>
@@ -169,7 +169,7 @@ export function SaasDashboard({ stats }: SaasDashboardProps) {
             </div>
             <div>
               <span className="text-[10px] font-bold text-slate-400 uppercase block">Docentes y Directivos</span>
-              <span className="text-2xl font-black text-slate-900 mt-0.5 block font-mono">3,120</span>
+              <span className="text-2xl font-black text-slate-900 mt-0.5 block font-mono">0</span>
               <span className="text-[10px] font-bold text-purple-600 block mt-0.5">● Educadores operando en la nube</span>
             </div>
           </Card>
@@ -180,7 +180,7 @@ export function SaasDashboard({ stats }: SaasDashboardProps) {
             </div>
             <div>
               <span className="text-[10px] font-bold text-slate-400 uppercase block">Secretarías de Educación</span>
-              <span className="text-2xl font-black text-slate-900 mt-0.5 block font-mono">14 SEDs</span>
+              <span className="text-2xl font-black text-slate-900 mt-0.5 block font-mono">0 SEDs</span>
               <span className="text-[10px] font-bold text-blue-600 block mt-0.5">● Conectadas a SIMAT y SISBEN IV</span>
             </div>
           </Card>

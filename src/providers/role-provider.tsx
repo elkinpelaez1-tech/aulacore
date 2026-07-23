@@ -69,7 +69,8 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
     if (savedCustomName) {
       name = savedCustomName;
     } else {
-      if (role === 'rector') name = 'Dr. Ramírez';
+      if (role === 'super_admin') name = 'Elkin Peláez';
+      else if (role === 'rector') name = 'Dr. Ramírez';
       else if (role === 'coordinador') name = 'Dra. Diana Carolina Reyes';
       else if (role === 'director_grupo') name = 'Lic. Martínez';
       else if (role === 'docente') name = 'Prof. Gómez';
