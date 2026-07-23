@@ -86,7 +86,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Función para cargar los datos del usuario 100% desde la base de datos pública
   const loadUserData = async (currentUser: User, currentSession: Session, overrideId?: string | null) => {
+    console.log('[Auth] loadUserData started for user', currentUser.id);
     try {
+      console.log('[Auth] Fetching profile...');
       // 1. Consultar perfil en public.profiles
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
@@ -94,25 +96,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .eq('id', currentUser.id)
         .maybeSingle();
 
-      if (profileError) console.error('Error cargando perfil desde Supabase:', profileError);
+      if (profileError) console.error('[Auth] Error cargando perfil desde Supabase:', profileError);
 
       const userProfile = profileData || {
         first_name: currentUser.user_metadata?.first_name || 'Usuario',
         last_name: currentUser.user_metadata?.last_name || 'Nuevo',
         avatar_url: currentUser.user_metadata?.avatar_url || '',
       };
-
+      
+      console.log('[Auth] Profile loaded', userProfile);
       setProfile(userProfile as AuthProfile);
 
+      console.log('[Auth] Fetching user roles...');
       // 2. Consultar roles asignados en public.user_roles (incluyendo institution_id)
       const { data: rolesData, error: rolesError } = await supabase
         .from('user_roles')
         .select('role, institution_id')
         .eq('user_id', currentUser.id);
 
-      if (rolesError) console.error('Error cargando roles desde Supabase:', rolesError);
+      if (rolesError) console.error('[Auth] Error cargando roles desde Supabase:', rolesError);
 
       const userRoles = (rolesData?.map((r: any) => r.role) || []) as UserRole[];
+      console.log('[Auth] Roles loaded', userRoles);
       setRoles(userRoles);
 
       const defaultInstId = rolesData && rolesData.length > 0 ? rolesData[0].institution_id : null;
@@ -120,6 +125,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // 3. Cargar todas las instituciones si es super_admin
       let allInstsData: any[] = [];
       if (userRoles.includes('super_admin')) {
+        console.log('[Auth] User is super_admin. Fetching all institutions...');
         const { data: allInsts } = await supabase
           .from('institutions')
           .select('*')
@@ -127,6 +133,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (allInsts) {
           allInstsData = allInsts;
           setAllInstitutions(allInsts as any);
+          console.log(`[Auth] Loaded ${allInsts.length} institutions`);
         }
       }
 
@@ -136,10 +143,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         ? (overrideId || savedOverride) 
         : defaultInstId;
 
+      console.log('[Auth] Setting institution ID to', activeId);
       setInstitutionId(activeId);
 
       // 5. Cargar detalles de la institución activa si existe
       if (activeId) {
+        console.log('[Auth] Fetching active institution data for', activeId);
         const { data: instData, error: instErr } = await supabase
           .from('institutions')
           .select('*')
@@ -161,6 +170,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         // Si el rol guardado es válido para el usuario, usarlo. Si no, aplicar jerarquía.
         if (savedRole && userRoles.includes(savedRole)) {
+          console.log('[Auth] Active role restored from localStorage', savedRole);
           setActiveRoleState(savedRole);
         } else {
           let selectedRole: UserRole = userRoles[0];
@@ -171,17 +181,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               break;
             }
           }
+          console.log('[Auth] Active role assigned from hierarchy', selectedRole);
           setActiveRoleState(selectedRole);
           if (typeof window !== 'undefined') {
             localStorage.setItem('aulacore-user-role', selectedRole);
           }
         }
       } else {
+        console.log('[Auth] No roles found. Setting active role to null.');
         setActiveRoleState(null);
         if (typeof window !== 'undefined') localStorage.removeItem('aulacore-user-role');
       }
+      console.log('[Auth] loadUserData finished successfully');
     } catch (err) {
-      console.error('Error en loadUserData:', err);
+      console.error('[Auth] Error en loadUserData:', err);
     }
   };
 
@@ -220,26 +233,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let isMounted = true;
 
     const initializeAuth = async () => {
+      console.log('[Auth] initializeAuth started');
       try {
         const savedOverride = typeof window !== 'undefined' ? localStorage.getItem('aulacore-override-institution-id') : null;
         if (savedOverride) setOverrideInstitutionIdState(savedOverride);
         
+        console.log('[Auth] Fetching session from Supabase...');
         const { data: { session: initialSession }, error } = await supabase.auth.getSession();
         
-        if (!isMounted) return;
+        if (!isMounted) {
+          console.log('[Auth] initializeAuth aborted: Component unmounted');
+          return;
+        }
 
         if (initialSession && initialSession.user && !error) {
+          console.log('[Auth] Session loaded', { userId: initialSession.user.id });
           setSession(initialSession);
           setUser(initialSession.user);
           await loadUserData(initialSession.user, initialSession, savedOverride);
         } else {
+          console.log('[Auth] No active session found or error:', error);
           // Limpiar si hay error o no hay sesión real
           setUser(null);
           setSession(null);
         }
       } catch (err) {
-        console.error('Error inicializando autenticación:', err);
+        console.error('[Auth] Error inicializando autenticación:', err);
       } finally {
+        console.log('[Auth] initializeAuth finally block. Setting loading to false');
         if (isMounted) setLoading(false);
       }
     };
@@ -247,21 +268,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     initializeAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: any, newSession: any) => {
-      if (!isMounted) return;
-
-      console.log(`[Supabase Auth] Evento detectado: ${event}`);
+      console.log(`[Auth] onAuthStateChange Evento detectado: ${event}`, { isMounted, sessionUser: newSession?.user?.id });
+      if (!isMounted) {
+        console.log('[Auth] onAuthStateChange aborted: Component unmounted');
+        return;
+      }
 
       if (newSession && newSession.user) {
+        console.log('[Auth] onAuthStateChange: Processing new session');
         setSession(newSession);
         setUser(newSession.user);
         const savedOverride = typeof window !== 'undefined' ? localStorage.getItem('aulacore-override-institution-id') : null;
         await loadUserData(newSession.user, newSession, savedOverride);
+        console.log('[Auth] onAuthStateChange: Setting loading to false after loadUserData');
         setLoading(false);
         
         if (pathname === '/login') {
+          console.log('[Auth] Redirecting from /login to /dashboard');
           router.replace('/dashboard');
         }
       } else if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
+        console.log('[Auth] onAuthStateChange: Processing SIGNED_OUT or USER_DELETED');
         setUser(null);
         setSession(null);
         setProfile(null);
@@ -274,8 +301,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setLoading(false);
 
         if (pathname !== '/login' && pathname !== '/' && !pathname?.startsWith('/territorio')) {
+          console.log('[Auth] Redirecting to /login due to sign out');
           router.replace('/login');
         }
+      } else {
+        console.log('[Auth] onAuthStateChange: Event did not trigger session processing (likely INITIAL_SESSION or similar without user change)');
       }
     });
 

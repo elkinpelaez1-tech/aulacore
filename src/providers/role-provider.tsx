@@ -19,11 +19,29 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
   const { profile, activeRole, setActiveRole, isAuthenticated, loading, institutionId, activeInstitution } = useAuth();
   
   const [mounted, setMounted] = useState(false);
+  const authRole = activeRole;
 
-  // Se considera montado cuando cargó el cliente para evitar errores de hidratación
   useEffect(() => {
-    setMounted(true);
-  }, []);
+    let isMounted = true;
+    console.log('[RoleProvider] Mounted effect started', { authLoading: loading, authUserRole: authRole });
+    
+    // Solo marcamos como montado cuando auth termine de cargar
+    if (!loading) {
+      if (isMounted) {
+        console.log('[RoleProvider] Auth loading finished. Setting mounted=true');
+        setMounted(true);
+      }
+    }
+
+    return () => {
+      isMounted = false;
+      console.log('[RoleProvider] Unmounted');
+    };
+  }, [loading]);
+
+  useEffect(() => {
+    console.log('[RoleProvider] State updated:', { mounted, authRole, loading });
+  }, [mounted, authRole, loading]);
 
   const userRole = activeRole;
   

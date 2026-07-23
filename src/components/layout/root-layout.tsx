@@ -16,7 +16,10 @@ export function RootLayout({ children, userRole: _propRole, userName: _propName 
   const { userRole, userName, mounted, activeInstitution } = useRole();
   const { loading, isAuthenticated, signOut } = useAuth();
 
+  console.log('[RootLayout] Rendering', { mounted, loading, isAuthenticated, userRole });
+
   if (!mounted || loading) {
+    console.log('[RootLayout] Showing loading spinner');
     return (
       <div className="flex h-screen bg-slate-50 items-center justify-center">
         <div className="flex flex-col items-center gap-3">
@@ -28,6 +31,7 @@ export function RootLayout({ children, userRole: _propRole, userName: _propName 
   }
 
   if (isAuthenticated && !userRole) {
+    console.log('[RootLayout] User authenticated but no role. Showing Access Denied.');
     return (
       <div className="flex h-screen bg-slate-50 items-center justify-center">
         <div className="flex flex-col items-center gap-4 text-center p-6 bg-white shadow-xl border border-slate-200 rounded-2xl max-w-sm">

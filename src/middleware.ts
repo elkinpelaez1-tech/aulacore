@@ -65,6 +65,7 @@ export async function middleware(request: NextRequest) {
 
     // 2. REDIRECCIÓN DE USUARIO LOGUEADO INTENTANDO IR A /LOGIN
     if (pathname === '/login' && user) {
+      console.log(`[Middleware] Redirecting from ${pathname} to /dashboard`);
       const url = request.nextUrl.clone();
       url.pathname = '/dashboard';
       return NextResponse.redirect(url);
@@ -72,6 +73,7 @@ export async function middleware(request: NextRequest) {
 
     // 3. ESTRATEGIA DEFAULT DENY: CUALQUIER RUTA NO PÚBLICA REQUIERE AUTENTICACIÓN
     if (!isPublicPath && !user) {
+      console.log(`[Middleware] Redirecting from ${pathname} to /login`);
       const url = request.nextUrl.clone();
       url.pathname = '/login';
       url.searchParams.set('redirectTo', pathname);

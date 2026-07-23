@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Sidebar } from './sidebar-updated';
 import { Header } from './header-new';
 import { useRole } from '@/providers/role-provider';
@@ -19,6 +19,8 @@ export function AppLayout({ children, userRole: _propRole, userName: _propName, 
   const { loading, isAuthenticated, signOut } = useAuth();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
+  console.log('[AppLayout] Rendering', { mounted, loading, isAuthenticated, userRole });
+
   useEffect(() => {
     const handleToggle = () => setIsMobileOpen(prev => !prev);
     const handleClose = () => setIsMobileOpen(false);
@@ -33,6 +35,7 @@ export function AppLayout({ children, userRole: _propRole, userName: _propName, 
   }, []);
 
   if (!mounted || loading) {
+    console.log('[AppLayout] Showing loading spinner');
     return (
       <div className="flex h-screen bg-slate-50 items-center justify-center">
         <div className="flex flex-col items-center gap-3">
@@ -44,6 +47,7 @@ export function AppLayout({ children, userRole: _propRole, userName: _propName, 
   }
 
   if (isAuthenticated && !userRole) {
+    console.log('[AppLayout] User authenticated but no role. Showing Access Denied.');
     return (
       <div className="flex h-screen bg-slate-50 items-center justify-center">
         <div className="flex flex-col items-center gap-4 text-center p-6 bg-white shadow-xl border border-slate-200 rounded-2xl max-w-sm">
