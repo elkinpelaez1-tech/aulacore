@@ -31,8 +31,8 @@ create table if not exists public.profiles (
 create table if not exists public.user_roles (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references public.profiles(id) on delete cascade,
-  institution_id uuid not null references public.institutions(id) on delete cascade,
-  role text not null check (role in ('rector', 'director_grupo', 'docente', 'secretaria', 'padre_familia', 'estudiante')),
+  institution_id uuid references public.institutions(id) on delete cascade,
+  role text not null check (role in ('super_admin', 'rector', 'director_grupo', 'docente', 'secretaria', 'padre_familia', 'estudiante')),
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   
   -- Evitar que un usuario tenga el mismo rol duplicado en la misma institución
