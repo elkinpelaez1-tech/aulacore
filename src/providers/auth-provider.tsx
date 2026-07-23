@@ -92,14 +92,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     try {
       console.log('[Auth] Fetching profile...');
-      // 1. Consultar perfil en public.profiles
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', currentUser.id)
-        .maybeSingle();
-
-      console.log('[Auth Audit] 4. Resultado completo de public.profiles ->', { profileData, profileError });
+      console.time('profiles');
+      let profileData: any = null;
+      try {
+        const result = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', currentUser.id)
+          .maybeSingle();
+        profileData = result.data;
+        if (result.error) console.error('[Auth Audit] Error in profiles query:', result.error);
+      } catch (err: any) {
+        console.error('[Auth Audit] Exception fetching profiles. Stack:', err?.stack || err);
+      }
+      console.timeEnd('profiles');
+      console.log('[Auth Audit] 4. Resultado completo de public.profiles ->', profileData);
 
       const userProfile = profileData || {
         first_name: currentUser.user_metadata?.first_name || 'Usuario',
@@ -110,13 +117,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setProfile(userProfile as AuthProfile);
 
       console.log('[Auth] Fetching user roles...');
-      // 2. Consultar roles asignados en public.user_roles (incluyendo institution_id)
-      const { data: rolesData, error: rolesError } = await supabase
-        .from('user_roles')
-        .select('*')
-        .eq('user_id', currentUser.id);
-
-      console.log('[Auth Audit] 3. Resultado completo de public.user_roles ->', { rolesData, rolesError });
+      console.time('roles');
+      let rolesData: any = null;
+      try {
+        const result = await supabase
+          .from('user_roles')
+          .select('*')
+          .eq('user_id', currentUser.id);
+        rolesData = result.data;
+        if (result.error) console.error('[Auth Audit] Error in roles query:', result.error);
+      } catch (err: any) {
+        console.error('[Auth Audit] Exception fetching roles. Stack:', err?.stack || err);
+      }
+      console.timeEnd('roles');
+      console.log('[Auth Audit] 3. Resultado completo de public.user_roles ->', rolesData);
 
       const userRoles = (rolesData?.map((r: any) => r.role) || []) as UserRole[];
       setRoles(userRoles);
@@ -126,17 +140,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // 3. Cargar todas las instituciones si es super_admin
       let allInstsData: any[] = [];
       if (userRoles.includes('super_admin')) {
-        const { data: allInsts, error: allInstsError } = await supabase
-          .from('institutions')
-          .select('*')
-          .order('name');
+        console.time('allInsts');
+        try {
+          const { data: allInsts, error: allInstsError } = await supabase
+            .from('institutions')
+            .select('*')
+            .order('name');
+            
+          if (allInstsError) console.error('[Auth Audit] Error fetching institutions:', allInstsError);
           
-        if (allInstsError) console.error('[Auth Audit] Error fetching institutions:', allInstsError);
-        
-        if (allInsts) {
-          allInstsData = allInsts;
-          setAllInstitutions(allInsts as any);
+          if (allInsts) {
+            allInstsData = allInsts;
+            setAllInstitutions(allInsts as any);
+          }
+        } catch (err: any) {
+          console.error('[Auth Audit] Exception fetching all institutions. Stack:', err?.stack || err);
         }
+        console.timeEnd('allInsts');
       }
 
       // 4. Determinar institutionId activo
@@ -149,17 +169,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // 5. Cargar detalles de la institución activa si existe
       if (activeId) {
-        const { data: instData, error: instErr } = await supabase
-          .from('institutions')
-          .select('*')
-          .eq('id', activeId)
-          .maybeSingle();
+        console.time('activeInst');
+        try {
+          const { data: instData, error: instErr } = await supabase
+            .from('institutions')
+            .select('*')
+            .eq('id', activeId)
+            .maybeSingle();
 
-        if (instData && !instErr) {
-          setActiveInstitution(instData as any);
-        } else {
-          setActiveInstitution(null);
+          if (instData && !instErr) {
+            setActiveInstitution(instData as any);
+          } else {
+            setActiveInstitution(null);
+          }
+        } catch (err: any) {
+          console.error('[Auth Audit] Exception fetching active institution. Stack:', err?.stack || err);
         }
+        console.timeEnd('activeInst');
       } else {
         setActiveInstitution(null);
       }
@@ -195,8 +221,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (typeof window !== 'undefined') localStorage.removeItem('aulacore-user-role');
       }
       console.log('[Auth] loadUserData finished successfully');
-    } catch (err) {
-      console.error('[Auth Audit] Exception thrown in loadUserData:', err);
+    } catch (err: any) {
+      console.error('[Auth Audit] General exception thrown in loadUserData. Stack:', err?.stack || err);
     }
   };
 
