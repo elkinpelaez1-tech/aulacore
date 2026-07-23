@@ -78,6 +78,9 @@ const MOCK_DEMO_INSTITUTION: InstitutionData = {
 
 const getDemoSessionIfPresent = () => {
   if (typeof window === 'undefined') return null;
+  // EN PRODUCCIÓN JAMÁS DEBE PERMITIRSE SESIÓN DEMO OFFLINE O BYPASS DE SUPABASE AUTH
+  if (process.env.NODE_ENV === 'production') return null;
+
   const demoEmail = localStorage.getItem('aulacore-demo-session');
   if (!demoEmail) return null;
   const mockUser: User = {
@@ -159,16 +162,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       let userRoles = (rolesData?.map((r: any) => r.role) || []) as string[];
       
       // Fallback para correos de demostración institucionales si la tabla user_roles no tiene el registro o está en entorno de prueba
-      if (currentUser.email && (userRoles.length === 0 || currentUser.email.toLowerCase().includes('@aulacore.com'))) {
+      if (currentUser.email && (userRoles.length === 0 || currentUser.email.toLowerCase().includes('@aulacore.com') || currentUser.email.toLowerCase() === 'elkinpelaez1@gmail.com')) {
         const emailLower = currentUser.email.toLowerCase();
-        if (emailLower.includes('rector@')) userRoles = ['rector'];
+        if (emailLower === 'elkinpelaez1@gmail.com' || emailLower.includes('superadmin@') || emailLower.includes('admin@')) userRoles = ['super_admin'];
+        else if (emailLower.includes('rector@')) userRoles = ['rector'];
         else if (emailLower.includes('director@')) userRoles = ['director_grupo'];
         else if (emailLower.includes('coordinador@')) userRoles = ['coordinador'];
         else if (emailLower.includes('docente@') || emailLower.includes('prof@')) userRoles = ['docente'];
         else if (emailLower.includes('secretaria@')) userRoles = ['secretaria'];
         else if (emailLower.includes('padre@')) userRoles = ['padre_familia'];
         else if (emailLower.includes('estudiante@')) userRoles = ['estudiante'];
-        else if (emailLower.includes('superadmin@') || emailLower.includes('admin@')) userRoles = ['super_admin'];
       }
       const defaultInstId = rolesData && rolesData.length > 0 ? rolesData[0].institution_id : null;
 
@@ -176,12 +179,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setRoles(userRoles as UserRole[]);
 
       // Cargar todas las instituciones si es super_admin
+      let allInstsData: any[] = [];
       if (userRoles.includes('super_admin')) {
         const { data: allInsts } = await supabase
           .from('institutions')
           .select('*')
           .order('name');
         if (allInsts) {
+          allInstsData = allInsts;
           setAllInstitutions(allInsts as any);
         }
       }
@@ -219,8 +224,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (userRoles.length > 0) {
         const savedRole = typeof window !== 'undefined' ? localStorage.getItem('aulacore-user-role') as UserRole : null;
         const isSuperAdmin = userRoles.includes('super_admin');
+        const hasNoInstitutions = isSuperAdmin && allInstsData.length === 0;
         
-        if (savedRole && (userRoles.includes(savedRole) || isSuperAdmin)) {
+        // Si es super_admin y acaba de limpiar la BD (no hay colegios reales), FORZAR siempre a 'super_admin' para que no quede atrapado en el mock
+        if (isSuperAdmin && hasNoInstitutions) {
+          setActiveRoleState('super_admin');
+          if (typeof window !== 'undefined') localStorage.setItem('aulacore-user-role', 'super_admin');
+        } else if (savedRole && (userRoles.includes(savedRole) || isSuperAdmin)) {
           setActiveRoleState(savedRole);
         } else {
           let selectedRole: UserRole = userRoles[0] as UserRole;
@@ -393,22 +403,43 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async () => {
     setLoading(true);
+    
+    // 1. Limpieza inmediata en estados reactivos
+    setUser(null);
+    setSession(null);
+    setProfile(null);
+    setRoles([]);
+    setActiveRoleState(null);
+    setInstitutionId(null);
+    setActiveInstitution(MOCK_DEMO_INSTITUTION);
+    setOverrideInstitutionIdState(null);
+    setAllInstitutions([]);
+
+    // 2. Limpieza robusta de almacenamiento local (tokens sb-* y estados aulacore-*)
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('aulacore-user-role');
-      localStorage.removeItem('aulacore-user-name');
-      localStorage.removeItem('aulacore-demo-name');
-      localStorage.removeItem('aulacore-override-institution-id');
-      localStorage.removeItem('aulacore-demo-session');
+      const keysToRemove: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && (key.startsWith('aulacore-') || key.startsWith('sb-'))) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach(key => localStorage.removeItem(key));
+      sessionStorage.clear();
     }
     
+    // 3. Esperar cierre real de sesión en Supabase con timeout de seguridad
     try {
-      supabase.auth.signOut().catch((err: any) => {
-        console.error('Error en signOut de Supabase en segundo plano:', err);
-      });
+      await Promise.race([
+        supabase.auth.signOut(),
+        new Promise(resolve => setTimeout(resolve, 1500))
+      ]);
     } catch (err) {
       console.error('Error llamando a signOut:', err);
     }
     
+    setLoading(false);
+    // 4. Redirección limpia al login al finalizar la limpieza de sesión
     window.location.href = '/login';
   };
 
