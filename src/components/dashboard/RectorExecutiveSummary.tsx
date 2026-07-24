@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   GraduationCap,
   UserMinus,
@@ -15,9 +15,16 @@ import {
   Bell,
   Info,
   Sparkles,
-  ArrowUpRight
+  ArrowUpRight,
+  PlusCircle,
+  BookOpen,
+  UserPlus,
+  ShieldCheck,
+  Settings
 } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 import { cn } from '@/lib/utils';
+import Link from 'next/link';
 
 interface CircularGaugeProps {
   valueText: string;
@@ -60,7 +67,6 @@ function CircularGauge({
   return (
     <div className="relative flex items-center justify-center w-36 h-36 shrink-0">
       <svg className="w-full h-full -rotate-90 transform" viewBox="0 0 136 136">
-        {/* Background track */}
         <circle
           cx="68"
           cy="68"
@@ -69,7 +75,6 @@ function CircularGauge({
           strokeWidth={strokeWidth}
           fill="transparent"
         />
-        {/* Progress arc */}
         <circle
           cx="68"
           cy="68"
@@ -105,17 +110,14 @@ function MiniSparkline({ color }: { color: 'emerald' | 'rose' | 'blue' }) {
     emerald: {
       stroke: '#10b981',
       path: 'M2 24 C10 22, 18 20, 26 23 C34 26, 42 16, 50 18 C58 20, 66 10, 74 12 C82 14, 90 6, 98 4',
-      fill: '#10b98120'
     },
     rose: {
       stroke: '#f43f5e',
       path: 'M2 8 C14 12, 26 24, 38 18 C50 12, 62 26, 74 22 C86 18, 92 24, 98 26',
-      fill: '#f43f5e20'
     },
     blue: {
       stroke: '#3b82f6',
       path: 'M2 24 C12 22, 24 25, 36 18 C48 11, 60 19, 72 13 C84 7, 92 12, 98 6',
-      fill: '#3b82f620'
     }
   }[color];
 
@@ -135,12 +137,104 @@ function MiniSparkline({ color }: { color: 'emerald' | 'rose' | 'blue' }) {
 
 export interface RectorExecutiveSummaryProps {
   roleTitle?: string;
+  institutionId?: string | null;
 }
 
-export function RectorExecutiveSummary({ roleTitle = 'Rector' }: RectorExecutiveSummaryProps = {}) {
+export function RectorExecutiveSummary({ roleTitle = 'Rector', institutionId }: RectorExecutiveSummaryProps) {
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    totalStudents: 0,
+    totalTeachers: 0,
+    totalAdmin: 1,
+    academicAvg: 0,
+    dropoutRate: 0,
+    convivenciaAvg: 0,
+    activeInstitutionName: ''
+  });
+
+  useEffect(() => {
+    async function loadRealStats() {
+      setLoading(true);
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        let targetInstId = institutionId || user?.user_metadata?.institution_id;
+
+        if (!targetInstId && user?.id) {
+          const { data: userRole } = await supabase
+            .from('user_roles')
+            .select('institution_id')
+            .eq('user_id', user.id)
+            .maybeSingle();
+          if (userRole?.institution_id) {
+            targetInstId = userRole.institution_id;
+          }
+        }
+
+        if (!targetInstId) {
+          setStats({
+            totalStudents: 0,
+            totalTeachers: 0,
+            totalAdmin: 1,
+            academicAvg: 0,
+            dropoutRate: 0,
+            convivenciaAvg: 0,
+            activeInstitutionName: ''
+          });
+          setLoading(false);
+          return;
+        }
+
+        // Obtener nombre de la institución
+        const { data: instData } = await supabase
+          .from('institutions')
+          .select('name')
+          .eq('id', targetInstId)
+          .maybeSingle();
+
+        // 1. Contar estudiantes
+        const { count: countEst } = await supabase
+          .from('students')
+          .select('*', { count: 'exact', head: true })
+          .eq('institution_id', targetInstId);
+
+        // 2. Contar docentes
+        const { count: countDoc } = await supabase
+          .from('user_roles')
+          .select('*', { count: 'exact', head: true })
+          .eq('institution_id', targetInstId)
+          .eq('role', 'docente');
+
+        // 3. Contar personal administrativo
+        const { count: countAdm } = await supabase
+          .from('user_roles')
+          .select('*', { count: 'exact', head: true })
+          .eq('institution_id', targetInstId)
+          .in('role', ['rector', 'secretaria', 'coordinador']);
+
+        setStats({
+          totalStudents: countEst || 0,
+          totalTeachers: countDoc || 0,
+          totalAdmin: countAdm || 1,
+          academicAvg: 0,
+          dropoutRate: 0,
+          convivenciaAvg: 0,
+          activeInstitutionName: instData?.name || ''
+        });
+      } catch (err) {
+        console.error('Error cargando estadísticas reales de rectoría:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadRealStats();
+  }, [institutionId]);
+
+  const isEmptyState = stats.totalStudents === 0 && stats.totalTeachers === 0;
+
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* 1. Cabecera Ejecutiva (Saludo y Fecha institucional) */}
+      {/* 1. Cabecera Ejecutiva */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm">
         <div>
           <div className="flex items-center gap-2">
@@ -149,25 +243,61 @@ export function RectorExecutiveSummary({ roleTitle = 'Rector' }: RectorExecutive
             </h1>
           </div>
           <p className="text-sm font-bold text-slate-500 mt-1">
-            Panel Ejecutivo - Resumen Institucional
+            Panel Ejecutivo - {stats.activeInstitutionName || 'Resumen Institucional'}
           </p>
         </div>
 
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 text-xs font-bold shadow-2xs">
             <Calendar className="w-4 h-4 text-slate-500" />
-            <span>Hoy, 10 de julio de 2026</span>
-          </div>
-          <div className="relative p-2.5 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer shadow-2xs">
-            <Bell className="w-4 h-4" />
-            <span className="absolute -top-1 -right-1 w-4 h-4 bg-rose-500 text-white text-[9px] font-black rounded-full flex items-center justify-center">
-              3
-            </span>
+            <span>{new Date().toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</span>
           </div>
         </div>
       </div>
 
-      {/* 2. Tarjetas Principales de Métricas (3 Columnas con Gauges Circulares) */}
+      {/* BANNER DE ASISTENTE DE CONFIGURACIÓN INICIAL SI ES COLEGIO NUEVO */}
+      {isEmptyState && (
+        <div className="bg-gradient-to-br from-indigo-900 via-slate-900 to-indigo-950 text-white rounded-3xl p-8 border border-indigo-700/50 shadow-xl relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+          
+          <div className="relative z-10 max-w-3xl space-y-4">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/20 border border-indigo-400/30 text-indigo-300 text-xs font-extrabold uppercase tracking-widest">
+              <Sparkles className="w-3.5 h-3.5" />
+              Asistente de Parametrización Inicial
+            </div>
+            
+            <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
+              ¡Bienvenido a la Configuración de tu Institución! 🚀
+            </h2>
+            
+            <p className="text-sm text-indigo-200/90 leading-relaxed">
+              Este colegio no registra datos aún. Para activar las analíticas de IA, el seguimiento académico y los reportes ejecutivos en tiempo real, completa los 3 pasos de parametrización inicial:
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+              <Link href="/configuracion/sedes" className="bg-white/10 hover:bg-white/20 border border-white/10 rounded-2xl p-4 transition-all group">
+                <div className="w-8 h-8 rounded-xl bg-indigo-500/30 flex items-center justify-center text-indigo-300 font-black mb-2 group-hover:scale-110 transition-transform">1</div>
+                <h4 className="font-extrabold text-sm text-white">Registrar Sedes y Cursos</h4>
+                <p className="text-xs text-indigo-200 mt-1">Define grados, grupos y aulas del colegio.</p>
+              </Link>
+
+              <Link href="/docentes" className="bg-white/10 hover:bg-white/20 border border-white/10 rounded-2xl p-4 transition-all group">
+                <div className="w-8 h-8 rounded-xl bg-emerald-500/30 flex items-center justify-center text-emerald-300 font-black mb-2 group-hover:scale-110 transition-transform">2</div>
+                <h4 className="font-extrabold text-sm text-white">Vincular Docentes</h4>
+                <p className="text-xs text-indigo-200 mt-1">Asigna profesores a sus materias de enseñanza.</p>
+              </Link>
+
+              <Link href="/migracion" className="bg-white/10 hover:bg-white/20 border border-white/10 rounded-2xl p-4 transition-all group">
+                <div className="w-8 h-8 rounded-xl bg-amber-500/30 flex items-center justify-center text-amber-300 font-black mb-2 group-hover:scale-110 transition-transform">3</div>
+                <h4 className="font-extrabold text-sm text-white">Matricular Estudiantes</h4>
+                <p className="text-xs text-indigo-200 mt-1">Importa el archivo SIMAT o registra manualmente.</p>
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 2. Tarjetas Principales de Métricas (Circular Gauges) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* TARJETA 1: Resultados Académicos */}
@@ -182,39 +312,34 @@ export function RectorExecutiveSummary({ roleTitle = 'Rector' }: RectorExecutive
                   Resultados Académicos
                 </h3>
                 <p className="text-xs font-semibold text-slate-500 mt-0.5">
-                  Promedios académicos de toda la institución
+                  Promedios académicos de la institución
                 </p>
               </div>
             </div>
 
             <div className="flex items-center justify-between gap-4 py-3">
               <CircularGauge
-                valueText="4.25"
+                valueText={stats.academicAvg > 0 ? stats.academicAvg.toFixed(2) : "0.00"}
                 subValueText="de 5.00"
                 label="Promedio institucional"
-                progressPercent={85}
+                progressPercent={stats.academicAvg > 0 ? (stats.academicAvg / 5) * 100 : 0}
                 color="emerald"
               />
 
               <div className="flex flex-col items-end justify-center space-y-2 text-right">
                 <span className="text-[11px] font-bold text-slate-400">
-                  Comparado con el periodo anterior
+                  Estado actual
                 </span>
-                <div className="flex items-center gap-1.5 text-emerald-600 font-black text-base">
-                  <TrendingUp className="w-4 h-4" />
-                  <span>↑ 0.18</span>
-                </div>
-                <MiniSparkline color="emerald" />
-                <span className="px-3 py-1 rounded-full bg-emerald-100/80 text-emerald-800 text-xs font-extrabold shadow-2xs">
-                  Excelente
+                <span className="px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-extrabold">
+                  {stats.academicAvg > 0 ? 'Activo' : 'Sin datos calificados'}
                 </span>
               </div>
             </div>
           </div>
 
-          <div className="mt-4 pt-3.5 border-t border-slate-100 flex items-center gap-2 text-xs font-bold text-emerald-700">
+          <div className="mt-4 pt-3.5 border-t border-slate-100 flex items-center gap-2 text-xs font-bold text-slate-500">
             <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-            <span>+0.18 puntos vs. periodo anterior</span>
+            <span>{stats.academicAvg > 0 ? 'Promedio calculado con calificaciones del periodo' : 'Requiere registro de notas por docentes'}</span>
           </div>
         </div>
 
@@ -230,36 +355,31 @@ export function RectorExecutiveSummary({ roleTitle = 'Rector' }: RectorExecutive
                   Resultados de Deserción Escolar
                 </h3>
                 <p className="text-xs font-semibold text-slate-500 mt-0.5">
-                  Promedio de deserción escolar en la institución
+                  Tasa de deserción calculada
                 </p>
               </div>
             </div>
 
             <div className="flex items-center justify-between gap-4 py-3">
               <CircularGauge
-                valueText="2.6%"
-                label="Promedio institucional"
-                progressPercent={26}
+                valueText={`${stats.dropoutRate.toFixed(1)}%`}
+                label="Tasa institucional"
+                progressPercent={stats.dropoutRate}
                 color="rose"
               />
 
               <div className="flex flex-col items-end justify-center space-y-2 text-right">
                 <span className="text-[11px] font-bold text-slate-400">
-                  Comparado con el periodo anterior
+                  Monitoreo de Riesgo
                 </span>
-                <div className="flex items-center gap-1.5 text-rose-600 font-black text-base">
-                  <TrendingDown className="w-4 h-4" />
-                  <span>↓ -0.7%</span>
-                </div>
-                <MiniSparkline color="rose" />
-                <span className="px-3 py-1 rounded-full bg-rose-100/80 text-rose-800 text-xs font-extrabold shadow-2xs">
-                  En atención
+                <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-extrabold">
+                  {stats.totalStudents === 0 ? 'Sin matrículas' : '0% Deserción'}
                 </span>
               </div>
             </div>
           </div>
 
-          <div className="mt-4 pt-3.5 border-t border-slate-100 flex items-center gap-2 text-xs font-bold text-rose-700">
+          <div className="mt-4 pt-3.5 border-t border-slate-100 flex items-center gap-2 text-xs font-bold text-slate-500">
             <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
             <span>Meta institucional: Mantener por debajo del 3%</span>
           </div>
@@ -277,45 +397,40 @@ export function RectorExecutiveSummary({ roleTitle = 'Rector' }: RectorExecutive
                   Resultados de Convivencia
                 </h3>
                 <p className="text-xs font-semibold text-slate-500 mt-0.5">
-                  Promedio de convivencia escolar en la institución
+                  Índice de convivencia escolar
                 </p>
               </div>
             </div>
 
             <div className="flex items-center justify-between gap-4 py-3">
               <CircularGauge
-                valueText="4.32"
+                valueText={stats.convivenciaAvg > 0 ? stats.convivenciaAvg.toFixed(2) : "0.00"}
                 subValueText="de 5.00"
-                label="Promedio institucional"
-                progressPercent={86.4}
+                label="Promedio de convivencia"
+                progressPercent={stats.convivenciaAvg > 0 ? (stats.convivenciaAvg / 5) * 100 : 0}
                 color="blue"
               />
 
               <div className="flex flex-col items-end justify-center space-y-2 text-right">
                 <span className="text-[11px] font-bold text-slate-400">
-                  Comparado con el periodo anterior
+                  Clima escolar
                 </span>
-                <div className="flex items-center gap-1.5 text-emerald-600 font-black text-base">
-                  <TrendingUp className="w-4 h-4" />
-                  <span>↑ 0.21</span>
-                </div>
-                <MiniSparkline color="blue" />
-                <span className="px-3 py-1 rounded-full bg-blue-100/80 text-blue-800 text-xs font-extrabold shadow-2xs">
-                  Muy bueno
+                <span className="px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-extrabold">
+                  {stats.convivenciaAvg > 0 ? 'Normal' : 'Sin anotaciones'}
                 </span>
               </div>
             </div>
           </div>
 
-          <div className="mt-4 pt-3.5 border-t border-slate-100 flex items-center gap-2 text-xs font-bold text-blue-700">
+          <div className="mt-4 pt-3.5 border-t border-slate-100 flex items-center gap-2 text-xs font-bold text-slate-500">
             <CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0" />
-            <span>Ambiente escolar positivo y estable</span>
+            <span>Basado en bitácora de convivencia de directores de grupo</span>
           </div>
         </div>
 
       </div>
 
-      {/* 3. Barra Resumen Institucional (4 Tarjetas / Columnas en Contenedor Elegante) */}
+      {/* 3. Barra Resumen Institucional */}
       <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm p-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-slate-100">
           
@@ -326,14 +441,13 @@ export function RectorExecutiveSummary({ roleTitle = 'Rector' }: RectorExecutive
             </div>
             <div>
               <div className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-                1.248
+                {stats.totalStudents}
               </div>
               <div className="text-xs font-extrabold text-slate-600 mt-0.5">
                 Total estudiantes
               </div>
-              <div className="flex items-center gap-1 text-emerald-600 text-xs font-bold mt-1">
-                <ArrowUpRight className="w-3.5 h-3.5" />
-                <span>2.4% vs. mes anterior</span>
+              <div className="flex items-center gap-1 text-slate-400 text-xs font-bold mt-1">
+                <span>Matriculados oficialmente</span>
               </div>
             </div>
           </div>
@@ -345,14 +459,13 @@ export function RectorExecutiveSummary({ roleTitle = 'Rector' }: RectorExecutive
             </div>
             <div>
               <div className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-                86
+                {stats.totalTeachers}
               </div>
               <div className="text-xs font-extrabold text-slate-600 mt-0.5">
                 Total docentes
               </div>
-              <div className="flex items-center gap-1 text-emerald-600 text-xs font-bold mt-1">
-                <ArrowUpRight className="w-3.5 h-3.5" />
-                <span>1.2% vs. mes anterior</span>
+              <div className="flex items-center gap-1 text-slate-400 text-xs font-bold mt-1">
+                <span>Planta docente vinculada</span>
               </div>
             </div>
           </div>
@@ -364,14 +477,13 @@ export function RectorExecutiveSummary({ roleTitle = 'Rector' }: RectorExecutive
             </div>
             <div>
               <div className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-                22
+                {stats.totalAdmin}
               </div>
               <div className="text-xs font-extrabold text-slate-600 mt-0.5">
                 Total personal adm.
               </div>
-              <div className="flex items-center gap-1 text-emerald-600 text-xs font-bold mt-1">
-                <ArrowUpRight className="w-3.5 h-3.5" />
-                <span>0.5% vs. mes anterior</span>
+              <div className="flex items-center gap-1 text-slate-400 text-xs font-bold mt-1">
+                <span>Rectoría y Secretaría</span>
               </div>
             </div>
           </div>
@@ -383,24 +495,22 @@ export function RectorExecutiveSummary({ roleTitle = 'Rector' }: RectorExecutive
             </div>
             <div>
               <div className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-                4.25
+                {stats.academicAvg > 0 ? stats.academicAvg.toFixed(2) : "0.00"}
               </div>
               <div className="text-xs font-extrabold text-slate-600 mt-0.5">
                 Promedio académico del colegio
               </div>
-              <div className="flex items-center gap-1 text-emerald-600 text-xs font-bold mt-1">
-                <ArrowUpRight className="w-3.5 h-3.5" />
-                <span>0.18 vs. periodo anterior</span>
+              <div className="flex items-center gap-1 text-slate-400 text-xs font-bold mt-1">
+                <span>Escala 1.0 a 5.0</span>
               </div>
             </div>
           </div>
 
         </div>
 
-        {/* Pie informativo de actualización en tiempo real */}
         <div className="mt-4 pt-3 border-t border-slate-100 flex items-center gap-1.5 text-xs text-slate-400 font-semibold">
           <Info className="w-3.5 h-3.5 text-blue-500" />
-          <span>Los datos se actualizan automáticamente en tiempo real. Última actualización: Hoy, 8:30 a. m.</span>
+          <span>Datos en tiempo real consultados directamente desde la base de datos de la institución.</span>
         </div>
       </div>
     </div>

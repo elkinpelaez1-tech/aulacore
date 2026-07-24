@@ -89,33 +89,21 @@ export function SecretaryConsole({
   
   // 1. Buscador Global Administrativo
   const [globalSearch, setGlobalSearch] = useState('');
-
-  // Base de datos local e integrada de pre-registros (Aspirantes)
-  const DEFAULT_PRE_REGISTRATIONS = [
-    { fullName: 'Pedro Castro', nationalId: '10174125478', email: 'castrop@yahoo.es', gradeLevel: 'Bachillerato', registrationDate: '1 Jun 2026', status: 'Pre-matriculado' },
-    { fullName: 'Andrés Felipe Gómez', nationalId: '1020485963', email: 'andres.gomez@gmail.com', gradeLevel: 'Media Técnica', registrationDate: '30 May 2026', status: 'Pre-matriculado' },
-    { fullName: 'Laura Valentina Pérez', nationalId: '1018594032', email: 'laura.perez@outlook.com', gradeLevel: 'Primaria', registrationDate: '28 May 2026', status: 'Pre-matriculado' }
-  ];
-
   const [preRegistrations, setPreRegistrations] = useState<any[]>([]);
   const [documentoId, setDocumentoId] = useState('');
   const [detectPreReg, setDetectPreReg] = useState(false);
   const [preRegAlert, setPreRegAlert] = useState('');
-
-  // Simulador de Correo Electrónico
   const [simulatedEmail, setSimulatedEmail] = useState<{ to: string, subject: string, studentName: string, grade: string } | null>(null);
 
   useEffect(() => {
-    let list = [...DEFAULT_PRE_REGISTRATIONS];
+    let list: any[] = [];
     const saved = localStorage.getItem('aulacore-pre-registrations');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        parsed.forEach((item: any) => {
-          if (!list.some(p => p.nationalId === item.nationalId)) {
-            list.unshift(item);
-          }
-        });
+        if (Array.isArray(parsed)) {
+          list = parsed;
+        }
       } catch (e) {}
     }
     setPreRegistrations(list);
