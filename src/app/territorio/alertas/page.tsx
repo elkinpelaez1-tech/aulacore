@@ -20,8 +20,8 @@ export default function TerritoryAlertsPage() {
   const [currentRole, setCurrentRole] = useState('Secretario de Educación');
 
   // Cargar rol y alertas del servicio
-  const loadAlerts = () => {
-    const data = getAlertsByQueue(activeQueue);
+  const loadAlerts = async () => {
+    const data = await getAlertsByQueue(activeQueue);
     setAlerts(data);
   };
 

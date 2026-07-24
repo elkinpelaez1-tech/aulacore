@@ -17,7 +17,7 @@ import {
 } from '@/services/help-ai-service';
 import { HELP_KNOWLEDGE_BASE, HelpArticle } from '@/services/help-knowledge-base';
 import { HELP_GLOSSARY } from '@/services/help-glossary';
-import { isModoDemoActive } from '@/services/territory-mock';
+const isModoDemoActive = () => false;
 import { getMIORuns } from '@/services/mio-service';
 
 export function AulaHelpIA() {
@@ -27,6 +27,7 @@ export function AulaHelpIA() {
   
   // Chat States
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [telemetryLogs, setTelemetryLogs] = useState<any[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isThinking, setIsThinking] = useState(false);
 
@@ -56,26 +57,33 @@ export function AulaHelpIA() {
     }
 
     const demoActive = isModoDemoActive();
-    const history = getChatHistory();
-    if (history.length === 0) {
-      const welcome: ChatMessage = {
-        sender: 'ia',
-        text: demoActive
-          ? `¡Bienvenido a la **Demostración Comercial de AulaCore**! 🎬\n\nSoy **AulaHelp IA**, tu asesor de ventas y gestión gubernamental.\n\nHe activado el **Modo Demo Comercial** en el territorio consolidado de **Antioquia** ( Barbosa, Copacabana, Girardota, Medellín) con datos realistas para 10 planteles.\n\nPara guiar su presentación, haga clic abajo en **"Guión de la Demo Comercial 🎬"** o pregúnteme sobre el valor estratégico de cualquier módulo para un Alcalde o Rector.`
-          : `¡Hola! Soy **AulaHelp IA**, tu asesor experto en gestión educativa y AulaCore.\n\nEstoy aquí para guiarte en el uso de la plataforma según tu cargo (**${savedRole}**).\n\n¿En qué proceso o indicador del sistema tienes dudas hoy?`,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      };
-      setMessages([welcome]);
-      saveChatHistory([welcome]);
-    } else {
-      setMessages(history);
-    }
+    getChatHistory().then(history => {
+      if (history.length === 0) {
+        const welcome: ChatMessage = {
+          sender: 'ia',
+          text: demoActive
+            ? `¡Bienvenido a la **Demostración Comercial de AulaCore**! 🎬\n\nSoy **AulaHelp IA**, tu asesor de ventas y gestión gubernamental.\n\nHe activado el **Modo Demo Comercial** en el territorio consolidado de **Antioquia** ( Barbosa, Copacabana, Girardota, Medellín) con datos realistas para 10 planteles.\n\nPara guiar su presentación, haga clic abajo en **"Guión de la Demo Comercial 🎬"** o pregúnteme sobre el valor estratégico de cualquier módulo para un Alcalde o Rector.`
+            : `¡Hola! Soy **AulaHelp IA**, tu asesor experto en gestión educativa y AulaCore.\n\nEstoy aquí para guiarte en el uso de la plataforma según tu cargo (**${savedRole}**).\n\n¿En qué proceso o indicador del sistema tienes dudas hoy?`,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        };
+        setMessages([welcome]);
+        saveChatHistory([welcome]);
+      } else {
+        setMessages(history);
+      }
+    });
   }, [isOpen]);
 
   // Desplazar chat al fondo
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isThinking]);
+
+  useEffect(() => {
+    if (activeTab === 'telemetria') {
+      getTelemetryStats().then(logs => setTelemetryLogs(logs || []));
+    }
+  }, [activeTab]);
 
   // Escuchar cambio del modo demo para recargar mensajes
   useEffect(() => {
@@ -184,7 +192,7 @@ export function AulaHelpIA() {
           `    *   *Impacto*: Blindaje legal contra demandas de proveedores y cumplimiento estricto ante los entes de control fiscal.`;
         related = ['cat-vulnerabilidad', 'que-es-matricula-consolidada'];
       } else if (queryLower.includes('mio') || queryLower.includes('automatiz') || queryLower.includes('monitoreo') || queryLower.includes('black box') || queryLower.includes('caja negra') || queryLower.includes('eventos') || queryLower.includes('telemetr')) {
-        const currentRuns = getMIORuns();
+        const currentRuns = await getMIORuns();
         const runSummary = currentRuns.length > 0 
           ? currentRuns.slice(0, 3).map(r => `*   **Folio #${r.folio}**: Receta \`${r.recipeName}\` ejecutada en **${r.durationMs}ms** por el módulo \`${r.originModule}\`. Estado: \`${r.status}\`. Firma: \`${r.executionHash.substring(0, 16)}...\`.`).join('\n')
           : '*   *No se registran eventos procesados en la Black Box en este periodo de sesión.*';
@@ -201,7 +209,7 @@ export function AulaHelpIA() {
         related = ['cat-prioridad-inteligente', 'cat-acciones-pendientes'];
       } else if (queryLower.includes('cie') || queryLower.includes('inteligencia educativa') || queryLower.includes('predictiv') || queryLower.includes('riesgo') || queryLower.includes('desercion') || queryLower.includes('ausentismo') || queryLower.includes('bullying') || queryLower.includes('pae')) {
         const { getCIEIndicators } = require('@/services/cie-service');
-        const cieInds = getCIEIndicators();
+        const cieInds = await getCIEIndicators();
         
         const matchedRisk = cieInds.find((ind: any) => 
           queryLower.includes(ind.name.toLowerCase()) || 
@@ -739,7 +747,7 @@ export function AulaHelpIA() {
                 <p>Muestra las búsquedas libres formuladas por los operadores para focalizar planes de capacitación en la plataforma.</p>
               </div>
 
-              {telemetryStats.length === 0 ? (
+              {telemetryLogs.length === 0 ? (
                 <div className="text-center py-12 text-xs font-bold italic text-slate-400">
                   No hay telemetría registrada aún en esta sesión. Escribe dudas en el chat para registrar el flujo.
                 </div>
@@ -747,7 +755,7 @@ export function AulaHelpIA() {
                 <div className="space-y-2">
                   <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Registros de Consulta Recientes</span>
                   <div className="space-y-1.5">
-                    {telemetryStats.slice(-10).reverse().map((log) => (
+                    {telemetryLogs.slice(-10).reverse().map((log) => (
                       <div key={log.id} className="p-3 bg-white border border-slate-200 rounded-xl text-[10px] font-semibold text-slate-700 space-y-1">
                         <div className="flex justify-between items-center border-b border-slate-100 pb-1.5">
                           <span className="font-extrabold text-indigo-700 max-w-[200px] truncate" title={log.query}>

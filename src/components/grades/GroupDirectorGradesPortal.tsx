@@ -31,145 +31,9 @@ interface StudentConsolidatedGrade {
   }[];
 }
 
-const MOCK_SUBJECTS_RECEIVED = [
-  { name: 'Matemáticas Avanzadas', teacher: 'Prof. Carlos Gómez', avg: 4.5, status: 'Recibido 100%' },
-  { name: 'Lengua Castellana y Lit.', teacher: 'Prof. Ana Torres', avg: 4.3, status: 'Recibido 100%' },
-  { name: 'Física y Laboratorio', teacher: 'Prof. Valentina Silva', avg: 4.1, status: 'Recibido 100%' },
-  { name: 'Química Orgánica', teacher: 'Prof. Jorge Ramírez', avg: 4.2, status: 'Recibido 100%' },
-  { name: 'Inglés Avanzado (C1)', teacher: 'Prof. John Davis', avg: 4.7, status: 'Recibido 100%' },
-  { name: 'Ciencias Sociales y Const.', teacher: 'Prof. Lucía Castro', avg: 4.4, status: 'Recibido 100%' },
-  { name: 'Educación Física y Deportes', teacher: 'Prof. Marcos Paz', avg: 4.8, status: 'Recibido 100%' },
-  { name: 'Ética y Convivencia', teacher: 'Lic. Patricia Martínez', avg: 4.6, status: 'Recibido 100%' },
-];
+const MOCK_SUBJECTS_RECEIVED: any[] = [];
 
-const MOCK_STUDENTS_10A: StudentConsolidatedGrade[] = [
-  {
-    id: '10a-01',
-    name: 'González Rojas Mateo',
-    docId: 'TI-1098234101',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
-    currentPeriodGpa: 4.75,
-    accumulatedAnnualGpa: 4.68,
-    status: 'Superior',
-    isSentVirtual: true,
-    isPrinted: false,
-    subjects: [
-      { name: 'Matemáticas Avanzadas', teacher: 'Prof. Carlos Gómez', score: 4.8, remarks: 'Excelente capacidad analítica y resolución de problemas.' },
-      { name: 'Lengua Castellana y Lit.', teacher: 'Prof. Ana Torres', score: 4.7, remarks: 'Muy buena producción textual y comprensión lectora.' },
-      { name: 'Física y Laboratorio', teacher: 'Prof. Valentina Silva', score: 4.6, remarks: 'Destacado en prácticas de laboratorio.' },
-      { name: 'Química Orgánica', teacher: 'Prof. Jorge Ramírez', score: 4.5 },
-      { name: 'Inglés Avanzado (C1)', teacher: 'Prof. John Davis', score: 4.9, remarks: 'Fluid communication and leadership in class.' },
-      { name: 'Ciencias Sociales y Const.', teacher: 'Prof. Lucía Castro', score: 4.6 },
-      { name: 'Educación Física y Deportes', teacher: 'Prof. Marcos Paz', score: 4.8 },
-      { name: 'Ética y Convivencia', teacher: 'Lic. Patricia Martínez', score: 4.8, remarks: 'Comportamiento ejemplar en el curso.' },
-    ]
-  },
-  {
-    id: '10a-02',
-    name: 'Silva Martínez Valentina',
-    docId: 'TI-1098234102',
-    avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150',
-    currentPeriodGpa: 4.60,
-    accumulatedAnnualGpa: 4.55,
-    status: 'Superior',
-    isSentVirtual: false,
-    isPrinted: true,
-    subjects: [
-      { name: 'Matemáticas Avanzadas', teacher: 'Prof. Carlos Gómez', score: 4.5 },
-      { name: 'Lengua Castellana y Lit.', teacher: 'Prof. Ana Torres', score: 4.8, remarks: 'Excelente argumentación en sus ensayos literarios.' },
-      { name: 'Física y Laboratorio', teacher: 'Prof. Valentina Silva', score: 4.4 },
-      { name: 'Química Orgánica', teacher: 'Prof. Jorge Ramírez', score: 4.6 },
-      { name: 'Inglés Avanzado (C1)', teacher: 'Prof. John Davis', score: 4.8 },
-      { name: 'Ciencias Sociales y Const.', teacher: 'Prof. Lucía Castro', score: 4.7 },
-      { name: 'Educación Física y Deportes', teacher: 'Prof. Marcos Paz', score: 4.5 },
-      { name: 'Ética y Convivencia', teacher: 'Lic. Patricia Martínez', score: 4.7 },
-    ]
-  },
-  {
-    id: '10a-03',
-    name: 'Ramírez Castaño Sofía',
-    docId: 'TI-1098234103',
-    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
-    currentPeriodGpa: 4.35,
-    accumulatedAnnualGpa: 4.40,
-    status: 'Alto',
-    isSentVirtual: true,
-    isPrinted: true,
-    subjects: [
-      { name: 'Matemáticas Avanzadas', teacher: 'Prof. Carlos Gómez', score: 4.2 },
-      { name: 'Lengua Castellana y Lit.', teacher: 'Prof. Ana Torres', score: 4.4 },
-      { name: 'Física y Laboratorio', teacher: 'Prof. Valentina Silva', score: 4.3 },
-      { name: 'Química Orgánica', teacher: 'Prof. Jorge Ramírez', score: 4.5 },
-      { name: 'Inglés Avanzado (C1)', teacher: 'Prof. John Davis', score: 4.6 },
-      { name: 'Ciencias Sociales y Const.', teacher: 'Prof. Lucía Castro', score: 4.3 },
-      { name: 'Educación Física y Deportes', teacher: 'Prof. Marcos Paz', score: 4.5 },
-      { name: 'Ética y Convivencia', teacher: 'Lic. Patricia Martínez', score: 4.5 },
-    ]
-  },
-  {
-    id: '10a-04',
-    name: 'Gómez Hernández Sebastián',
-    docId: 'TI-1098234104',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
-    currentPeriodGpa: 4.20,
-    accumulatedAnnualGpa: 4.25,
-    status: 'Alto',
-    isSentVirtual: false,
-    isPrinted: false,
-    subjects: [
-      { name: 'Matemáticas Avanzadas', teacher: 'Prof. Carlos Gómez', score: 4.4 },
-      { name: 'Lengua Castellana y Lit.', teacher: 'Prof. Ana Torres', score: 4.1 },
-      { name: 'Física y Laboratorio', teacher: 'Prof. Valentina Silva', score: 4.0 },
-      { name: 'Química Orgánica', teacher: 'Prof. Jorge Ramírez', score: 4.2 },
-      { name: 'Inglés Avanzado (C1)', teacher: 'Prof. John Davis', score: 4.5 },
-      { name: 'Ciencias Sociales y Const.', teacher: 'Prof. Lucía Castro', score: 4.3 },
-      { name: 'Educación Física y Deportes', teacher: 'Prof. Marcos Paz', score: 4.6 },
-      { name: 'Ética y Convivencia', teacher: 'Lic. Patricia Martínez', score: 4.3 },
-    ]
-  },
-  {
-    id: '10a-05',
-    name: 'Morales Vargas Luciana',
-    docId: 'TI-1098234105',
-    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150',
-    currentPeriodGpa: 4.85,
-    accumulatedAnnualGpa: 4.82,
-    status: 'Superior',
-    isSentVirtual: true,
-    isPrinted: true,
-    subjects: [
-      { name: 'Matemáticas Avanzadas', teacher: 'Prof. Carlos Gómez', score: 4.9, remarks: 'Rendimiento sobresaliente en matemáticas y olimpiadas.' },
-      { name: 'Lengua Castellana y Lit.', teacher: 'Prof. Ana Torres', score: 4.8 },
-      { name: 'Física y Laboratorio', teacher: 'Prof. Valentina Silva', score: 4.7 },
-      { name: 'Química Orgánica', teacher: 'Prof. Jorge Ramírez', score: 4.8 },
-      { name: 'Inglés Avanzado (C1)', teacher: 'Prof. John Davis', score: 5.0, remarks: 'Bilingual proficiency achieved.' },
-      { name: 'Ciencias Sociales y Const.', teacher: 'Prof. Lucía Castro', score: 4.8 },
-      { name: 'Educación Física y Deportes', teacher: 'Prof. Marcos Paz', score: 4.9 },
-      { name: 'Ética y Convivencia', teacher: 'Lic. Patricia Martínez', score: 4.9 },
-    ]
-  },
-  {
-    id: '10a-06',
-    name: 'López Restrepo David',
-    docId: 'TI-1098234106',
-    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150',
-    currentPeriodGpa: 3.85,
-    accumulatedAnnualGpa: 3.92,
-    status: 'Básico',
-    isSentVirtual: false,
-    isPrinted: false,
-    subjects: [
-      { name: 'Matemáticas Avanzadas', teacher: 'Prof. Carlos Gómez', score: 3.7, remarks: 'Reforzar ejercicios de trigonometría en casa.' },
-      { name: 'Lengua Castellana y Lit.', teacher: 'Prof. Ana Torres', score: 4.0 },
-      { name: 'Física y Laboratorio', teacher: 'Prof. Valentina Silva', score: 3.6 },
-      { name: 'Química Orgánica', teacher: 'Prof. Jorge Ramírez', score: 3.9 },
-      { name: 'Inglés Avanzado (C1)', teacher: 'Prof. John Davis', score: 4.1 },
-      { name: 'Ciencias Sociales y Const.', teacher: 'Prof. Lucía Castro', score: 4.0 },
-      { name: 'Educación Física y Deportes', teacher: 'Prof. Marcos Paz', score: 4.5 },
-      { name: 'Ética y Convivencia', teacher: 'Lic. Patricia Martínez', score: 4.0 },
-    ]
-  }
-];
+const MOCK_STUDENTS_10A: StudentConsolidatedGrade[] = [];
 
 export function GroupDirectorGradesPortal() {
   const [students, setStudents] = useState<StudentConsolidatedGrade[]>(MOCK_STUDENTS_10A);
@@ -180,7 +44,6 @@ export function GroupDirectorGradesPortal() {
 
   const showToast = (title: string, desc: string, type: 'success' | 'info' = 'success') => {
     setToastMsg({ title, desc, type });
-    setTimeout(() => setToastMsg(null), 4500);
   };
 
   // Filtered Students
@@ -479,13 +342,13 @@ export function GroupDirectorGradesPortal() {
 
                   {/* Asignaturas muestra */}
                   <td className="py-4 px-4 text-center font-bold text-slate-800">
-                    {s.subjects.find(sub => sub.name.includes('Matemáticas'))?.score.toFixed(1) || '4.5'}
+                    {s.subjects.find(sub => sub.name.includes('Matemáticas'))?.score.toFixed(1) || '0'}
                   </td>
                   <td className="py-4 px-4 text-center font-bold text-slate-800">
-                    {s.subjects.find(sub => sub.name.includes('Lengua'))?.score.toFixed(1) || '4.4'}
+                    {s.subjects.find(sub => sub.name.includes('Lengua'))?.score.toFixed(1) || '0'}
                   </td>
                   <td className="py-4 px-4 text-center font-bold text-slate-800">
-                    {s.subjects.find(sub => sub.name.includes('Inglés'))?.score.toFixed(1) || '4.8'}
+                    {s.subjects.find(sub => sub.name.includes('Inglés'))?.score.toFixed(1) || '0'}
                   </td>
 
                   {/* Estado de Emisión */}

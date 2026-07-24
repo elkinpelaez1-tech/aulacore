@@ -4,7 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, Filter, LayoutGrid, TableProperties, MessageSquare, GraduationCap, Eye, Mail } from 'lucide-react';
-import { MOCK_TEACHERS, TeacherStatus, AcademicLevel, TeacherMockData } from '@/lib/data/mock-teachers';
+import { TeacherMockData, TeacherStatus, AcademicLevel } from '@/types/teacher';
+const MOCK_TEACHERS: TeacherMockData[] = [];
 import { CompactTeacherCard } from './CompactTeacherCard';
 import { TeacherCard } from './TeacherCard';
 import { TeacherMetricsPanel } from './TeacherMetricsPanel';
@@ -22,6 +23,7 @@ const statusColors: Record<TeacherStatus, { bg: string, text: string, border: st
   'Reunión': { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200', dot: 'bg-amber-500' },
   'Disponible': { bg: 'bg-indigo-50', text: 'text-indigo-700', border: 'border-indigo-200', dot: 'bg-indigo-500' },
   'Licencia': { bg: 'bg-slate-100', text: 'text-slate-600', border: 'border-slate-300', dot: 'bg-slate-400' },
+  'Inactivo': { bg: 'bg-rose-100', text: 'text-rose-600', border: 'border-rose-300', dot: 'bg-rose-400' },
   'Sobrecarga académica': { bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200', dot: 'bg-rose-500' }
 };
 
@@ -225,11 +227,11 @@ export function TeacherIntelligenceGrid() {
       if (activeMetricFilter === 'Coordinadores' && t.level !== 'Coordinación Académica') return false;
       if (activeMetricFilter === 'En Clase' && t.status !== 'En clase') return false;
       if (activeMetricFilter === 'Sobrecarga' && t.status !== 'Sobrecarga académica') return false;
-      if (activeMetricFilter === 'Plan. Pendientes' && !t.alerts.some(a => a.type === 'planeacion_atrasada')) return false;
+      if (activeMetricFilter === 'Plan. Pendientes' && !t.alerts?.some(a => a.type === 'planeacion_atrasada')) return false;
 
       // 2. Dropdown & search filters
       const matchesSearch = normalizeStr(t.name).includes(query) || 
-                            normalizeStr(t.specialty).includes(query) ||
+                            normalizeStr(t.specialty || '').includes(query) ||
                             (t.area && normalizeStr(t.area).includes(query)) ||
                             (t.document && normalizeStr(t.document).includes(query)) ||
                             (t.assignedCourses && t.assignedCourses.some(c => normalizeStr(c).includes(query)));
@@ -396,7 +398,7 @@ export function TeacherIntelligenceGrid() {
                   levelTeachers = levelTeachers.filter(t => {
                     const query = normalizeStr(searchTerm);
                     const matchesSearch = normalizeStr(t.name).includes(query) || 
-                                          normalizeStr(t.specialty).includes(query) ||
+                                          normalizeStr(t.specialty || '').includes(query) ||
                                           (t.area && normalizeStr(t.area).includes(query)) ||
                                           (t.document && normalizeStr(t.document).includes(query)) ||
                                           (t.assignedCourses && t.assignedCourses.some(c => normalizeStr(c).includes(query)));
@@ -573,16 +575,16 @@ export function TeacherIntelligenceGrid() {
                           <div className="text-xs font-black text-indigo-700">
                             {teacher.weeklyHours}h <span className="text-[10px] text-slate-400 font-normal">/ sem</span>
                           </div>
-                          <div className="text-[10px] text-slate-500 font-bold">{teacher.assignedCourses.length} cursos</div>
+                          <div className="text-[10px] text-slate-500 font-bold">{teacher.assignedCourses?.length || teacher.assignedCoursesCount || 0} cursos</div>
                         </td>
                         <td className="p-4">
                           <span className={cn(
                             "inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider border shadow-sm",
-                            statusColors[teacher.status].bg,
-                            statusColors[teacher.status].text,
-                            statusColors[teacher.status].border
+                            (statusColors[teacher.status] || statusColors['Activo']).bg,
+                            (statusColors[teacher.status] || statusColors['Activo']).text,
+                            (statusColors[teacher.status] || statusColors['Activo']).border
                           )}>
-                            <span className={cn("w-1.5 h-1.5 rounded-full", statusColors[teacher.status].dot)}></span>
+                            <span className={cn("w-1.5 h-1.5 rounded-full", (statusColors[teacher.status] || statusColors['Activo']).dot)}></span>
                             {teacher.status}
                           </span>
                         </td>

@@ -78,7 +78,7 @@ SOPORTE DE LECTURA ÓPTICA COMPILADO POR AULACORE AI - REGISTROS SINCRONÍA OK
  * Generates and triggers browser print of an institutional high fidelity report card (Boletín Académico).
  */
 export function downloadBoletinPDF(studentName: string, grade: string, gpa: number, grades: any[], periodName: string) {
-  const hash = Math.random().toString(36).substring(2, 8).toUpperCase();
+  const hash = crypto.randomUUID().split('-')[0].toUpperCase();
   const dateStr = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' });
   const gradingScale = gpa >= 4.6 ? 'Superior' : gpa >= 4.0 ? 'Alto' : gpa >= 3.0 ? 'Básico' : 'Bajo';
 
@@ -414,9 +414,7 @@ export function downloadBoletinPDF(studentName: string, grade: string, gpa: numb
 
       <script>
         window.onload = function() {
-          setTimeout(function() {
-            window.print();
-          }, 400);
+          window.print();
         }
       </script>
     </body>
@@ -447,7 +445,7 @@ export function downloadDirectorGroupBoletinPDF(
   directorName: string = "Lic. Patricia Martínez",
   schoolName: string = "Colegio Demo AulaCore Centro - Sede Principal"
 ) {
-  const hash = Math.random().toString(36).substring(2, 8).toUpperCase();
+  const hash = crypto.randomUUID().split('-')[0].toUpperCase();
   const dateStr = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' });
   const gradingScale = gpa >= 4.6 ? 'Superior' : gpa >= 4.0 ? 'Alto' : gpa >= 3.0 ? 'Básico' : 'Bajo';
   const annualScale = accumulatedAnnualGpa >= 4.6 ? 'Superior' : accumulatedAnnualGpa >= 4.0 ? 'Alto' : accumulatedAnnualGpa >= 3.0 ? 'Básico' : 'Bajo';

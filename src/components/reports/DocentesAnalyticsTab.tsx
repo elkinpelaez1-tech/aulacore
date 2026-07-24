@@ -25,12 +25,7 @@ import {
 import { cn } from '@/lib/utils';
 
 // Mock data tailored for the Teacher Analytics tab
-const DEPARTMENT_COMPLIANCE_DATA = [
-  { name: 'Matemáticas', rate: 96.2, color: '#fb923c' },   // orange-450
-  { name: 'Ciencias Naturales', rate: 94.5, color: '#f97316' },      // orange-500
-  { name: 'Lengua Castellana', rate: 98.0, color: '#ea580c' },      // orange-600
-  { name: 'Ciencias Sociales', rate: 90.5, color: '#c2410c' }       // orange-700
-];
+const DEPARTMENT_COMPLIANCE_DATA: any[] = [];
 
 export function DocentesAnalyticsTab() {
   const [activeModal, setActiveModal] = useState<string | null>(null);
@@ -38,22 +33,16 @@ export function DocentesAnalyticsTab() {
   const [toast, setToast] = useState<{ title: string; message: string } | null>(null);
 
   const handleExecuteAction = (successTitle: string, successMessage: string, onDownload?: () => void) => {
-    setIsProcessing(true);
-    setTimeout(() => {
-      setIsProcessing(false);
-      if (onDownload) {
-        try {
-          onDownload();
-        } catch (e) {
-          console.error(e);
-        }
+    setIsProcessing(false);
+    if (onDownload) {
+      try {
+        onDownload();
+      } catch (e) {
+        console.error(e);
       }
-      setActiveModal(null);
-      setToast({ title: successTitle, message: successMessage });
-      setTimeout(() => {
-        setToast(null);
-      }, 3000);
-    }, 1000);
+    }
+    setActiveModal(null);
+    setToast({ title: successTitle, message: successMessage });
   };
 
   return (

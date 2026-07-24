@@ -1,13 +1,13 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { TrendingUp, TrendingDown, BookOpen, Clock } from 'lucide-react';
-import { SubjectPerformance } from './mockData';
+
 import { cn } from '@/lib/utils';
 import { Progress } from '@/components/ui/progress';
 
 interface SubjectCardProps {
-  subject: SubjectPerformance;
-  onClick: (subject: SubjectPerformance) => void;
+  subject: any;
+  onClick: (subject: any) => void;
 }
 
 export function SubjectCard({ subject, onClick }: SubjectCardProps) {

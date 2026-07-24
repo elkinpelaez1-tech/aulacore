@@ -61,6 +61,7 @@ import {
   MOCK_TEACHERS,
   MOCK_COURSES,
 } from '@/services/mock-data';
+
 import { Student, Alert, BehaviorRecord, GradeRecord } from '@/types';
 import { cn } from '@/lib/utils';
 import Student360 from '@/components/dashboard/Student360';
@@ -169,7 +170,7 @@ export default function DashboardPage() {
   };
 
   // 2. Observador Estudiantil (Director de Grupo)
-  const [behaviorRecords, setBehaviorRecords] = useState<BehaviorRecord[]>(MOCK_BEHAVIOR);
+  const [behaviorRecords, setBehaviorRecords] = useState<BehaviorRecord[]>([]);
   const [newObsStudentId, setNewObsStudentId] = useState('est-02');
   const [newObsType, setNewObsType] = useState<'Positiva' | 'Leve' | 'Grave' | 'Gravísima'>('Leve');
   const [newObsDesc, setNewObsDesc] = useState('');
@@ -178,11 +179,12 @@ export default function DashboardPage() {
     e.preventDefault();
     if (!newObsDesc.trim()) return;
 
+    const MOCK_STUDENTS: any[] = [];
     const studentObj = MOCK_STUDENTS.find(s => s.id === newObsStudentId);
     const newRecord: BehaviorRecord = {
       id: `beh-${Date.now()}`,
       studentId: newObsStudentId,
-      studentName: studentObj?.name || 'Estudiante',
+      studentName: studentObj?.name,
       date: new Date().toISOString().split('T')[0],
       type: newObsType,
       description: newObsDesc,
@@ -195,7 +197,7 @@ export default function DashboardPage() {
   };
 
   // 3. Planilla de Notas (Docente)
-  const [gradesList, setGradesList] = useState<GradeRecord[]>(MOCK_GRADES);
+  const [gradesList, setGradesList] = useState<GradeRecord[]>([]);
   const [selectedSubject, setSelectedSubject] = useState<'Matemáticas' | 'Ciencias Naturales y Educación Ambiental'>('Matemáticas');
   const [newGradeValue, setNewGradeValue] = useState<Record<string, string>>({});
 
@@ -252,7 +254,7 @@ export default function DashboardPage() {
   };
 
   // 4. Matrícula Rápida (Secretaría)
-  const [enrolledStudents, setEnrolledStudents] = useState<Student[]>(MOCK_STUDENTS);
+  const [enrolledStudents, setEnrolledStudents] = useState<Student[]>([]);
   const [newName, setNewName] = useState('');
   const [newGrade, setNewGrade] = useState('10-A');
   const [newEmail, setNewEmail] = useState('');
@@ -281,7 +283,6 @@ export default function DashboardPage() {
     setNewName('');
     setNewEmail('');
     setSuccessMsg('¡Estudiante matriculado con éxito en el sistema!');
-    setTimeout(() => setSuccessMsg(''), 4000);
   };
 
   // --- ESTADOS DE COMUNICACIÓN BIDIRECCIONAL (Padre de Familia) ---
@@ -437,7 +438,6 @@ export default function DashboardPage() {
   const [generatedCert, setGeneratedCert] = useState('');
   const handleGenerateCertificate = (studentName: string) => {
     setGeneratedCert(`Certificado de Matrícula Oficial generado para: ${studentName}. Listo para descarga.`);
-    setTimeout(() => setGeneratedCert(''), 5000);
   };
 
   // 6. IA Predictiva & Alertas Tempranas (Rector)
@@ -445,11 +445,8 @@ export default function DashboardPage() {
   const [iaReport, setIaReport] = useState<string | null>(null);
 
   const runIaDiagnosis = () => {
-    setIaProcessing(true);
-    setTimeout(() => {
-      setIaProcessing(false);
-      setIaReport('Análisis predictivo de IA finalizado. Diagnóstico: 1 estudiante con riesgo crítico de deserción escolar (Juan García - 10-A) debido a ausencias acumuladas (88.2% de asistencia) y notas reprobadas en Matemáticas. Recomendación: Iniciar plan de tutoría pedagógica y contactar a acudiente (Mateo García).');
-    }, 2000);
+    setIaProcessing(false);
+    setIaReport('Análisis predictivo de IA finalizado. Diagnóstico: 1 estudiante con riesgo crítico de deserción escolar (Juan García - 10-A) debido a ausencias acumuladas (88.2% de asistencia) y notas reprobadas en Matemáticas. Recomendación: Iniciar plan de tutoría pedagógica y contactar a acudiente (Mateo García).');
   };
 
   // --- RENDERIZACIÓN DE DASHBOARDS ESPECÍFICOS POR ROL ---

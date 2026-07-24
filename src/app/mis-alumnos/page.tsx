@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/layout';
 import { Student360Drawer } from '@/components/students/Student360Drawer';
-import { MOCK_STUDENTS, StudentMockData } from '@/lib/data/mock-students';
+import { StudentMockData } from '@/types/student';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -88,7 +88,7 @@ const TEMPLATES: Record<TemplateType, TemplateDef> = {
 };
 
 export default function MisAlumnosPage() {
-  const [students, setStudents] = useState<StudentMockData[]>(MOCK_STUDENTS);
+  const [students, setStudents] = useState<StudentMockData[]>([]);
   
   // Search & Filters
   const [searchTerm, setSearchTerm] = useState('');
@@ -119,9 +119,9 @@ export default function MisAlumnosPage() {
       const subject = SUBJECT_MAPPING[commsStudent.id] || 'Matemáticas';
       const text = TEMPLATES[selectedTemplate].generate(
         commsStudent.name,
-        commsStudent.guardianName,
-        commsStudent.group,
-        commsStudent.gpa,
+        commsStudent.guardianName || 'Acudiente',
+        commsStudent.group || 'N/A',
+        commsStudent.gpa || 0,
         subject
       );
       setCustomizedText(text);
@@ -143,15 +143,14 @@ export default function MisAlumnosPage() {
   // Show customized toast notifications
   const showToast = (message: string, type: 'success' | 'info' = 'success') => {
     setToast({ message, type });
-    setTimeout(() => setToast(null), 4000);
   };
 
   // Filter students based on state
   const filteredStudents = students.filter((s) => {
     const matchesSearch = s.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          s.document.includes(searchTerm);
+                          (s.document && s.document.includes(searchTerm));
     const matchesCourse = selectedCourse === 'Todos' || s.group === selectedCourse;
-    const matchesSubject = selectedSubject === 'Todas' || (SUBJECT_MAPPING[s.id] || 'Matemáticas') === selectedSubject;
+    const matchesSubject = selectedSubject === 'Todas' || (SUBJECT_MAPPING[s.id]) === selectedSubject;
     const matchesRisk = selectedRisk === 'Todos' || 
                         (selectedRisk === 'Alto' && s.academicRisk === 'Alto') ||
                         (selectedRisk === 'Medio' && s.academicRisk === 'Medio') ||
@@ -162,7 +161,7 @@ export default function MisAlumnosPage() {
   // Dynamic KPI calculations based on current assignments
   const totalStudentsKPI = 132; // Standard KPI requested
   const riskAcademicKPI = students.filter(s => s.academicRisk === 'Alto').length + 3; // Standard KPI requested (8)
-  const lowAttendanceKPI = students.filter(s => s.attendanceRate < 86).length + 2; // Standard KPI requested (5)
+  const lowAttendanceKPI = students.filter(s => (s.attendanceRate || 100) < 86).length + 2; // Standard KPI requested (5)
   const averageGpaKPI = 4.1; // Standard KPI requested (4.1)
 
   // Traffic light helper for Apple-like premium design
@@ -203,7 +202,8 @@ export default function MisAlumnosPage() {
       window.open(`https://wa.me/${mockPhone}?text=${textEncoded}`, '_blank');
       showToast(`WhatsApp abierto para acudiente de ${commsStudent.name}`, 'success');
     } else {
-      const mockEmail = `${commsStudent.guardianName.toLowerCase().replace(' ', '.')}@mail.com`;
+      const guardianNameStr = commsStudent.guardianName || 'Acudiente';
+      const mockEmail = `${guardianNameStr.toLowerCase().replace(' ', '.')}@mail.com`;
       const subjectEncoded = encodeURIComponent(`AulaCore - Seguimiento Académico de ${commsStudent.name}`);
       window.open(`mailto:${mockEmail}?subject=${subjectEncoded}&body=${textEncoded}`, '_blank');
       showToast(`Cliente de correo abierto para acudiente de ${commsStudent.name}`, 'success');
@@ -404,7 +404,7 @@ export default function MisAlumnosPage() {
             {filteredStudents.length > 0 ? (
               filteredStudents.map((student) => {
                 const styles = getTrafficLight(student);
-                const subject = SUBJECT_MAPPING[student.id] || 'Matemáticas';
+                const subject = SUBJECT_MAPPING[student.id];
 
                 return (
                   <Card
@@ -423,7 +423,7 @@ export default function MisAlumnosPage() {
                         <div className="flex items-start justify-between">
                           <div className="relative">
                             <img
-                              src={student.avatarUrl || `https://i.pravatar.cc/150?u=${student.id}`}
+                              src={student.avatarUrl}
                               alt={student.name}
                               className="w-12 h-12 rounded-full border border-slate-100 object-cover shadow-sm bg-slate-50"
                             />
@@ -466,18 +466,18 @@ export default function MisAlumnosPage() {
                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Promedio</p>
                             <p className={cn(
                               "text-sm font-black mt-0.5",
-                              student.gpa >= 4.0 ? "text-emerald-600" : student.gpa >= 3.0 ? "text-amber-500" : "text-rose-500"
+                              (student.gpa || 0) >= 4.0 ? "text-emerald-600" : (student.gpa || 0) >= 3.0 ? "text-amber-500" : "text-rose-500"
                             )}>
-                              {student.gpa > 0 ? student.gpa.toFixed(1) : '—'} <span className="text-[10px] font-medium text-slate-400">/ 5.0</span>
+                              {(student.gpa || 0) > 0 ? (student.gpa || 0).toFixed(1) : '—'} <span className="text-[10px] font-medium text-slate-400">/ 5.0</span>
                             </p>
                           </div>
                           <div>
                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Asistencia</p>
                             <p className={cn(
                               "text-sm font-black mt-0.5",
-                              student.attendanceRate >= 90 ? "text-emerald-600" : student.attendanceRate >= 80 ? "text-amber-500" : "text-rose-500"
+                              (student.attendanceRate || 100) >= 90 ? "text-emerald-600" : (student.attendanceRate || 100) >= 80 ? "text-amber-500" : "text-rose-500"
                             )}>
-                              {student.attendanceRate}%
+                              {student.attendanceRate ?? 100}%
                             </p>
                           </div>
                         </div>
@@ -583,13 +583,13 @@ export default function MisAlumnosPage() {
                   {filteredStudents.length > 0 ? (
                     filteredStudents.map((student) => {
                       const styles = getTrafficLight(student);
-                      const subject = SUBJECT_MAPPING[student.id] || 'Matemáticas';
+                      const subject = SUBJECT_MAPPING[student.id];
                       return (
                         <tr key={student.id} className="hover:bg-slate-50/50 transition-colors group">
                           <td className="py-3 px-4.5 flex items-center gap-3">
                             <div className="relative shrink-0">
                               <img
-                                src={student.avatarUrl || `https://i.pravatar.cc/150?u=${student.id}`}
+                                src={student.avatarUrl}
                                 alt={student.name}
                                 className="w-9 h-9 rounded-full object-cover border border-slate-100 shadow-sm"
                               />
@@ -613,17 +613,17 @@ export default function MisAlumnosPage() {
                           <td className="py-3 px-4">
                             <span className={cn(
                               "font-black text-sm",
-                              student.gpa >= 4.0 ? "text-emerald-600" : student.gpa >= 3.0 ? "text-amber-500" : "text-rose-500"
+                              (student.gpa || 0) >= 4.0 ? "text-emerald-600" : (student.gpa || 0) >= 3.0 ? "text-amber-500" : "text-rose-500"
                             )}>
-                              {student.gpa > 0 ? student.gpa.toFixed(1) : '—'} <span className="text-[10px] font-medium text-slate-400">/ 5.0</span>
+                              {(student.gpa || 0) > 0 ? (student.gpa || 0).toFixed(1) : '—'} <span className="text-[10px] font-medium text-slate-400">/ 5.0</span>
                             </span>
                           </td>
                           <td className="py-3 px-4">
                             <span className={cn(
                               "font-black text-sm",
-                              student.attendanceRate >= 90 ? "text-emerald-600" : student.attendanceRate >= 80 ? "text-amber-500" : "text-rose-500"
+                              (student.attendanceRate || 100) >= 90 ? "text-emerald-600" : (student.attendanceRate || 100) >= 80 ? "text-amber-500" : "text-rose-500"
                             )}>
-                              {student.attendanceRate}%
+                              {student.attendanceRate ?? 100}%
                             </span>
                           </td>
                           <td className="py-3 px-4">
@@ -782,7 +782,7 @@ export default function MisAlumnosPage() {
                 <div className="flex flex-wrap items-center gap-3 bg-slate-50 border border-slate-100 p-3 rounded-xl">
                   <div className="flex items-center gap-2">
                     <img
-                      src={commsStudent.avatarUrl || `https://i.pravatar.cc/150?u=${commsStudent.id}`}
+                      src={commsStudent.avatarUrl}
                       alt={commsStudent.name}
                       className="w-8 h-8 rounded-full border object-cover"
                     />
@@ -799,8 +799,8 @@ export default function MisAlumnosPage() {
                   <div className="ml-auto flex items-center gap-2 text-xs font-bold">
                     <span className="text-slate-400">Promedio:</span>
                     <span className={cn(
-                      commsStudent.gpa >= 4.0 ? "text-emerald-600" : commsStudent.gpa >= 3.0 ? "text-amber-500" : "text-rose-500"
-                    )}>{commsStudent.gpa.toFixed(1)}</span>
+                      (commsStudent.gpa || 0) >= 4.0 ? "text-emerald-600" : (commsStudent.gpa || 0) >= 3.0 ? "text-amber-500" : "text-rose-500"
+                    )}>{(commsStudent.gpa || 0).toFixed(1)}</span>
                   </div>
                 </div>
 

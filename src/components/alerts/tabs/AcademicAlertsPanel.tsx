@@ -2,7 +2,18 @@
 
 import React, { useState, useEffect } from 'react';
 import { GraduationCap, Search, BookOpen, Clock, CheckCircle2, User, ChevronRight, AlertTriangle, Calendar, X, Sparkles } from 'lucide-react';
-import { MOCK_STUDENTS, StudentMockData } from '@/lib/data/mock-students';
+interface StudentMockData {
+  id: string;
+  name: string;
+  group?: string;
+  alerts?: any[];
+  academicRisk?: string;
+  behaviorRisk?: string;
+  avatarUrl?: string;
+  gpa: number;
+  attendanceRate: number;
+}
+const MOCK_STUDENTS: StudentMockData[] = [];
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
@@ -84,10 +95,9 @@ export function AcademicAlertsPanel({ onIntervene }: AcademicAlertsPanelProps) {
     setLoadingStudentId(activeStudent.id + '-tutor');
     setIsTutorModalOpen(false);
 
-    setTimeout(() => {
-      setLoadingStudentId(null);
+    setLoadingStudentId(null);
 
-      const newTutoria = {
+    const newTutoria = {
         studentId: activeStudent.id,
         studentName: activeStudent.name,
         subject: tutorSubject,
@@ -114,9 +124,8 @@ export function AcademicAlertsPanel({ onIntervene }: AcademicAlertsPanelProps) {
         message: `Tutoría de ${tutorSubject} agendada para ${activeStudent.name}.`
       });
 
-      setTutorNotes('');
-      setTimeout(() => setToast(null), 4000);
-    }, 1200);
+    setTutorNotes('');
+    setToast(null);
   };
 
   const handleCreatePiar = (e: React.FormEvent) => {
@@ -126,10 +135,9 @@ export function AcademicAlertsPanel({ onIntervene }: AcademicAlertsPanelProps) {
     setLoadingStudentId(activeStudent.id + '-piar');
     setIsPiarModalOpen(false);
 
-    setTimeout(() => {
-      setLoadingStudentId(null);
+    setLoadingStudentId(null);
 
-      const newPiar = {
+    const newPiar = {
         studentId: activeStudent.id,
         studentName: activeStudent.name,
         goals: piarGoals,
@@ -150,13 +158,12 @@ export function AcademicAlertsPanel({ onIntervene }: AcademicAlertsPanelProps) {
       localStorage.setItem('aulacore-student-piar-plans', JSON.stringify(piarsList));
       setRefreshTrigger(prev => prev + 1);
 
-      setToast({
-        title: 'Plan PIAR Creado',
-        message: `Plan individual de ajuste razonable (PIAR) iniciado para ${activeStudent.name}.`
-      });
+    setToast({
+      title: 'Plan PIAR Creado',
+      message: `Plan individual de ajuste razonable (PIAR) iniciado para ${activeStudent.name}.`
+    });
 
-      setTimeout(() => setToast(null), 4000);
-    }, 1200);
+    setToast(null);
   };
 
   return (

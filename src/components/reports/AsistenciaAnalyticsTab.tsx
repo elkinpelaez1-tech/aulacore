@@ -26,12 +26,7 @@ import {
 import { cn } from '@/lib/utils';
 
 // Mock data tailored for the RFID Attendance Analytics tab
-const ATTENDANCE_LEVELS_DATA = [
-  { name: 'Preescolar', rate: 98.1, color: '#a78bfa' },   // violet-400
-  { name: 'Primaria', rate: 95.4, color: '#8b5cf6' },     // violet-500
-  { name: 'Bachillerato', rate: 91.2, color: '#7c3aed' },   // violet-600
-  { name: 'Media Técnica', rate: 93.5, color: '#6d28d9' }   // violet-700
-];
+const ATTENDANCE_LEVELS_DATA: any[] = [];
 
 export function AsistenciaAnalyticsTab() {
   const [activeModal, setActiveModal] = useState<string | null>(null);
@@ -39,29 +34,19 @@ export function AsistenciaAnalyticsTab() {
   const [toast, setToast] = useState<{ title: string; message: string } | null>(null);
 
   const handleExecuteAction = (successTitle: string, successMessage: string, onDownload?: () => void) => {
-    setIsProcessing(true);
-    setTimeout(() => {
-      setIsProcessing(false);
-      if (onDownload) {
-        try {
-          onDownload();
-        } catch (e) {
-          console.error(e);
-        }
+    setIsProcessing(false);
+    if (onDownload) {
+      try {
+        onDownload();
+      } catch (e) {
+        console.error(e);
       }
-      setActiveModal(null);
-      setToast({ title: successTitle, message: successMessage });
-      setTimeout(() => {
-        setToast(null);
-      }, 3000);
-    }, 1000);
+    }
+    setActiveModal(null);
+    setToast({ title: successTitle, message: successMessage });
   };
 
-  const systemAntennas = [
-    { name: 'Portería Principal', status: 'active', desc: 'Antena de ingreso vehicular y peatonal' },
-    { name: 'Terminal Bachillerato', status: 'online', desc: 'Lector biométrico / RFID pabellón B' },
-    { name: 'Cafetería & Comedor', status: 'synced', desc: 'Control de raciones escolares activo' }
-  ];
+  const systemAntennas: any[] = [];
 
   return (
     <div className="space-y-8 animate-in fade-in duration-300">

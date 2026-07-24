@@ -287,10 +287,14 @@ function LoginContent() {
     }
 
     try {
+      console.log('[PERF AUDIT] [Supabase Auth] signInWithPassword INICIA', { email });
+      const startTime = performance.now();
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
+      const duration = (performance.now() - startTime).toFixed(2);
+      console.log(`[PERF AUDIT] [Supabase Auth] signInWithPassword TERMINA (${duration}ms)`, { user: data?.user?.id, error: signInError });
 
       if (signInError) {
         // EN PRODUCCIÓN: JAMÁS PERMITIR ACCESO DEMO OFFLINE ANTE CREDENCIALES INVÁLIDAS

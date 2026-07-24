@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { ALERT_DISTRIBUTION } from '@/lib/data/mock-reports';
 import { cn } from '@/lib/utils';
 
 // Color maps for the 3D bars
@@ -12,7 +11,8 @@ const colorMap: Record<string, { front: string, top: string, right: string }> = 
 };
 
 export function AlertDistributionChart() {
-  const maxVal = Math.max(...ALERT_DISTRIBUTION.map(d => d.value)) * 1.2; // Add some headroom
+  const items: any[] = [];
+  const maxVal = items.length > 0 ? Math.max(...items.map(d => d.value)) * 1.2 : 100;
 
   return (
     <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
@@ -22,7 +22,7 @@ export function AlertDistributionChart() {
       </div>
 
       <div className="flex-1 flex items-end justify-around pb-8 pt-6 px-4">
-        {ALERT_DISTRIBUTION.map((item) => {
+        {items.map((item) => {
           const percent = (item.value / maxVal) * 100;
           const colors = colorMap[item.name] || { front: 'bg-slate-400', top: 'bg-slate-300', right: 'bg-slate-500' };
           

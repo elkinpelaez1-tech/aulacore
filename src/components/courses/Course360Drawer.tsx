@@ -5,14 +5,14 @@ import {
   Sheet,
   SheetContent,
 } from "@/components/ui/sheet";
-import { CourseMockData, getCourseTrafficLight } from '@/lib/data/mock-courses';
+
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { User, GraduationCap, ShieldAlert, FileText, History, Activity, MapPin, X, Users, BookOpen, Search, ArrowUpRight } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 
 interface Props {
-  course: CourseMockData | null;
+  course: any;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -25,7 +25,7 @@ export function Course360Drawer({ course, isOpen, onOpenChange }: Props) {
 
   if (!course) return null;
 
-  const trafficLight = getCourseTrafficLight(course);
+  const trafficLight = { label: 'Normal', color: 'bg-slate-500' };
 
   const menuItems = [
     { id: 'resumen', label: 'Resumen del Curso', icon: BookOpen },
@@ -39,7 +39,7 @@ export function Course360Drawer({ course, isOpen, onOpenChange }: Props) {
     { id: 'historial', label: 'Historial', icon: History },
   ] as const;
 
-  const filteredStudents = course.students.filter(s => s.name.toLowerCase().includes(studentSearch.toLowerCase()));
+  const filteredStudents = (course.students || []).filter((s: any) => s.name.toLowerCase().includes(studentSearch.toLowerCase()));
 
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
@@ -210,7 +210,7 @@ export function Course360Drawer({ course, isOpen, onOpenChange }: Props) {
 
                   <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex-1">
                     <div className="divide-y divide-slate-100">
-                      {filteredStudents.map(student => {
+                      {filteredStudents.map((student: any) => {
                         const sTraffic = student.academicRisk === 'Alto' || student.behaviorRisk === 'Alto' ? 'bg-rose-500' : student.academicRisk === 'Medio' || student.behaviorRisk === 'Medio' ? 'bg-amber-500' : 'bg-emerald-500';
                         return (
                           <div key={student.id} className="flex items-center p-3 hover:bg-slate-50 transition-colors group">

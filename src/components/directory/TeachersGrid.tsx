@@ -3,22 +3,24 @@
 import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Search, Filter } from 'lucide-react';
-import { MOCK_TEACHERS, TeacherStatus } from '@/lib/data/mock-teachers';
+import { TeacherStatus } from '@/types/teacher';
 import { TeacherCard } from './TeacherCard';
 import { TeacherMetricsPanel } from './TeacherMetricsPanel';
+
+const teachers: any[] = [];
 
 export function TeachersGrid() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<TeacherStatus | 'Todos'>('Todos');
   const [areaFilter, setAreaFilter] = useState<string>('Todas');
 
-  const uniqueAreas = Array.from(new Set(MOCK_TEACHERS.map(t => t.area)));
-  const uniqueStatuses = Array.from(new Set(MOCK_TEACHERS.map(t => t.status)));
+  const uniqueAreas = Array.from(new Set(teachers.map(t => t.area)));
+  const uniqueStatuses = Array.from(new Set(teachers.map(t => t.status)));
 
-  const filteredTeachers = MOCK_TEACHERS.filter(t => {
+  const filteredTeachers = teachers.filter(t => {
     const matchesSearch = t.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           t.specialty.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          t.assignedCourses.some(c => c.toLowerCase().includes(searchTerm.toLowerCase()));
+                          t.assignedCourses.some((c: string) => c.toLowerCase().includes(searchTerm.toLowerCase()));
     
     const matchesStatus = statusFilter === 'Todos' || t.status === statusFilter;
     const matchesArea = areaFilter === 'Todas' || t.area === areaFilter;
@@ -30,7 +32,7 @@ export function TeachersGrid() {
     <div className="space-y-6">
       {/* 1. Hero Metrics Panel */}
       <TeacherMetricsPanel 
-        teachers={MOCK_TEACHERS} 
+        teachers={teachers} 
         activeFilter="Todos" 
         onFilterChange={() => {}} 
       />

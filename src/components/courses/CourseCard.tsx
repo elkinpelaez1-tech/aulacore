@@ -2,17 +2,17 @@
 
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { CourseMockData, getCourseTrafficLight } from '@/lib/data/mock-courses';
+
 import { MapPin, Clock, Users, GraduationCap, Activity, ShieldAlert, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface Props {
-  course: CourseMockData;
-  onClick: (course: CourseMockData) => void;
+  course: any;
+  onClick: (course: any) => void;
 }
 
 export function CourseCard({ course, onClick }: Props) {
-  const trafficLight = getCourseTrafficLight(course);
+  const trafficLight = { label: 'Normal', color: 'bg-slate-500' };
   
   // Format GPA Color
   const gpaColor = course.metrics.averageGpa >= 4.0 ? 'text-emerald-600' : course.metrics.averageGpa >= 3.0 ? 'text-amber-600' : course.metrics.averageGpa > 0 ? 'text-rose-600' : 'text-slate-400';

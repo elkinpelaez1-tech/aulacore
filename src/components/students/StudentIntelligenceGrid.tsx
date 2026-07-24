@@ -2,7 +2,8 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { MOCK_STUDENTS, StudentMockData } from '@/lib/data/mock-students';
+import { StudentMockData } from '@/types/student';
+const MOCK_STUDENTS: StudentMockData[] = [];
 import { StudentMetricsPanel } from './StudentMetricsPanel';
 import { StudentCard } from './StudentCard';
 import { StudentTable } from './StudentTable';
@@ -34,7 +35,7 @@ export function StudentIntelligenceGrid() {
     if (navigator.clipboard) {
       navigator.clipboard.writeText(magicLink).then(() => {
         setToastMsg('🔗 ¡Enlace Mágico de Pre-registro copiado! Compártelo con los acudientes.');
-        setTimeout(() => setToastMsg(''), 4000);
+        setToastMsg('');
       }).catch(() => {
         alert(`Copiar enlace: ${magicLink}`);
       });
@@ -78,9 +79,9 @@ export function StudentIntelligenceGrid() {
 
   // Apply filters
   const filteredStudents = MOCK_STUDENTS.filter(s => {
-    const matchesSearch = s.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          s.document.includes(searchTerm) ||
-                          s.group.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = (s.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          (s.document && s.document.includes(searchTerm)) ||
+                          (s.group && s.group.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesCampus = campusFilter === 'Todas' || s.campus === campusFilter;
     const matchesLevel = levelFilter === 'Todos' || s.level === levelFilter;
     const matchesGrade = gradeFilter === 'Todos' || s.grade === gradeFilter;

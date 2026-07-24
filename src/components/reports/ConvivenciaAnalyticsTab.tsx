@@ -24,12 +24,7 @@ import {
 import { cn } from '@/lib/utils';
 
 // Mock data tailored for the Convivencia Analytics tab
-const CLIMATE_LEVELS_DATA = [
-  { name: 'Preescolar', index: 100.0, color: '#2dd4bf' },   // teal-400
-  { name: 'Primaria', index: 97.5, color: '#14b8a6' },     // teal-500
-  { name: 'Bachillerato', index: 93.8, color: '#0d9488' },   // teal-600
-  { name: 'Media Técnica', index: 98.2, color: '#0f766e' }   // teal-700
-];
+const CLIMATE_LEVELS_DATA: any[] = [];
 
 export function ConvivenciaAnalyticsTab() {
   const [activeModal, setActiveModal] = useState<string | null>(null);
@@ -37,22 +32,16 @@ export function ConvivenciaAnalyticsTab() {
   const [toast, setToast] = useState<{ title: string; message: string } | null>(null);
 
   const handleExecuteAction = (successTitle: string, successMessage: string, onDownload?: () => void) => {
-    setIsProcessing(true);
-    setTimeout(() => {
-      setIsProcessing(false);
-      if (onDownload) {
-        try {
-          onDownload();
-        } catch (e) {
-          console.error(e);
-        }
+    setIsProcessing(false);
+    if (onDownload) {
+      try {
+        onDownload();
+      } catch (e) {
+        console.error(e);
       }
-      setActiveModal(null);
-      setToast({ title: successTitle, message: successMessage });
-      setTimeout(() => {
-        setToast(null);
-      }, 3000);
-    }, 1000);
+    }
+    setActiveModal(null);
+    setToast({ title: successTitle, message: successMessage });
   };
 
   return (

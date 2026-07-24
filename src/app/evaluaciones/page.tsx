@@ -11,13 +11,15 @@ import {
   ListFilter, CheckCircle2, X, Printer, ScanLine, Camera, Check, ChevronRight, BarChart3, HelpCircle
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { MOCK_STUDENTS, StudentMockData } from '@/lib/data/mock-students';
-import { MOCK_COURSES, CourseMockData } from '@/lib/data/mock-courses';
 import { 
-  INITIAL_EVALUATIONS, INITIAL_RESULTS, INITIAL_QUESTION_BANK, 
   Evaluation, Question, StudentResult, EvaluationType, QuestionType, DifficultyLevel 
 } from '@/lib/data/evaluations-store';
-import { downloadEvaluationPDF } from '@/lib/utils/PdfGenerator';
+
+const MOCK_STUDENTS: any[] = [];
+const MOCK_COURSES: any[] = [];
+const INITIAL_EVALUATIONS: Evaluation[] = [];
+const INITIAL_RESULTS: Record<string, StudentResult[]> = {};
+const INITIAL_QUESTION_BANK: Question[] = [];
 import { PrintPreviewModal } from '@/components/dashboard/PrintPreviewModal';
 
 type TabType = 'dashboard' | 'builder' | 'bank' | 'grading' | 'student' | 'analytics';
@@ -124,8 +126,8 @@ export default function EvaluacionesIAPage() {
     return () => clearInterval(timer);
   }, [activeTab, studentTimeLeft, examFinished]);
 
-  const selectedEvaluation = evaluations.find(e => e.id === selectedEvaluationId) || evaluations[0];
-  const selectedResults = results[selectedEvaluation.id] || [];
+  const selectedEvaluation = evaluations.find(e => e.id === selectedEvaluationId) || { id: '', title: '', course: '', subject: '', period: '', weight: 0, timeLimit: 0, questions: [] } as unknown as Evaluation;
+  const selectedResults = results[selectedEvaluation?.id] || [];
 
   // Start student quiz simulation
   const handleStartStudentQuiz = (evaluation: Evaluation) => {
@@ -211,15 +213,7 @@ export default function EvaluacionesIAPage() {
       { p: 100, l: 'Preguntas indexadas correctamente.' }
     ];
 
-    let currentStep = 0;
-    const interval = setInterval(() => {
-      if (currentStep < steps.length) {
-        setGenProgress(steps[currentStep].p);
-        setGenProgressLabel(steps[currentStep].l);
-        currentStep++;
-      } else {
-        clearInterval(interval);
-        setIsGenerating(false);
+    setIsGenerating(false);
 
         // Generate synthetic questions based on draftSubject and prompt
         const generated: Question[] = [];
@@ -324,8 +318,6 @@ export default function EvaluacionesIAPage() {
           'Quiz Express IA Generado',
           `Se han creado ${questionsCount} preguntas profesionales sobre "${aiPrompt}" con métricas de dificultad, tiempo y rúbricas.`
         );
-      }
-    }, 400);
   };
 
   // Add question from bank to the current exam draft
@@ -436,7 +428,7 @@ export default function EvaluacionesIAPage() {
     }
 
     // Recalculate 9-B Course mock details in MOCK_COURSES
-    const course9B = MOCK_COURSES.find(c => c.name === '9-B') || MOCK_COURSES[1];
+    const course9B = MOCK_COURSES.find(c => c.name === '9-B');
     if (course9B) {
       course9B.metrics.averageGpa = 3.4;
       course9B.metrics.activeAlerts = 2; // Alerts down
@@ -463,13 +455,6 @@ export default function EvaluacionesIAPage() {
       { p: 100, l: 'Sincronía calibrada. Procesamiento exitoso.' }
     ];
 
-    let current = 0;
-    const timer = setInterval(() => {
-      if (current < omrSteps.length) {
-        setOmrProgress(omrSteps[current].p);
-        current++;
-      } else {
-        clearInterval(timer);
         setOmrScanning(false);
         setOmrCameraActive(false);
         setOmrProcessedCount(prev => prev + 1);
@@ -496,8 +481,6 @@ export default function EvaluacionesIAPage() {
           'Lector Óptico OMR AI Exitoso',
           'El examen en papel de Sofía Ramírez fue calificado ópticamente: Nota 4.8. Respuestas cargadas.'
         );
-      }
-    }, 600);
   };
 
   return (

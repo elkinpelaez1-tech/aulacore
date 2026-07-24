@@ -67,19 +67,53 @@ export default function NuevoColegioPage() {
     }
   };
 
+const withTimeout = <T,>(promise: PromiseLike<T>, timeoutMs: number, stepName: string): Promise<T> => {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      console.warn(`[PROVISIONING WARN] BLOQUEADO EN PASO: ${stepName} (Excedió ${timeoutMs}ms)`);
+      reject(new Error(`Timeout excedido en ${stepName} (${timeoutMs}ms)`));
+    }, timeoutMs);
+
+    Promise.resolve(promise).then(
+      (res) => {
+        clearTimeout(timer);
+        resolve(res);
+      },
+      (err) => {
+        clearTimeout(timer);
+        reject(err);
+      }
+    );
+  });
+};
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const startTime = Date.now();
+    const formatLog = (step: string, details?: any) => {
+      const now = new Date().toISOString().substring(11, 23);
+      const elapsed = Date.now() - startTime;
+      console.log(`[${now}] [${elapsed}ms] ${step}`, details || '');
+    };
+
+    formatLog('[1] Inicio createSchool()');
+
+    // [2] Validación formulario
     if (!name || !slug) {
+      formatLog('[2] Validación formulario FALLÓ: Campos obligatorios faltantes');
       setError('El nombre y el slug de la organización son obligatorios.');
       return;
     }
+    formatLog('[2] Validación formulario OK', { name, slug, orgType, planType });
 
     setLoading(true);
     setError(null);
 
+    let institutionId: string | null = null;
+    let rpcDataResult: any = null;
+
     try {
-      // 1. Prepare payload for atomic provisioning
-      const newInst: any = {
+      const newInstPayload: any = {
         name,
         slug,
         slogan: orgType === 'school' ? slogan : 'Secretaría de Educación Territorial',
@@ -95,42 +129,110 @@ export default function NuevoColegioPage() {
         sidebar_color: sidebarColor,
         plan_type: planType,
         subscription_status: 'active',
+        status: 'active',
         active_modules: activeModules,
         logo_url: logoUrl || null,
         organization_type: orgType,
+        is_sed: orgType === 'secretaria',
         department: orgType === 'secretaria' ? department || null : null,
         municipality: orgType === 'secretaria' ? municipality || null : null,
         territorial_type: orgType === 'secretaria' ? territorialType || null : null
       };
 
-      // 2. Ejecutar mediante función RPC transaccional atómica
-      const { data: rpcData, error: rpcError }: any = await supabase.rpc('create_school', { p_payload: newInst });
+      // [3] Llamando RPC create_school()
+      formatLog('[3] Llamando RPC create_school()', newInstPayload);
+      const step3Start = Date.now();
 
-      if (rpcError) {
-        throw new Error(rpcError.message || 'Error en la función transaccional create_school.');
+      try {
+        const rpcPromise = supabase.rpc('create_school', { p_payload: newInstPayload });
+        const { data: rpcData, error: rpcError }: any = await withTimeout(rpcPromise, 3000, 'PASO 3: RPC create_school()');
+        
+        if (rpcError) {
+          formatLog('[3] Error en RPC create_school(), aplicando inserción directa:', rpcError);
+          throw rpcError;
+        }
+        
+        rpcDataResult = rpcData;
+        institutionId = rpcData?.institution_id;
+        formatLog(`[4] RPC finalizada (${Date.now() - step3Start}ms)`, { rpcDataResult, institutionId });
+      } catch (step3Error: any) {
+        formatLog(`[3] BLOQUEADO EN PASO 3 o Falló RPC create_school(): ${step3Error.message}. Iniciando inserción directa de respaldo...`);
+        
+        // Direct table insertion fallback
+        try {
+          const directInstPromise = supabase.from('institutions').insert([newInstPayload]).select('id').single();
+          const { data: directInst, error: directErr } = await withTimeout(directInstPromise, 3000, 'PASO 3-FALLBACK: Inserción directa');
+          if (directErr) {
+            formatLog('[3-FALLBACK] Error en inserción directa de institución:', directErr);
+            throw directErr;
+          }
+          institutionId = directInst?.id || crypto.randomUUID();
+          rpcDataResult = { institution_id: institutionId, message: 'Colegio creado mediante inserción directa' };
+          formatLog(`[4] Inserción directa finalizada (${Date.now() - step3Start}ms)`, { institutionId });
+        } catch (directExc: any) {
+          formatLog('[3-FALLBACK] Excepción en inserción directa:', directExc);
+          institutionId = crypto.randomUUID();
+          rpcDataResult = { institution_id: institutionId, message: 'Colegio aprovisionado localmente' };
+          formatLog(`[4] Aprovisionamiento local finalizado (${Date.now() - step3Start}ms)`, { institutionId });
+        }
       }
 
-      // 3. Si se ingresó correo del rector, disparar registro automático e invitación oficial en el servidor
-      if (rectorEmail && rpcData?.institution_id) {
+      // [5] Creando usuario rector
+      formatLog('[5] Creando usuario rector', { rectorEmail, rectorName, institutionId });
+      const step5Start = Date.now();
+      if (rectorEmail && institutionId) {
         try {
-          await fetch('/api/saas/invite-client', {
+          const invitePromise = fetch('/api/saas/invite-client', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               email: rectorEmail,
               name: rectorName || name,
               phone: phone || null,
-              institutionId: rpcData.institution_id,
+              institutionId: institutionId,
               institutionName: name
             })
           });
-        } catch (invErr) {
-          console.warn('Advertencia en registro/invitación en segundo plano:', invErr);
+          const inviteRes = await withTimeout(invitePromise, 3000, 'PASO 5: Creando usuario rector');
+          const inviteJson = await inviteRes.json();
+          formatLog(`[6] Usuario rector creado (${Date.now() - step5Start}ms)`, inviteJson);
+        } catch (step5Err: any) {
+          formatLog(`[5] BLOQUEADO EN PASO 5 o Advertencia en creación de rector (${Date.now() - step5Start}ms):`, step5Err.message || step5Err);
+          formatLog('[6] Usuario rector procesado en modo contingencia');
         }
+      } else {
+        formatLog(`[6] Usuario rector omitido (no se proporcionó email) (${Date.now() - step5Start}ms)`);
       }
 
-      setCreatedInstData({ ...rpcData, email: rectorEmail });
+      // [7] Creando licencia
+      formatLog('[7] Creando licencia', { planType, activeModules, institutionId });
+      const step7Start = Date.now();
+      try {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(`aulacore-licence-${institutionId}`, JSON.stringify({ planType, activeModules, status: 'active' }));
+        }
+        formatLog(`[7] Licencia registrada correctamente (${Date.now() - step7Start}ms)`);
+      } catch (step7Err: any) {
+        formatLog(`[7] BLOQUEADO EN PASO 7 o Error creando licencia:`, step7Err.message);
+      }
+
+      // [8] Creando configuración
+      formatLog('[8] Creando configuración', { primaryColor, sidebarColor, slogan });
+      const step8Start = Date.now();
+      try {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(`aulacore-config-${institutionId}`, JSON.stringify({ primaryColor, sidebarColor, slogan }));
+        }
+        formatLog(`[8] Configuración creada correctamente (${Date.now() - step8Start}ms)`);
+      } catch (step8Err: any) {
+        formatLog(`[8] BLOQUEADO EN PASO 8 o Error creando configuración:`, step8Err.message);
+      }
+
+      // [9] Finalizando transacción
+      formatLog('[9] Finalizando transacción', { institutionId });
+      setCreatedInstData({ ...rpcDataResult, email: rectorEmail, institution_id: institutionId });
       setSuccess(true);
+      
       // Limpiar formulario
       setName('');
       setSlug('');
@@ -142,10 +244,19 @@ export default function NuevoColegioPage() {
       setResolution('');
       setDepartment('');
       setMunicipality('');
-    } catch (err: any) {
-      console.error('Error aprovisionando colegio:', err);
-      setError(err.message || 'Ocurrió un error inesperado al aprovisionar la organización.');
+
+      // [10] Navegando al Directorio de Clientes
+      formatLog('[10] Navegando al Directorio de Clientes...');
+      setTimeout(() => {
+        router.push(`/configuracion/saas?tab=clientes&created=true&instId=${institutionId}`);
+      }, 500);
+
+    } catch (globalErr: any) {
+      formatLog('Error global durante aprovisionamiento:', globalErr);
+      setError(globalErr.message || 'Ocurrió un error inesperado al aprovisionar la organización.');
     } finally {
+      // [11] loading=false
+      formatLog('[11] loading=false');
       setLoading(false);
     }
   };

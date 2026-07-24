@@ -6,13 +6,13 @@ import {
   SheetTitle,
   SheetDescription,
 } from '@/components/ui/sheet';
-import { SubjectPerformance } from './mockData';
+
 import { BookOpen, Calendar, CheckCircle2, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Progress } from '@/components/ui/progress';
 
 interface SubjectDetailModalProps {
-  subject: SubjectPerformance | null;
+  subject: any;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -62,7 +62,7 @@ export function SubjectDetailModal({ subject, isOpen, onClose }: SubjectDetailMo
             </h3>
             
             <div className="space-y-3">
-              {subject.activities.map((activity) => (
+              {(subject.activities || []).map((activity: any) => (
                 <div key={activity.id} className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
                   <div className="flex justify-between items-start mb-2">
                     <h4 className="font-bold text-slate-800 text-sm">{activity.name}</h4>

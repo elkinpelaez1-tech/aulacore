@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { ShieldAlert, Search, PlusCircle, CheckCircle2, User, ChevronRight, FileText, AlertOctagon, HelpCircle } from 'lucide-react';
-import { MOCK_STUDENTS, StudentMockData } from '@/lib/data/mock-students';
+import { StudentMockData } from '@/types/student';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';

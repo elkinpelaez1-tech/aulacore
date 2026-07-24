@@ -149,19 +149,19 @@ export function Client360Drawer({
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                   <div>
                     <span className="text-slate-400 font-bold block text-[10px] uppercase">Dirección Institucional</span>
-                    <span className="font-extrabold text-slate-800 mt-0.5 block">{tenant.address || 'Calle 45 # 22-10, Sede Principal'}</span>
+                    <span className="font-extrabold text-slate-800 mt-0.5 block">{tenant.address || 'N/D'}</span>
                   </div>
                   <div>
                     <span className="text-slate-400 font-bold block text-[10px] uppercase">Ciudad / Municipio</span>
-                    <span className="font-extrabold text-slate-800 mt-0.5 block">{tenant.city || 'Bogotá D.C.'}</span>
+                    <span className="font-extrabold text-slate-800 mt-0.5 block">{tenant.city || 'N/D'}</span>
                   </div>
                   <div>
                     <span className="text-slate-400 font-bold block text-[10px] uppercase">Departamento / Región</span>
-                    <span className="font-extrabold text-slate-800 mt-0.5 block">{tenant.department || 'Cundinamarca'}</span>
+                    <span className="font-extrabold text-slate-800 mt-0.5 block">{tenant.department || 'N/D'}</span>
                   </div>
                   <div>
                     <span className="text-slate-400 font-bold block text-[10px] uppercase">Resolución Oficial</span>
-                    <span className="font-extrabold text-slate-800 mt-0.5 block">{tenant.resolution || 'Res. 4829 del 12/04/2018'}</span>
+                    <span className="font-extrabold text-slate-800 mt-0.5 block">{tenant.resolution || 'N/D'}</span>
                   </div>
                 </div>
               </div>
@@ -174,24 +174,24 @@ export function Client360Drawer({
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                   <div>
                     <span className="text-slate-400 font-bold block text-[10px] uppercase">Rector(a)</span>
-                    <span className="font-black text-slate-800 mt-0.5 block">{tenant.rector_name || 'Dr. Carlos Eduardo Mendoza'}</span>
+                    <span className="font-black text-slate-800 mt-0.5 block">{tenant.rector_name || 'Sin registrar'}</span>
                   </div>
                   <div>
                     <span className="text-slate-400 font-bold block text-[10px] uppercase">Secretario(a) Académico(a)</span>
-                    <span className="font-black text-slate-800 mt-0.5 block">{tenant.secretary_name || 'Lic. Martha Lucía Gómez'}</span>
+                    <span className="font-black text-slate-800 mt-0.5 block">{tenant.secretary_name || 'Sin registrar'}</span>
                   </div>
                   <div>
                     <span className="text-slate-400 font-bold block text-[10px] uppercase">Teléfono / WhatsApp Directo</span>
                     <div className="flex items-center gap-1.5 mt-0.5">
                       <Phone className="w-3.5 h-3.5 text-emerald-600" />
-                      <span className="font-extrabold text-slate-800">{tenant.phone || '+57 310 458 9021'}</span>
+                      <span className="font-extrabold text-slate-800">{tenant.phone || 'Sin registrar'}</span>
                     </div>
                   </div>
                   <div>
                     <span className="text-slate-400 font-bold block text-[10px] uppercase">Correo Electrónico Oficial</span>
                     <div className="flex items-center gap-1.5 mt-0.5 truncate">
                       <Mail className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                      <span className="font-extrabold text-slate-800 truncate">{tenant.email || 'rectoria@colegioaulacore.edu.co'}</span>
+                      <span className="font-extrabold text-slate-800 truncate">{tenant.email || 'Sin registrar'}</span>
                     </div>
                   </div>
                 </div>
@@ -229,15 +229,15 @@ export function Client360Drawer({
                 <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2 text-xs">
                   <div className="flex justify-between items-center">
                     <span className="text-slate-500 font-bold">Ejecutivo Comercial Asignado:</span>
-                    <span className="font-extrabold text-slate-800">Eduardo Martínez (KAM Colombia)</span>
+                    <span className="font-extrabold text-slate-800">{tenant.kam_name || 'Sin asignar'}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-slate-500 font-bold">Tipo de Cliente:</span>
-                    <span className="font-extrabold text-slate-800">{tenant.is_sed ? 'Secretaría de Educación (SED)' : 'Colegio K-12 / Privado o Oficial'}</span>
+                    <span className="font-extrabold text-slate-800">{tenant.is_sed ? 'Secretaría de Educación (SED)' : 'Colegio / Institución Educativa'}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-slate-500 font-bold">Valor Contrato Estimado:</span>
-                    <span className="font-black text-emerald-600 font-mono">$18,500,000 COP / año</span>
+                    <span className="font-black text-emerald-600 font-mono">${(tenant.contract_value || 0).toLocaleString()} COP / año</span>
                   </div>
                 </div>
               </div>
@@ -271,23 +271,23 @@ export function Client360Drawer({
                   </div>
                   <div className="p-3 bg-slate-50 rounded-xl border border-slate-150">
                     <span className="text-slate-400 font-bold text-[10px] uppercase block">Fecha Inicio</span>
-                    <span className="font-black text-slate-800 text-sm mt-0.5 block">{tenant.subscription_start || '01/01/2026'}</span>
+                    <span className="font-black text-slate-800 text-sm mt-0.5 block">{tenant.subscription_start || 'N/D'}</span>
                   </div>
                   <div className="p-3 bg-slate-50 rounded-xl border border-slate-150">
                     <span className="text-slate-400 font-bold text-[10px] uppercase block">Fecha Vencimiento</span>
-                    <span className="font-black text-emerald-700 text-sm mt-0.5 block">{tenant.subscription_end || '31/12/2026'}</span>
+                    <span className="font-black text-emerald-700 text-sm mt-0.5 block">{tenant.subscription_end || 'N/D'}</span>
                   </div>
                   <div className="p-3 bg-slate-50 rounded-xl border border-slate-150">
                     <span className="text-slate-400 font-bold text-[10px] uppercase block">Cupo Alumnos</span>
-                    <span className="font-black text-slate-800 text-sm mt-0.5 block">{metrics?.students || 450} / 600</span>
+                    <span className="font-black text-slate-800 text-sm mt-0.5 block">{metrics?.students || 0} / {tenant.max_students || 0}</span>
                   </div>
                   <div className="p-3 bg-slate-50 rounded-xl border border-slate-150">
                     <span className="text-slate-400 font-bold text-[10px] uppercase block">Cupo Docentes</span>
-                    <span className="font-black text-slate-800 text-sm mt-0.5 block">{metrics?.teachers || 32} / 50</span>
+                    <span className="font-black text-slate-800 text-sm mt-0.5 block">{metrics?.teachers || 0} / {tenant.max_teachers || 0}</span>
                   </div>
                   <div className="p-3 bg-slate-50 rounded-xl border border-slate-150">
                     <span className="text-slate-400 font-bold text-[10px] uppercase block">Sedes Habilitadas</span>
-                    <span className="font-black text-slate-800 text-sm mt-0.5 block">1 Sede Principal</span>
+                    <span className="font-black text-slate-800 text-sm mt-0.5 block">{tenant.sedes_count ? `${tenant.sedes_count} Sedes` : '0 Sedes'}</span>
                   </div>
                 </div>
 
@@ -341,18 +341,18 @@ export function Client360Drawer({
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                     <div className="p-3 rounded-xl border border-slate-200 bg-slate-50">
                       <span className="text-slate-500 font-bold block">Motor MIO (Recetas)</span>
-                      <span className="text-base font-black text-slate-800 mt-1 block">148 Ejecuciones</span>
-                      <span className="text-[10px] text-emerald-600 font-bold">100% Exitosas</span>
+                      <span className="text-base font-black text-slate-800 mt-1 block">{tenant.mio_executions || 0} Ejecuciones</span>
+                      <span className="text-[10px] text-emerald-600 font-bold">{tenant.mio_success_rate || 0}% Exitosas</span>
                     </div>
                     <div className="p-3 rounded-xl border border-slate-200 bg-slate-50">
                       <span className="text-slate-500 font-bold block">Motor CIE (Alerta Temprana)</span>
-                      <span className="text-base font-black text-slate-800 mt-1 block">24 Alertas Procesadas</span>
-                      <span className="text-[10px] text-blue-600 font-bold">4 Casos Prioritarios</span>
+                      <span className="text-base font-black text-slate-800 mt-1 block">{tenant.cie_alerts || 0} Alertas Procesadas</span>
+                      <span className="text-[10px] text-blue-600 font-bold">{tenant.cie_priority || 0} Casos Prioritarios</span>
                     </div>
                     <div className="p-3 rounded-xl border border-slate-200 bg-slate-50">
                       <span className="text-slate-500 font-bold block">AulaHelp IA (Asistente)</span>
-                      <span className="text-base font-black text-slate-800 mt-1 block">4,280 Tokens</span>
-                      <span className="text-[10px] text-purple-600 font-bold">$0.18 USD Consumidos</span>
+                      <span className="text-base font-black text-slate-800 mt-1 block">{(tenant.ai_tokens || 0).toLocaleString()} Tokens</span>
+                      <span className="text-[10px] text-purple-600 font-bold">${tenant.ai_cost || '0.00'} USD Consumidos</span>
                     </div>
                   </div>
                 </div>
@@ -372,30 +372,32 @@ export function Client360Drawer({
                 <div className="grid grid-cols-3 gap-3 text-center">
                   <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
                     <span className="text-slate-400 font-bold text-[10px] uppercase block">Tickets Abiertos</span>
-                    <span className="text-lg font-black text-slate-800 mt-0.5 block">0</span>
+                    <span className="text-lg font-black text-slate-800 mt-0.5 block">{tenant.open_tickets || 0}</span>
                   </div>
                   <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200">
                     <span className="text-emerald-700 font-bold text-[10px] uppercase block">Tickets Resueltos</span>
-                    <span className="text-lg font-black text-emerald-800 mt-0.5 block">12</span>
+                    <span className="text-lg font-black text-emerald-800 mt-0.5 block">{tenant.resolved_tickets || 0}</span>
                   </div>
                   <div className="p-3 rounded-xl bg-indigo-50 border border-indigo-200">
                     <span className="text-indigo-700 font-bold text-[10px] uppercase block">Cumplimiento SLA</span>
-                    <span className="text-lg font-black text-indigo-800 mt-0.5 block font-mono">99.4%</span>
+                    <span className="text-lg font-black text-indigo-800 mt-0.5 block font-mono">{tenant.sla_compliance || '0'}%</span>
                   </div>
                 </div>
 
                 <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-2">
                   <div className="flex justify-between items-center">
                     <span className="text-slate-500 font-bold">Responsable Técnico AulaCore:</span>
-                    <span className="font-extrabold text-slate-800">Ing. Julián Gómez (Soporte Nivel 2)</span>
+                    <span className="font-extrabold text-slate-800">{tenant.support_agent || 'Sin asignar'}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-slate-500 font-bold">Tiempo Promedio Respuesta:</span>
-                    <span className="font-extrabold text-slate-800">18 minutos</span>
+                    <span className="font-extrabold text-slate-800">{tenant.avg_response_time || 0} minutos</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-slate-500 font-bold">Canal Prioritario:</span>
-                    <span className="font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">WhatsApp Directo + Tickets</span>
+                    <span className="font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">
+                      {tenant.preferred_channel || 'N/D'}
+                    </span>
                   </div>
                 </div>
               </div>

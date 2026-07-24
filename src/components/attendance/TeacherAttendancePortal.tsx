@@ -30,48 +30,7 @@ export interface StudentAttendanceItem {
   isRisk?: boolean;
 }
 
-const INITIAL_CLASS_STUDENTS: StudentAttendanceItem[] = [
-  { id: 'st-1', name: 'María González', code: '9A-01', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 96 },
-  { id: 'st-2', name: 'Juan Pérez', code: '9A-02', avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 78, isRisk: true, lastNote: 'Ausentismo recurrente los lunes' },
-  { id: 'st-3', name: 'Laura Ramírez', code: '9A-03', avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 92 },
-  { id: 'st-4', name: 'Sebastián López', code: '9A-04', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 88 },
-  { id: 'st-5', name: 'Valentina Morales', code: '9A-05', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 98 },
-  { id: 'st-6', name: 'David Quintero', code: '9A-06', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 81, isRisk: true },
-  { id: 'st-7', name: 'Sofía Medina', code: '9A-07', avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 95 },
-  { id: 'st-8', name: 'Tomás Cardona', code: '9A-08', avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 90 },
-  { id: 'st-9', name: 'Camila Restrepo', code: '9A-09', avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 94 },
-  { id: 'st-10', name: 'Mateo Álvarez', code: '9A-10', avatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 85 },
-  { id: 'st-11', name: 'Daniela Salazar', code: '9A-11', avatar: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 97 },
-  { id: 'st-12', name: 'Alejandro Gómez', code: '9A-12', avatar: 'https://images.unsplash.com/photo-1463453091185-61582044d556?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 89 },
-  { id: 'st-13', name: 'Mariana Castro', code: '9A-13', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 93 },
-  { id: 'st-14', name: 'Santiago Vargas', code: '9A-14', avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 87 },
-  { id: 'st-15', name: 'Isabella Rojas', code: '9A-15', avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 91 },
-  { id: 'st-16', name: 'Samuel Moreno', code: '9A-16', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 84 },
-  { id: 'st-17', name: 'Luciana Herrera', code: '9A-17', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 96 },
-  { id: 'st-18', name: 'Matías Jiménez', code: '9A-18', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 89 },
-  { id: 'st-19', name: 'Valeria Muñoz', code: '9A-19', avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 95 },
-  { id: 'st-20', name: 'Nicolás Rojas', code: '9A-20', avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 82 },
-  { id: 'st-21', name: 'Gabriela Díaz', code: '9A-21', avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 98 },
-  { id: 'st-22', name: 'Daniel Castro', code: '9A-22', avatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 86 },
-  { id: 'st-23', name: 'Salomé Ortiz', code: '9A-23', avatar: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 94 },
-  { id: 'st-24', name: 'Lucas Silva', code: '9A-24', avatar: 'https://images.unsplash.com/photo-1463453091185-61582044d556?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 88 },
-  { id: 'st-25', name: 'Antonella Núñez', code: '9A-25', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 92 },
-  { id: 'st-26', name: 'Emmanuel Vega', code: '9A-26', avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 85 },
-  { id: 'st-27', name: 'Samantha Peña', code: '9A-27', avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 91 },
-  { id: 'st-28', name: 'Benjamín Ruiz', code: '9A-28', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 83 },
-  { id: 'st-29', name: 'Julieta Mendoza', code: '9A-29', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 97 },
-  { id: 'st-30', name: 'Andrés Torres', code: '9A-30', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 89 },
-  { id: 'st-31', name: 'Natalia Acosta', code: '9A-31', avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 95 },
-  { id: 'st-32', name: 'Felipe Lozano', code: '9A-32', avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 86 },
-  { id: 'st-33', name: 'Manuela Beltrán', code: '9A-33', avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 93 },
-  { id: 'st-34', name: 'Simón Calderón', code: '9A-34', avatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 88 },
-  { id: 'st-35', name: 'Sara Pineda', code: '9A-35', avatar: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 96 },
-  { id: 'st-36', name: 'Gabriel Franco', code: '9A-36', avatar: 'https://images.unsplash.com/photo-1463453091185-61582044d556?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 84 },
-  { id: 'st-37', name: 'Paulina Cortés', code: '9A-37', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 94 },
-  { id: 'st-38', name: 'Jerónimo Marín', code: '9A-38', avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 87 },
-  { id: 'st-39', name: 'Miranda Ospina', code: '9A-39', avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 98 },
-  { id: 'st-40', name: 'Joaquín Zapata', code: '9A-40', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80', status: 'PENDING', attendanceRate: 90 },
-];
+const INITIAL_CLASS_STUDENTS: StudentAttendanceItem[] = [];
 
 export function TeacherAttendancePortal() {
   const { userRole } = useRole();
@@ -357,7 +316,7 @@ export function TeacherAttendancePortal() {
             id: s.id,
             name: s.name,
             status: (idx % 7 === 0 ? 'ABSENT' : idx % 13 === 0 ? 'LATE' : 'PRESENT') as AttendanceStatus,
-            confidence: Math.floor(Math.random() * (99 - 94 + 1)) + 94
+            confidence: 97
           }));
           setOcrResults(simulatedResults);
           return 100;

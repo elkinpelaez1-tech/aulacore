@@ -5,7 +5,7 @@ import {
   Dialog,
   DialogContent,
 } from "@/components/ui/dialog";
-import { StudentMockData } from '@/lib/data/mock-students';
+import { StudentMockData } from '@/types/student';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { AlertCircle, User, GraduationCap, ShieldAlert, FileText, History, Activity, MapPin, X, CheckCircle2, Calendar, Clock, MessageSquare, Phone, Download } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -37,14 +37,14 @@ export function Student360Drawer({ student, isOpen, onOpenChange, onSelectCourse
   // Sync state when student shifts
   React.useEffect(() => {
     if (student) {
-      setAttendanceRate(student.attendanceRate);
+      setAttendanceRate(student.attendanceRate ?? 100);
       setJustifyNotes('');
       setShowJustifyForm(false);
       
       setRfidLogs([
-        { time: '07:12:05', direction: 'Entrada', status: student.attendanceRate >= 90 ? 'A Tiempo' : 'Falta', date: 'Hoy', device: 'Torniquete Sede Principal' },
+        { time: '07:12:05', direction: 'Entrada', status: (student.attendanceRate || 100) >= 90 ? 'A Tiempo' : 'Falta', date: 'Hoy', device: 'Torniquete Sede Principal' },
         { time: '16:02:15', direction: 'Salida', status: 'A Tiempo', date: 'Ayer', device: 'Torniquete Sede Principal' },
-        { time: '07:15:30', direction: 'Entrada', status: student.attendanceRate >= 90 ? 'A Tiempo' : 'Falta', date: 'Ayer', device: 'Torniquete Sede Principal' },
+        { time: '07:15:30', direction: 'Entrada', status: (student.attendanceRate || 100) >= 90 ? 'A Tiempo' : 'Falta', date: 'Ayer', device: 'Torniquete Sede Principal' },
         { time: '15:58:10', direction: 'Salida', status: 'A Tiempo', date: 'Hace 3 días', device: 'Torniquete Sede Principal' },
       ]);
 
@@ -81,7 +81,7 @@ export function Student360Drawer({ student, isOpen, onOpenChange, onSelectCourse
   };
 
   const handleCopyDocument = () => {
-    if (!student) return;
+    if (!student || !student.document) return;
     navigator.clipboard.writeText(student.document);
     showToast(
       '📋 Documento Copiado', 
@@ -99,7 +99,7 @@ export function Student360Drawer({ student, isOpen, onOpenChange, onSelectCourse
     onOpenChange(false);
     // Trigger course selection
     setTimeout(() => {
-      onSelectCourse?.(student.group);
+      onSelectCourse?.(student.group || '');
     }, 300);
   };
 
@@ -342,26 +342,26 @@ Admisiones y Matriculas AulaCore
       ['Nivel Educativo', student.level],
       ['Acudiente Legal', student.guardianName],
       ['Sede / Jornada', `${student.campus} / ${student.shift}`],
-      ['Estado Matricula', student.status],
+      ['Estado Matricula', student.status || 'Activo'],
       [],
       ['INDICADORES CLAVE'],
-      ['Promedio GPA General', student.gpa.toFixed(2)],
+      ['Promedio GPA General', (student.gpa || 0).toFixed(2)],
       ['Tasa Asistencia Acumulada (%)', `${attendanceRate}%`],
-      ['Riesgo Academico', student.academicRisk],
-      ['Riesgo Convivencial', student.behaviorRisk],
+      ['Riesgo Academico', student.academicRisk || 'N/A'],
+      ['Riesgo Convivencial', student.behaviorRisk || 'N/A'],
       [],
       ['CALIFICACIONES PERIODO 3 (GPA REAL)'],
       ['Asignatura', 'Nota', 'Estado'],
-      ['Matemáticas', student.gpa < 3.2 ? '2.4' : '4.5', student.gpa < 3.2 ? 'Bajo' : 'Alto'],
-      ['Lengua Castellana', student.gpa < 3.2 ? '3.5' : '4.2', student.gpa < 3.2 ? 'Básico' : 'Superior'],
-      ['Inglés', student.gpa < 3.2 ? '3.0' : '4.7', student.gpa < 3.2 ? 'Básico' : 'Alto'],
-      ['Ciencias Naturales y Educación Ambiental', student.gpa < 3.2 ? '2.6' : '4.1', student.gpa < 3.2 ? 'Bajo' : 'Alto'],
-      ['Ciencias Sociales, Historia, Geografía, Constitución Política y Democracia', student.gpa < 3.2 ? '3.2' : '3.8', student.gpa < 3.2 ? 'Básico' : 'Alto'],
-      ['Educación Artística y Cultural', student.gpa < 3.2 ? '3.8' : '4.4', student.gpa < 3.2 ? 'Básico' : 'Alto'],
-      ['Educación Ética y en Valores Humanos', student.gpa < 3.2 ? '4.0' : '4.6', student.gpa < 3.2 ? 'Básico' : 'Alto'],
-      ['Educación Física, Recreación y Deportes', student.gpa < 3.2 ? '3.5' : '4.3', student.gpa < 3.2 ? 'Básico' : 'Alto'],
-      ['Educación Religiosa', student.gpa < 3.2 ? '3.8' : '4.0', student.gpa < 3.2 ? 'Básico' : 'Alto'],
-      ['Tecnología e Informática', student.gpa < 3.2 ? '3.1' : '4.8', student.gpa < 3.2 ? 'Básico' : 'Alto'],
+      ['Matemáticas', (student.gpa || 0) < 3.2 ? '2.4' : '4.5', (student.gpa || 0) < 3.2 ? 'Bajo' : 'Alto'],
+      ['Lengua Castellana', (student.gpa || 0) < 3.2 ? '3.5' : '4.2', (student.gpa || 0) < 3.2 ? 'Básico' : 'Superior'],
+      ['Inglés', (student.gpa || 0) < 3.2 ? '3.0' : '4.7', (student.gpa || 0) < 3.2 ? 'Básico' : 'Alto'],
+      ['Ciencias Naturales y Educación Ambiental', (student.gpa || 0) < 3.2 ? '2.6' : '4.1', (student.gpa || 0) < 3.2 ? 'Bajo' : 'Alto'],
+      ['Ciencias Sociales, Historia, Geografía, Constitución Política y Democracia', (student.gpa || 0) < 3.2 ? '3.2' : '3.8', (student.gpa || 0) < 3.2 ? 'Básico' : 'Alto'],
+      ['Educación Artística y Cultural', (student.gpa || 0) < 3.2 ? '3.8' : '4.4', (student.gpa || 0) < 3.2 ? 'Básico' : 'Alto'],
+      ['Educación Ética y en Valores Humanos', (student.gpa || 0) < 3.2 ? '4.0' : '4.6', (student.gpa || 0) < 3.2 ? 'Básico' : 'Alto'],
+      ['Educación Física, Recreación y Deportes', (student.gpa || 0) < 3.2 ? '3.5' : '4.3', (student.gpa || 0) < 3.2 ? 'Básico' : 'Alto'],
+      ['Educación Religiosa', (student.gpa || 0) < 3.2 ? '3.8' : '4.0', (student.gpa || 0) < 3.2 ? 'Básico' : 'Alto'],
+      ['Tecnología e Informática', (student.gpa || 0) < 3.2 ? '3.1' : '4.8', (student.gpa || 0) < 3.2 ? 'Básico' : 'Alto'],
       [],
       ['REGISTROS DE ASISTENCIA BIOMETRICA RFID'],
       ['Fecha', 'Hora', 'Direccion', 'Dispositivo', 'Estado'],
@@ -522,13 +522,13 @@ Admisiones y Matriculas AulaCore
               {activeTab === 'resumen' && (
                 <div className="space-y-6 animate-in fade-in duration-300">
                   
-                  {student.alerts.length > 0 && (
+                  {(student.alerts?.length || 0) > 0 && (
                     <div className="bg-rose-50 border border-rose-200 rounded-2xl p-5 shadow-sm">
                       <h4 className="text-[10px] font-bold text-rose-600 uppercase tracking-wider mb-3 flex items-center gap-1.5">
                         <AlertCircle className="w-4 h-4" /> Alertas Críticas Activas (Haz clic para resolver)
                       </h4>
                       <div className="space-y-2">
-                        {student.alerts.map(alert => (
+                        {student.alerts?.map((alert: any) => (
                           <button
                             key={alert.id}
                             onClick={() => {
@@ -563,8 +563,8 @@ Admisiones y Matriculas AulaCore
                         <GraduationCap className="w-4 h-4" />
                         <p className="text-[10px] font-bold uppercase tracking-wider">Promedio (GPA)</p>
                       </div>
-                      <p className={cn("text-4xl font-black", student.gpa >= 4.0 ? 'text-emerald-600' : student.gpa >= 3.0 ? 'text-amber-600' : student.gpa > 0 ? 'text-rose-600' : 'text-slate-400')}>
-                        {student.gpa > 0 ? student.gpa.toFixed(1) : 'N/A'}
+                      <p className={cn("text-4xl font-black", (student.gpa || 0) >= 4.0 ? 'text-emerald-600' : (student.gpa || 0) >= 3.0 ? 'text-amber-600' : (student.gpa || 0) > 0 ? 'text-rose-600' : 'text-slate-400')}>
+                        {(student.gpa || 0) > 0 ? (student.gpa || 0).toFixed(1) : 'N/A'}
                       </p>
                     </div>
                     <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-center transition-shadow hover:shadow-md">
@@ -607,20 +607,20 @@ Admisiones y Matriculas AulaCore
                   <div className="grid grid-cols-3 gap-4">
                     <div className="bg-white border border-slate-200 p-4 rounded-xl shadow-sm">
                       <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Promedio General</span>
-                      <span className={cn("text-2xl font-black block mt-1", student.gpa >= 4.0 ? 'text-emerald-600' : student.gpa >= 3.0 ? 'text-amber-600' : 'text-rose-600')}>
-                        {student.gpa.toFixed(2)}
+                      <span className={cn("text-2xl font-black block mt-1", (student.gpa || 0) >= 4.0 ? 'text-emerald-600' : (student.gpa || 0) >= 3.0 ? 'text-amber-600' : 'text-rose-600')}>
+                        {(student.gpa || 0).toFixed(2)}
                       </span>
                     </div>
                     <div className="bg-white border border-slate-200 p-4 rounded-xl shadow-sm">
                       <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Materias con Alerta</span>
-                      <span className={cn("text-2xl font-black block mt-1", student.gpa < 3.2 ? 'text-rose-600' : 'text-emerald-600')}>
-                        {student.gpa < 3.0 ? '3' : student.gpa < 3.5 ? '1' : '0'}
+                      <span className={cn("text-2xl font-black block mt-1", (student.gpa || 0) < 3.2 ? 'text-rose-600' : 'text-emerald-600')}>
+                        {(student.gpa || 0) < 3.0 ? '3' : (student.gpa || 0) < 3.5 ? '1' : '0'}
                       </span>
                     </div>
                     <div className="bg-white border border-slate-200 p-4 rounded-xl shadow-sm">
                       <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Rango Desempeño</span>
                       <span className="text-sm font-black text-slate-700 block mt-2">
-                        {student.gpa >= 4.0 ? 'Superior' : student.gpa >= 3.5 ? 'Alto' : student.gpa >= 3.0 ? 'Básico' : 'Bajo'}
+                        {(student.gpa || 0) >= 4.0 ? 'Superior' : (student.gpa || 0) >= 3.5 ? 'Alto' : (student.gpa || 0) >= 3.0 ? 'Básico' : 'Bajo'}
                       </span>
                     </div>
                   </div>
@@ -633,16 +633,16 @@ Admisiones y Matriculas AulaCore
 
                     <div className="space-y-3">
                       {[
-                        { name: 'Matemáticas', score: student.gpa < 3.2 ? 2.4 : 4.5, status: student.gpa < 3.2 ? 'Bajo' : 'Alto' },
-                        { name: 'Lengua Castellana', score: student.gpa < 3.2 ? 3.5 : 4.2, status: student.gpa < 3.2 ? 'Básico' : 'Superior' },
-                        { name: 'Inglés', score: student.gpa < 3.2 ? 3.0 : 4.7, status: student.gpa < 3.2 ? 'Básico' : 'Alto' },
-                        { name: 'Ciencias Naturales y Educación Ambiental', score: student.gpa < 3.2 ? 2.6 : 4.1, status: student.gpa < 3.2 ? 'Bajo' : 'Alto' },
-                        { name: 'Ciencias Sociales, Historia, Geografía, Constitución Política y Democracia', score: student.gpa < 3.2 ? 3.2 : 3.8, status: student.gpa < 3.2 ? 'Básico' : 'Alto' },
-                        { name: 'Educación Artística y Cultural', score: student.gpa < 3.2 ? 3.8 : 4.4, status: student.gpa < 3.2 ? 'Básico' : 'Alto' },
-                        { name: 'Educación Ética y en Valores Humanos', score: student.gpa < 3.2 ? 4.0 : 4.6, status: student.gpa < 3.2 ? 'Básico' : 'Alto' },
-                        { name: 'Educación Física, Recreación y Deportes', score: student.gpa < 3.2 ? 3.5 : 4.3, status: student.gpa < 3.2 ? 'Básico' : 'Alto' },
-                        { name: 'Educación Religiosa', score: student.gpa < 3.2 ? 3.8 : 4.0, status: student.gpa < 3.2 ? 'Básico' : 'Alto' },
-                        { name: 'Tecnología e Informática', score: student.gpa < 3.2 ? 3.1 : 4.8, status: student.gpa < 3.2 ? 'Básico' : 'Alto' },
+                        { name: 'Matemáticas', score: (student.gpa || 0) < 3.2 ? 2.4 : 4.5, status: (student.gpa || 0) < 3.2 ? 'Bajo' : 'Alto' },
+                        { name: 'Lengua Castellana', score: (student.gpa || 0) < 3.2 ? 3.5 : 4.2, status: (student.gpa || 0) < 3.2 ? 'Básico' : 'Superior' },
+                        { name: 'Inglés', score: (student.gpa || 0) < 3.2 ? 3.0 : 4.7, status: (student.gpa || 0) < 3.2 ? 'Básico' : 'Alto' },
+                        { name: 'Ciencias Naturales y Educación Ambiental', score: (student.gpa || 0) < 3.2 ? 2.6 : 4.1, status: (student.gpa || 0) < 3.2 ? 'Bajo' : 'Alto' },
+                        { name: 'Ciencias Sociales, Historia, Geografía, Constitución Política y Democracia', score: (student.gpa || 0) < 3.2 ? 3.2 : 3.8, status: (student.gpa || 0) < 3.2 ? 'Básico' : 'Alto' },
+                        { name: 'Educación Artística y Cultural', score: (student.gpa || 0) < 3.2 ? 3.8 : 4.4, status: (student.gpa || 0) < 3.2 ? 'Básico' : 'Alto' },
+                        { name: 'Educación Ética y en Valores Humanos', score: (student.gpa || 0) < 3.2 ? 4.0 : 4.6, status: (student.gpa || 0) < 3.2 ? 'Básico' : 'Alto' },
+                        { name: 'Educación Física, Recreación y Deportes', score: (student.gpa || 0) < 3.2 ? 3.5 : 4.3, status: (student.gpa || 0) < 3.2 ? 'Básico' : 'Alto' },
+                        { name: 'Educación Religiosa', score: (student.gpa || 0) < 3.2 ? 3.8 : 4.0, status: (student.gpa || 0) < 3.2 ? 'Básico' : 'Alto' },
+                        { name: 'Tecnología e Informática', score: (student.gpa || 0) < 3.2 ? 3.1 : 4.8, status: (student.gpa || 0) < 3.2 ? 'Básico' : 'Alto' },
                       ].map(sub => (
                         <div key={sub.name} className="flex items-center justify-between p-3 bg-slate-50 border border-slate-100 rounded-xl">
                           <div>

@@ -1,32 +1,57 @@
 'use client';
 
-import { TerritorialAlert, TerritorialAlertLog, getAlertsMock } from './territory-mock';
+import { supabase } from '@/lib/supabase';
+export interface TerritorialAlert {
+  id: string;
+  alert_code: string;
+  scope: 'territorial' | 'escolar';
+  severity: 'info' | 'bajo' | 'medio' | 'alto' | 'critico';
+  priority: 'urgente' | 'alta' | 'media' | 'baja';
+  institution_id: string;
+  institution_name: string;
+  municipality: string;
+  target_id: string;
+  target_name: string;
+  impact_estimate: number;
+  description: string;
+  assigned_to: string;
+  status: 'detectada' | 'validada' | 'asignada' | 'intervencion' | 'seguimiento' | 'resuelta' | 'cerrada';
+  ai_suggestions: {
+    option_a: string;
+    option_b: string;
+    option_c: string;
+  };
+  metadata: {
+    causes: string[];
+    kpis: Record<string, string | number>;
+  };
+  created_at: string;
+  logs: TerritorialAlertLog[];
+}
 
-// Local storage session key to persist changes in memory
-const ALERTS_SESSION_KEY = 'aulacore_territorial_alerts';
+export interface TerritorialAlertLog {
+  id: string;
+  alert_id: string;
+  action_taken: string;
+  comment: string;
+  resolution_time_seconds: number;
+  outcome: 'exitoso' | 'ineficaz' | 'neutral' | 'en_progreso';
+  evidence_url?: string;
+  signed_by: string;
+  signature_hash?: string;
+  created_at: string;
+}
 
-function getStoredAlerts(): TerritorialAlert[] {
-  if (typeof window === 'undefined') return [];
-  const stored = sessionStorage.getItem(ALERTS_SESSION_KEY);
-  if (!stored) {
-    const initial = getAlertsMock();
-    sessionStorage.setItem(ALERTS_SESSION_KEY, JSON.stringify(initial));
-    return initial;
+export async function getStoredAlerts(): Promise<TerritorialAlert[]> {
+  try {
+    const { data, error } = await supabase.from('territorial_alerts').select('*, logs:territorial_alert_logs(*)').order('created_at', { ascending: false });
+    if (error || !data) return [];
+    return data as TerritorialAlert[];
+  } catch (e) {
+    return [];
   }
-  return JSON.parse(stored);
 }
 
-function saveStoredAlerts(alerts: TerritorialAlert[]) {
-  if (typeof window === 'undefined') return;
-  sessionStorage.setItem(ALERTS_SESSION_KEY, JSON.stringify(alerts));
-  // Dispatch custom event to notify components in real time
-  window.dispatchEvent(new Event('territory-alerts-updated'));
-}
-
-/**
- * Motor de Priorización Inteligente
- * Regla de negocio para calcular la prioridad en base a la severidad del tipo de alerta y la dimensión del impacto.
- */
 export function calculatePriority(severity: string, impact: number): 'urgente' | 'alta' | 'media' | 'baja' {
   let severityScore = 1;
   if (severity === 'info') severityScore = 1;
@@ -35,7 +60,7 @@ export function calculatePriority(severity: string, impact: number): 'urgente' |
   if (severity === 'alto') severityScore = 5;
   if (severity === 'critico') severityScore = 8;
 
-  const totalScore = severityScore * Math.log10(impact + 1);
+  const totalScore = severityScore * Math.log10((impact || 0) + 1);
 
   if (totalScore >= 12) return 'urgente';
   if (totalScore >= 6) return 'alta';
@@ -43,26 +68,19 @@ export function calculatePriority(severity: string, impact: number): 'urgente' |
   return 'baja';
 }
 
-/**
- * Obtener alertas agrupadas por bandejas operativas
- */
-export function getAlertsByQueue(queue: 'inmediata' | 'seguimiento' | 'tendencias' | 'resueltas'): TerritorialAlert[] {
-  const alerts = getStoredAlerts();
+export async function getAlertsByQueue(queue: 'inmediata' | 'seguimiento' | 'tendencias' | 'resueltas'): Promise<TerritorialAlert[]> {
+  const alerts = await getStoredAlerts();
   return alerts.filter(alert => {
     switch (queue) {
       case 'inmediata':
-        // Críticas y Altas en estados iniciales
         return (alert.severity === 'critico' || alert.severity === 'alto') && 
                (alert.status === 'detectada' || alert.status === 'validada');
       case 'seguimiento':
-        // Alertas activamente asignadas o intervenidas
         return alert.status === 'asignada' || alert.status === 'intervencion' || alert.status === 'seguimiento';
       case 'tendencias':
-        // Alertas informativas, bajas o medias pendientes de atención
         return (alert.severity === 'medio' || alert.severity === 'bajo' || alert.severity === 'info') && 
                (alert.status === 'detectada' || alert.status === 'validada');
       case 'resueltas':
-        // Histórico de resueltas y cerradas
         return alert.status === 'resuelta' || alert.status === 'cerrada';
       default:
         return true;
@@ -70,10 +88,7 @@ export function getAlertsByQueue(queue: 'inmediata' | 'seguimiento' | 'tendencia
   });
 }
 
-/**
- * Transicionar el estado de una alerta registrando un log inmutable y estructurado para entrenamiento de IA
- */
-export function transitionAlertStatus(
+export async function transitionAlertStatus(
   alertId: string,
   newStatus: TerritorialAlert['status'],
   comment: string,
@@ -81,87 +96,61 @@ export function transitionAlertStatus(
   outcome: 'exitoso' | 'ineficaz' | 'neutral' | 'en_progreso',
   signedBy: string,
   evidenceUrl?: string
-): boolean {
-  const alerts = getStoredAlerts();
-  const alertIndex = alerts.findIndex(a => a.id === alertId);
-  if (alertIndex === -1) return false;
+): Promise<boolean> {
+  try {
+    const { error: updateError } = await supabase
+      .from('territorial_alerts')
+      .update({ status: newStatus })
+      .eq('id', alertId);
 
-  const alert = alerts[alertIndex];
-  
-  // Calcular segundos de resolución desde el último hito
-  const lastLog = alert.logs[alert.logs.length - 1];
-  const lastTime = lastLog ? new Date(lastLog.created_at).getTime() : new Date(alert.created_at).getTime();
-  const currentTime = Date.now();
-  const resolutionTimeSeconds = Math.max(0, Math.floor((currentTime - lastTime) / 1000));
+    if (updateError) return false;
 
-  // Generar firma digital/hash inmutable (simulada criptográficamente)
-  const concatString = `${alertId}-${newStatus}-${actionTaken}-${outcome}-${signedBy}-${currentTime}`;
-  let hash = 0;
-  for (let i = 0; i < concatString.length; i++) {
-    hash = (hash << 5) - hash + concatString.charCodeAt(i);
-    hash |= 0;
-  }
-  const signatureHash = `hash-${Math.abs(hash).toString(16)}`;
+    const log = {
+      alert_id: alertId,
+      action_taken: actionTaken,
+      comment,
+      resolution_time_seconds: 0,
+      outcome,
+      evidence_url: evidenceUrl,
+      signed_by: signedBy,
+      created_at: new Date().toISOString()
+    };
 
-  const newLog: TerritorialAlertLog = {
-    id: `log-${Date.now()}`,
-    alert_id: alertId,
-    action_taken: actionTaken,
-    comment,
-    resolution_time_seconds: resolutionTimeSeconds,
-    outcome,
-    evidence_url: evidenceUrl,
-    signed_by: signedBy,
-    signature_hash: signatureHash,
-    created_at: new Date().toISOString()
-  };
-
-  alert.status = newStatus;
-  alert.logs.push(newLog);
-
-  // Si la alerta pasa a resuelta o cerrada, actualizar metadatos finales
-  if (newStatus === 'resuelta' || newStatus === 'cerrada') {
-    // La reasistencia RFID o KPIs se simulan como solucionados
-    if (alert.alert_code === 'PER-001') {
-      alert.metadata.kpis['Ausentismo Promedio'] = '6.2% (Normal)';
+    await supabase.from('territorial_alert_logs').insert([log]);
+    
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('territory-alerts-updated'));
     }
+    return true;
+  } catch (e) {
+    return false;
   }
-
-  saveStoredAlerts(alerts);
-  return true;
 }
 
-/**
- * Asignar responsable a una alerta
- */
-export function assignAlertTo(alertId: string, officerName: string): boolean {
-  const alerts = getStoredAlerts();
-  const alert = alerts.find(a => a.id === alertId);
-  if (!alert) return false;
+export async function assignAlertTo(alertId: string, officerName: string): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from('territorial_alerts')
+      .update({ assigned_to: officerName, status: 'asignada' })
+      .eq('id', alertId);
 
-  alert.assigned_to = officerName;
-  alert.status = 'asignada';
+    if (error) return false;
 
-  // Añadir registro de asignación al timeline
-  const newLog: TerritorialAlertLog = {
-    id: `log-${Date.now()}`,
-    alert_id: alertId,
-    action_taken: 'Asignación de Funcionario',
-    comment: `Asignado oficialmente a ${officerName} para inicio de protocolo de campo.`,
-    resolution_time_seconds: 0,
-    outcome: 'en_progreso',
-    signed_by: 'Secretario de Educación',
-    signature_hash: `hash-assign-${Date.now().toString(16)}`,
-    created_at: new Date().toISOString()
-  };
-  
-  alert.logs.push(newLog);
-  saveStoredAlerts(alerts);
-  return true;
-}
+    const log = {
+      alert_id: alertId,
+      action_taken: 'Asignación de Funcionario',
+      comment: `Asignado a ${officerName}`,
+      outcome: 'en_progreso',
+      signed_by: 'Sistema',
+      created_at: new Date().toISOString()
+    };
+    await supabase.from('territorial_alert_logs').insert([log]);
 
-if (typeof window !== 'undefined') {
-  window.addEventListener('modo-demo-changed', () => {
-    sessionStorage.removeItem(ALERTS_SESSION_KEY);
-  });
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('territory-alerts-updated'));
+    }
+    return true;
+  } catch (e) {
+    return false;
+  }
 }

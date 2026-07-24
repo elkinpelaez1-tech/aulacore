@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { TeacherMockData, TeacherStatus } from '@/lib/data/mock-teachers';
+import { TeacherMockData, TeacherStatus } from '@/types/teacher';
 import { AlertCircle, Clock, MessageSquare, Mail, Users, Send, CheckCircle2, Loader2, Sparkles, BookOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -19,6 +19,7 @@ const statusColors: Record<TeacherStatus, { bg: string, text: string, border: st
   'Reunión': { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200', dot: 'bg-amber-500' },
   'Disponible': { bg: 'bg-indigo-50', text: 'text-indigo-700', border: 'border-indigo-200', dot: 'bg-indigo-500' },
   'Licencia': { bg: 'bg-slate-100', text: 'text-slate-600', border: 'border-slate-300', dot: 'bg-slate-400' },
+  'Inactivo': { bg: 'bg-rose-100', text: 'text-rose-600', border: 'border-rose-300', dot: 'bg-rose-400' },
   'Sobrecarga académica': { bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200', dot: 'bg-rose-500' }
 };
 
@@ -60,7 +61,7 @@ export function CompactTeacherCard({ teacher, onClick }: Props) {
         
         setIsSending(false);
         setIsSentSuccess(true);
-        const hash = data.id || ('AC-EML-' + Math.random().toString(36).substring(2, 10).toUpperCase() + '-' + Date.now().toString().slice(-6));
+        const hash = data.id || ('AC-EML-' + crypto.randomUUID().split('-')[0].toUpperCase() + '-' + Date.now().toString().slice(-6));
         setMockVerificationHash(hash);
         
         // Sync with localStorage message log
@@ -86,8 +87,8 @@ export function CompactTeacherCard({ teacher, onClick }: Props) {
       });
   };
 
-  const statusStyle = statusColors[teacher.status];
-  const hasAlerts = teacher.alerts.length > 0;
+  const statusStyle = statusColors[teacher.status] || statusColors['Activo'];
+  const hasAlerts = (teacher.alerts?.length || 0) > 0;
 
   return (
     <Card 

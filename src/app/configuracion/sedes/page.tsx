@@ -70,94 +70,7 @@ interface LocalAuditLog {
 }
 
 // INITIAL HIGH FIDELITY SEED DATA
-const SEED_CAMPUSES: SedeDetails[] = [
-  {
-    id: 's-1',
-    name: 'Sede Principal (Altos de la Colina)',
-    code: 'CAMPUS-COLINA-01',
-    address: 'Calle 140 # 11 - 45, Bogotá',
-    phone: '+57 1 601 2345',
-    coordinator: 'Dra. Mariana Restrepo',
-    studentsCount: 680,
-    teachersCount: 42,
-    coursesCount: 24,
-    capacityMax: 800,
-    jornadas: ['Mañana', 'Tarde', 'Única'],
-    levels: ['Primaria', 'Bachillerato', 'Media'],
-    rfidStatus: 'excellent',
-    rfidDevicesCount: 4,
-    rfidOnlineCount: 4,
-    iaPredictive: true,
-    enrollmentSynced: true,
-    internetUptime: '99.8%',
-    networkType: 'Fiber',
-    alerts: [
-      { type: 'attendance_critical', message: 'Asistencia crítica detectada en Grado 10-B' }
-    ],
-    classroomsCount: 30,
-    labsCount: 3,
-    securityCamerasCount: 12,
-    geoCoordinates: '4.7110, -74.0721',
-    transportGpsUptime: '100%'
-  },
-  {
-    id: 's-2',
-    name: 'Sede Campestre (Preescolar & Primaria)',
-    code: 'CAMPUS-PREESCOLAR-02',
-    address: 'Km 12 Vía Las Palmas, Medellín',
-    phone: '+57 4 312 8765',
-    coordinator: 'Lic. Claudia Gómez',
-    studentsCount: 320,
-    teachersCount: 18,
-    coursesCount: 12,
-    capacityMax: 350,
-    jornadas: ['Mañana', 'Sabatina'],
-    levels: ['Preescolar', 'Primaria'],
-    rfidStatus: 'warning',
-    rfidDevicesCount: 2,
-    rfidOnlineCount: 1,
-    iaPredictive: true,
-    enrollmentSynced: true,
-    internetUptime: '98.5%',
-    networkType: 'LTE Backup',
-    alerts: [
-      { type: 'overcapacity', message: 'Sede con ocupación cercana al límite (91%)' },
-      { type: 'rfid_offline', message: 'Lector RFID Acceso Primaria B desconectado' }
-    ],
-    classroomsCount: 15,
-    labsCount: 1,
-    securityCamerasCount: 6,
-    geoCoordinates: '6.2170, -75.5670',
-    transportGpsUptime: '95%'
-  },
-  {
-    id: 's-3',
-    name: 'Sede Virtual / Aula Digital',
-    code: 'CAMPUS-VIRTUAL-03',
-    address: 'Plataforma Virtual AulaCore CoreEngine',
-    phone: 'Soporte Cloud AulaCore',
-    coordinator: 'Ing. Andrés Beltrán',
-    studentsCount: 150,
-    teachersCount: 8,
-    coursesCount: 6,
-    capacityMax: 1000,
-    jornadas: ['Única', 'Nocturna'],
-    levels: ['Bachillerato', 'Media'],
-    rfidStatus: 'excellent',
-    rfidDevicesCount: 0,
-    rfidOnlineCount: 0,
-    iaPredictive: true,
-    enrollmentSynced: true,
-    internetUptime: '100%',
-    networkType: 'Cloud Server',
-    alerts: [],
-    classroomsCount: 0,
-    labsCount: 1,
-    securityCamerasCount: 0,
-    geoCoordinates: 'AWS us-east-1 Cloud',
-    transportGpsUptime: 'N/A'
-  }
-];
+const SEED_CAMPUSES: SedeDetails[] = [];
 
 export default function CampusOperationsCenterPage() {
   const [sedes, setSedes] = useState<SedeDetails[]>(SEED_CAMPUSES);
@@ -213,7 +126,7 @@ export default function CampusOperationsCenterPage() {
               address: s.address,
               jornadas: s.jornadas || ['Mañana'],
               levels: s.levels || ['Primaria', 'Bachillerato'],
-              code: existing?.code || `CAMPUS-${s.name.replace(/\s+/g, '-').slice(0, 8).toUpperCase()}-${Math.floor(100+Math.random()*900)}`,
+              code: existing?.code || `CAMPUS-${s.name.replace(/\\s+/g, '-').slice(0, 8).toUpperCase()}-${crypto.randomUUID().split('-')[0].substring(0, 4).toUpperCase()}`,
               phone: existing?.phone || '+57 1 601 9900',
               coordinator: existing?.coordinator || 'Coordinador Asignado',
               studentsCount: existing?.studentsCount || 0,
@@ -264,19 +177,6 @@ export default function CampusOperationsCenterPage() {
     if (localRfidDevices[sedeId]) return localRfidDevices[sedeId];
     
     let devices: LocalRfidDevice[] = [];
-    if (sedeId === 's-1') {
-      devices = [
-        { id: 'rf-1', name: 'Lector Portería Principal A', zone: 'Portería Principal', status: 'online', telemetryLog: 'Señal excelente. Último ping: hace 4s' },
-        { id: 'rf-2', name: 'Lector Entrada Primaria B', zone: 'Acceso Primaria', status: 'online', telemetryLog: 'Operando. Lecturas correctas: 240/240' },
-        { id: 'rf-3', name: 'Lector Biblioteca Central', zone: 'Biblioteca', status: 'online', telemetryLog: 'Sincronizado. Aforo actual: 18 personas' },
-        { id: 'rf-4', name: 'Lector Zona Comedor', zone: 'Comedor', status: 'online', telemetryLog: 'Operativo. Sincronización horaria exitosa' }
-      ];
-    } else if (sedeId === 's-2') {
-      devices = [
-        { id: 'rf-5', name: 'Lector Acceso Preescolar A', zone: 'Portería Preescolar', status: 'online', telemetryLog: 'Operativo en LTE. Último ping: hace 12s' },
-        { id: 'rf-6', name: 'Lector Acceso Primaria B', zone: 'Portería Primaria', status: 'offline', telemetryLog: 'Error: No ping response since 14:23. Verificar voltaje' }
-      ];
-    }
     
     // Store in local cache
     localRfidDevices[sedeId] = devices;
@@ -287,22 +187,6 @@ export default function CampusOperationsCenterPage() {
     if (localLogs[sedeId]) return localLogs[sedeId];
     
     let logs: LocalAuditLog[] = [];
-    if (sedeId === 's-1') {
-      logs = [
-        { time: '13:45', user: 'm.restrepo@aulacore.edu.co', action: 'Actualizó aforo de Aula de Computo 2', ip: '190.24.45.12' },
-        { time: '11:20', user: 'c.hoyos@aulacore.edu.co', action: 'Sincronizó aforo matutino con la central', ip: '190.24.45.13' },
-        { time: '09:05', user: 'admin.aulacore', action: 'Reinicio rutinario del servidor RFID Portería A', ip: '190.24.45.1' }
-      ];
-    } else if (sedeId === 's-2') {
-      logs = [
-        { time: '14:23', user: 'System Telemetry', action: 'Alerta: Caída de terminal biométrica Lector Primaria B', ip: '190.24.45.99' },
-        { time: '08:30', user: 'c.gomez@aulacore.edu.co', action: 'Autorizó jornada Sabatina de talleres', ip: '186.115.30.94' }
-      ];
-    } else {
-      logs = [
-        { time: '00:01', user: 'Cloud Automation', action: 'Copia de seguridad y backups automáticos en AWS', ip: 'AWS.us-east-1' }
-      ];
-    }
     
     localLogs[sedeId] = logs;
     return logs;

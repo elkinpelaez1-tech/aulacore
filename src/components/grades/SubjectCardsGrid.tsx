@@ -3,12 +3,12 @@
 import React, { useState } from 'react';
 import { SubjectCard } from './SubjectCard';
 import { SubjectDetailModal } from './SubjectDetailModal';
-import { MOCK_SUBJECTS, SubjectPerformance } from './mockData';
+const MOCK_SUBJECTS: any[] = [];
 
 export function SubjectCardsGrid() {
-  const [selectedSubject, setSelectedSubject] = useState<SubjectPerformance | null>(null);
+  const [selectedSubject, setSelectedSubject] = useState<any | null>(null);
 
-  const handleSubjectClick = (subject: SubjectPerformance) => {
+  const handleSubjectClick = (subject: any) => {
     setSelectedSubject(subject);
   };
 

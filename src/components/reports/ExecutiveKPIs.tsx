@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { GLOBAL_KPI_MOCKS } from '@/lib/data/mock-reports';
 import {
   Users,
   GraduationCap,
@@ -23,44 +22,7 @@ export interface ExecutiveKPIsProps {
   onNavigateTab?: (tab: 'ejecutivo' | 'academico' | 'convivencia' | 'rfid' | 'docentes' | 'cursos' | 'exportaciones') => void;
 }
 
-const DOCENTES_ALERTAS_LIST = [
-  {
-    id: 'doc-1',
-    name: 'Prof. Mateo Sánchez',
-    department: 'Ciencias Sociales',
-    alertType: 'Rezago Crítico en Planeación Curricular (8 días)',
-    module: 'Cátedra de Paz - Grado 9º',
-    riskLevel: 'Alto',
-    timeAgo: 'Hace 2 horas',
-  },
-  {
-    id: 'doc-2',
-    name: 'Dra. Clara Hernández',
-    department: 'Ciencias Sociales',
-    alertType: 'Retraso en Syllabus Pedagógico (5 días)',
-    module: 'Geografía Económica - Grado 10º',
-    riskLevel: 'Medio',
-    timeAgo: 'Hace 4 horas',
-  },
-  {
-    id: 'doc-3',
-    name: 'Prof. Jorge Torres',
-    department: 'Matemáticas',
-    alertType: 'Pendiente de Cargue de Planillas P2 (3 días)',
-    module: 'Trigonometría - Grado 10º-A',
-    riskLevel: 'Medio',
-    timeAgo: 'Ayer',
-  },
-  {
-    id: 'doc-4',
-    name: 'Prof. Andrés Ramírez',
-    department: 'Ciencias Naturales (Química)',
-    alertType: 'Inconsistencia en Registro RFID Laboratorio',
-    module: 'Laboratorio de Química - Grado 11º-B',
-    riskLevel: 'Bajo',
-    timeAgo: 'Ayer',
-  },
-];
+const DOCENTES_ALERTAS_LIST: any[] = [];
 
 export function ExecutiveKPIs({ onNavigateTab }: ExecutiveKPIsProps) {
   const [activeModal, setActiveModal] = useState<'docentes' | 'cursos' | 'desercion' | null>(null);
@@ -91,7 +53,7 @@ export function ExecutiveKPIs({ onNavigateTab }: ExecutiveKPIsProps) {
         <div>
           <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Población Estudiantil</p>
           <div className="flex items-baseline gap-3">
-            <p className="text-5xl font-black text-white leading-none">{GLOBAL_KPI_MOCKS.totalStudents}</p>
+            <p className="text-5xl font-black text-white leading-none">0</p>
             <p className="text-sm font-bold text-emerald-400">+12% vs año ant.</p>
           </div>
         </div>
@@ -103,7 +65,7 @@ export function ExecutiveKPIs({ onNavigateTab }: ExecutiveKPIsProps) {
           <GraduationCap className="w-5 h-5" />
           <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">GPA Institucional</p>
         </div>
-        <p className="text-4xl font-black text-slate-800">{GLOBAL_KPI_MOCKS.institutionalGpa.toFixed(1)}</p>
+        <p className="text-4xl font-black text-slate-800">0.0</p>
         <p className="text-xs font-bold text-slate-400 mt-2">Promedio general</p>
       </div>
 
@@ -113,7 +75,7 @@ export function ExecutiveKPIs({ onNavigateTab }: ExecutiveKPIsProps) {
           <Activity className="w-5 h-5" />
           <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Asistencia Global</p>
         </div>
-        <p className="text-4xl font-black text-emerald-600">{GLOBAL_KPI_MOCKS.institutionalAttendance}%</p>
+        <p className="text-4xl font-black text-emerald-600">0%</p>
         <p className="text-xs font-bold text-slate-400 mt-2">Lectura RFID</p>
       </div>
 
@@ -127,7 +89,7 @@ export function ExecutiveKPIs({ onNavigateTab }: ExecutiveKPIsProps) {
               <AlertTriangle className="w-4 h-4" />
               <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Cursos Críticos</p>
             </div>
-            <p className="text-2xl font-black text-rose-600">{GLOBAL_KPI_MOCKS.criticalCoursesCount}</p>
+            <p className="text-2xl font-black text-rose-600">0</p>
           </div>
           <button
             onClick={() => onNavigateTab ? onNavigateTab('cursos') : setActiveModal('cursos')}
@@ -144,7 +106,7 @@ export function ExecutiveKPIs({ onNavigateTab }: ExecutiveKPIsProps) {
               <UserMinus className="w-4 h-4" />
               <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Riesgo Deserción</p>
             </div>
-            <p className="text-2xl font-black text-amber-600">{GLOBAL_KPI_MOCKS.dropoutRiskStudents}</p>
+            <p className="text-2xl font-black text-amber-600">0</p>
           </div>
           <button
             onClick={() => onNavigateTab ? onNavigateTab('convivencia') : setActiveModal('desercion')}
@@ -161,7 +123,7 @@ export function ExecutiveKPIs({ onNavigateTab }: ExecutiveKPIsProps) {
               <ShieldAlert className="w-4 h-4 text-indigo-600" />
               <p className="text-[10px] font-bold uppercase tracking-widest">Docentes con Alerta</p>
             </div>
-            <p className="text-2xl font-black text-slate-800">{GLOBAL_KPI_MOCKS.teachersWithAlerts}</p>
+            <p className="text-2xl font-black text-slate-800">0</p>
           </div>
           <button
             onClick={() => setActiveModal('docentes')}

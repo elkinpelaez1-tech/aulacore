@@ -296,9 +296,9 @@ export default function MigrationPage() {
     const seenEmails = new Set<string>();
 
     // Mock existing db records for reference checks
-    const existingStudentsDocs = ['10203040', '50607080'];
-    const existingCourses = ['10-A', '11-B', '9-C'];
-    const existingSubjects = ['MAT', 'ESP', 'BIO'];
+    const existingStudentsDocs: string[] = [];
+    const existingCourses: string[] = [];
+    const existingSubjects: string[] = [];
 
     rows.forEach((row, index) => {
       const rowNum = index + 1;
@@ -632,7 +632,7 @@ export default function MigrationPage() {
       }));
 
       const newLog = {
-        id: 'AC-MIG-' + Math.random().toString(36).substring(2, 10).toUpperCase() + '-' + Date.now().toString().slice(-4),
+        id: 'AC-MIG-' + crypto.randomUUID().split('-')[0].toUpperCase() + '-' + Date.now().toString().slice(-4),
         institution_id: activeInstId,
         user_id: '22222222-2222-2222-2222-222222222222', 
         user_name: userName || 'Dr. Ramón Ramírez',
@@ -685,7 +685,7 @@ export default function MigrationPage() {
       console.warn('Could not load logo for document. Using text fallback.', err);
     }
 
-    const verificationHash = 'AC-MIG-' + Math.random().toString(36).substring(2, 10).toUpperCase() + '-' + Date.now().toString().slice(-4);
+    const verificationHash = 'AC-MIG-' + crypto.randomUUID().split('-')[0].toUpperCase() + '-' + Date.now().toString().slice(-4);
     
     const htmlContent = `
 <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>

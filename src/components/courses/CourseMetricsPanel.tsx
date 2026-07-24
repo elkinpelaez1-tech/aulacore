@@ -1,12 +1,25 @@
 'use client';
 
 import React from 'react';
-import { MOCK_COURSES } from '@/lib/data/mock-courses';
 import { BookOpen, TrendingUp, AlertTriangle, GraduationCap, Activity, ShieldAlert, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+const MOCK_COURSES: any[] = [];
+
 export function CourseMetricsPanel() {
   const totalCourses = MOCK_COURSES.length;
+  
+  if (totalCourses === 0) {
+    return (
+      <div className="flex flex-col gap-4 mb-6">
+        <div className="bg-white border-2 border-dashed border-slate-200 rounded-2xl p-8 text-center text-slate-500">
+          <BookOpen className="w-12 h-12 mx-auto mb-4 text-slate-300" />
+          <p className="text-lg font-black text-slate-800">No hay cursos registrados</p>
+          <p className="text-sm font-semibold mt-1">Crea nuevos cursos para visualizar las métricas institucionales.</p>
+        </div>
+      </div>
+    );
+  }
   
   const primaryCount = MOCK_COURSES.filter(c => c.level === 'Primaria').length;
   const secondaryCount = MOCK_COURSES.filter(c => c.level === 'Bachillerato').length;

@@ -6,7 +6,18 @@ import { AlertsExecutivePanel } from './AlertsExecutivePanel';
 import { InstitutionalHeatmap } from './InstitutionalHeatmap';
 import { CriticalAlertsFeed } from './CriticalAlertsFeed';
 import { RiskPredictionPanel } from './RiskPredictionPanel';
-import { MOCK_STUDENTS, StudentMockData } from '@/lib/data/mock-students';
+interface StudentMockData {
+  id: string;
+  name: string;
+  group?: string;
+  alerts?: any[];
+  academicRisk?: string;
+  behaviorRisk?: string;
+  avatarUrl?: string;
+  gpa: number;
+  attendanceRate: number;
+}
+const MOCK_STUDENTS: StudentMockData[] = [];
 import { Student360Drawer } from '@/components/students/Student360Drawer';
 
 // Premium Tab Component Imports
@@ -22,7 +33,16 @@ import { Button } from '@/components/ui/button';
 
 import { ShieldAlert, Activity, BookOpen, Users, BrainCircuit, X, Clock, CheckCircle2, ChevronRight, AlertTriangle, AlertOctagon } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { HEATMAP_DATA, LIVE_ALERTS, LiveAlert } from '@/lib/data/mock-alerts';
+interface LiveAlert {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  urgency: string;
+  timeAgo: string;
+}
+const HEATMAP_DATA: any[] = [];
+const LIVE_ALERTS: LiveAlert[] = [];
 
 type AlertTab = 'institucional' | 'academica' | 'convivencia' | 'rfid' | 'docentes' | 'ia';
 
@@ -258,7 +278,7 @@ export function AlertsIntelligenceHub() {
 
               {courseStudents.length > 0 ? (
                 courseStudents.map(student => {
-                  const hasAlerts = student.alerts.length > 0;
+                  const hasAlerts = (student.alerts?.length || 0) > 0;
                   const isHighRisk = student.academicRisk === 'Alto' || student.behaviorRisk === 'Alto';
 
                   return (

@@ -9,13 +9,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { CourseMockData, getCourseTrafficLight } from '@/lib/data/mock-courses';
+
 import { ShieldAlert, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface Props {
-  courses: CourseMockData[];
-  onClick: (course: CourseMockData) => void;
+  courses: any[];
+  onClick: (course: any) => void;
 }
 
 export function CourseTable({ courses, onClick }: Props) {
@@ -44,7 +44,7 @@ export function CourseTable({ courses, onClick }: Props) {
         </TableHeader>
         <TableBody>
           {courses.map((course) => {
-            const trafficLight = getCourseTrafficLight(course);
+            const trafficLight = { label: 'Normal', color: 'bg-slate-500' };
             const gpaColor = course.metrics.averageGpa >= 4.0 ? 'text-emerald-600' : course.metrics.averageGpa >= 3.0 ? 'text-amber-600' : course.metrics.averageGpa > 0 ? 'text-rose-600' : 'text-slate-400';
 
             return (

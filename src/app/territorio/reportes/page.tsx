@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Modal } from '@/components/territorio/Modal';
-import { isModoDemoActive, setModoDemoActive } from '@/services/territory-mock';
+
 import { hasTerritoryPermission, getRbacControlAttrs } from '@/services/territory-rbac';
 import { dispatchMIOEvent } from '@/services/mio-service';
 import { 
@@ -32,7 +32,7 @@ export default function TerritoryReportesPage() {
   const [demoActive, setDemoActive] = useState(false);
 
   useEffect(() => {
-    setDemoActive(isModoDemoActive());
+    setDemoActive(false);
 
     function updateRole() {
       const saved = sessionStorage.getItem('simulated_role');
@@ -40,7 +40,7 @@ export default function TerritoryReportesPage() {
     }
     updateRole();
 
-    const handleDemoChange = () => setDemoActive(isModoDemoActive());
+    const handleDemoChange = () => setDemoActive(false);
 
     window.addEventListener('rbac-role-changed', updateRole);
     window.addEventListener('modo-demo-changed', handleDemoChange);
@@ -52,7 +52,6 @@ export default function TerritoryReportesPage() {
 
   const handleDemoToggle = () => {
     const nextState = !demoActive;
-    setModoDemoActive(nextState);
     setDemoActive(nextState);
 
     if (nextState) {
@@ -123,18 +122,10 @@ export default function TerritoryReportesPage() {
     setDownloadReadyId(null);
     setProgress(0);
 
-    const interval = setInterval(() => {
-      setProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setGeneratingId(null);
-          setDownloadReadyId(id);
-          setPreviewOpen(true);
-          return 100;
-        }
-        return prev + 20;
-      });
-    }, 150);
+    setGeneratingId(null);
+    setDownloadReadyId(id);
+    setProgress(100);
+    setPreviewOpen(true);
   };
 
   const activeReport = reportsList.find(r => r.id === downloadReadyId);

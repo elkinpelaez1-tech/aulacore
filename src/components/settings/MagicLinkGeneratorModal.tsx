@@ -20,7 +20,7 @@ export function MagicLinkGeneratorModal({ onClose, onGenerate }: MagicLinkGenera
   const [isCopied, setIsCopied] = useState(false);
 
   const handleGenerate = () => {
-    const randomSuffix = Math.random().toString(36).substring(2, 7);
+    const randomSuffix = crypto.randomUUID().split('-')[0].substring(0, 5);
     const origin = typeof window !== 'undefined' ? window.location.origin : 'https://aulacore.com';
     const url = `${origin}/join/${linkType.toLowerCase().substring(0, 3)}-${randomSuffix}`;
     const name = `${linkType} ${autoRole === 'Estudiante' ? 'Secundaria' : autoRole} 2026`;

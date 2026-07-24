@@ -23,12 +23,7 @@ import {
 import { cn } from '@/lib/utils';
 
 // Mock data tailored for the Academic Analytics tab
-const ACADEMIC_LEVELS_DATA = [
-  { name: 'Preescolar', gpa: 4.5, approvedRate: 98.5, studentsCount: 240, color: '#818cf8' },
-  { name: 'Primaria', gpa: 4.1, approvedRate: 94.2, studentsCount: 580, color: '#6366f1' },
-  { name: 'Bachillerato', gpa: 3.6, approvedRate: 88.6, studentsCount: 420, color: '#4f46e5' },
-  { name: 'Media Técnica', gpa: 4.2, approvedRate: 96.0, studentsCount: 160, color: '#4338ca' }
-];
+const ACADEMIC_LEVELS_DATA: any[] = [];
 
 export function AcademicAnalyticsTab() {
   const [activeModal, setActiveModal] = useState<string | null>(null);
@@ -36,22 +31,16 @@ export function AcademicAnalyticsTab() {
   const [toast, setToast] = useState<{ title: string; message: string } | null>(null);
 
   const handleExecuteAction = (successTitle: string, successMessage: string, onDownload?: () => void) => {
-    setIsProcessing(true);
-    setTimeout(() => {
-      setIsProcessing(false);
-      if (onDownload) {
-        try {
-          onDownload();
-        } catch (e) {
-          console.error(e);
-        }
+    setIsProcessing(false);
+    if (onDownload) {
+      try {
+        onDownload();
+      } catch (e) {
+        console.error(e);
       }
-      setActiveModal(null);
-      setToast({ title: successTitle, message: successMessage });
-      setTimeout(() => {
-        setToast(null);
-      }, 3000);
-    }, 1000);
+    }
+    setActiveModal(null);
+    setToast({ title: successTitle, message: successMessage });
   };
 
   return (

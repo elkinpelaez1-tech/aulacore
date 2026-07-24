@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import { Activity, Search, RefreshCw, CheckCircle2, User, ChevronRight, MessageSquare, MapPin, Clock, ArrowRight, ShieldAlert } from 'lucide-react';
-import { MOCK_STUDENTS, StudentMockData } from '@/lib/data/mock-students';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
@@ -27,12 +26,7 @@ export function RfidAttendancePanel({ onIntervene }: RfidAttendancePanelProps) {
   const [toast, setToast] = useState<{ title: string; message: string } | null>(null);
 
   // Live RFID reader logs
-  const [logs, setLogs] = useState<RfidLog[]>([
-    { id: 'l1', studentName: 'Mateo González Rojas', group: '9-A', time: '15:58:30', direction: 'Salida', status: 'A Tiempo', device: 'Torniquete Sede Principal' },
-    { id: 'l2', studentName: 'Alex Marín', group: '11-Tec', time: '15:55:12', direction: 'Salida', status: 'A Tiempo', device: 'Torniquete Sede Principal' },
-    { id: 'l3', studentName: 'Samuel Duque Pérez', group: '5-B', time: '12:45:00', direction: 'Entrada', status: 'A Tiempo', device: 'Lector Biométrico Primaria' },
-    { id: 'l4', studentName: 'Valentina Silva Martínez', group: '9-A', time: '07:15:22', direction: 'Entrada', status: 'Tarde', device: 'Torniquete Sede Principal' },
-  ]);
+  const [logs, setLogs] = useState<RfidLog[]>([]);
 
   const [swipeName, setSwipeName] = useState('');
   const [swipeDirection, setSwipeDirection] = useState<'Entrada' | 'Salida'>('Salida');
@@ -42,42 +36,38 @@ export function RfidAttendancePanel({ onIntervene }: RfidAttendancePanelProps) {
     l.group.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Students with high absenteeism
-  const criticalAbsences = MOCK_STUDENTS.filter(s => s.attendanceRate < 90 || s.name === 'Laura Restrepo Gómez');
+  const criticalAbsences: any[] = [];
 
   const handleSwipeSimulation = (e: React.FormEvent) => {
     e.preventDefault();
     if (!swipeName) return;
 
     setIsSwiping(true);
-    setTimeout(() => {
-      const student = MOCK_STUDENTS.find(s => s.name.toLowerCase().includes(swipeName.toLowerCase()));
-      const studentName = student ? student.name : swipeName;
-      const group = student ? student.group : '10-A';
+    setIsSwiping(false);
+    const studentName = swipeName;
+    const group = '';
 
-      const now = new Date();
-      const timeStr = now.toTimeString().split(' ')[0];
+    const now = new Date();
+    const timeStr = now.toTimeString().split(' ')[0];
 
-      const newLog: RfidLog = {
-        id: `l-${Date.now()}`,
-        studentName,
-        group,
-        time: timeStr,
-        direction: swipeDirection,
-        status: 'A Tiempo',
-        device: 'Lector Demo Biométrico'
-      };
+    const newLog: RfidLog = {
+      id: `l-${Date.now()}`,
+      studentName,
+      group,
+      time: timeStr,
+      direction: swipeDirection,
+      status: 'A Tiempo',
+      device: 'Lector Demo Biométrico'
+    };
 
-      setLogs([newLog, ...logs]);
-      setIsSwiping(false);
-      setSwipeName('');
+    setLogs([newLog, ...logs]);
+    setSwipeName('');
 
-      setToast({
-        title: 'Lectura RFID Registrada',
-        message: `Tarjeta de ${newLog.studentName} leída correctamente [${newLog.direction} - ${newLog.time}].`
-      });
-      setTimeout(() => setToast(null), 3000);
-    }, 1000);
+    setToast({
+      title: 'Lectura RFID Registrada',
+      message: `Tarjeta de ${newLog.studentName} leída correctamente [${newLog.direction} - ${newLog.time}].`
+    });
+    setToast(null);
   };
 
   const handleSendNotification = (studentName: string) => {
@@ -85,7 +75,7 @@ export function RfidAttendancePanel({ onIntervene }: RfidAttendancePanelProps) {
       title: 'Notificación Despachada',
       message: `Alerta de inasistencia enviada por WhatsApp al acudiente de ${studentName}.`
     });
-    setTimeout(() => setToast(null), 3000);
+    setToast(null);
   };
 
   return (

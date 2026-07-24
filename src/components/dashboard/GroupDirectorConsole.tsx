@@ -123,127 +123,25 @@ interface ParentDirectorMessage {
 // 📂 MOCK SEED INTEGRAL DE 10-A (Patricia Martínez)
 // =================================================================
 const MOCK_SETTINGS: AcademicSettings = {
-  grading_scale_type: 'numeric_1_5',
-  min_passing_grade: 3.00,
-  min_attendance_percentage: 80.00,
-  decimal_places: 2
+  grading_scale_type: '',
+  min_passing_grade: 0,
+  min_attendance_percentage: 0,
+  decimal_places: 0
 };
 
-const MOCK_PERIODS: AcademicPeriod[] = [
-  { id: '11111111-1111-1111-2222-333333333333', name: 'Primer Periodo', code: 'P1', weight: 30, status: 'closed' },
-  { id: '22222222-2222-2222-2222-333333333333', name: 'Segundo Periodo', code: 'P2', weight: 30, status: 'active' },
-  { id: '33333333-3333-3333-2222-333333333333', name: 'Tercer Periodo', code: 'P3', weight: 40, status: 'active' }
-];
+const MOCK_PERIODS: AcademicPeriod[] = [];
 
 // Notas de los docentes que llegan AUTOMÁTICAMENTE
-const MOCK_GRADES_CONSOLIDATED: StudentGradeConsolidated[] = [
-  // Alejandro Ortiz (Alto)
-  { studentId: 'est-01', studentName: 'Alejandro Ortiz', subject: 'Matemáticas', teacherName: 'Prof. Gómez', periodCode: 'P2', average: 4.50, trend: 'up', status: 'high' },
-  { studentId: 'est-01', studentName: 'Alejandro Ortiz', subject: 'Inglés', teacherName: 'Prof. Gómez', periodCode: 'P2', average: 4.80, trend: 'up', status: 'high' },
-  { studentId: 'est-01', studentName: 'Alejandro Ortiz', subject: 'Ciencias Naturales', teacherName: 'Prof. Gómez', periodCode: 'P2', average: 4.30, trend: 'stable', status: 'high' },
-  { studentId: 'est-01', studentName: 'Alejandro Ortiz', subject: 'Matemáticas', teacherName: 'Prof. Gómez', periodCode: 'P1', average: 4.20, trend: 'stable', status: 'high' },
-  { studentId: 'est-01', studentName: 'Alejandro Ortiz', subject: 'Inglés', teacherName: 'Prof. Gómez', periodCode: 'P1', average: 4.60, trend: 'stable', status: 'high' },
-
-  // Sofía Ramírez (Medio/Estable)
-  { studentId: 'est-02', studentName: 'Sofía Ramírez', subject: 'Matemáticas', teacherName: 'Prof. Gómez', periodCode: 'P2', average: 3.80, trend: 'up', status: 'medium' },
-  { studentId: 'est-02', studentName: 'Sofía Ramírez', subject: 'Inglés', teacherName: 'Prof. Gómez', periodCode: 'P2', average: 4.00, trend: 'up', status: 'medium' },
-  { studentId: 'est-02', studentName: 'Sofía Ramírez', subject: 'Ciencias Naturales', teacherName: 'Prof. Gómez', periodCode: 'P2', average: 3.50, trend: 'down', status: 'medium' },
-  { studentId: 'est-02', studentName: 'Sofía Ramírez', subject: 'Matemáticas', teacherName: 'Prof. Gómez', periodCode: 'P1', average: 3.50, trend: 'stable', status: 'medium' },
-  { studentId: 'est-02', studentName: 'Sofía Ramírez', subject: 'Inglés', teacherName: 'Prof. Gómez', periodCode: 'P1', average: 3.90, trend: 'stable', status: 'medium' },
-
-  // Mateo Gómez (Riesgo Académico)
-  { studentId: 'est-03', studentName: 'Mateo Gómez', subject: 'Matemáticas', teacherName: 'Prof. Gómez', periodCode: 'P2', average: 2.80, trend: 'down', status: 'risk' },
-  { studentId: 'est-03', studentName: 'Mateo Gómez', subject: 'Inglés', teacherName: 'Prof. Gómez', periodCode: 'P2', average: 3.20, trend: 'stable', status: 'medium' },
-  { studentId: 'est-03', studentName: 'Mateo Gómez', subject: 'Ciencias Naturales', teacherName: 'Prof. Gómez', periodCode: 'P2', average: 2.90, trend: 'down', status: 'risk' },
-  { studentId: 'est-03', studentName: 'Mateo Gómez', subject: 'Matemáticas', teacherName: 'Prof. Gómez', periodCode: 'P1', average: 3.10, trend: 'stable', status: 'medium' },
-  { studentId: 'est-03', studentName: 'Mateo Gómez', subject: 'Inglés', teacherName: 'Prof. Gómez', periodCode: 'P1', average: 3.00, trend: 'stable', status: 'medium' }
-];
+const MOCK_GRADES_CONSOLIDATED: StudentGradeConsolidated[] = [];
 
 // Observador Centralizado de Convivencia registrado por Docentes
-const MOCK_BEHAVIORAL_TIMELINE: behavioralTimelineLog[] = [
-  {
-    id: 'beh-01',
-    studentName: 'Mateo Gómez',
-    studentId: 'est-03',
-    observation_type: 'mild_negative',
-    description: 'Uso reiterado de distractores móviles durante explicaciones de programación en Tecnología e Informática. Se le llamó la atención de forma respetuosa.',
-    commitments: 'El estudiante entregará el teléfono móvil apagado a su acudiente o al casillero escolar al inicio de cada jornada.',
-    created_at: '2026-05-24',
-    teacherName: 'Prof. Gómez'
-  },
-  {
-    id: 'beh-02',
-    studentName: 'Alejandro Ortiz',
-    studentId: 'est-01',
-    observation_type: 'positive',
-    description: 'Excelente monitoría académica voluntaria a compañeros con dificultades durante los talleres grupales de ecuaciones cuadráticas.',
-    commitments: undefined,
-    created_at: '2026-05-20',
-    teacherName: 'Prof. Gómez'
-  },
-  {
-    id: 'beh-03',
-    studentName: 'Sofía Ramírez',
-    studentId: 'est-02',
-    observation_type: 'severe_negative',
-    description: 'Inasistencia no justificada a evaluación trimestral de ciencias y reincidencia en llegadas tarde sin excusa médica.',
-    commitments: 'Padre de familia se compromete a radicar justificación formal de inasistencia en portería.',
-    created_at: '2026-05-18',
-    teacherName: 'Lic. Martínez'
-  }
-];
+const MOCK_BEHAVIORAL_TIMELINE: behavioralTimelineLog[] = [];
 
 // Alertas Tempranas IA
-const MOCK_IA_ALERTS: IAAlertCard[] = [
-  {
-    id: 'al-01',
-    studentName: 'Sofía Ramírez',
-    studentId: 'est-02',
-    riskCategory: 'attendance',
-    riskLevel: 'high',
-    probability: 65,
-    reason: 'Asistencia actual del 40% en el Periodo 2, cayendo muy por debajo de la meta mínima institucional (80%). Ausencia de reportes RFID recurrentes.',
-    plan: 'Lanzar citación formal presencial con acudiente (Marta Ramírez) y habilitar alerta instantánea de wearable RFID.'
-  },
-  {
-    id: 'al-02',
-    studentName: 'Mateo Gómez',
-    studentId: 'est-03',
-    riskCategory: 'academic',
-    riskLevel: 'high',
-    probability: 82,
-    reason: 'Rendimiento deficiente en materias críticas del Periodo 2: Matemáticas (2.80) y Ciencias (2.90).',
-    plan: 'Vincular a plan de mejoramiento guiado en tutorías de la tarde con el Profesor Gómez. Ajustar fechas de recuperación.'
-  }
-];
+const MOCK_IA_ALERTS: IAAlertCard[] = [];
 
 // Control de Padres de Familia
-const MOCK_FAMILY_CONTROL: FamilyControlItem[] = [
-  {
-    studentName: 'Sofía Ramírez',
-    parentName: 'Marta Ramírez',
-    parentPhone: '+57 312 444 5678',
-    lastReviewStatus: 'unread',
-    citationHistory: 'Citación para el 28 de Mayo - Citación Enviada por inasistencia RFID.',
-    citationStatus: 'pending'
-  },
-  {
-    studentName: 'Mateo Gómez',
-    parentName: 'Sara Gómez',
-    parentPhone: '+57 320 333 9999',
-    lastReviewStatus: 'read_recent',
-    citationHistory: 'Citación para el 25 de Mayo - Convocatoria de plan remedial por materias críticas.',
-    citationStatus: 'confirmed'
-  },
-  {
-    studentName: 'Alejandro Ortiz',
-    parentName: 'Carlos Ortiz',
-    parentPhone: '+57 301 555 1234',
-    lastReviewStatus: 'read_recent',
-    citationHistory: 'Reunión de Consejo de Padres - Agradecimiento por liderazgo en Olimpiadas.',
-    citationStatus: 'confirmed'
-  }
-];
+const MOCK_FAMILY_CONTROL: FamilyControlItem[] = [];
 
 export default function GroupDirectorConsole() {
   const { userName, setUserRole } = useRole();
@@ -430,68 +328,7 @@ export default function GroupDirectorConsole() {
           setMessages(msgData as ParentDirectorMessage[]);
         } else {
           // Fallback con mock estructurado si no hay conexión
-          setMessages([
-            {
-              id: 'msg-01',
-              student_id: '77777777-7777-7777-7777-777777777777',
-              sender_role: 'director',
-              message_type: 'internal_message',
-              content: 'Estimado Carlos, felicito a Alejandro por su liderazgo voluntario en la olimpiada de matemáticas. Su apoyo a sus compañeros ha sido invaluable.',
-              read_confirmed: true,
-              read_at: '2026-05-21T15:30:00-05',
-              parent_reply: 'Muchas gracias Lic. Martínez, nos alegra mucho escuchar eso de Alejandro y siempre estamos apoyándolo desde casa.',
-              replied_at: '2026-05-21T18:45:00-05',
-              priority_level: 'low',
-              requires_confirmation: false,
-              confirmation_type: 'simple_read',
-              created_at: '2026-05-21T15:00:00-05'
-            },
-            {
-              id: 'msg-02',
-              student_id: '88888888-8888-8888-8888-888888888888',
-              sender_role: 'director',
-              message_type: 'automatic_alert',
-              content: 'Alerta de Inasistencia RFID: Sofía Ramírez no ha registrado su ingreso en la portería escolar hoy. Por favor, justifique su ausencia hoy mismo.',
-              read_confirmed: true,
-              read_at: '2026-05-24T08:15:00-05',
-              parent_reply: 'Lic. Martínez, buenos días. Sofía se encuentra en una cita médica general programada. Adjuntaré la excusa física mañana en portería.',
-              replied_at: '2026-05-24T08:30:00-05',
-              priority_level: 'high',
-              requires_confirmation: true,
-              confirmation_type: 'parent_compromise',
-              created_at: '2026-05-24T07:45:00-05'
-            },
-            {
-              id: 'msg-03',
-              student_id: '88888888-8888-8888-8888-888888888888',
-              sender_role: 'director',
-              message_type: 'behavioral_followup',
-              content: 'Estimada Marta, hemos registrado una anotación de inasistencia no justificada y llegadas tarde reiteradas en el observador de Sofía. Necesitamos programar una tutoría presencial y firmar acta de compromiso.',
-              read_confirmed: false,
-              read_at: null,
-              parent_reply: null,
-              replied_at: null,
-              priority_level: 'high',
-              requires_confirmation: true,
-              confirmation_type: 'digital_signature',
-              created_at: '2026-05-24T10:00:00-05'
-            },
-            {
-              id: 'msg-04',
-              student_id: '99999999-9999-9999-9999-999999999999',
-              sender_role: 'director',
-              message_type: 'academic_observation',
-              content: 'Estimada Sara, Mateo presenta dificultades acumuladas en Matemáticas y Ciencias en el período actual. Es imperativo revisar el plan remedial de acompañamiento en casa.',
-              read_confirmed: true,
-              read_at: '2026-05-23T10:00:00-05',
-              parent_reply: 'Entendido, Lic. Martínez. Ya revisamos el plan de mejoramiento con el Prof. Gómez y estamos repasando todas las tardes con Mateo.',
-              replied_at: '2026-05-23T14:20:00-05',
-              priority_level: 'medium',
-              requires_confirmation: true,
-              confirmation_type: 'parent_compromise',
-              created_at: '2026-05-23T09:00:00-05'
-            }
-          ]);
+          setMessages([]);
         }
       } catch (err) {
         console.warn('Supabase fetch failed in GroupDirectorConsole, utilizing premium structured mocks fallbacks:', err);
@@ -580,7 +417,7 @@ export default function GroupDirectorConsole() {
         setMessages(prev => [data as ParentDirectorMessage, ...prev]);
       } else {
         const simulatedMessage: ParentDirectorMessage = {
-          id: 'sim-' + Math.random().toString(36).substr(2, 9),
+          id: 'sim-' + crypto.randomUUID().split('-')[0],
           ...newLog
         };
         setMessages(prev => [simulatedMessage, ...prev]);
@@ -588,7 +425,7 @@ export default function GroupDirectorConsole() {
     } catch (err) {
       console.error('Error enviando comunicación institucional:', err);
       const simulatedMessage: ParentDirectorMessage = {
-        id: 'sim-' + Math.random().toString(36).substr(2, 9),
+        id: 'sim-' + crypto.randomUUID().split('-')[0],
         ...newLog
       };
       setMessages(prev => [simulatedMessage, ...prev]);
@@ -739,7 +576,7 @@ export default function GroupDirectorConsole() {
 
   const handleNotifyFromAlert = (studentId: string, studentName: string, reason: string) => {
     const newLog: ParentDirectorMessage = {
-      id: 'sim-' + Math.random().toString(36).substr(2, 9),
+      id: 'sim-' + crypto.randomUUID().split('-')[0],
       student_id: mapStudentIdToUuid(studentId),
       sender_role: 'director',
       message_type: 'automatic_alert',

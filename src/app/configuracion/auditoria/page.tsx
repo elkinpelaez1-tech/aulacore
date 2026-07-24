@@ -43,6 +43,7 @@ export default function OnboardingAuditoriaPage() {
     try {
       const teacherList = await listOnboardingSubmissions();
       const studentList = await listStudentOnboardings();
+      console.log("RENDER AUDITORIA", { teacherCount: teacherList.length, studentCount: studentList.length, teacherList, studentList });
       setTeachers(teacherList);
       setStudents(studentList);
     } catch (err: any) {

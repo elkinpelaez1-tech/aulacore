@@ -103,14 +103,9 @@ function SaasConsoleContent() {
   const isSuperAdmin = activeRole === 'super_admin' || (roles as string[])?.includes('super_admin') || (typeof window !== 'undefined' && localStorage.getItem('aulacore-user-role') === 'super_admin') || false;
 
   useEffect(() => {
-    if (allInstitutions && allInstitutions.length > 0) {
-      setInstitutions(allInstitutions);
-      loadAllMetrics(allInstitutions);
-    } else if (isSuperAdmin) {
-      loadInstitutions();
-    }
+    loadInstitutions();
     setChartMounted(true);
-  }, [allInstitutions, isSuperAdmin]);
+  }, []);
 
   const loadInstitutions = async () => {
     setLoading(true);

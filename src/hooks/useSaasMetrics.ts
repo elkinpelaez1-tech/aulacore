@@ -36,6 +36,8 @@ export function useSaasMetrics() {
 
   useEffect(() => {
     async function fetchMetrics() {
+      const startTime = performance.now();
+      console.log('[PERF AUDIT] [useSaasMetrics] fetchMetrics INICIA');
       try {
         setLoading(true);
 
@@ -71,11 +73,16 @@ export function useSaasMetrics() {
           .select('*')
           .maybeSingle();
 
+        // Fallbacks directos a la tabla institutions si la vista materializada está ausente o desactualizada
+        const { count: activeCount } = await supabase.from('institutions').select('*', { count: 'exact', head: true }).eq('subscription_status', 'active');
+        const { count: trialingCount } = await supabase.from('institutions').select('*', { count: 'exact', head: true }).eq('subscription_status', 'free_trial');
+        const { count: suspendedCount } = await supabase.from('institutions').select('*', { count: 'exact', head: true }).eq('subscription_status', 'suspended');
+
         const mrr = viewData?.mrr_cop || 0;
         const arr = viewData?.arr_cop || 0;
-        const active = viewData?.active_tenants || 0;
-        const trialing = viewData?.trialing_tenants || 0;
-        const suspended = viewData?.suspended_tenants || 0;
+        const active = viewData?.active_tenants || activeCount || totalTenants || 0;
+        const trialing = viewData?.trialing_tenants || trialingCount || 0;
+        const suspended = viewData?.suspended_tenants || suspendedCount || 0;
 
         // Nuevos clientes este mes
         const startOfMonth = new Date();
@@ -102,8 +109,11 @@ export function useSaasMetrics() {
           newClientsThisMonth: newClients || 0
         });
 
+        const duration = (performance.now() - startTime).toFixed(2);
+        console.log(`[PERF AUDIT] [useSaasMetrics] fetchMetrics TERMINA (${duration}ms)`, { totalTenants, active, trialing });
       } catch (err: any) {
-        console.error('Error fetching SaaS metrics:', err);
+        const duration = (performance.now() - startTime).toFixed(2);
+        console.error(`[PERF AUDIT] [useSaasMetrics] fetchMetrics ERROR (${duration}ms):`, err);
         setError(err);
       } finally {
         setLoading(false);
@@ -113,5 +123,16 @@ export function useSaasMetrics() {
     fetchMetrics();
   }, []);
 
-  return { metrics, loading, error };
+  const refetch = async () => {
+    // Re-ejecutar conteo
+    const { count: totalTenants } = await supabase.from('institutions').select('*', { count: 'exact', head: true });
+    const { count: activeCount } = await supabase.from('institutions').select('*', { count: 'exact', head: true }).eq('subscription_status', 'active');
+    setMetrics(prev => ({
+      ...prev,
+      totalTenants: totalTenants || prev.totalTenants,
+      activeTenants: activeCount || prev.activeTenants
+    }));
+  };
+
+  return { metrics, loading, error, refetch };
 }

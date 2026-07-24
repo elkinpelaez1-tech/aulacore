@@ -88,12 +88,11 @@ export function DocumentEngine({
   const [isSigning, setIsSigning] = useState(false);
   const [documentStatus, setDocumentStatus] = useState<'generated' | 'signed' | 'emailed' | 'printed'>('generated');
   const [verificationCode, setVerificationCode] = useState(() => {
-    const randomHex = Math.floor(1000 + Math.random() * 9000).toString(16).toUpperCase();
+    const randomHex = crypto.randomUUID().split('-')[0].substring(0,4).toUpperCase();
     return `AC-VERIFY-2026-${randomHex}`;
   });
   const [signatureHash, setSignatureHash] = useState(() => {
-    // Generar un hash SHA-256 simulado inicial
-    return 'sha256:' + Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
+    return 'sha256:' + crypto.randomUUID().replace(/-/g, '') + crypto.randomUUID().replace(/-/g, '');
   });
 
   React.useEffect(() => {
@@ -207,57 +206,52 @@ export function DocumentEngine({
 
     setIsSendingEmail(true);
 
-    // Simular retraso de envío por servidor
-    setTimeout(async () => {
-      try {
-        const { data: userProfile } = await supabase.auth.getUser();
-        const userId = userProfile?.user?.id || '33333333-3333-3333-3333-333333333333';
+    try {
+      const { data: userProfile } = await supabase.auth.getUser();
+      const userId = userProfile?.user?.id || '33333333-3333-3333-3333-333333333333';
 
-        await supabase.from('institution_document_audit').insert({
-          action_type: 'emailed',
-          performed_by: userId,
-          client_ip: '192.168.1.121',
-          user_agent: navigator.userAgent
-        });
-      } catch (err) {
-        console.warn('Logging error bypass for demo compatibility');
-      }
+      await supabase.from('institution_document_audit').insert({
+        action_type: 'emailed',
+        performed_by: userId,
+        client_ip: '192.168.1.121',
+        user_agent: navigator.userAgent
+      });
+    } catch (err) {
+      console.warn('Logging error bypass for demo compatibility');
+    }
 
-      setIsSendingEmail(false);
-      setShowEmailModal(false);
-      setDocumentStatus('emailed');
-      alert(`✓ Correo Oficial Institucional despachado exitosamente a: ${emailAddress}`);
-      if (onSuccess) onSuccess();
-    }, 1500);
+    setIsSendingEmail(false);
+    setShowEmailModal(false);
+    setDocumentStatus('emailed');
+    alert(`✓ Correo Oficial Institucional despachado exitosamente a: ${emailAddress}`);
+    if (onSuccess) onSuccess();
   };
 
   // --- ACCIÓN: FIRMAR DIGITALMENTE ---
   const handleSignDocument = async () => {
     setIsSigning(true);
 
-    setTimeout(async () => {
-      try {
-        const { data: userProfile } = await supabase.auth.getUser();
-        const userId = userProfile?.user?.id || '22222222-2222-2222-2222-222222222222'; // Rector por defecto
+    try {
+      const { data: userProfile } = await supabase.auth.getUser();
+      const userId = userProfile?.user?.id || '22222222-2222-2222-2222-222222222222'; // Rector por defecto
 
-        await supabase.from('institution_document_audit').insert({
-          action_type: 'signed',
-          performed_by: userId,
-          client_ip: '192.168.1.121',
-          user_agent: navigator.userAgent
-        });
-      } catch (err) {
-        console.warn('Logging error bypass for demo compatibility');
-      }
+      await supabase.from('institution_document_audit').insert({
+        action_type: 'signed',
+        performed_by: userId,
+        client_ip: '192.168.1.121',
+        user_agent: navigator.userAgent
+      });
+    } catch (err) {
+      console.warn('Logging error bypass for demo compatibility');
+    }
 
-      // Recalcular el hash del snapshot
-      const recalculatedHash = 'sha256:8b7cc40e' + Math.floor(100000 + Math.random() * 900000).toString(16) + 'f709121be7c2134e1c2a1012';
-      setSignatureHash(recalculatedHash);
-      setDocumentStatus('signed');
-      setIsSigning(false);
-      alert(`✓ Documento Oficial Firmado Digitalmente por la Rectoría mediante Estampado Criptográfico.`);
-      if (onSuccess) onSuccess();
-    }, 1200);
+    // Recalcular el hash del snapshot
+    const recalculatedHash = 'sha256:8b7cc40e' + crypto.randomUUID().replace(/-/g, '') + 'f709121be7c2134e1c2a1012';
+    setSignatureHash(recalculatedHash);
+    setDocumentStatus('signed');
+    setIsSigning(false);
+    alert(`✓ Documento Oficial Firmado Digitalmente por la Rectoría mediante Estampado Criptográfico.`);
+    if (onSuccess) onSuccess();
   };
 
   return (

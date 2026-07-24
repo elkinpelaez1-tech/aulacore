@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { CRITICAL_COURSES } from '@/lib/data/mock-reports';
 import { ShieldAlert, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -10,6 +9,7 @@ interface RiskAnalyticsPanelProps {
 }
 
 export function RiskAnalyticsPanel({ onNavigate }: RiskAnalyticsPanelProps) {
+  const CRITICAL_COURSES: any[] = [];
   return (
     <div className="grid grid-cols-1 gap-6">
       

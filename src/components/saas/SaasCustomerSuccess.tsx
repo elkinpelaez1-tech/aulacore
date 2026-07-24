@@ -14,93 +14,46 @@ interface CustomerHealth {
   id: string;
   name: string;
   healthScore: number; // 0 - 100
-  status: 'saludable' | 'atencion' | 'critico';
+  status: 'saludable' | 'atencion' | 'critico' | 'n/d';
   lastLogin: string;
   activeUsersRatio: string;
   modulesUsed: number; // de 10
-  churnRisk: 'Bajo' | 'Medio' | 'Alto';
+  churnRisk: 'Bajo' | 'Medio' | 'Alto' | 'N/D';
   lastTraining: string;
   nps: number;
   nextRenewal: string;
   csmName: string;
 }
 
-const MOCK_CSM_DATA: CustomerHealth[] = [
-  {
-    id: 'csm-01',
-    name: 'Colegio San José de Flores',
-    healthScore: 94,
-    status: 'saludable',
-    lastLogin: 'Hoy, 07:15 AM',
-    activeUsersRatio: '92% (414/450)',
-    modulesUsed: 9,
-    churnRisk: 'Bajo',
-    lastTraining: '28 de mayo, 2026 (Capacitación MIO)',
-    nps: 90,
-    nextRenewal: '15 de Diciembre, 2026',
-    csmName: 'Lic. Clara Inés Mendoza'
-  },
-  {
-    id: 'csm-02',
-    name: 'Gimnasio del Norte K-12',
-    healthScore: 88,
-    status: 'saludable',
-    lastLogin: 'Hoy, 08:00 AM',
-    activeUsersRatio: '85% (510/600)',
-    modulesUsed: 8,
-    churnRisk: 'Bajo',
-    lastTraining: '10 de junio, 2026 (Evaluaciones IA)',
-    nps: 85,
-    nextRenewal: '30 de Noviembre, 2026',
-    csmName: 'Ing. Julián Gómez'
-  },
-  {
-    id: 'csm-03',
-    name: 'Liceo Moderno Campestre',
-    healthScore: 62,
-    status: 'atencion',
-    lastLogin: 'Ayer, 04:30 PM',
-    activeUsersRatio: '58% (230/400)',
-    modulesUsed: 5,
-    churnRisk: 'Medio',
-    lastTraining: '15 de abril, 2026 (Inicial)',
-    nps: 70,
-    nextRenewal: '10 de Julio, 2026',
-    csmName: 'Lic. Clara Inés Mendoza'
-  },
-  {
-    id: 'csm-04',
-    name: 'Secretaría de Educación de Boyacá',
-    healthScore: 91,
-    status: 'saludable',
-    lastLogin: 'Hoy, 09:10 AM',
-    activeUsersRatio: '95% (14 sedes conectadas)',
-    modulesUsed: 10,
-    churnRisk: 'Bajo',
-    lastTraining: '02 de julio, 2026 (Tableros Territorial)',
-    nps: 95,
-    nextRenewal: '31 de Enero, 2027',
-    csmName: 'Ing. Carlos Eduardo Ruiz (Director CS)'
-  },
-  {
-    id: 'csm-05',
-    name: 'Instituto Técnico Industrial San Jorge',
-    healthScore: 38,
-    status: 'critico',
-    lastLogin: 'Hace 11 días',
-    activeUsersRatio: '22% (65/300)',
-    modulesUsed: 3,
-    churnRisk: 'Alto',
-    lastTraining: '12 de enero, 2026 (Sin asistir al último taller)',
-    nps: 45,
-    nextRenewal: '15 de Agosto, 2026',
-    csmName: 'Ing. Julián Gómez'
-  }
-];
-
-export function SaasCustomerSuccess({ institutions }: { institutions?: any[] } = {}) {
-  const [data, setData] = useState<CustomerHealth[]>(MOCK_CSM_DATA);
+export function SaasCustomerSuccess({ institutions = [] }: { institutions?: any[] }) {
+  console.log("RENDER CUSTOMER SUCCESS", { count: institutions.length, rawInstitutions: institutions });
   const [filterStatus, setFilterStatus] = useState<string>('todos');
+
+  // Map real institutions to CustomerHealth interface
+  const data: CustomerHealth[] = institutions.map(inst => {
+    const isSuspended = inst.subscription_status === 'suspended';
+    const isTrial = inst.subscription_status === 'free_trial';
+    
+    // Default dynamic logic to show real or empty data
+    let healthScore = 0;
+    let status: 'saludable' | 'atencion' | 'critico' | 'n/d' = 'n/d';
+    let churnRisk: 'Bajo' | 'Medio' | 'Alto' | 'N/D' = 'N/D';
+    
+    return {
+      id: inst.id,
+      name: inst.name || 'Institución sin nombre',
+      healthScore,
+      status,
+      lastLogin: inst.last_login ? new Date(inst.last_login).toLocaleDateString() : 'Sin accesos recientes',
+      activeUsersRatio: `${inst.active_users || 0} usuarios`,
+      modulesUsed: inst.active_modules?.length || 0,
+      churnRisk,
+      lastTraining: 'N/D',
+      nps: 0,
+      nextRenewal: inst.subscription_end || 'N/D',
+      csmName: inst.kam_name || 'Sin asignar'
+    };
+  });
 
   const filtered = data.filter(d => {
     if (filterStatus !== 'todos' && d.status !== filterStatus) return false;
@@ -109,19 +62,28 @@ export function SaasCustomerSuccess({ institutions }: { institutions?: any[] } =
 
   const getStatusBadge = (st: string, score: number) => {
     if (st === 'saludable') {
-      return <Badge className="bg-emerald-500 text-white font-black text-[10px] uppercase">● Salud Excelente ({score}/100)</Badge>;
+      return <Badge className="bg-emerald-500 text-white font-black text-[10px] uppercase">● Saludable ({score}/100)</Badge>;
     }
     if (st === 'atencion') {
-      return <Badge className="bg-amber-500 text-white font-black text-[10px] uppercase">● Requiere Atención ({score}/100)</Badge>;
+      return <Badge className="bg-amber-500 text-white font-black text-[10px] uppercase">● Atención ({score}/100)</Badge>;
     }
-    return <Badge className="bg-red-500 text-white font-black text-[10px] uppercase animate-pulse">● Riesgo Crítico ({score}/100)</Badge>;
+    if (st === 'critico') {
+      return <Badge className="bg-red-500 text-white font-black text-[10px] uppercase animate-pulse">● Crítico ({score}/100)</Badge>;
+    }
+    return <Badge className="bg-slate-500 text-white font-black text-[10px] uppercase">● N/D ({score}/100)</Badge>;
   };
 
   const getChurnBadge = (risk: string) => {
     if (risk === 'Bajo') return <span className="text-emerald-700 font-extrabold bg-emerald-50 px-2.5 py-0.5 rounded border border-emerald-200">Bajo</span>;
     if (risk === 'Medio') return <span className="text-amber-700 font-extrabold bg-amber-50 px-2.5 py-0.5 rounded border border-amber-200">Medio</span>;
-    return <span className="text-red-700 font-black bg-red-50 px-2.5 py-0.5 rounded border border-red-300 animate-pulse">ALTO RIESGO</span>;
+    if (risk === 'Alto') return <span className="text-red-700 font-black bg-red-50 px-2.5 py-0.5 rounded border border-red-300 animate-pulse">ALTO RIESGO</span>;
+    return <span className="text-slate-700 font-extrabold bg-slate-50 px-2.5 py-0.5 rounded border border-slate-200">N/D</span>;
   };
+
+  const healthyCount = data.filter(d => d.status === 'saludable').length;
+  const attentionCount = data.filter(d => d.status === 'atencion').length;
+  const criticalCount = data.filter(d => d.status === 'critico').length;
+  const renewalCount = data.filter(d => d.nextRenewal !== 'N/D').length;
 
   return (
     <div className="space-y-6">
@@ -144,9 +106,9 @@ export function SaasCustomerSuccess({ institutions }: { institutions?: any[] } =
         <div className="flex items-center gap-3 bg-slate-800/80 px-4 py-2.5 rounded-2xl border border-slate-700 shrink-0">
           <div className="text-right">
             <span className="text-[10px] font-bold text-slate-400 uppercase block">NPS Promedio AulaCore</span>
-            <span className="text-lg font-black text-emerald-400">86 / 100</span>
+            <span className="text-lg font-black text-emerald-400">0 / 100</span>
           </div>
-          <Smile className="w-8 h-8 text-emerald-400" />
+          <Smile className="w-8 h-8 text-slate-600" />
         </div>
       </div>
 
@@ -158,7 +120,7 @@ export function SaasCustomerSuccess({ institutions }: { institutions?: any[] } =
           </div>
           <div>
             <span className="text-[10px] font-bold text-slate-400 uppercase block">Tenants Saludables</span>
-            <span className="text-lg font-black text-slate-800">72 Colegios</span>
+            <span className="text-lg font-black text-slate-800">{healthyCount} Colegios</span>
             <span className="text-[10px] text-emerald-600 font-bold block">Health Score &gt; 80</span>
           </div>
         </Card>
@@ -169,7 +131,7 @@ export function SaasCustomerSuccess({ institutions }: { institutions?: any[] } =
           </div>
           <div>
             <span className="text-[10px] font-bold text-slate-400 uppercase block">Requieren Atención</span>
-            <span className="text-lg font-black text-slate-800">8 Colegios</span>
+            <span className="text-lg font-black text-slate-800">{attentionCount} Colegios</span>
             <span className="text-[10px] text-amber-600 font-bold block">Adopción Media (60-79)</span>
           </div>
         </Card>
@@ -180,7 +142,7 @@ export function SaasCustomerSuccess({ institutions }: { institutions?: any[] } =
           </div>
           <div>
             <span className="text-[10px] font-bold text-slate-400 uppercase block">Riesgo Crítico (Churn)</span>
-            <span className="text-lg font-black text-red-700">2 Colegios</span>
+            <span className="text-lg font-black text-red-700">{criticalCount} Colegios</span>
             <span className="text-[10px] text-red-600 font-bold block">Intervención Urgente</span>
           </div>
         </Card>
@@ -191,8 +153,8 @@ export function SaasCustomerSuccess({ institutions }: { institutions?: any[] } =
           </div>
           <div>
             <span className="text-[10px] font-bold text-slate-400 uppercase block">Renovaciones Próx. 90d</span>
-            <span className="text-lg font-black text-slate-800">14 Contratos</span>
-            <span className="text-[10px] text-indigo-600 font-bold block">$240M COP por renovar</span>
+            <span className="text-lg font-black text-slate-800">{renewalCount} Contratos</span>
+            <span className="text-[10px] text-indigo-600 font-bold block">$0 COP por renovar</span>
           </div>
         </Card>
       </div>
@@ -236,38 +198,50 @@ export function SaasCustomerSuccess({ institutions }: { institutions?: any[] } =
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-xs font-semibold text-slate-700">
-              {filtered.map(row => (
-                <tr key={row.id} className="hover:bg-slate-50/80 transition-colors">
-                  <td className="py-3.5 px-4 font-black text-slate-900">
-                    {row.name}
-                    <span className="block text-[10px] text-slate-400 font-normal mt-0.5">Último login: {row.lastLogin}</span>
-                  </td>
-                  <td className="py-3.5 px-4">
-                    {getStatusBadge(row.status, row.healthScore)}
-                  </td>
-                  <td className="py-3.5 px-4">
-                    <span className="font-extrabold text-slate-800 block">{row.activeUsersRatio}</span>
-                    <span className="text-[10px] text-indigo-600 font-bold block">{row.modulesUsed} de 10 módulos en uso</span>
-                  </td>
-                  <td className="py-3.5 px-4 font-bold">
-                    {getChurnBadge(row.churnRisk)}
-                  </td>
-                  <td className="py-3.5 px-4 text-slate-600">
-                    <div className="flex items-center gap-1.5">
-                      <BookOpen className="w-3.5 h-3.5 text-slate-400" />
-                      <span>{row.lastTraining}</span>
+              {filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="py-12 text-center">
+                    <div className="flex flex-col items-center justify-center">
+                      <Users className="w-12 h-12 text-slate-200 mb-3" />
+                      <span className="text-slate-500 font-bold block text-sm">Sin clientes registrados en este estado</span>
+                      <span className="text-slate-400 mt-1 block">Los clientes se mostrarán aquí cuando se agreguen al sistema.</span>
                     </div>
                   </td>
-                  <td className="py-3.5 px-4 font-black text-slate-800">
-                    {row.nextRenewal}
-                  </td>
-                  <td className="py-3.5 px-4">
-                    <span className="text-[11px] font-bold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200">
-                      {row.csmName}
-                    </span>
-                  </td>
                 </tr>
-              ))}
+              ) : (
+                filtered.map(row => (
+                  <tr key={row.id} className="hover:bg-slate-50/80 transition-colors">
+                    <td className="py-3.5 px-4 font-black text-slate-900">
+                      {row.name}
+                      <span className="block text-[10px] text-slate-400 font-normal mt-0.5">Último login: {row.lastLogin}</span>
+                    </td>
+                    <td className="py-3.5 px-4">
+                      {getStatusBadge(row.status, row.healthScore)}
+                    </td>
+                    <td className="py-3.5 px-4">
+                      <span className="font-extrabold text-slate-800 block">{row.activeUsersRatio}</span>
+                      <span className="text-[10px] text-indigo-600 font-bold block">{row.modulesUsed} de 10 módulos en uso</span>
+                    </td>
+                    <td className="py-3.5 px-4 font-bold">
+                      {getChurnBadge(row.churnRisk)}
+                    </td>
+                    <td className="py-3.5 px-4 text-slate-600">
+                      <div className="flex items-center gap-1.5">
+                        <BookOpen className="w-3.5 h-3.5 text-slate-400" />
+                        <span>{row.lastTraining}</span>
+                      </div>
+                    </td>
+                    <td className="py-3.5 px-4 font-black text-slate-800">
+                      {row.nextRenewal}
+                    </td>
+                    <td className="py-3.5 px-4">
+                      <span className="text-[11px] font-bold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200">
+                        {row.csmName}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

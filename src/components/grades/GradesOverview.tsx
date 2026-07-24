@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Trophy, TrendingUp, AlertTriangle, Medal } from 'lucide-react';
-import { MOCK_TREND_DATA } from './mockData';
+const MOCK_TREND_DATA: any[] = [];
 
 export function GradesOverview() {
   return (

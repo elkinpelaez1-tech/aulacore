@@ -64,7 +64,7 @@ export async function POST(request: Request) {
       return NextResponse.json({
         success: true,
         mocked: true,
-        id: 'MOCK-' + Math.random().toString(36).substring(2, 10).toUpperCase(),
+        id: 'MOCK-' + crypto.randomUUID().split('-')[0].toUpperCase(),
       });
     }
 

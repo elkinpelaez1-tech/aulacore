@@ -9,7 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { StudentMockData } from '@/lib/data/mock-students';
+import { StudentMockData } from '@/types/student';
 import { AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -44,8 +44,8 @@ export function StudentTable({ students, onClick }: Props) {
         </TableHeader>
         <TableBody>
           {students.map((student) => {
-            const hasAlerts = student.alerts.length > 0;
-            const gpaColor = student.gpa >= 4.0 ? 'text-emerald-600' : student.gpa >= 3.0 ? 'text-amber-600' : student.gpa > 0 ? 'text-rose-600' : 'text-slate-400';
+            const hasAlerts = (student.alerts?.length || 0) > 0;
+            const gpaColor = (student.gpa || 0) >= 4.0 ? 'text-emerald-600' : (student.gpa || 0) >= 3.0 ? 'text-amber-600' : (student.gpa || 0) > 0 ? 'text-rose-600' : 'text-slate-400';
 
             return (
               <TableRow 
@@ -59,7 +59,7 @@ export function StudentTable({ students, onClick }: Props) {
                       {student.avatarUrl ? (
                         <img src={student.avatarUrl} alt={student.name} className="w-full h-full object-cover" />
                       ) : (
-                        student.name.charAt(0)
+                        student.name ? student.name.charAt(0) : 'S'
                       )}
                     </div>
                     <div>
@@ -90,11 +90,11 @@ export function StudentTable({ students, onClick }: Props) {
                   </span>
                 </TableCell>
                 <TableCell className={cn("text-right font-bold text-xs", gpaColor)}>
-                  {student.gpa > 0 ? student.gpa.toFixed(1) : 'N/A'}
+                  {(student.gpa || 0) > 0 ? (student.gpa || 0).toFixed(1) : 'N/A'}
                 </TableCell>
                 <TableCell className="text-right font-bold text-xs">
-                  <span className={student.attendanceRate >= 90 ? 'text-emerald-600' : 'text-rose-600'}>
-                    {student.attendanceRate}%
+                  <span className={(student.attendanceRate || 100) >= 90 ? 'text-emerald-600' : 'text-rose-600'}>
+                    {student.attendanceRate ?? 100}%
                   </span>
                 </TableCell>
                 <TableCell className="text-right">
@@ -102,7 +102,7 @@ export function StudentTable({ students, onClick }: Props) {
                     <div className="flex justify-end">
                       <div className="flex items-center gap-1 bg-rose-50 text-rose-600 px-2 py-1 rounded text-[10px] font-bold border border-rose-200">
                         <AlertCircle className="w-3 h-3" />
-                        {student.alerts.length}
+                        {student.alerts?.length || 0}
                       </div>
                     </div>
                   ) : (

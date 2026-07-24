@@ -5,11 +5,11 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { AulaHelp } from '@/components/territorio/AulaHelp';
-import { TerritorialAlert } from '@/services/territory-mock';
 import { 
   transitionAlertStatus, 
   assignAlertTo, 
-  getAlertsByQueue 
+  getAlertsByQueue,
+  TerritorialAlert
 } from '@/services/territory-alerts';
 import { 
   ArrowLeft, Sparkles, Clock, CheckCircle2, Send, 
@@ -36,12 +36,14 @@ export default function TerritoryAlertDetailPage() {
   const [assignedOfficer, setAssignedOfficer] = useState('Dra. Claudia Restrepo');
   const [successMsg, setSuccessMsg] = useState('');
 
-  const loadAlert = () => {
+  const loadAlert = async () => {
     // Buscar la alerta en todas las colas
-    const allAlerts = getAlertsByQueue('inmediata')
-      .concat(getAlertsByQueue('seguimiento'))
-      .concat(getAlertsByQueue('tendencias'))
-      .concat(getAlertsByQueue('resueltas'));
+    const alertsInmediata = await getAlertsByQueue('inmediata');
+    const alertsSeguimiento = await getAlertsByQueue('seguimiento');
+    const alertsTendencias = await getAlertsByQueue('tendencias');
+    const alertsResueltas = await getAlertsByQueue('resueltas');
+    
+    const allAlerts = [...alertsInmediata, ...alertsSeguimiento, ...alertsTendencias, ...alertsResueltas];
     
     const matched = allAlerts.find(a => a.id === id);
     if (matched) {
@@ -67,11 +69,11 @@ export default function TerritoryAlertDetailPage() {
     };
   }, [id]);
 
-  const handleTransition = (e: React.FormEvent) => {
+  const handleTransition = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!alertData || !actionComment) return;
 
-    const success = transitionAlertStatus(
+    const success = await transitionAlertStatus(
       alertData.id,
       newStatus,
       actionComment,
@@ -90,11 +92,11 @@ export default function TerritoryAlertDetailPage() {
     }
   };
 
-  const handleAssign = (e: React.FormEvent) => {
+  const handleAssign = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!alertData) return;
 
-    const success = assignAlertTo(alertData.id, assignedOfficer);
+    const success = await assignAlertTo(alertData.id, assignedOfficer);
     if (success) {
       setSuccessMsg(`Funcionario asignado con éxito a la alerta.`);
       setTimeout(() => setSuccessMsg(''), 4000);

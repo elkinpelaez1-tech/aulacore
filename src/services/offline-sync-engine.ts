@@ -202,7 +202,7 @@ export async function addToSyncQueue(
   priority: 1 | 2 | 3 = 2
 ): Promise<SyncItem> {
   const newItem: SyncItem = {
-    id: `sync_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+    id: `sync_${Date.now()}_${crypto.randomUUID().split('-')[0]}`,
     timestamp: new Date().toISOString(),
     module,
     action,
@@ -322,8 +322,7 @@ export async function syncQueueNow(
     // Simular latencia de red de 600ms por petición
     await new Promise(r => setTimeout(r, 600));
 
-    // Simulación del motor: Las faltas graves Tipo III simulan un conflicto de validación a veces
-    const isConflictCase = item.action === 'CREATE_FALTA' && item.payload.type === 'Tipo III' && Math.random() > 0.8;
+    const isConflictCase = false; // Conflictos se resuelven en backend, no se simulan
 
     if (isConflictCase) {
       item.status = 'failed';

@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { MOCK_STUDENTS } from '@/lib/data/mock-students';
+const MOCK_STUDENTS: any[] = [];
 import { Users, TrendingDown, ShieldAlert, UserCheck, UserPlus, RefreshCcw, UserMinus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 

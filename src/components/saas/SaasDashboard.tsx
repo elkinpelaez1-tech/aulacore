@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/card';
 import { 
   Building2, Users, DollarSign, Activity, TrendingUp, Cpu, Database,
   HardDrive, Server, ShieldCheck, Zap, AlertCircle, Clock, 
-  MapPin, CheckCircle2, Sparkles, Landmark, Award
+  MapPin, CheckCircle2, Sparkles, Landmark, Award, Info
 } from 'lucide-react';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, 
@@ -19,34 +19,6 @@ interface SaasDashboardProps {
 }
 
 export function SaasDashboard({ stats }: SaasDashboardProps) {
-  // Datos para gráficos en cero orgánico si no hay MRR
-  const REVENUE_DATA = stats?.mrrCop && stats.mrrCop > 0 ? [
-    { month: 'Ene', mrr: stats.mrrCop * 0.7, arr: stats.arrCop * 0.7 },
-    { month: 'Feb', mrr: stats.mrrCop * 0.8, arr: stats.arrCop * 0.8 },
-    { month: 'Mar', mrr: stats.mrrCop * 0.85, arr: stats.arrCop * 0.85 },
-    { month: 'Abr', mrr: stats.mrrCop * 0.9, arr: stats.arrCop * 0.9 },
-    { month: 'May', mrr: stats.mrrCop * 0.95, arr: stats.arrCop * 0.95 },
-    { month: 'Jun', mrr: stats.mrrCop, arr: stats.arrCop },
-  ] : [
-    { month: 'Ene', mrr: 0, arr: 0 },
-    { month: 'Feb', mrr: 0, arr: 0 },
-    { month: 'Mar', mrr: 0, arr: 0 },
-    { month: 'Abr', mrr: 0, arr: 0 },
-    { month: 'May', mrr: 0, arr: 0 },
-    { month: 'Jun', mrr: 0, arr: 0 },
-  ];
-
-  const CLIENTS_GROWTH_DATA = stats?.totalTenants && stats.totalTenants > 0 ? [
-    { month: 'Jun', colegios: stats.totalTenants - stats.totalSeds - stats.trialingTenants, secretarias: stats.totalSeds, trial: stats.trialingTenants },
-  ] : [
-    { month: 'Ene', colegios: 0, secretarias: 0, trial: 0 },
-    { month: 'Feb', colegios: 0, secretarias: 0, trial: 0 },
-    { month: 'Mar', colegios: 0, secretarias: 0, trial: 0 },
-    { month: 'Abr', colegios: 0, secretarias: 0, trial: 0 },
-    { month: 'May', colegios: 0, secretarias: 0, trial: 0 },
-    { month: 'Jun', colegios: 0, secretarias: 0, trial: 0 },
-  ];
-
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(value);
   };
@@ -54,7 +26,7 @@ export function SaasDashboard({ stats }: SaasDashboardProps) {
   return (
     <div className="space-y-6">
       
-      {/* 🌟 BLOQUE 1: INDICADORES FINANCIEROS & DE CRECIMIENTO ENTERPRISE */}
+      {/* 🌟 BLOQUE 1: INDICADORES FINANCIEROS & DE CRECIMIENTO */}
       <div className="space-y-3">
         <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
           <DollarSign className="w-4 h-4 text-emerald-500" />
@@ -72,11 +44,7 @@ export function SaasDashboard({ stats }: SaasDashboardProps) {
             <div className="space-y-0.5">
               <span className="text-2xl font-black text-slate-900 font-mono">{formatCurrency(stats?.mrrCop || 0)}</span>
               <span className="text-[10px] font-bold text-emerald-600 block flex items-center gap-1">
-                {stats?.mrrCop && stats.mrrCop > 0 ? (
-                  <><TrendingUp className="w-3.5 h-3.5" /> +12.4% vs mes anterior</>
-                ) : (
-                  'Esperando primera suscripción'
-                )}
+                Obtenido desde Supabase
               </span>
             </div>
           </Card>
@@ -91,7 +59,7 @@ export function SaasDashboard({ stats }: SaasDashboardProps) {
             <div className="space-y-0.5">
               <span className="text-2xl font-black text-slate-900 font-mono">{formatCurrency(stats?.arrCop || 0)}</span>
               <span className="text-[10px] font-bold text-indigo-600 block">
-                {stats?.arrCop && stats.arrCop > 0 ? '🚀 Superando meta anual' : 'Proyección inactiva'}
+                Obtenido desde Supabase
               </span>
             </div>
           </Card>
@@ -105,8 +73,8 @@ export function SaasDashboard({ stats }: SaasDashboardProps) {
             </div>
             <div className="space-y-0.5">
               <span className="text-2xl font-black text-slate-900 font-mono">{stats?.churnRate || 0}%</span>
-              <span className="text-[10px] font-bold text-emerald-600 block">
-                ● Excelente retención (&lt; 2% meta)
+              <span className="text-[10px] font-bold text-slate-400 block">
+                Sin registros históricos
               </span>
             </div>
           </Card>
@@ -148,7 +116,7 @@ export function SaasDashboard({ stats }: SaasDashboardProps) {
           <div className="p-3.5 rounded-xl bg-amber-50/60 border border-amber-200 flex items-center justify-between">
             <div>
               <span className="text-[10px] font-extrabold text-amber-700 uppercase block">Por Vencer (&lt; 30d)</span>
-              <span className="text-base font-black text-amber-950 mt-0.5 block">0 Tenants</span>
+              <span className="text-base font-black text-amber-950 mt-0.5 block">N/D</span>
             </div>
             <AlertCircle className="w-5 h-5 text-amber-500" />
           </div>
@@ -178,7 +146,7 @@ export function SaasDashboard({ stats }: SaasDashboardProps) {
             <div>
               <span className="text-[10px] font-bold text-slate-400 uppercase block">Estudiantes Administrados</span>
               <span className="text-2xl font-black text-slate-900 mt-0.5 block font-mono">{stats?.totalStudents || 0}</span>
-              <span className="text-[10px] font-bold text-emerald-600 block mt-0.5">● Alumnos activos globales</span>
+              <span className="text-[10px] font-bold text-slate-400 block mt-0.5">Alumnos registrados</span>
             </div>
           </Card>
 
@@ -189,7 +157,7 @@ export function SaasDashboard({ stats }: SaasDashboardProps) {
             <div>
               <span className="text-[10px] font-bold text-slate-400 uppercase block">Docentes y Directivos</span>
               <span className="text-2xl font-black text-slate-900 mt-0.5 block font-mono">{stats?.totalTeachers || 0}</span>
-              <span className="text-[10px] font-bold text-purple-600 block mt-0.5">● Educadores operando en la nube</span>
+              <span className="text-[10px] font-bold text-slate-400 block mt-0.5">Educadores operando</span>
             </div>
           </Card>
 
@@ -200,7 +168,7 @@ export function SaasDashboard({ stats }: SaasDashboardProps) {
             <div>
               <span className="text-[10px] font-bold text-slate-400 uppercase block">Secretarías de Educación</span>
               <span className="text-2xl font-black text-slate-900 mt-0.5 block font-mono">{stats?.totalSeds || 0} SEDs</span>
-              <span className="text-[10px] font-bold text-blue-600 block mt-0.5">● Entidades gubernamentales</span>
+              <span className="text-[10px] font-bold text-slate-400 block mt-0.5">Entidades gubernamentales</span>
             </div>
           </Card>
         </div>
@@ -217,91 +185,52 @@ export function SaasDashboard({ stats }: SaasDashboardProps) {
           <Card className="p-4 rounded-2xl border border-slate-200 bg-white shadow-xs space-y-1">
             <div className="flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase">
               <span>Uptime Plataforma</span>
-              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
             </div>
-            <span className="text-xl font-black text-emerald-600 block font-mono">100.0%</span>
-            <span className="text-[10px] text-slate-500 block">Vercel Edge + Supabase Global</span>
+            <span className="text-xl font-black text-slate-600 block font-mono">N/D</span>
+            <span className="text-[10px] text-slate-400 block">Sin conexión a telemetría</span>
           </Card>
 
           <Card className="p-4 rounded-2xl border border-slate-200 bg-white shadow-xs space-y-1">
             <div className="flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase">
               <span>Consumo Tokens IA</span>
-              <Cpu className="w-3.5 h-3.5 text-purple-600" />
+              <Cpu className="w-3.5 h-3.5 text-slate-400" />
             </div>
-            <span className="text-xl font-black text-purple-700 block font-mono">0 tokens</span>
-            <span className="text-[10px] text-slate-500 block">$0 USD este mes</span>
+            <span className="text-xl font-black text-slate-600 block font-mono">N/D</span>
+            <span className="text-[10px] text-slate-400 block">Sin registros en DB</span>
           </Card>
 
           <Card className="p-4 rounded-2xl border border-slate-200 bg-white shadow-xs space-y-1">
             <div className="flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase">
               <span>Consumo Supabase DB</span>
-              <Database className="w-3.5 h-3.5 text-blue-600" />
+              <Database className="w-3.5 h-3.5 text-slate-400" />
             </div>
-            <span className="text-xl font-black text-blue-700 block font-mono">1.2% CPU</span>
-            <span className="text-[10px] text-slate-500 block">Conexiones estables</span>
+            <span className="text-xl font-black text-slate-600 block font-mono">N/D</span>
+            <span className="text-[10px] text-slate-400 block">Sin acceso a Supabase API</span>
           </Card>
 
           <Card className="p-4 rounded-2xl border border-slate-200 bg-white shadow-xs space-y-1">
             <div className="flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase">
               <span>Almacenamiento S3</span>
-              <HardDrive className="w-3.5 h-3.5 text-slate-600" />
+              <HardDrive className="w-3.5 h-3.5 text-slate-400" />
             </div>
-            <span className="text-xl font-black text-slate-800 block font-mono">0 GB</span>
-            <span className="text-[10px] text-emerald-600 font-bold block">0% de 1 TB contratado</span>
+            <span className="text-xl font-black text-slate-600 block font-mono">N/D</span>
+            <span className="text-[10px] text-slate-400 font-bold block">0%</span>
           </Card>
         </div>
       </div>
 
       {/* 🌟 BLOQUE 4: GRÁFICOS ESTRATÉGICOS SAAS */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2">
-        <Card className="p-6 rounded-3xl border border-slate-200 bg-white shadow-xs space-y-4">
-          <div>
-            <h4 className="text-sm font-black text-slate-900 uppercase tracking-wider">Crecimiento MRR / ARR (Miles de USD)</h4>
-            <p className="text-xs text-slate-500">Evolución de ingresos recurrentes en la plataforma</p>
-          </div>
-          <div className="h-64 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={REVENUE_DATA} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="colorMrr" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 11, fontWeight: 700, fill: '#64748b' }} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fontWeight: 700, fill: '#64748b' }} />
-                <Tooltip 
-                  contentStyle={{ backgroundColor: '#0f172a', borderRadius: '12px', border: 'none', color: '#fff', fontSize: '12px', fontWeight: 700 }}
-                  formatter={(val: any) => [formatCurrency(val), 'Valor']}
-                />
-                <Area type="monotone" dataKey="mrr" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorMrr)" name="MRR" />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
+        <Card className="p-6 rounded-3xl border border-slate-200 bg-white shadow-xs space-y-4 flex flex-col justify-center items-center text-center h-64">
+            <Info className="w-10 h-10 text-slate-300 mb-2" />
+            <h4 className="text-sm font-black text-slate-900 uppercase tracking-wider">Crecimiento MRR / ARR</h4>
+            <p className="text-xs text-slate-500 max-w-sm">No hay registros históricos suficientes en Supabase para construir este gráfico.</p>
         </Card>
 
-        <Card className="p-6 rounded-3xl border border-slate-200 bg-white shadow-xs space-y-4">
-          <div>
+        <Card className="p-6 rounded-3xl border border-slate-200 bg-white shadow-xs space-y-4 flex flex-col justify-center items-center text-center h-64">
+            <Info className="w-10 h-10 text-slate-300 mb-2" />
             <h4 className="text-sm font-black text-slate-900 uppercase tracking-wider">Expansión de Tenants & Cuentas</h4>
-            <p className="text-xs text-slate-500">Distribución de base instalada</p>
-          </div>
-          <div className="h-64 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={CLIENTS_GROWTH_DATA} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 11, fontWeight: 700, fill: '#64748b' }} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fontWeight: 700, fill: '#64748b' }} />
-                <Tooltip 
-                  contentStyle={{ backgroundColor: '#0f172a', borderRadius: '12px', border: 'none', color: '#fff', fontSize: '12px', fontWeight: 700 }}
-                />
-                <Legend iconType="circle" wrapperStyle={{ fontSize: '11px', fontWeight: 700, paddingTop: '8px' }} />
-                <Bar dataKey="colegios" name="Colegios" fill="#4f46e5" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="secretarias" name="Secretarías (SED)" fill="#06b6d4" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="trial" name="En Prueba (Demo/Trial)" fill="#f59e0b" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+            <p className="text-xs text-slate-500 max-w-sm">No hay registros históricos suficientes en Supabase para construir este gráfico.</p>
         </Card>
       </div>
 

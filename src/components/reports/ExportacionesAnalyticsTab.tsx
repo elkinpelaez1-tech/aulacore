@@ -23,12 +23,7 @@ import {
 import { cn } from '@/lib/utils';
 
 // Mock data tailored for the Export downloads distribution (lightweight donut chart)
-const DOWNLOADS_USAGE_DATA = [
-  { name: 'Académico', value: 145, color: '#6366f1' },       // Indigo
-  { name: 'Convivencia', value: 42, color: '#10b981' },      // Emerald suave
-  { name: 'Asistencia RFID', value: 98, color: '#4f46e5' },   // Deep Indigo
-  { name: 'Docentes', value: 57, color: '#64748b' }          // Slate
-];
+const DOWNLOADS_USAGE_DATA: any[] = [];
 
 export function ExportacionesAnalyticsTab() {
   const [activeModal, setActiveModal] = useState<string | null>(null);
@@ -37,84 +32,31 @@ export function ExportacionesAnalyticsTab() {
   const [toast, setToast] = useState<{ title: string; message: string } | null>(null);
 
   const handleExecuteModalAction = (successTitle: string, successMessage: string, onDownload?: () => void) => {
-    setIsProcessing(true);
-    setTimeout(() => {
-      setIsProcessing(false);
-      if (onDownload) {
-        try {
-          onDownload();
-        } catch (e) {
-          console.error(e);
-        }
+    setIsProcessing(false);
+    if (onDownload) {
+      try {
+        onDownload();
+      } catch (e) {
+        console.error(e);
       }
-      setActiveModal(null);
-      setToast({ title: successTitle, message: successMessage });
-      setTimeout(() => {
-        setToast(null);
-      }, 3000);
-    }, 1000);
+    }
+    setActiveModal(null);
+    setToast({ title: successTitle, message: successMessage });
   };
 
   const handleExecuteTemplateAction = (index: number, successTitle: string, successMessage: string, onDownload?: () => void) => {
-    setLoadingTemplate(index);
-    setTimeout(() => {
-      setLoadingTemplate(null);
-      if (onDownload) {
-        try {
-          onDownload();
-        } catch (e) {
-          console.error(e);
-        }
+    setLoadingTemplate(null);
+    if (onDownload) {
+      try {
+        onDownload();
+      } catch (e) {
+        console.error(e);
       }
-      setToast({ title: successTitle, message: successMessage });
-      setTimeout(() => {
-        setToast(null);
-      }, 3000);
-    }, 1200);
+    }
+    setToast({ title: successTitle, message: successMessage });
   };
 
-  const exportTemplates = [
-    {
-      title: 'Boletín Consolidado',
-      desc: 'Reporte académico de calificaciones consolidado por nivel y periodo lectivo.',
-      format: 'PDF / Excel',
-      size: '2.4 MB',
-      lastGenerated: 'Hace 10 min',
-      icon: FileText,
-      iconBg: 'bg-indigo-50 border-indigo-100 text-indigo-600',
-      actionLabel: 'Generar y Firmar'
-    },
-    {
-      title: 'RFID Crítico',
-      desc: 'Reporte operativo de inasistencia diaria y telemetría de flujo de tarjetas.',
-      format: 'CSV / Excel',
-      size: '850 KB',
-      lastGenerated: 'Hoy, 8:15 AM',
-      icon: FileSpreadsheet,
-      iconBg: 'bg-slate-50 border-slate-200 text-indigo-600',
-      actionLabel: 'Emitir Reporte'
-    },
-    {
-      title: 'Comité de Convivencia',
-      desc: 'Compilación de actas conciliatorias y acuerdos restaurativos del comité escolar.',
-      format: 'PDF Firmado',
-      size: '1.2 MB',
-      lastGenerated: 'Ayer, 4:30 PM',
-      icon: CheckCircle2,
-      iconBg: 'bg-emerald-50 border-emerald-100 text-emerald-600',
-      actionLabel: 'Consolidar Actas'
-    },
-    {
-      title: 'Auditoría Docente',
-      desc: 'Control y seguimiento operativo del cumplimiento de planeación y clases.',
-      format: 'Excel',
-      size: '1.5 MB',
-      lastGenerated: 'Lunes, 7:00 AM',
-      icon: Sheet,
-      iconBg: 'bg-slate-50 border-slate-200 text-slate-600',
-      actionLabel: 'Auditar Cobertura'
-    }
-  ];
+  const exportTemplates: any[] = [];
 
   return (
     <div className="space-y-8 animate-in fade-in duration-300">

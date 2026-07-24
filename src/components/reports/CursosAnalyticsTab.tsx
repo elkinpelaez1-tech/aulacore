@@ -26,12 +26,7 @@ import {
 import { cn } from '@/lib/utils';
 
 // Mock data tailored for the Courses Performance Analytics tab
-const COURSES_GPAS_DATA = [
-  { name: '5-A (Destacado)', gpa: 4.4, color: '#f472b6' },   // pink-400
-  { name: '11-A (Destacado)', gpa: 4.3, color: '#ec4899' },  // pink-500
-  { name: '7-A (Alerta)', gpa: 3.2, color: '#db2777' },      // pink-600
-  { name: '9-B (Crítico)', gpa: 2.8, color: '#be185d' }      // pink-700
-];
+const COURSES_GPAS_DATA: any[] = [];
 
 interface CursosAnalyticsTabProps {
   initialModal?: string | null;
@@ -51,53 +46,19 @@ export function CursosAnalyticsTab({ initialModal, onClearInitialModal }: Cursos
   const [toast, setToast] = useState<{ title: string; message: string } | null>(null);
 
   const handleExecuteAction = (successTitle: string, successMessage: string, onDownload?: () => void) => {
-    setIsProcessing(true);
-    setTimeout(() => {
-      setIsProcessing(false);
-      if (onDownload) {
-        try {
-          onDownload();
-        } catch (e) {
-          console.error(e);
-        }
+    setIsProcessing(false);
+    if (onDownload) {
+      try {
+        onDownload();
+      } catch (e) {
+        console.error(e);
       }
-      setActiveModal(null);
-      setToast({ title: successTitle, message: successMessage });
-      setTimeout(() => {
-        setToast(null);
-      }, 3000);
-    }, 1000);
+    }
+    setActiveModal(null);
+    setToast({ title: successTitle, message: successMessage });
   };
 
-  const followUpCourses = [
-    {
-      grade: '9-B',
-      gpa: 2.8,
-      attendance: '88%',
-      director: 'Sandra Patricia',
-      status: 'critico',
-      badgeColor: 'text-rose-700 bg-rose-50 border-rose-100',
-      dotColor: 'bg-rose-500'
-    },
-    {
-      grade: '7-A',
-      gpa: 3.2,
-      attendance: '91%',
-      director: 'Carlos Mendoza',
-      status: 'alerta',
-      badgeColor: 'text-amber-700 bg-amber-50 border-amber-100',
-      dotColor: 'bg-amber-500'
-    },
-    {
-      grade: '10-C',
-      gpa: 3.4,
-      attendance: '93%',
-      director: 'Liliana Gómez',
-      status: 'estable',
-      badgeColor: 'text-emerald-700 bg-emerald-50 border-emerald-100',
-      dotColor: 'bg-emerald-500'
-    }
-  ];
+  const followUpCourses: any[] = [];
 
   return (
     <div className="space-y-8 animate-in fade-in duration-300">

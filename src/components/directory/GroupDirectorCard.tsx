@@ -65,7 +65,7 @@ export function GroupDirectorCard({ director }: Props) {
         
         setIsSending(false);
         setIsSentSuccess(true);
-        const hash = data.id || ('AC-EML-' + Math.random().toString(36).substring(2, 10).toUpperCase() + '-' + Date.now().toString().slice(-6));
+        const hash = data.id || ('AC-EML-' + crypto.randomUUID().split('-')[0].toUpperCase() + '-' + Date.now().toString().slice(-6));
         setMockVerificationHash(hash);
         
         // Sync with localStorage message log

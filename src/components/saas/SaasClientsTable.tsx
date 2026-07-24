@@ -199,7 +199,7 @@ export function SaasClientsTable({
                       <td className="py-3.5 px-4 text-slate-600">
                         <div className="flex items-center gap-1">
                           <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                          <span>{inst.city || 'Bogotá'} ({inst.department || 'Cund.'})</span>
+                          <span>{inst.city || 'Ciudad N/D'} ({inst.department || 'Dep N/D'})</span>
                         </div>
                       </td>
 
@@ -208,7 +208,7 @@ export function SaasClientsTable({
                           {getStatusBadge(status)}
                         </div>
                         <span className="text-[10px] font-extrabold text-indigo-700 block uppercase">
-                          Plan: {inst.subscription_plan || 'profesional'}
+                          Plan: {inst.subscription_plan || 'Sin plan'}
                         </span>
                       </td>
 

@@ -139,7 +139,7 @@ export async function approveOnboarding(
     // E. Generar enlace de activación e historial de correo
     const activationLink = `${window.location.origin}/join/act-${onboardingId}`;
     const newEmailLog = {
-      id: 'eml-' + Math.random().toString(36).substring(2, 10).toUpperCase(),
+      id: 'eml-' + crypto.randomUUID().split('-')[0].toUpperCase(),
       sentAt: new Date().toISOString(),
       subject: '✨ Bienvenido a AulaCore - Configura tu Acceso Institucional',
       body: `Estimado(a) ${onboarding.full_name},\n\nNos complace darte la bienvenida al equipo docente. Tu proceso de onboarding ha sido aprobado por la Coordinación Académica.\n\nPara activar tu cuenta y configurar tu acceso a las consolas y registros RFID, haz clic en el siguiente enlace:\n${activationLink}\n\nDetalles de la cuenta:\n- Correo: ${onboarding.email}\n- Contraseña temporal: ${tempPassword}\n\nAtentamente,\nCoordinación Académica - AulaCore`,
@@ -203,7 +203,7 @@ export async function resendInvitation(
 
     const activationLink = onboarding.activation_link || `${window.location.origin}/join/act-${onboarding.id}`;
     const newEmailLog = {
-      id: 'eml-' + Math.random().toString(36).substring(2, 10).toUpperCase(),
+      id: 'eml-' + crypto.randomUUID().split('-')[0].toUpperCase(),
       sentAt: new Date().toISOString(),
       subject: '✨ Recordatorio: Configura tu Acceso en AulaCore',
       body: `Hola ${onboarding.full_name},\n\nTe recordamos que tu invitación para unirte como docente está lista. Para ingresar por primera vez y configurar tus horarios, haz clic en el siguiente enlace:\n${activationLink}\n\nAtentamente,\nCoordinación Académica - AulaCore`,

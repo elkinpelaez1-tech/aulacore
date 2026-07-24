@@ -26,8 +26,8 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
-import { MOCK_STUDENTS } from '@/lib/data/mock-students';
-import { MOCK_TEACHERS } from '@/lib/data/mock-teachers';
+const MOCK_STUDENTS: any[] = [];
+const MOCK_TEACHERS: any[] = [];
 
 export interface RoleScopePermissions {
   role_scope: 'global' | 'institution_supervisor' | 'course' | 'subject' | 'administrative' | 'family' | 'student';

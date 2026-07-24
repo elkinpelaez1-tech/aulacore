@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Mail, Phone, BookOpen, Clock, MessageSquare, AlertCircle, Users, Send, CheckCircle2, Loader2, Sparkles } from 'lucide-react';
-import { TeacherMockData, TeacherStatus } from '@/lib/data/mock-teachers';
+import { TeacherMockData, TeacherStatus } from '@/types/teacher';
 import { TeacherScheduleModal } from './TeacherScheduleModal';
 import { cn } from '@/lib/utils';
 
@@ -20,6 +20,7 @@ const statusColors: Record<TeacherStatus, { bg: string, text: string, border: st
   'Reunión': { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' },
   'Disponible': { bg: 'bg-indigo-50', text: 'text-indigo-700', border: 'border-indigo-200' },
   'Licencia': { bg: 'bg-slate-100', text: 'text-slate-600', border: 'border-slate-300' },
+  'Inactivo': { bg: 'bg-rose-100', text: 'text-rose-600', border: 'border-rose-300' },
   'Sobrecarga académica': { bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200' }
 };
 
@@ -66,7 +67,7 @@ export function TeacherCard({ teacher, onClick }: Props) {
         
         setIsSending(false);
         setIsSentSuccess(true);
-        const hash = data.id || ('AC-EML-' + Math.random().toString(36).substring(2, 10).toUpperCase() + '-' + Date.now().toString().slice(-6));
+        const hash = data.id || ('AC-EML-' + crypto.randomUUID().split('-')[0].toUpperCase() + '-' + Date.now().toString().slice(-6));
         setMockVerificationHash(hash);
         
         // Sync with localStorage message log
@@ -156,7 +157,7 @@ export function TeacherCard({ teacher, onClick }: Props) {
               <BookOpen className="w-4 h-4 text-indigo-500" />
               <div>
                 <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Cursos</p>
-                <p className="text-sm font-black text-slate-800">{teacher.assignedCourses.length}</p>
+                <p className="text-sm font-black text-slate-800">{teacher.assignedCourses?.length || teacher.assignedCoursesCount || 0}</p>
               </div>
             </div>
             <div className="flex items-center gap-2 text-right">
@@ -170,12 +171,12 @@ export function TeacherCard({ teacher, onClick }: Props) {
         </div>
 
         {/* Alerts Section (if any) */}
-        {teacher.alerts.length > 0 && (
+        {(teacher.alerts?.length || 0) > 0 && (
           <div className="px-5 py-2.5 bg-rose-50/50 border-b border-rose-100">
             <div className="flex items-start gap-2">
               <AlertCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
               <div className="flex flex-col gap-1">
-                {teacher.alerts.map(alert => (
+                {teacher.alerts?.map((alert: any) => (
                   <p key={alert.id} className="text-xs font-semibold text-rose-700 leading-tight">
                     {alert.message}
                   </p>

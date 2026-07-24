@@ -140,19 +140,28 @@ export function CentroAutomatizaciones() {
   };
 
   // Cargar datos
-  const loadData = () => {
-    setRecipes(getMIORecipes().filter(r => r.scope === targetScope));
-    setProtocols(getMIOProtocols().filter(p => p.scope === targetScope));
-    setRuns(getMIORuns().filter(run => {
-      const allRecipes = getMIORecipes();
-      const rec = allRecipes.find(r => r.code === run.recipeCode);
-      return rec ? rec.scope === targetScope : false;
-    }));
-    setOptimizations(getMIOOptimizations().filter(opt => {
-      const allRecipes = getMIORecipes();
-      const rec = allRecipes.find(r => r.code === opt.recipeCode);
-      return rec ? rec.scope === targetScope : false;
-    }));
+  const loadData = async () => {
+    try {
+      const [allRecipes, allProtocols, allRuns, allOptimizations] = await Promise.all([
+        getMIORecipes(),
+        getMIOProtocols(),
+        getMIORuns(),
+        getMIOOptimizations()
+      ]);
+
+      setRecipes((allRecipes || []).filter(r => r.scope === targetScope));
+      setProtocols((allProtocols || []).filter(p => p.scope === targetScope));
+      setRuns((allRuns || []).filter(run => {
+        const rec = (allRecipes || []).find(r => r.code === run.recipeCode);
+        return rec ? rec.scope === targetScope : false;
+      }));
+      setOptimizations((allOptimizations || []).filter(opt => {
+        const rec = (allRecipes || []).find(r => r.code === opt.recipeCode);
+        return rec ? rec.scope === targetScope : false;
+      }));
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   useEffect(() => {
@@ -264,7 +273,7 @@ export function CentroAutomatizaciones() {
     }
 
     const newRuns = await dispatchMIOEvent({
-      id: `evt-${Math.random().toString(36).substring(2, 7)}`,
+      id: `evt-${crypto.randomUUID().split('-')[0]}`,
       type,
       tenantId: 'tenant-antioquia',
       municipality: 'Barbosa',

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { MOCK_COURSES, CourseMockData } from '@/lib/data/mock-courses';
+const MOCK_COURSES: any[] = [];
 import { CourseMetricsPanel } from './CourseMetricsPanel';
 import { CourseCard } from './CourseCard';
 import { CourseTable } from './CourseTable';
@@ -20,11 +20,11 @@ export function CourseIntelligenceGrid() {
   const [levelFilter, setLevelFilter] = useState('Todos');
   const [shiftFilter, setShiftFilter] = useState('Todas');
 
-  const [selectedCourse, setSelectedCourse] = useState<CourseMockData | null>(null);
+  const [selectedCourse, setSelectedCourse] = useState<any | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   // Courses state with local cache persistence
-  const [courses, setCourses] = useState<CourseMockData[]>(() => {
+  const [courses, setCourses] = useState<any[]>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('aulacore-courses-list');
       if (saved) {
@@ -58,7 +58,7 @@ export function CourseIntelligenceGrid() {
   const levels = Array.from(new Set(courses.map(c => c.level)));
   const shifts = Array.from(new Set(courses.map(c => c.shift)));
 
-  const handleCourseClick = (course: CourseMockData) => {
+  const handleCourseClick = (course: any) => {
     setSelectedCourse(course);
     setIsDrawerOpen(true);
   };
@@ -98,7 +98,7 @@ export function CourseIntelligenceGrid() {
     const boys = Math.floor(total / 2);
     const girls = total - boys;
 
-    const newCourse: CourseMockData = {
+    const newCourse: any = {
       id: `c-${newCourseName.toLowerCase().replace(/ /g, '-')}-${Date.now()}`,
       name: newCourseName,
       level: newCourseLevel,

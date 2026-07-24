@@ -12,11 +12,13 @@ import {
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { 
-  ATTENDANCE_STUDENTS, INITIAL_ATTENDANCE_LOGS, MOCK_GPS_GEOFENCES, 
   AttendanceRecord, AttendanceState, AttendanceSource, getDominantRecord, PRIORITY_MAP 
 } from '@/lib/data/attendance-store';
-import { MOCK_STUDENTS } from '@/lib/data/mock-students';
-import { MOCK_COURSES } from '@/lib/data/mock-courses';
+
+const ATTENDANCE_STUDENTS: any[] = [];
+const INITIAL_ATTENDANCE_LOGS: AttendanceRecord[] = [];
+const MOCK_STUDENTS: any[] = [];
+const MOCK_COURSES: any[] = [];
 import { TeacherAttendancePortal } from '@/components/attendance/TeacherAttendancePortal';
 
 export default function AsistenciaHibridaPage() {
@@ -103,17 +105,15 @@ export default function AsistenciaHibridaPage() {
   // Trigger simulated RFID Swipe
   const handleRfidSwipe = () => {
     setIsRfidLoading(true);
-    setTimeout(() => {
-      setIsRfidLoading(false);
-      addAttendanceLog(
-        rfidStudent,
-        'RFID',
-        rfidState,
-        rfidPorteria,
-        'Portería Principal',
-        'Sistema Automatizado RFID'
-      );
-    }, 800);
+    setIsRfidLoading(false);
+    addAttendanceLog(
+      rfidStudent,
+      'RFID',
+      rfidState,
+      rfidPorteria,
+      'Portería Principal',
+      'Sistema Automatizado RFID'
+    );
   };
 
   // Trigger simulated QR camera scanner
@@ -122,28 +122,18 @@ export default function AsistenciaHibridaPage() {
     setQrCameraActive(true);
     setQrProgress(0);
 
-    const steps = [30, 60, 90, 100];
-    let current = 0;
-    const interval = setInterval(() => {
-      if (current < steps.length) {
-        setQrProgress(steps[current]);
-        current++;
-      } else {
-        clearInterval(interval);
-        setQrScanning(false);
-        setQrCameraActive(false);
+    setQrScanning(false);
+    setQrCameraActive(false);
 
-        // Scan Sofía Ramírez QR code as default scan action
-        addAttendanceLog(
-          's-107',
-          'QR',
-          'Presente',
-          'Tablet-Portero-01',
-          'Portería Principal',
-          'Portero General'
-        );
-      }
-    }, 400);
+    // Scan action
+    addAttendanceLog(
+      's-107',
+      'QR',
+      'Presente',
+      'Tablet-Portero-01',
+      'Portería Principal',
+      'Portero General'
+    );
   };
 
   // Cascading Live Sync: updates GPA, active alerts, risk status
@@ -163,7 +153,7 @@ export default function AsistenciaHibridaPage() {
     }
 
     // Recalculate 9-B Course mock details in MOCK_COURSES
-    const course9B = MOCK_COURSES.find(c => c.name === '9-B') || MOCK_COURSES[1];
+    const course9B = MOCK_COURSES.find(c => c.name === '9-B');
     if (course9B) {
       course9B.metrics.averageAttendance = 82;
       course9B.metrics.activeAlerts = 1; // Alerts down

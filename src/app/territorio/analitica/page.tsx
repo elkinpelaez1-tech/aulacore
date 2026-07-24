@@ -10,7 +10,8 @@ import {
   calculateGlobalRiskIndex, 
   getCIEHistory, 
   CIEIndicator,
-  CIEIndicatorType
+  CIEIndicatorType,
+  CIEHistoryPoint
 } from '@/services/cie-service';
 import { 
   Sparkles, 
@@ -41,26 +42,7 @@ interface DataPoint {
 }
 
 const GENERATE_MOCK_DATA = (xVar: string, yVar: string): DataPoint[] => {
-  const basePoints = [
-    { school: 'Gimnasio Campestre AulaCore', digital: 98, connectivity: 95, attendance: 97, math: 4.8, lang: 4.9, desercion: 0.1 },
-    { school: 'Colegio San Ignacio', digital: 94, connectivity: 90, attendance: 96, math: 4.6, lang: 4.7, desercion: 0.2 },
-    { school: 'I.E. Presbítero Antonio Bernal', digital: 88, connectivity: 85, attendance: 92, math: 4.2, lang: 4.5, desercion: 1.1 },
-    { school: 'I.E. Marco Fidel Suárez', digital: 82, connectivity: 80, attendance: 90, math: 4.1, lang: 4.4, desercion: 1.5 },
-    { school: 'I.E. Rural El Hatillo', digital: 68, connectivity: 30, attendance: 82, math: 3.3, lang: 3.6, desercion: 4.8 },
-    { school: 'I.E. Pascual Bravo', digital: 85, connectivity: 80, attendance: 91, math: 4.0, lang: 4.1, desercion: 1.8 },
-  ];
-
-  return basePoints.map(p => {
-    let xVal = p.digital;
-    if (xVar === 'conectividad') xVal = p.connectivity;
-    if (xVar === 'asistencia') xVal = p.attendance;
-
-    let yVal = p.math;
-    if (yVar === 'lenguaje') yVal = p.lang;
-    if (yVar === 'desercion') yVal = p.desercion;
-
-    return { school: p.school, xVal, yVal };
-  });
+  return [];
 };
 
 const VARIABLES_X = [
@@ -75,13 +57,7 @@ const VARIABLES_Y = [
   { value: 'desercion', label: 'Tasa de Deserción Escolar (%)' },
 ];
 
-const MOCK_SCHOOL_RISKS = [
-  { name: 'I.E. Rural El Hatillo', index: 82, status: 'Crítico', pupils: 340, zone: 'Veredal' },
-  { name: 'I.E. Presbítero Antonio Bernal', index: 54, status: 'Alto', pupils: 780, zone: 'Comuna 4' },
-  { name: 'I.E. Marco Fidel Suárez', index: 48, status: 'Moderado', pupils: 1250, zone: 'Comuna 1' },
-  { name: 'I.E. Pascual Bravo', index: 39, status: 'Moderado', pupils: 920, zone: 'Urbana' },
-  { name: 'Colegio San Ignacio', index: 12, status: 'Bajo', pupils: 1450, zone: 'Urbana' }
-];
+const MOCK_SCHOOL_RISKS: any[] = [];
 
 export default function TerritoryCIEPage() {
   const [activeMainTab, setActiveMainTab] = useState<'prediction' | 'analytics'>('prediction');
@@ -89,6 +65,8 @@ export default function TerritoryCIEPage() {
   const [indicators, setIndicators] = useState<CIEIndicator[]>([]);
   const [selectedInd, setSelectedInd] = useState<CIEIndicator | null>(null);
   const [calibrationInd, setCalibrationInd] = useState<CIEIndicator | null>(null);
+  const [globalRisk, setGlobalRisk] = useState<{ value: number; label: string; color: string }>({ value: 0, label: 'N/D', color: '#94a3b8' });
+  const [historyData, setHistoryData] = useState<CIEHistoryPoint[]>([]);
   
   // Analytics sub-states
   const [xVar, setXVar] = useState('madurez');
@@ -99,7 +77,19 @@ export default function TerritoryCIEPage() {
   const [recentRuns, setRecentRuns] = useState<any[]>([]);
 
   useEffect(() => {
-    setIndicators(getCIEIndicators());
+    if (selectedInd) {
+      getCIEHistory(selectedInd.code).then(setHistoryData);
+    } else {
+      setHistoryData([]);
+    }
+  }, [selectedInd]);
+
+  useEffect(() => {
+    const fetchIndicators = async () => {
+      setIndicators(await getCIEIndicators());
+      setGlobalRisk(await calculateGlobalRiskIndex());
+    };
+    fetchIndicators();
     
     // Cargar corridas recientes simuladas
     if (typeof window !== 'undefined') {
@@ -112,8 +102,10 @@ export default function TerritoryCIEPage() {
     }
   }, []);
 
-  const handleRefreshData = () => {
-    setIndicators(getCIEIndicators());
+  const handleRefreshData = async () => {
+    const data = await getCIEIndicators();
+    setIndicators(data);
+    setGlobalRisk(await calculateGlobalRiskIndex());
     if (typeof window !== 'undefined') {
       const stored = sessionStorage.getItem('aulacore_mio_runs');
       if (stored) {
@@ -124,14 +116,14 @@ export default function TerritoryCIEPage() {
     }
   };
 
-  const handleUpdateIndicatorValue = (code: string, val: number) => {
-    const updated = updateCIEIndicator(code, { currentValue: val });
+  const handleUpdateIndicatorValue = async (code: string, val: number) => {
+    const updated = await updateCIEIndicator(code, { currentValue: val });
     setIndicators(updated);
     handleRefreshData();
   };
 
-  const handleCalibrateIndicator = (code: string, weight: number, threshold: number) => {
-    const updated = updateCIEIndicator(code, { weight, threshold });
+  const handleCalibrateIndicator = async (code: string, weight: number, threshold: number) => {
+    const updated = await updateCIEIndicator(code, { weight, threshold });
     setIndicators(updated);
     setCalibrationInd(null);
     handleRefreshData();
@@ -150,8 +142,6 @@ export default function TerritoryCIEPage() {
   const rStatus = Math.abs(rVal) >= 0.8 
     ? 'Fuerte' 
     : Math.abs(rVal) >= 0.6 ? 'Moderada' : 'Débil';
-
-  const globalRisk = calculateGlobalRiskIndex();
   
   const filteredIndicators = indicators.filter(ind => {
     if (indicatorFilter === 'all') return true;
@@ -685,7 +675,7 @@ export default function TerritoryCIEPage() {
               <strong className="text-slate-800 block text-xs">Evolución Histórica (Tendencia 6 Meses)</strong>
               <div className="h-40 w-full pt-2">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={getCIEHistory(selectedInd.code)} margin={{ top: 5, right: 5, left: -25, bottom: 5 }}>
+                  <AreaChart data={historyData} margin={{ top: 5, right: 5, left: -25, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                     <XAxis dataKey="date" stroke="#94a3b8" style={{ fontSize: '9px', fontWeight: 'bold' }} />
                     <YAxis domain={[0, 100]} stroke="#94a3b8" style={{ fontSize: '9px', fontWeight: 'bold' }} />

@@ -2,9 +2,21 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { 
-  INITIAL_CIRCULARES, INITIAL_BORRADORES, INITIAL_PROGRAMADOS, Circular 
-} from '@/services/territory-mock';
+export interface Circular {
+  id: string;
+  title: string;
+  body: string;
+  scope: string;
+  date: string;
+  status: string;
+  readRatio: string;
+  attachments: string[];
+  digitallySigned: boolean;
+  scheduledFor?: string;
+}
+const INITIAL_CIRCULARES: Circular[] = [];
+const INITIAL_BORRADORES: Circular[] = [];
+const INITIAL_PROGRAMADOS: Circular[] = [];
 import { hasTerritoryPermission, getRbacControlAttrs } from '@/services/territory-rbac';
 import { 
   Megaphone, Send, CheckCircle2, FileText, Upload, Trash2, 
@@ -134,7 +146,7 @@ export default function TerritoryComunicacionesPage() {
       });
 
       setSuccess(true);
-      setTimeout(() => setSuccess(false), 4000);
+      setSuccess(false);
     }
 
     // Reset Form

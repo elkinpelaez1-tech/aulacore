@@ -3,7 +3,7 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Users, GraduationCap, Building2, UserCog, AlertTriangle, AlertCircle, FileWarning } from 'lucide-react';
-import { TeacherMockData } from '@/lib/data/mock-teachers';
+import { TeacherMockData } from '@/types/teacher';
 import { cn } from '@/lib/utils';
 
 interface TeacherMetricsPanelProps {
@@ -20,7 +20,7 @@ export function TeacherMetricsPanel({ teachers, activeFilter, onFilterChange }: 
   
   const inClassNow = teachers.filter(t => t.status === 'En clase').length;
   const overloaded = teachers.filter(t => t.status === 'Sobrecarga académica').length;
-  const pendingPlanning = teachers.filter(t => t.alerts.some(a => a.type === 'planeacion_atrasada')).length;
+  const pendingPlanning = teachers.filter(t => t.alerts?.some(a => a.type === 'planeacion_atrasada')).length;
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 mb-6">

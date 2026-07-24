@@ -7,7 +7,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { TeacherMockData, TeacherStatus } from '@/lib/data/mock-teachers';
+import { TeacherMockData, TeacherStatus } from '@/types/teacher';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Mail, Phone, BookOpen, Clock, AlertCircle, MapPin, GraduationCap } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -25,6 +25,7 @@ const statusColors: Record<TeacherStatus, { bg: string, text: string, border: st
   'Reunión': { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200', dot: 'bg-amber-500' },
   'Disponible': { bg: 'bg-indigo-50', text: 'text-indigo-700', border: 'border-indigo-200', dot: 'bg-indigo-500' },
   'Licencia': { bg: 'bg-slate-100', text: 'text-slate-600', border: 'border-slate-300', dot: 'bg-slate-400' },
+  'Inactivo': { bg: 'bg-rose-100', text: 'text-rose-600', border: 'border-rose-300', dot: 'bg-rose-400' },
   'Sobrecarga académica': { bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200', dot: 'bg-rose-500' }
 };
 
@@ -95,8 +96,8 @@ export function TeacherDetailDrawer({ teacher, isOpen, onOpenChange }: Props) {
                   <BookOpen className="w-4 h-4" />
                   <p className="text-[10px] font-bold uppercase tracking-wider">Cursos</p>
                 </div>
-                <p className="text-2xl font-black text-indigo-700">{teacher.assignedCourses.length}</p>
-                <p className="text-xs text-indigo-600/70 font-medium truncate mt-0.5">{teacher.assignedCourses.join(', ')}</p>
+                <p className="text-2xl font-black text-indigo-700">{teacher.assignedCourses?.length || teacher.assignedCoursesCount || 0}</p>
+                <p className="text-xs text-indigo-600/70 font-medium truncate mt-0.5">{teacher.assignedCourses?.join(', ') || 'Ninguno'}</p>
               </div>
               <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 flex flex-col justify-center">
                 <div className="flex items-center gap-1.5 mb-1 text-blue-500">
@@ -109,14 +110,14 @@ export function TeacherDetailDrawer({ teacher, isOpen, onOpenChange }: Props) {
             </div>
 
             {/* Alerts */}
-            {teacher.alerts.length > 0 && (
+            {(teacher.alerts?.length || 0) > 0 && (
               <div className="mb-6">
                 <h4 className="text-[10px] font-bold text-rose-500 uppercase tracking-wider mb-2 flex items-center gap-1">
                   <AlertCircle className="w-3.5 h-3.5" />
                   Alertas Críticas
                 </h4>
                 <div className="space-y-2">
-                  {teacher.alerts.map(alert => (
+                  {teacher.alerts?.map((alert: any) => (
                     <div key={alert.id} className="bg-rose-50/80 border border-rose-200 rounded-lg p-3 shadow-sm">
                       <p className="text-sm font-semibold text-rose-800 leading-tight">
                         {alert.message}

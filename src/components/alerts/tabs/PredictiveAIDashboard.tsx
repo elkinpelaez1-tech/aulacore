@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import { BrainCircuit, TrendingDown, Sparkles, AlertCircle, RefreshCw, BarChart2, ShieldAlert, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { MOCK_STUDENTS, StudentMockData } from '@/lib/data/mock-students';
 
 interface PredictiveAIDashboardProps {
   onIntervene?: (studentName: string) => void;
@@ -15,31 +14,13 @@ export function PredictiveAIDashboard({ onIntervene }: PredictiveAIDashboardProp
   const [simulatedReduction, setSimulatedReduction] = useState(0);
   const [activeSimulation, setActiveSimulation] = useState<string | null>(null);
 
-  const topAtRisk = MOCK_STUDENTS.filter(s => s.academicRisk === 'Alto' || s.behaviorRisk === 'Alto')
-    .map(s => {
-      // Map mock probability based on their specific risk levels
-      let prob = 75;
-      if (s.name === 'Mateo López') prob = 92;
-      else if (s.name === 'Sofía Ramírez') prob = 85;
-      else if (s.name === 'Laura Cortés') prob = 78;
-      else if (s.name === 'Valentina Silva Martínez') prob = 88;
-      else if (s.name === 'Andrés Gómez') prob = 82;
-
-      return {
-        ...s,
-        probability: prob
-      };
-    })
-    .sort((a, b) => b.probability - a.probability);
+  const topAtRisk: any[] = [];
 
   const handleSimulate = (type: string, reduction: number) => {
     setIsSimulating(true);
     setActiveSimulation(type);
-    
-    setTimeout(() => {
-      setIsSimulating(false);
-      setSimulatedReduction(reduction);
-    }, 850);
+    setIsSimulating(false);
+    setSimulatedReduction(reduction);
   };
 
   const resetSimulation = () => {

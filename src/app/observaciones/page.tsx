@@ -53,48 +53,7 @@ interface Student {
   }>;
 }
 
-const INITIAL_STUDENTS: Student[] = [
-  {
-    id: 'STU-001',
-    name: 'Sebastián Marín Alzate',
-    grade: '11°A - Técnico Comercial',
-    avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=100',
-    attendanceRate: 84,
-    gpa: 3.1,
-    achievements: [
-      { id: 'ACH-1', title: 'Liderazgo Estudiantil', description: 'Elegido representante de grado y mediador escolar del aula.', date: '2026-03-10', points: 40 },
-      { id: 'ACH-2', title: 'Feria de Ciencias Municipal', description: 'Segundo lugar con el proyecto de compostaje veredal.', date: '2026-05-15', points: 50 }
-    ],
-    behaviorLogs: [
-      { id: 'BEH-1', type: 'Tipo I', title: 'Discusión en clase', description: 'Conflicto de opinión con compañero durante el taller de matemáticas. Resuelto por mediación.', date: '2026-04-12', status: 'Resuelto' }
-    ]
-  },
-  {
-    id: 'STU-002',
-    name: 'Valentina Castro Bedoya',
-    grade: '10°B - Bachillerato Técnico',
-    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=100',
-    attendanceRate: 97,
-    gpa: 4.6,
-    achievements: [
-      { id: 'ACH-3', title: 'Excelencia Académica', description: 'Primer puesto del grado con promedio de 4.7.', date: '2026-04-30', points: 100 },
-      { id: 'ACH-4', title: 'Líder Ambiental', description: 'Coordinó la jornada escolar de reforestación de la quebrada El Hatillo.', date: '2026-06-05', points: 60 }
-    ],
-    behaviorLogs: []
-  },
-  {
-    id: 'STU-003',
-    name: 'Mateo Calle Osorio',
-    grade: '9°A - Básica Secundaria',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=100',
-    attendanceRate: 72,
-    gpa: 2.8,
-    achievements: [],
-    behaviorLogs: [
-      { id: 'BEH-2', type: 'Tipo II', title: 'Acoso verbal (Bullying) reiterado', description: 'Intimidación y apodos sistemáticos hacia un compañero en el comedor escolar del PAE.', date: '2026-06-20', status: 'Bajo Seguimiento', evidence: 'Testimonios escritos y reporte del docente del PAE' }
-    ]
-  }
-];
+const INITIAL_STUDENTS: Student[] = [];
 
 export default function ObservacionesPage() {
   const [students, setStudents] = useState<Student[]>([]);
@@ -118,9 +77,7 @@ export default function ObservacionesPage() {
 
   // Pestaña Activa
   const [activeView, setActiveView] = useState<'observador' | 'comite' | 'sync'>('observador');
-  const [actas, setActas] = useState<any[]>([
-    { id: 'ACT-2026-01', date: '2026-06-22', topic: 'Mediación por caso de intimidación I.E. El Hatillo', attendees: ['Rector', 'Personero', 'Psicólogo', 'Acudientes'], status: 'Firmada Digitalmente', decision: 'Compromiso de conducta restaurativa y acompañamiento por psicología de la SED.' }
-  ]);
+  const [actas, setActas] = useState<any[]>([]);
   const [showActaForm, setShowActaForm] = useState(false);
   const [actaTopic, setActaTopic] = useState('');
   const [actaDecision, setActaDecision] = useState('');
@@ -349,7 +306,7 @@ export default function ObservacionesPage() {
     if (!actaTopic.trim() || !actaDecision.trim()) return;
 
     const newActa = {
-      id: `ACT-${new Date().getFullYear()}-${Math.floor(Math.random()*90)+10}`,
+      id: `ACT-${new Date().getFullYear()}-${crypto.randomUUID().split('-')[0].substring(0, 4)}`,
       date: new Date().toISOString().split('T')[0],
       topic: actaTopic,
       attendees: ['Rector', 'Coordinador', 'Personero', 'Representante Padres'],

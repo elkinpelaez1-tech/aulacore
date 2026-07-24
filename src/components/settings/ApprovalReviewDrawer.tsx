@@ -100,7 +100,7 @@ export function ApprovalReviewDrawer({
             </h3>
             
             <div className="space-y-3">
-              {approval.documents?.map(doc => (
+              {approval.documents?.map((doc: any) => (
                 <div key={doc.id} className="group border border-slate-200 rounded-xl p-3 flex items-center justify-between hover:border-indigo-300 hover:bg-indigo-50/30 transition-all">
                   <div className="flex items-center gap-3">
                     <div className={cn(

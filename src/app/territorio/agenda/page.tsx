@@ -4,7 +4,18 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Modal } from '@/components/territorio/Modal';
-import { INITIAL_VISITS, MockVisit } from '@/services/territory-mock';
+export interface MockVisit {
+  id: string;
+  institution: string;
+  type: string;
+  date: string;
+  time: string;
+  duration: string;
+  inspector: string;
+  priority: 'Alta' | 'Media' | 'Baja';
+  status: string;
+}
+const INITIAL_VISITS: MockVisit[] = [];
 import { hasTerritoryPermission, getRbacControlAttrs } from '@/services/territory-rbac';
 import { dispatchMIOEvent } from '@/services/mio-service';
 import { Calendar, User, Clock, CheckCircle, PlusCircle, CheckCircle2, Shield, Plus, X, AlertTriangle, ShieldAlert, Check } from 'lucide-react';
@@ -94,7 +105,7 @@ export default function TerritoryAgendaPage() {
     setDate('');
     setInspector('');
     setSuccess(true);
-    setTimeout(() => setSuccess(false), 4000);
+    setSuccess(false);
   };
 
   const handleCompleteVisit = (visitId: string) => {
