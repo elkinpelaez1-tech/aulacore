@@ -1,67 +1,62 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { GroupDirectorCard, DirectorData } from './GroupDirectorCard';
 import { Input } from '@/components/ui/input';
-import { Search } from 'lucide-react';
-
-const MOCK_DIRECTORS: DirectorData[] = [
-  {
-    id: '1',
-    name: 'Carolina Martínez Restrepo',
-    document: '1020456789',
-    email: 'cmartinez@aulacore.edu.co',
-    phone: '+57 300 123 4567',
-    groupAssigned: '10-A (Media Académica)',
-    studentCount: 35,
-    avatarUrl: 'https://i.pravatar.cc/150?u=1'
-  },
-  {
-    id: '2',
-    name: 'Andrés Felipe Gómez',
-    document: '1030987654',
-    email: 'agomez@aulacore.edu.co',
-    phone: '+57 310 987 6543',
-    groupAssigned: '11-B (Media Académica)',
-    studentCount: 32,
-    avatarUrl: 'https://i.pravatar.cc/150?u=2'
-  },
-  {
-    id: '3',
-    name: 'Luisa Fernanda Ortiz',
-    document: '45678123',
-    email: 'lortiz@aulacore.edu.co',
-    phone: '+57 315 456 7890',
-    groupAssigned: '9-C (Básica Secundaria)',
-    studentCount: 40,
-    avatarUrl: 'https://i.pravatar.cc/150?u=3'
-  },
-  {
-    id: '4',
-    name: 'Javier Ramírez Soto',
-    document: '78901234',
-    email: 'jramirez@aulacore.edu.co',
-    phone: '+57 320 567 1234',
-    groupAssigned: '8-A (Básica Secundaria)',
-    studentCount: 38,
-    avatarUrl: 'https://i.pravatar.cc/150?u=4'
-  },
-  {
-    id: '5',
-    name: 'María Camila Jaramillo',
-    document: '10101010',
-    email: 'mjaramillo@aulacore.edu.co',
-    phone: '+57 312 345 6789',
-    groupAssigned: '6-B (Básica Secundaria)',
-    studentCount: 42,
-    avatarUrl: 'https://i.pravatar.cc/150?u=5'
-  }
-];
+import { Search, Users } from 'lucide-react';
+import { useRole } from '@/providers/role-provider';
+import { supabase } from '@/lib/supabase';
 
 export function DirectorsGrid() {
+  const { institutionId } = useRole();
   const [searchTerm, setSearchTerm] = useState('');
+  const [directors, setDirectors] = useState<DirectorData[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredDirectors = MOCK_DIRECTORS.filter(d => 
+  useEffect(() => {
+    async function loadDirectors() {
+      if (!institutionId) {
+        setDirectors([]);
+        setLoading(false);
+        return;
+      }
+      try {
+        setLoading(true);
+        const { data, error } = await supabase
+          .from('user_roles')
+          .select('user_id, role, profiles(id, full_name, document_id, email, phone)')
+          .eq('institution_id', institutionId)
+          .eq('role', 'director_grupo');
+
+        if (error) {
+          console.error('Error cargando directores:', error);
+          setDirectors([]);
+        } else if (data) {
+          const mapped: DirectorData[] = data.map((item: any, idx: number) => {
+            const profile = item.profiles || {};
+            return {
+              id: profile.id || `dir-${idx}`,
+              name: profile.full_name || 'Director Asignado',
+              document: profile.document_id || '',
+              email: profile.email || '',
+              phone: profile.phone || '',
+              groupAssigned: 'Por Asignar',
+              studentCount: 0
+            };
+          });
+          setDirectors(mapped);
+        }
+      } catch (err) {
+        console.error('Error fetching directors:', err);
+        setDirectors([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadDirectors();
+  }, [institutionId]);
+
+  const filteredDirectors = directors.filter(d => 
     d.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
     d.groupAssigned.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -87,9 +82,15 @@ export function DirectorsGrid() {
         {filteredDirectors.map(director => (
           <GroupDirectorCard key={director.id} director={director} />
         ))}
-        {filteredDirectors.length === 0 && (
-          <div className="col-span-full py-12 text-center text-slate-500 font-semibold">
-            No se encontraron directores que coincidan con la búsqueda.
+        {filteredDirectors.length === 0 && !loading && (
+          <div className="col-span-full py-16 text-center space-y-3 bg-white rounded-2xl border border-slate-200 p-8">
+            <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center mx-auto">
+              <Users className="w-6 h-6" />
+            </div>
+            <h3 className="text-base font-bold text-slate-800">No existen directores de grupo registrados.</h3>
+            <p className="text-xs text-slate-500 font-medium max-w-sm mx-auto">
+              Asigna la dirección de grupo a tus docentes desde el módulo de Cursos o Configuración de Roles.
+            </p>
           </div>
         )}
       </div>

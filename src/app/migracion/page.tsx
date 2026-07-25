@@ -1177,30 +1177,26 @@ export default function MigrationPage() {
                     <Globe className="w-5 h-5 text-indigo-600" />
                     Paso 1: Selección de la Institución Educativa
                   </CardTitle>
-                  <p className="text-xs text-slate-500 font-semibold">Elija el plantel y la sede destinataria para la carga masiva.</p>
+                  <p className="text-xs text-slate-500 font-semibold">Carga masiva asignada a la institución del usuario autenticado.</p>
                 </CardHeader>
                 <CardContent className="p-6 space-y-4 font-semibold text-xs text-slate-700">
                   <div>
-                    <label className="text-[10px] font-bold text-slate-450 uppercase tracking-widest block mb-1.5">Institución</label>
-                    <select
-                      value={selectedInstitution}
-                      onChange={(e) => setSelectedInstitution(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-750 outline-none hover:bg-slate-100 cursor-pointer"
-                    >
-                      <option value="Colegio Cooperativo San Antonio">Colegio Cooperativo San Antonio</option>
-                      <option value="Institución Educativa Departamental El Tequendama">IED El Tequendama</option>
-                    </select>
+                    <label className="text-[10px] font-bold text-slate-450 uppercase tracking-widest block mb-1.5">Institución Educativa</label>
+                    <div className="w-full bg-slate-100 border border-slate-200 rounded-xl px-3.5 py-3 text-xs font-bold text-slate-800 flex items-center justify-between shadow-inner">
+                      <span>{selectedInstitution || 'Cargando institución...'}</span>
+                      <span className="text-[10px] bg-emerald-100 text-emerald-800 font-extrabold uppercase px-2 py-0.5 rounded-full">Institución Oficial</span>
+                    </div>
                   </div>
 
                   <div>
-                    <label className="text-[10px] font-bold text-slate-450 uppercase tracking-widest block mb-1.5">Sede Escolar</label>
+                    <label className="text-[10px] font-bold text-slate-450 uppercase tracking-widest block mb-1.5">Sede Escolar Destino</label>
                     <select
                       value={selectedSede}
                       onChange={(e) => setSelectedSede(e.target.value)}
                       className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-750 outline-none hover:bg-slate-100 cursor-pointer"
                     >
                       <option value="Sede Principal Campestre">Sede Principal Campestre</option>
-                      <option value="Sede Anexa Primaria">Sede Anexa Primaria</option>
+                      <option value="Sede B - Básica Primaria">Sede B - Básica Primaria</option>
                     </select>
                   </div>
 

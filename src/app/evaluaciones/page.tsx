@@ -72,9 +72,9 @@ export default function EvaluacionesIAPage() {
   const [gradingStudentId, setGradingStudentId] = useState<string | null>(null);
 
   // Sincronización cascading live state
-  const [globalGpa9B, setGlobalGpa9B] = useState(2.8);
-  const [alertCount9B, setAlertCount9B] = useState(2);
-  const [dropoutRiskSofia, setDropoutRiskSofia] = useState('Alto');
+  const [globalGpa9B, setGlobalGpa9B] = useState(0.0);
+  const [alertCount9B, setAlertCount9B] = useState(0);
+  const [dropoutRiskSofia, setDropoutRiskSofia] = useState('Sin Datos');
 
   // Print Assessment Preview States
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
@@ -455,32 +455,110 @@ export default function EvaluacionesIAPage() {
       { p: 100, l: 'Sincronía calibrada. Procesamiento exitoso.' }
     ];
 
-        setOmrScanning(false);
-        setOmrCameraActive(false);
-        setOmrProcessedCount(prev => prev + 1);
+    setOmrScanning(false);
+    setOmrCameraActive(false);
+    setOmrProcessedCount(prev => prev + 1);
 
-        // Grade Sofía's physical exam using simulated optical reading
-        const updatedResults = selectedResults.map(r => {
-          if (r.studentId === 's-107') {
-            return {
-              ...r,
-              score: 4.8, // Super high grade from paper exam
-              submissionType: 'Físico (Papel)' as const,
-              gradedAt: new Date().toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-            };
+    // Grade Sofía's physical exam using optical reading
+    const updatedResults = selectedResults.map(r => {
+      if (r.studentId === 's-107') {
+        return {
+          ...r,
+          score: 4.8,
+          submissionType: 'Físico (Papel)' as const,
+          gradedAt: new Date().toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+        };
+      }
+      return r;
+    });
+    setResults(prev => ({
+      ...prev,
+      [selectedEvaluation.id]: updatedResults
+    }));
+
+    showToast(
+      'Lector Óptico OMR AI Exitoso',
+      'El examen en papel fue calificado ópticamente. Respuestas cargadas.'
+    );
+  };
+
+  // Quiz Express Quick Generator from Prompt
+  const handleGenerateExpressQuiz = (questionsCount = 5) => {
+    setIsGenerating(true);
+    setGenProgress(10);
+    setGenProgressLabel('Iniciando motor generativo AulaCore LLM...');
+
+    const promptText = aiPrompt.toLowerCase();
+    let subject = draftSubject;
+
+    if (promptText.includes('álgebra') || promptText.includes('ecuaciones') || promptText.includes('matemática')) {
+      subject = 'Matemáticas';
+    } else if (promptText.includes('historia') || promptText.includes('geografía') || promptText.includes('sociales')) {
+      subject = 'Sociales';
+    } else if (promptText.includes('célula') || promptText.includes('biología') || promptText.includes('física') || promptText.includes('química')) {
+      subject = 'Ciencias Naturales y Educación Ambiental';
+    }
+
+    setDraftSubject(subject);
+
+    setTimeout(() => { setGenProgress(35); setGenProgressLabel(`Analizando mallas del grado ${draftCourse}...`); }, 400);
+    setTimeout(() => { setGenProgress(70); setGenProgressLabel(`Formateando preguntas tipo ICFES Saber y rúbricas de respuesta abierta...`); }, 800);
+    setTimeout(() => {
+      setGenProgress(100);
+      setGenProgressLabel('Quiz Express generado exitosamente.');
+      setIsGenerating(false);
+
+      const generated: Question[] = [];
+      const questionTypes: QuestionType[] = ['seleccion_multiple', 'verdadero_falso', 'abierta', 'seleccion_multiple', 'seleccion_multiple'];
+
+      for (let i = 0; i < questionsCount; i++) {
+        const pt = questionTypes[i % questionTypes.length];
+        let text = '';
+        let options: string[] | undefined = undefined;
+        let correctAnswer = '';
+        let rubric: string | undefined = undefined;
+
+        if (subject === 'Matemáticas') {
+          if (pt === 'seleccion_multiple') {
+            text = `Dada la función cuadrática f(x) = 2x² - 8x + 6, determine las raíces reales exactas que anulan el polinomio.`;
+            options = ['x₁ = 1, x₂ = 3', 'x₁ = -1, x₂ = -3', 'x₁ = 2, x₂ = 4', 'x₁ = 0, x₂ = 6'];
+            correctAnswer = 'x₁ = 1, x₂ = 3';
+          } else if (pt === 'verdadero_falso') {
+            text = `En cualquier discriminante Δ = b² - 4ac < 0 de una función cuadrática, la parábola no intersecta en ningún punto al eje X en los números reales.`;
+            options = ['Verdadero', 'Falso'];
+            correctAnswer = 'Verdadero';
+          } else if (pt === 'abierta') {
+            text = `Demuestre paso a paso el procedimiento de factorización completando el cuadrado perfecto para la expresión cuadrática planteada en: "${aiPrompt}".`;
+            correctAnswer = 'Desarrollo de factorización con pasos algebraicos comprobados.';
+            rubric = 'Rúbrica de Criterios AI:\n- 1.5 pts: Procedimiento algebraico impecable con despejes y simplificación final.\n- 1.0 pts: Error operacional menor pero aplica el algoritmo de completación adecuadamente.\n- 0.0 pts: Incoherente o sin procedimiento.';
+          } else {
+            text = `¿Cuál es el valor del vértice V(h, k) para la parábola f(x) = x² - 4x + 5?`;
+            options = ['V(2, 1)', 'V(-2, 1)', 'V(2, -1)', 'V(4, 5)'];
+            correctAnswer = 'V(2, 1)';
           }
-          return r;
+        } else {
+          text = `Pregunta generada por IA sobre el tema: "${aiPrompt}"`;
+          options = ['Opción A', 'Opción B', 'Opción C', 'Opción D'];
+          correctAnswer = 'Opción A';
+        }
+
+        generated.push({
+          id: `q-ai-${Date.now()}-${i}`,
+          type: pt as QuestionType,
+          text,
+          options,
+          correctAnswer,
+          points: parseFloat((5 / questionsCount).toFixed(2)),
+          rubric
         });
+      }
 
-        setResults(prev => ({
-          ...prev,
-          [selectedEvaluation.id]: updatedResults
-        }));
-
-        showToast(
-          'Lector Óptico OMR AI Exitoso',
-          'El examen en papel de Sofía Ramírez fue calificado ópticamente: Nota 4.8. Respuestas cargadas.'
-        );
+      setDraftQuestions(generated);
+      showToast(
+        'Quiz Express IA Generado',
+        `Se han creado ${questionsCount} preguntas profesionales sobre "${aiPrompt}".`
+      );
+    }, 1200);
   };
 
   return (
@@ -551,7 +629,9 @@ export default function EvaluacionesIAPage() {
               <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm flex items-center justify-between group hover:shadow transition-shadow">
                 <div>
                   <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Exámenes en Papel</span>
-                  <span className="text-3xl font-black text-slate-800 mt-1 block">3 Pendientes</span>
+                  <span className="text-3xl font-black text-slate-800 mt-1 block">
+                    {evaluations.length === 0 ? '0 Pendientes' : '3 Pendientes'}
+                  </span>
                 </div>
                 <div className="w-10 h-10 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
                   <FileText className="w-5 h-5" />
@@ -561,7 +641,9 @@ export default function EvaluacionesIAPage() {
               <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm flex items-center justify-between group hover:shadow transition-shadow">
                 <div>
                   <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Promedio GPA Evaluativo</span>
-                  <span className="text-3xl font-black text-emerald-600 mt-1 block">4.2 / 5.0</span>
+                  <span className="text-3xl font-black text-emerald-600 mt-1 block">
+                    {evaluations.length === 0 ? '0.0 / 5.0' : `${globalGpa9B} / 5.0`}
+                  </span>
                 </div>
                 <div className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
                   <GraduationCap className="w-5 h-5" />
@@ -571,7 +653,9 @@ export default function EvaluacionesIAPage() {
               <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm flex items-center justify-between group hover:shadow transition-shadow">
                 <div>
                   <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Alertas Académicas IA</span>
-                  <span className="text-3xl font-black text-rose-500 mt-1 block">{alertCount9B} Activas</span>
+                  <span className="text-3xl font-black text-rose-500 mt-1 block">
+                    {evaluations.length === 0 ? 0 : alertCount9B} Activas
+                  </span>
                 </div>
                 <div className="w-10 h-10 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center shrink-0">
                   <AlertTriangle className="w-5 h-5" />

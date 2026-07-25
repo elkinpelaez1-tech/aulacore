@@ -21,12 +21,7 @@ export function DocenteAlertsPanel() {
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [toast, setToast] = useState<{ title: string; message: string } | null>(null);
 
-  const [alerts, setAlerts] = useState<TeacherAlert[]>([
-    { id: 't1', name: 'Prof. Carlos Restrepo', course: '9-B (Matemáticas)', delayType: 'Cierre de Notas', timeAgo: 'Atrasado 3 días', severity: 'Alta', contactPhone: '+57 312 456 7890' },
-    { id: 't2', name: 'Prof. Sandra Milena', course: '10-A (Tecnología e Informática)', delayType: 'Planeación / Syllabus', timeAgo: 'Atrasado 5 días', severity: 'Alta', contactPhone: '+57 315 789 1234' },
-    { id: 't3', name: 'Prof. Diana Carolina', course: 'Primary 5 (Ciencias)', delayType: 'Cierre de Notas', timeAgo: 'Atrasado 1 día', severity: 'Media', contactPhone: '+57 300 456 1234' },
-    { id: 't4', name: 'Prof. Jorge Humberto', course: '8-A (Español)', delayType: 'Reporte de Observador', timeAgo: 'Atrasado 2 días', severity: 'Media', contactPhone: '+57 320 123 4567' },
-  ]);
+  const [alerts, setAlerts] = useState<TeacherAlert[]>([]);
 
   const filteredAlerts = alerts.filter(a => 
     a.name.toLowerCase().includes(searchTerm.toLowerCase()) ||

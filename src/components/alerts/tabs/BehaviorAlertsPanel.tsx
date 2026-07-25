@@ -26,13 +26,8 @@ export function BehaviorAlertsPanel({ onIntervene }: BehaviorAlertsPanelProps) {
   const [isRegistering, setIsRegistering] = useState(false);
   const [toast, setToast] = useState<{ title: string; message: string } | null>(null);
   
-  // Custom mock behavioral incidents
-  const [incidents, setIncidents] = useState<IncidentReport[]>([
-    { id: 'i1', studentName: 'Samuel Duque Pérez', group: '5-B', type: 'Tipo II', description: 'Reporte de agresión física menor en el patio de recreo.', status: 'Abierto', date: 'Hoy, 10:15' },
-    { id: 'i2', studentName: 'Andrés Gómez', group: '8-A', type: 'Tipo II', description: 'Reincidencia convivencial: Acumula su tercera alerta grave del mes.', status: 'En Proceso', date: 'Ayer' },
-    { id: 'i3', studentName: 'Laura Cortés', group: '4-B', type: 'Tipo I', description: 'Patrón de comportamiento desafiante con docente de artística.', status: 'Resuelto', date: 'Hace 2 días' },
-    { id: 'i4', studentName: 'Valentina Silva Martínez', group: '9-A', type: 'Tipo I', description: 'Uso no autorizado de celular en clases de español.', status: 'Firmado', date: 'Hace 4 días' },
-  ]);
+  // Custom behavioral incidents from database
+  const [incidents, setIncidents] = useState<IncidentReport[]>([]);
 
   const [newStudent, setNewStudent] = useState('');
   const [newGroup, setNewGroup] = useState('');
