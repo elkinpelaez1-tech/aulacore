@@ -43,15 +43,32 @@ interface ValidationError {
 }
 
 export default function MigrationPage() {
-  const { userRole, userName, mounted, institutionId } = useRole();
+  const { userRole, userName, mounted, institutionId, activeInstitution } = useRole();
   const router = useRouter();
 
   const [activeTab, setActiveTab] = useState<'wizard' | 'history' | 'connectors'>('wizard');
   const [loading, setLoading] = useState(true);
 
   // Institution Selection (Step 1)
-  const [selectedInstitution, setSelectedInstitution] = useState('Colegio Cooperativo San Antonio');
+  const [selectedInstitution, setSelectedInstitution] = useState(activeInstitution?.name || '');
   const [selectedSede, setSelectedSede] = useState('Sede Principal Campestre');
+
+  useEffect(() => {
+    if (activeInstitution?.name) {
+      setSelectedInstitution(activeInstitution.name);
+    } else if (institutionId) {
+      supabase
+        .from('institutions')
+        .select('name')
+        .eq('id', institutionId)
+        .maybeSingle()
+        .then(({ data }) => {
+          if (data?.name) {
+            setSelectedInstitution(data.name);
+          }
+        });
+    }
+  }, [activeInstitution, institutionId]);
 
   // Module Selection (Step 2)
   const [selectedModule, setSelectedModule] = useState('Estudiantes');
