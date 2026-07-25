@@ -175,21 +175,21 @@ export async function POST(request: Request) {
                     AULACORE ENTERPRISE
                   </div>
                   <h1 style="margin: 0; font-size: 26px; font-weight: 900; letter-spacing: -0.02em; color: #ffffff;">
-                    ¡Bienvenido a AulaCore!
+                    Bienvenido a AulaCore Enterprise
                   </h1>
                   <p style="margin: 8px 0 0 0; font-size: 14px; color: #c7d2fe; font-weight: 500;">
-                    Plataforma de Gestión Académica & Gobierno Institucional
+                    Su institución ya está lista para comenzar su transformación digital.
                   </p>
                 </div>
                 
                 <!-- Cuerpo del Correo -->
                 <div style="padding: 36px 32px; color: #334155; line-height: 1.6;">
                   <p style="margin-top: 0; font-size: 16px; font-weight: 700; color: #0f172a;">
-                    Estimado(a) Rector(a) <strong>${name || ''}</strong>,
+                    Hola, ${name || 'Rector'} 👋
                   </p>
                   
                   <p style="font-size: 14px; color: #475569;">
-                    Nos complace darle la bienvenida oficial a <strong>AulaCore</strong>. Tu institución educativa <strong>${institutionName}</strong> ha sido aprovisionada y activada exitosamente en nuestra infraestructura en la nube.
+                    Tu institución <strong>${institutionName}</strong> ha sido creada correctamente y ya puedes comenzar la configuración inicial en nuestra infraestructura en la nube.
                   </p>
 
                   <!-- Tarjeta de Ficha Institucional -->
@@ -226,20 +226,25 @@ export async function POST(request: Request) {
                     <a href="${finalInviteUrl}" target="_blank" style="background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); color: #ffffff; padding: 16px 36px; border-radius: 14px; font-weight: 800; font-size: 15px; text-decoration: none; display: inline-block; box-shadow: 0 10px 20px -5px rgba(79, 70, 229, 0.4); letter-spacing: 0.02em;">
                       Activar mi cuenta
                     </a>
+                    <p style="font-size: 11px; color: #94a3b8; font-weight: 600; margin-top: 12px; margin-bottom: 0;">
+                      🔒 Por seguridad, este enlace es personal y tiene una vigencia limitada.
+                    </p>
                   </div>
 
                   <p style="font-size: 12px; color: #64748b; text-align: center; margin-top: 24px;">
                     Al hacer clic en <strong>"Activar mi cuenta"</strong> podrás establecer tu contraseña privada e ingresar directamente al Portal Rector de <strong>${institutionName}</strong>.
                   </p>
-
-                  <div style="margin-top: 32px; padding-top: 20px; border-top: 1px solid #e2e8f0; font-size: 11px; color: #94a3b8; text-align: center;">
-                    Si requieres soporte técnico corporativo, escríbenos en <a href="https://app.aulacore.org" style="color: #4f46e5; text-decoration: none;">app.aulacore.org</a>.
-                  </div>
                 </div>
 
-                <!-- Pie de página -->
-                <div style="background-color: #f1f5f9; padding: 20px; text-align: center; font-size: 11px; color: #64748b; font-weight: 600;">
-                  © ${new Date().getFullYear()} AulaCore • Tecnología de Gestión Académica & Gobierno Institucional
+                <!-- Pie de página corporativo -->
+                <div style="background-color: #f1f5f9; padding: 24px; text-align: center; font-size: 12px; color: #64748b; font-weight: 600; border-top: 1px solid #e2e8f0;">
+                  <div style="font-weight: 800; color: #0f172a; font-size: 13px; margin-bottom: 2px;">AulaCore Enterprise</div>
+                  <div style="color: #64748b; font-size: 11px; margin-bottom: 12px;">Plataforma de Gestión Académica Inteligente</div>
+                  <div style="margin-bottom: 8px;">
+                    <a href="https://www.aulacore.org" style="color: #4f46e5; text-decoration: none; font-weight: 700; margin-right: 12px;">www.aulacore.org</a>
+                    <a href="https://app.aulacore.org" style="color: #4f46e5; text-decoration: none; font-weight: 700;">app.aulacore.org</a>
+                  </div>
+                  <div style="color: #94a3b8; font-size: 11px; font-weight: 500;">© ${new Date().getFullYear()} AulaCore</div>
                 </div>
               </div>
             `
