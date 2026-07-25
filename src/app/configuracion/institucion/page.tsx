@@ -143,11 +143,10 @@ const SEED_LOGS: AuditLog[] = [];
 const SEED_SESSIONS: ActiveSession[] = [];
 
 export default function InstitucionSettingsPage() {
-  // Datos reales de la institución autenticada
-  const { activeInstitution, institutionId } = useRole();
+  // Datos reales de la institución autenticada — mounted es true cuando auth terminó de cargar
+  const { activeInstitution, institutionId, mounted } = useRole();
 
   const [settings, setSettings] = useState<InstitutionalSettings>(EMPTY_SETTINGS);
-  const [isLoadingInstitution, setIsLoadingInstitution] = useState(true);
   const [activeTab, setActiveTab] = useState<'perfil' | 'sedes' | 'academico' | 'rfid' | 'comunicaciones' | 'ia' | 'seguridad'>('perfil');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   
@@ -198,9 +197,11 @@ export default function InstitucionSettingsPage() {
     }
   };
 
-  // Sincroniza los datos de la institución autenticada desde Supabase (via AuthProvider → RoleProvider)
-  // Este efecto se ejecuta cuando activeInstitution cambia (al completar la carga de sesión)
+  // Sincroniza los datos reales de la institución desde Supabase.
+  // Se ejecuta cuando mounted=true (auth terminó) y activeInstitution cambia.
   useEffect(() => {
+    if (!mounted) return; // Esperar a que auth termine de cargar
+
     if (activeInstitution) {
       // Mapear los campos de InstitutionData a InstitutionalSettings
       const fromDB: Partial<InstitutionalSettings> = {
@@ -217,7 +218,7 @@ export default function InstitucionSettingsPage() {
         sidebarColor: (activeInstitution.sidebar_color as InstitutionalSettings['sidebarColor']) || 'slate-900',
       };
 
-      // Cargar configuraciones adicionales desde localStorage (campos que no están en la tabla de Supabase)
+      // Campos adicionales desde localStorage (específico por institución)
       const saved = localStorage.getItem(`aulacore-institucion-settings-${activeInstitution.id}`);
       let extraSettings: Partial<InstitutionalSettings> = {};
       if (saved) {
@@ -231,19 +232,16 @@ export default function InstitucionSettingsPage() {
       const merged: InstitutionalSettings = {
         ...EMPTY_SETTINGS,
         ...extraSettings,
-        ...fromDB, // Los datos de Supabase siempre tienen prioridad sobre localStorage
+        ...fromDB, // Supabase siempre tiene prioridad
       };
 
       setSettings(merged);
       if (merged.sedes && merged.sedes.length > 0) {
         setSedesList(merged.sedes);
       }
-      setIsLoadingInstitution(false);
-    } else if (institutionId === null) {
-      // No hay institución asociada (aún cargando o sin institución)
-      setIsLoadingInstitution(false);
     }
-  }, [activeInstitution, institutionId]);
+    // Si mounted=true pero activeInstitution=null → institución no configurada, dejar campos vacíos
+  }, [mounted, activeInstitution]);
 
   const triggerToast = (msg: string) => {
     setToastMessage(msg);
@@ -391,15 +389,15 @@ export default function InstitucionSettingsPage() {
   return (
     <div className="min-h-[calc(100vh-64px)] bg-slate-50/20 flex flex-col py-6 px-4 md:px-8 max-w-7xl mx-auto space-y-6 animate-fade-in relative">
       
-      {/* Loading state mientras se carga la institución desde Supabase */}
-      {isLoadingInstitution && (
+      {/* Loading state: esperar a que auth termine de cargar (mounted) */}
+      {!mounted && (
         <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
           <div className="w-10 h-10 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin" />
           <p className="text-sm font-semibold text-slate-500">Cargando datos institucionales...</p>
         </div>
       )}
 
-      {!isLoadingInstitution && (
+      {mounted && (
         <>
       
       {/* Toast Notification Stack */}
