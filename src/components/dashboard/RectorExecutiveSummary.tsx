@@ -270,8 +270,8 @@ export function RectorExecutiveSummary({ roleTitle = 'Rector', institutionId }: 
               ¡Bienvenido a la Configuración de tu Institución! 🚀
             </h2>
             
-            <p className="text-sm text-indigo-200/90 leading-relaxed">
-              Este colegio no registra datos aún. Para activar las analíticas de IA, el seguimiento académico y los reportes ejecutivos en tiempo real, completa los 3 pasos de parametrización inicial:
+            <p className="text-sm text-indigo-200/90 leading-relaxed font-medium">
+              Bienvenido a AulaCore. Tu institución ya fue creada. Completa la configuración inicial para comenzar a registrar docentes, estudiantes, cursos y periodos académicos.
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
