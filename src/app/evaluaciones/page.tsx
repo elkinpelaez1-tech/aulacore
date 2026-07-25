@@ -630,7 +630,7 @@ export default function EvaluacionesIAPage() {
                 <div>
                   <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Exámenes en Papel</span>
                   <span className="text-3xl font-black text-slate-800 mt-1 block">
-                    {evaluations.length === 0 ? '0 Pendientes' : '3 Pendientes'}
+                    {evaluations.length === 0 ? '0 Pendientes' : `${evaluations.filter(e => e.type === 'Quiz rápido').length} Pendientes`}
                   </span>
                 </div>
                 <div className="w-10 h-10 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
@@ -685,72 +685,80 @@ export default function EvaluacionesIAPage() {
                 </div>
 
                 <div className="space-y-3">
-                  {evaluations.map(e => (
-                    <div 
-                      key={e.id}
-                      className="p-4 bg-slate-50 border border-slate-100 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-slate-200 hover:bg-slate-100/50 transition-colors"
-                    >
-                      <div>
-                        <div className="flex items-center gap-2 mb-1.5">
-                          <span className={cn(
-                            "text-[8px] font-black uppercase px-2 py-0.5 rounded-md",
-                            e.difficulty === 'Alto' ? "bg-rose-50 text-rose-600 border border-rose-100" :
-                            e.difficulty === 'Medio' ? "bg-amber-50 text-amber-600 border border-amber-100" :
-                            "bg-emerald-50 text-emerald-600 border border-emerald-100"
-                          )}>
-                            Dif: {e.difficulty}
-                          </span>
-                          <span className="text-[8px] font-black uppercase bg-slate-100 text-slate-650 px-2 py-0.5 rounded-md">
-                            {e.type}
-                          </span>
-                          <span className="text-[8px] font-black uppercase bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-md">
-                            Pesa {e.weight}%
-                          </span>
-                        </div>
-                        <h4 className="text-sm font-black text-slate-800">{e.title}</h4>
-                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">
-                          Curso: {e.course} • Asignatura: {e.subject} • Sede: {e.campus} • {e.questions.length} preguntas
-                        </div>
-                      </div>
-
-                      <div className="flex flex-wrap items-center gap-1.5 shrink-0">
-                        {/* Imprimir PDF */}
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            setPreviewEvaluation(e);
-                            setIsPreviewOpen(true);
-                          }}
-                          className="bg-white border-slate-200 hover:bg-slate-50 text-slate-700 text-[10px] font-bold h-8 rounded-lg flex items-center gap-1"
-                        >
-                          <Printer className="w-3.5 h-3.5 text-slate-400" /> Imprimir
-                        </Button>
-                        
-                        {/* Tomar en línea */}
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleStartStudentQuiz(e)}
-                          className="bg-white border-slate-200 hover:bg-indigo-50 hover:text-indigo-700 text-slate-700 text-[10px] font-bold h-8 rounded-lg flex items-center gap-1 group"
-                        >
-                          <Eye className="w-3.5 h-3.5 text-slate-400 group-hover:text-indigo-650" /> Test Seguro
-                        </Button>
-
-                        {/* Ingresar Notas */}
-                        <Button
-                          size="sm"
-                          onClick={() => {
-                            setSelectedEvaluationId(e.id);
-                            setActiveTab('grading');
-                          }}
-                          className="bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-bold h-8 rounded-lg"
-                        >
-                          Resultados
-                        </Button>
-                      </div>
+                  {evaluations.length === 0 ? (
+                    <div className="p-8 text-center bg-slate-50 border border-slate-100 rounded-2xl space-y-2">
+                      <FileText className="w-8 h-8 text-slate-300 mx-auto" />
+                      <p className="text-sm font-bold text-slate-600">Aún no has creado evaluaciones en este periodo.</p>
+                      <p className="text-xs text-slate-400">Comienza diseñando tu primera evaluación o quiz con el Asistente IA.</p>
                     </div>
-                  ))}
+                  ) : (
+                    evaluations.map(e => (
+                      <div 
+                        key={e.id}
+                        className="p-4 bg-slate-50 border border-slate-100 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-slate-200 hover:bg-slate-100/50 transition-colors"
+                      >
+                        <div>
+                          <div className="flex items-center gap-2 mb-1.5">
+                            <span className={cn(
+                              "text-[8px] font-black uppercase px-2 py-0.5 rounded-md",
+                              e.difficulty === 'Alto' ? "bg-rose-50 text-rose-600 border border-rose-100" :
+                              e.difficulty === 'Medio' ? "bg-amber-50 text-amber-600 border border-amber-100" :
+                              "bg-emerald-50 text-emerald-600 border border-emerald-100"
+                            )}>
+                              Dif: {e.difficulty}
+                            </span>
+                            <span className="text-[8px] font-black uppercase bg-slate-100 text-slate-650 px-2 py-0.5 rounded-md">
+                              {e.type}
+                            </span>
+                            <span className="text-[8px] font-black uppercase bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-md">
+                              Pesa {e.weight}%
+                            </span>
+                          </div>
+                          <h4 className="text-sm font-black text-slate-800">{e.title}</h4>
+                          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">
+                            Curso: {e.course} • Asignatura: {e.subject} • Sede: {e.campus} • {e.questions.length} preguntas
+                          </div>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-1.5 shrink-0">
+                          {/* Imprimir PDF */}
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setPreviewEvaluation(e);
+                              setIsPreviewOpen(true);
+                            }}
+                            className="bg-white border-slate-200 hover:bg-slate-50 text-slate-700 text-[10px] font-bold h-8 rounded-lg flex items-center gap-1"
+                          >
+                            <Printer className="w-3.5 h-3.5 text-slate-400" /> Imprimir
+                          </Button>
+                          
+                          {/* Tomar en línea */}
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleStartStudentQuiz(e)}
+                            className="bg-white border-slate-200 hover:bg-indigo-50 hover:text-indigo-700 text-slate-700 text-[10px] font-bold h-8 rounded-lg flex items-center gap-1 group"
+                          >
+                            <Eye className="w-3.5 h-3.5 text-slate-400 group-hover:text-indigo-650" /> Test Seguro
+                          </Button>
+
+                          {/* Ingresar Notas */}
+                          <Button
+                            size="sm"
+                            onClick={() => {
+                              setSelectedEvaluationId(e.id);
+                              setActiveTab('grading');
+                            }}
+                            className="bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-bold h-8 rounded-lg"
+                          >
+                            Resultados
+                          </Button>
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
 
@@ -764,46 +772,63 @@ export default function EvaluacionesIAPage() {
                     <h3 className="text-xs font-black text-indigo-200 uppercase tracking-widest">Asistente Evaluativo IA</h3>
                   </div>
 
-                  <p className="text-[11px] text-slate-400 leading-relaxed font-semibold">
-                    AulaCore IA detecta que la evaluación <span className="text-white">"Quiz de Ecuaciones Lineales"</span> presenta un alto índice de respuestas incorrectas en la pregunta de desarrollo abierta para el curso 9-B.
-                  </p>
-
-                  <div className="mt-5 space-y-3.5">
-                    <div className="flex gap-2.5 bg-white/5 p-3.5 rounded-xl border border-white/5">
-                      <div className="w-1.5 h-auto bg-amber-500 rounded-full shrink-0"></div>
-                      <div>
-                        <h5 className="text-[11px] font-black text-slate-200">Recomendación de Refuerzo</h5>
-                        <p className="text-[9px] text-slate-400 mt-1 font-semibold leading-relaxed">
-                          La IA sugiere generar un Taller de Recuperación de 5 preguntas enfocado en despeje algebraico básico.
-                        </p>
+                  {evaluations.length === 0 ? (
+                    <div className="space-y-4">
+                      <p className="text-[11px] text-slate-400 leading-relaxed font-semibold">
+                        AulaCore IA está listo para analizar el desempeño académico. Crea tu primera evaluación para activar el motor de diagnósticos y recomendaciones.
+                      </p>
+                      <div className="flex gap-2.5 bg-white/5 p-3.5 rounded-xl border border-white/5">
+                        <div className="w-1.5 h-auto bg-indigo-500 rounded-full shrink-0"></div>
+                        <div>
+                          <h5 className="text-[11px] font-black text-slate-200">Asistente en Espera</h5>
+                          <p className="text-[9px] text-slate-400 mt-1 font-semibold leading-relaxed">
+                            Los modelos predictivos generarán talleres de refuerzo y hojas OMR automáticamente cuando ingreses calificaciones.
+                          </p>
+                        </div>
                       </div>
                     </div>
+                  ) : (
+                    <>
+                      <p className="text-[11px] text-slate-400 leading-relaxed font-semibold">
+                        AulaCore IA detecta que la evaluación <span className="text-white">"{evaluations[0]?.title}"</span> presenta un alto índice de respuestas incorrectas en la pregunta de desarrollo abierta.
+                      </p>
 
-                    <div className="flex gap-2.5 bg-white/5 p-3.5 rounded-xl border border-white/5">
-                      <div className="w-1.5 h-auto bg-indigo-500 rounded-full shrink-0"></div>
-                      <div>
-                        <h5 className="text-[11px] font-black text-slate-200">Carga OMR Calibrada</h5>
-                        <p className="text-[9px] text-slate-400 mt-1 font-semibold leading-relaxed">
-                          Hoja de lectura óptica lista para procesar exámenes físicos con la cámara de tu laptop.
-                        </p>
+                      <div className="mt-5 space-y-3.5">
+                        <div className="flex gap-2.5 bg-white/5 p-3.5 rounded-xl border border-white/5">
+                          <div className="w-1.5 h-auto bg-amber-500 rounded-full shrink-0"></div>
+                          <div>
+                            <h5 className="text-[11px] font-black text-slate-200">Recomendación de Refuerzo</h5>
+                            <p className="text-[9px] text-slate-400 mt-1 font-semibold leading-relaxed">
+                              La IA sugiere generar un Taller de Recuperación de 5 preguntas enfocado en refuerzo conceptual.
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex gap-2.5 bg-white/5 p-3.5 rounded-xl border border-white/5">
+                          <div className="w-1.5 h-auto bg-indigo-500 rounded-full shrink-0"></div>
+                          <div>
+                            <h5 className="text-[11px] font-black text-slate-200">Carga OMR Calibrada</h5>
+                            <p className="text-[9px] text-slate-400 mt-1 font-semibold leading-relaxed">
+                              Hoja de lectura óptica lista para procesar exámenes físicos con la cámara de tu laptop.
+                            </p>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
+                    </>
+                  )}
                 </div>
 
                 <Button 
                   onClick={() => {
-                    setDraftTitle('Taller de Recuperación y Nivelación de Ecuaciones');
+                    setDraftTitle('Taller de Recuperación y Nivelación');
                     setDraftSubject('Matemáticas');
                     setDraftType('Recuperación');
-                    setDraftCourse('9-B');
                     setDraftQuestions([]);
-                    setAiPrompt('ejercicios sencillos de despejes de x');
                     setActiveTab('builder');
                   }}
                   className="w-full mt-6 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs py-2.5 rounded-xl transition shadow-md shadow-indigo-650/20 active:scale-95"
                 >
-                  Diseñar Plan de Recuperación AI
+                  Diseñar Evaluación con IA
                 </Button>
               </div>
 

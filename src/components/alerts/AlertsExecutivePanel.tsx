@@ -33,7 +33,7 @@ export function AlertsExecutivePanel({ activeFilter, onFilterChange }: AlertsExe
             {activeFilter?.type === 'all' && <span className="text-[9px] text-blue-400 font-bold bg-blue-500/10 border border-blue-500/20 px-2 py-0.5 rounded-full animate-pulse">Filtro Activo</span>}
           </p>
           <div className="flex items-center gap-8">
-            <p className="text-6xl font-black text-white leading-none">{ALERT_KPIS.openAlerts}</p>
+            <p className="text-6xl font-black text-white leading-none">{ALERT_KPIS?.openAlerts || 0}</p>
             
             <div className="flex items-center gap-6">
               {/* Preescolar */}
@@ -47,7 +47,7 @@ export function AlertsExecutivePanel({ activeFilter, onFilterChange }: AlertsExe
                   activeFilter?.value === 'Preescolar' ? "border-blue-500 bg-blue-500/10 shadow-inner scale-105" : "border-transparent"
                 )}
               >
-                <span className={cn("text-xl font-black leading-none mb-1.5", activeFilter?.value === 'Preescolar' ? "text-blue-300" : "text-blue-400")}>{ALERT_KPIS.breakdown.preescolar}</span>
+                <span className={cn("text-xl font-black leading-none mb-1.5", activeFilter?.value === 'Preescolar' ? "text-blue-300" : "text-blue-400")}>{ALERT_KPIS?.breakdown?.preescolar || 0}</span>
                 <div className="w-full min-w-[32px] h-0.5 bg-blue-500/30 mb-1.5 rounded-full"></div>
                 <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Preescolar</span>
               </div>
@@ -63,7 +63,7 @@ export function AlertsExecutivePanel({ activeFilter, onFilterChange }: AlertsExe
                   activeFilter?.value === 'Primaria' ? "border-blue-500 bg-blue-500/10 shadow-inner scale-105" : "border-transparent"
                 )}
               >
-                <span className={cn("text-xl font-black leading-none mb-1.5", activeFilter?.value === 'Primaria' ? "text-blue-300" : "text-blue-400")}>{ALERT_KPIS.breakdown.primaria}</span>
+                <span className={cn("text-xl font-black leading-none mb-1.5", activeFilter?.value === 'Primaria' ? "text-blue-300" : "text-blue-400")}>{ALERT_KPIS?.breakdown?.primaria || 0}</span>
                 <div className="w-full min-w-[32px] h-0.5 bg-blue-500/30 mb-1.5 rounded-full"></div>
                 <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Primaria</span>
               </div>
@@ -79,7 +79,7 @@ export function AlertsExecutivePanel({ activeFilter, onFilterChange }: AlertsExe
                   activeFilter?.value === 'Bachillerato' ? "border-blue-500 bg-blue-500/10 shadow-inner scale-105" : "border-transparent"
                 )}
               >
-                <span className={cn("text-xl font-black leading-none mb-1.5", activeFilter?.value === 'Bachillerato' ? "text-blue-300" : "text-blue-400")}>{ALERT_KPIS.breakdown.bachillerato}</span>
+                <span className={cn("text-xl font-black leading-none mb-1.5", activeFilter?.value === 'Bachillerato' ? "text-blue-300" : "text-blue-400")}>{ALERT_KPIS?.breakdown?.bachillerato || 0}</span>
                 <div className="w-full min-w-[32px] h-0.5 bg-blue-500/30 mb-1.5 rounded-full"></div>
                 <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Bachillerato</span>
               </div>
@@ -106,7 +106,7 @@ export function AlertsExecutivePanel({ activeFilter, onFilterChange }: AlertsExe
           </div>
           {activeFilter?.type === 'critical' && <span className="text-[8px] bg-rose-500 text-white font-black uppercase px-2 py-0.5 rounded">Filtro</span>}
         </div>
-        <p className="text-4xl font-black text-rose-600">{ALERT_KPIS.highRiskCases}</p>
+        <p className="text-4xl font-black text-rose-600">{ALERT_KPIS?.highRiskCases || 0}</p>
         <p className="text-xs font-bold text-rose-400 mt-2">Requieren intervención hoy</p>
       </div>
 
@@ -128,7 +128,7 @@ export function AlertsExecutivePanel({ activeFilter, onFilterChange }: AlertsExe
           </div>
           <span className="bg-indigo-100 text-indigo-700 text-[9px] font-black uppercase px-2 py-0.5 rounded-full">IA Activa</span>
         </div>
-        <p className="text-4xl font-black text-amber-600">{ALERT_KPIS.potentialDropouts}</p>
+        <p className="text-4xl font-black text-amber-600">{ALERT_KPIS?.potentialDropouts || 0}</p>
         <p className="text-xs font-bold text-amber-500 mt-2">Predicción de abandono {'>'} 80%</p>
       </div>
 
