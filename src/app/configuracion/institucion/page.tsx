@@ -8,6 +8,7 @@ import {
   Smartphone, Mail, MessageSquare, Terminal, Eye, Lock, LogOut
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useRole } from '@/providers/role-provider';
 
 // TYPES & INTERFACES
 interface Sede {
@@ -94,90 +95,64 @@ interface InstitutionalSettings {
   onboardingAutoRules: boolean;
 }
 
-// INITIAL SEED DATA
-const DEFAULT_SETTINGS: InstitutionalSettings = {
-  name: 'Gimnasio Campestre AulaCore',
-  slogan: 'Liderazgo, Ciencia y Convivencia para el Futuro',
-  daneCode: '111001012345',
-  nit: '900.123.456-7',
-  resolution: 'Resolución 1234 del 12 de Octubre de 2022 - MinEducación',
+// ESTADO VACÍO – Se usa como punto de partida antes de recibir datos reales de Supabase
+const EMPTY_SETTINGS: InstitutionalSettings = {
+  name: '',
+  slogan: '',
+  daneCode: '',
+  nit: '',
+  resolution: '',
   legalNature: 'Privada',
-  rectorName: 'Dra. Mariana Restrepo Restrepo',
-  secretaryName: 'Dr. Carlos Mario Hoyos',
-  logoPrincipal: 'https://images.unsplash.com/photo-1546410531-bb4caa6b424d?auto=format&fit=crop&q=80&w=120',
+  rectorName: '',
+  secretaryName: '',
+  logoPrincipal: '',
   logoSecundario: '',
-  signatureUrl: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&q=80&w=80',
-  sedes: [
-    { 
-      id: 's-1', 
-      name: 'Sede Principal (Altos de la Colina)', 
-      address: 'Calle 140 # 11 - 45, Bogotá',
-      jornadas: ['Mañana', 'Única'],
-      levels: ['Primaria', 'Bachillerato', 'Media']
-    },
-    { 
-      id: 's-2', 
-      name: 'Sede Campestre (Preescolar & Primaria)', 
-      address: 'Km 12 Vía Las Palmas, Medellín',
-      jornadas: ['Mañana'],
-      levels: ['Preescolar', 'Primaria']
-    }
-  ],
-  minPassGrade: 3.3,
+  signatureUrl: '',
+  sedes: [],
+  minPassGrade: 3.0,
   periodsCount: 4,
   scales: [
     { label: 'Desempeño Superior', min: 4.6, max: 5.0, color: 'emerald', description: 'Supera de forma excepcional todos los logros y compromisos académicos.' },
     { label: 'Desempeño Alto', min: 4.0, max: 4.5, color: 'indigo', description: 'Cumple satisfactoriamente con los logros con alto nivel intelectual.' },
-    { label: 'Desempeño Básico', min: 3.3, max: 3.9, color: 'amber', description: 'Alcanza los objetivos mínimos requeridos con esfuerzo regular.' },
-    { label: 'Desempeño Bajo', min: 1.0, max: 3.2, color: 'rose', description: 'No alcanza los objetivos curriculares mínimos. Requiere plan de apoyo.' }
+    { label: 'Desempeño Básico', min: 3.0, max: 3.9, color: 'amber', description: 'Alcanza los objetivos mínimos requeridos con esfuerzo regular.' },
+    { label: 'Desempeño Bajo', min: 1.0, max: 2.9, color: 'rose', description: 'No alcanza los objetivos curriculares mínimos. Requiere plan de apoyo.' }
   ],
-  bulletinShowPhoto: true,
-  bulletinShowRanking: true,
+  bulletinShowPhoto: false,
+  bulletinShowRanking: false,
   observadorAutosave: true,
-  primaryColor: '#6366f1', // default indigo
+  primaryColor: '#6366f1',
   sidebarColor: 'slate-900',
   backgroundStyle: 'dots',
   faviconUrl: '',
   rfidTolerance: 15,
-  rfidAlertsEnabled: true,
-  rfidZones: ['Portería Principal', 'Acceso Primaria', 'Biblioteca', 'Comedor'],
-  rfidTerminals: [
-    { id: 'rf-1', name: 'Lector Portería Principal A', zone: 'Portería Principal', status: 'online' },
-    { id: 'rf-2', name: 'Lector Acceso Primaria B', zone: 'Acceso Primaria', status: 'online' },
-    { id: 'rf-3', name: 'Lector Biblioteca Central', zone: 'Biblioteca', status: 'online' },
-    { id: 'rf-4', name: 'Lector Zona Comedor', zone: 'Comedor', status: 'offline' }
-  ],
-  whatsappEnabled: true,
-  whatsappApiKey: 'waba_live_prod_54930103958102',
-  smsGatewayEnabled: true,
-  emailSmtpHost: 'smtp.aulacore.edu.co',
-  pushNotificationsEnabled: true,
+  rfidAlertsEnabled: false,
+  rfidZones: [],
+  rfidTerminals: [],
+  whatsappEnabled: false,
+  whatsappApiKey: '',
+  smsGatewayEnabled: false,
+  emailSmtpHost: '',
+  pushNotificationsEnabled: false,
   academicRiskThreshold: 75,
-  desertionPredictionModel: 'IA Predictiva AulaCore',
-  onboardingAutoRules: true
+  desertionPredictionModel: 'Básico',
+  onboardingAutoRules: false
 };
 
-const SEED_LOGS: AuditLog[] = [
-  { id: 'log-1', user: 'm.restrepo@aulacore.edu.co', action: 'Actualizó paleta de colores institucional', ip: '190.24.45.12', time: 'Hace 5 minutos' },
-  { id: 'log-2', user: 'c.hoyos@aulacore.edu.co', action: 'Generó nuevo link de matrícula digital ordinario', ip: '190.24.45.13', time: 'Hace 23 minutos' },
-  { id: 'log-3', user: 'admin.aulacore', action: 'Habilitó módulo de predicción de deserción AI', ip: '186.115.30.94', time: 'Hace 2 horas' },
-  { id: 'log-4', user: 'c.hoyos@aulacore.edu.co', action: 'Aprobó expediente de matrícula de Andres Gómez CC-1098', ip: '190.24.45.13', time: 'Hace 3 horas' },
-  { id: 'log-5', user: 'm.restrepo@aulacore.edu.co', action: 'Modificó tolerancia de llegadas tarde RFID a 15min', ip: '190.24.45.12', time: 'Ayer, 04:30 PM' }
-];
-
-const SEED_SESSIONS: ActiveSession[] = [
-  { id: 'ses-1', user: 'Mariana Restrepo (Rectoría)', role: 'Rector(a)', device: 'Safari - macOS Sequoia', ip: '190.24.45.12', location: 'Bogotá, Colombia', activeTime: 'Activa ahora' },
-  { id: 'ses-2', user: 'Carlos Mario Hoyos (Secretaría)', role: 'Secretario Académico', device: 'Chrome - Windows 11', ip: '190.24.45.13', location: 'Bogotá, Colombia', activeTime: 'Activa hace 12 min' },
-  { id: 'ses-3', user: 'Soporte AulaCore AI', role: 'Administrador de Sistema', device: 'NodeJS API Client', ip: '34.200.43.111', location: 'Virginia, US', activeTime: 'Activa hace 1 h' }
-];
+// Sin datos de demostración — los logs y sesiones son vacíos por defecto
+const SEED_LOGS: AuditLog[] = [];
+const SEED_SESSIONS: ActiveSession[] = [];
 
 export default function InstitucionSettingsPage() {
-  const [settings, setSettings] = useState<InstitutionalSettings>(DEFAULT_SETTINGS);
+  // Datos reales de la institución autenticada
+  const { activeInstitution, institutionId } = useRole();
+
+  const [settings, setSettings] = useState<InstitutionalSettings>(EMPTY_SETTINGS);
+  const [isLoadingInstitution, setIsLoadingInstitution] = useState(true);
   const [activeTab, setActiveTab] = useState<'perfil' | 'sedes' | 'academico' | 'rfid' | 'comunicaciones' | 'ia' | 'seguridad'>('perfil');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   
   // Dynamic lists states
-  const [sedesList, setSedesList] = useState<Sede[]>(DEFAULT_SETTINGS.sedes);
+  const [sedesList, setSedesList] = useState<Sede[]>([]);
   const [sessions, setSessions] = useState<ActiveSession[]>(SEED_SESSIONS);
   const [logs, setLogs] = useState<AuditLog[]>(SEED_LOGS);
   
@@ -223,19 +198,52 @@ export default function InstitucionSettingsPage() {
     }
   };
 
-  // Load from local storage if exists
+  // Sincroniza los datos de la institución autenticada desde Supabase (via AuthProvider → RoleProvider)
+  // Este efecto se ejecuta cuando activeInstitution cambia (al completar la carga de sesión)
   useEffect(() => {
-    const saved = localStorage.getItem('aulacore-institucion-settings');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        setSettings(parsed);
-        if (parsed.sedes) setSedesList(parsed.sedes);
-      } catch (e) {
-        console.error('Error loading institutional settings', e);
+    if (activeInstitution) {
+      // Mapear los campos de InstitutionData a InstitutionalSettings
+      const fromDB: Partial<InstitutionalSettings> = {
+        name: activeInstitution.name || '',
+        slogan: activeInstitution.slogan || '',
+        nit: activeInstitution.nit || '',
+        daneCode: activeInstitution.dane_code || '',
+        resolution: activeInstitution.resolution || '',
+        legalNature: (activeInstitution.legal_nature as InstitutionalSettings['legalNature']) || 'Privada',
+        rectorName: activeInstitution.rector_name || '',
+        secretaryName: activeInstitution.secretary_name || '',
+        logoPrincipal: activeInstitution.logo_url || '',
+        primaryColor: activeInstitution.primary_color || '#6366f1',
+        sidebarColor: (activeInstitution.sidebar_color as InstitutionalSettings['sidebarColor']) || 'slate-900',
+      };
+
+      // Cargar configuraciones adicionales desde localStorage (campos que no están en la tabla de Supabase)
+      const saved = localStorage.getItem(`aulacore-institucion-settings-${activeInstitution.id}`);
+      let extraSettings: Partial<InstitutionalSettings> = {};
+      if (saved) {
+        try {
+          extraSettings = JSON.parse(saved);
+        } catch (e) {
+          console.error('[InstitucionPage] Error parsing localStorage settings', e);
+        }
       }
+
+      const merged: InstitutionalSettings = {
+        ...EMPTY_SETTINGS,
+        ...extraSettings,
+        ...fromDB, // Los datos de Supabase siempre tienen prioridad sobre localStorage
+      };
+
+      setSettings(merged);
+      if (merged.sedes && merged.sedes.length > 0) {
+        setSedesList(merged.sedes);
+      }
+      setIsLoadingInstitution(false);
+    } else if (institutionId === null) {
+      // No hay institución asociada (aún cargando o sin institución)
+      setIsLoadingInstitution(false);
     }
-  }, []);
+  }, [activeInstitution, institutionId]);
 
   const triggerToast = (msg: string) => {
     setToastMessage(msg);
@@ -247,7 +255,11 @@ export default function InstitucionSettingsPage() {
   const handleUpdateSetting = (field: keyof InstitutionalSettings, value: any) => {
     const updated = { ...settings, [field]: value };
     setSettings(updated);
-    localStorage.setItem('aulacore-institucion-settings', JSON.stringify(updated));
+    // Guardar con clave por institución para aislar configuraciones
+    const storageKey = activeInstitution?.id
+      ? `aulacore-institucion-settings-${activeInstitution.id}`
+      : 'aulacore-institucion-settings-local';
+    localStorage.setItem(storageKey, JSON.stringify(updated));
   };
 
   // Add new Sede
@@ -359,7 +371,10 @@ export default function InstitucionSettingsPage() {
 
   // Save all settings manually visual trigger
   const handleSaveAll = () => {
-    localStorage.setItem('aulacore-institucion-settings', JSON.stringify(settings));
+    const storageKey = activeInstitution?.id
+      ? `aulacore-institucion-settings-${activeInstitution.id}`
+      : 'aulacore-institucion-settings-local';
+    localStorage.setItem(storageKey, JSON.stringify(settings));
     triggerToast('🚀 Configuración guardada en la base de datos de AulaCore.');
   };
 
@@ -375,6 +390,17 @@ export default function InstitucionSettingsPage() {
 
   return (
     <div className="min-h-[calc(100vh-64px)] bg-slate-50/20 flex flex-col py-6 px-4 md:px-8 max-w-7xl mx-auto space-y-6 animate-fade-in relative">
+      
+      {/* Loading state mientras se carga la institución desde Supabase */}
+      {isLoadingInstitution && (
+        <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
+          <div className="w-10 h-10 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin" />
+          <p className="text-sm font-semibold text-slate-500">Cargando datos institucionales...</p>
+        </div>
+      )}
+
+      {!isLoadingInstitution && (
+        <>
       
       {/* Toast Notification Stack */}
       {toastMessage && (
@@ -1431,6 +1457,9 @@ export default function InstitucionSettingsPage() {
         </div>
 
       </div>
+
+      </>
+      )}
 
     </div>
   );
