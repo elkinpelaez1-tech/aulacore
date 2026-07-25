@@ -10,10 +10,11 @@ import { useAuth } from '@/providers/auth-provider';
 import { useRole } from '@/providers/role-provider';
 
 interface SidebarProps {
-  userRole: UserRole;
+  userRole?: UserRole;
+  currentRole?: UserRole;
 }
 
-export function Sidebar({ userRole: _propRole }: SidebarProps) {
+export function Sidebar({ userRole: _propRole, currentRole: _currentRole }: SidebarProps) {
   const { signOut, roles } = useAuth();
   const { activeInstitution, userRole } = useRole();
   const pathname = usePathname();

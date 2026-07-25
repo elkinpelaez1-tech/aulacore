@@ -18,8 +18,9 @@ export function AppLayout({ children, userRole: _propRole, userName: _propName, 
   const { userRole, userName, mounted, activeInstitution } = useRole();
   const { loading, isAuthenticated, signOut } = useAuth();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [hasTimedOut, setHasTimedOut] = useState(false);
 
-  console.log('[AppLayout] Rendering', { mounted, loading, isAuthenticated, userRole });
+  console.log('[AppLayout] Rendering State:', { mounted, loading, isAuthenticated, userRole });
 
   useEffect(() => {
     const handleToggle = () => setIsMobileOpen(prev => !prev);
@@ -34,13 +35,52 @@ export function AppLayout({ children, userRole: _propRole, userName: _propName, 
     };
   }, []);
 
-  if (!mounted || loading) {
+  // PROTECCIÓN P0: Si el estado de carga dura más de 5 segundos, se fuerza la desactivación del spinner
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (!mounted || loading) {
+      timer = setTimeout(() => {
+        console.error('BLOQUEADO EN: AppLayout (el tiempo de carga superó los 5 segundos)');
+        setHasTimedOut(true);
+      }, 5000);
+    } else {
+      setHasTimedOut(false);
+    }
+    return () => clearTimeout(timer);
+  }, [mounted, loading]);
+
+  if ((!mounted || loading) && !hasTimedOut) {
     console.log('[AppLayout] Showing loading spinner');
     return (
       <div className="flex h-screen bg-slate-50 items-center justify-center">
         <div className="flex flex-col items-center gap-3">
           <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
           <div className="text-slate-500 font-medium text-sm">Cargando AulaCore...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (hasTimedOut && (!mounted || loading)) {
+    console.error('[AppLayout] Loading timeout exceeded (5s). Hiding spinner and rendering real error UI.');
+    return (
+      <div className="flex h-screen bg-slate-50 items-center justify-center p-6 text-center">
+        <div className="bg-white border border-red-200 shadow-2xl rounded-3xl p-8 max-w-md space-y-4">
+          <div className="w-14 h-14 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto text-2xl font-black border border-red-100">
+            ⚠️
+          </div>
+          <h3 className="text-xl font-extrabold text-slate-900">Error de Carga de Sesión</h3>
+          <p className="text-sm text-slate-600 leading-relaxed font-medium">
+            BLOQUEADO EN: Carga de sesión de usuario (superó los 5 segundos máximos).
+          </p>
+          <div className="pt-2">
+            <button
+              onClick={() => window.location.href = '/login'}
+              className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm rounded-xl shadow-lg shadow-indigo-600/30 transition-all"
+            >
+              Reiniciar Inicio de Sesión
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -72,7 +112,7 @@ export function AppLayout({ children, userRole: _propRole, userName: _propName, 
   }
 
   if (!isAuthenticated || !userRole) {
-    return null; // Prevent children from rendering while redirecting
+    return null;
   }
 
   const primaryColor = activeInstitution?.primary_color || '#6366f1';
@@ -85,44 +125,35 @@ export function AppLayout({ children, userRole: _propRole, userName: _propName, 
         }
       `}</style>
 
-      {/* Mobile Sidebar Overlay (Sliding Drawer) */}
+      {/* Mobile Sidebar Overlay */}
       {isMobileOpen && (
         <div className="fixed inset-0 z-50 flex lg:hidden animate-fade-in">
-          {/* Backdrop overlay */}
           <div 
             className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity cursor-pointer" 
             onClick={() => setIsMobileOpen(false)}
           />
-          {/* Sidebar Drawer container */}
           <div className="relative w-60 h-full flex flex-col bg-slate-900 shadow-2xl animate-slide-in">
-            {/* Close button float */}
             <div className="absolute right-4 top-4 z-50">
               <button 
                 onClick={() => setIsMobileOpen(false)}
-                className="w-8 h-8 rounded-lg bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center cursor-pointer border-none shadow-sm font-bold text-xs"
+                className="p-1 rounded-lg bg-slate-800 text-slate-400 hover:text-white"
               >
                 ✕
               </button>
             </div>
-            {/* Render school sidebar inside drawer */}
-            <Sidebar userRole={userRole} />
+            <Sidebar currentRole={userRole} />
           </div>
         </div>
       )}
 
-      {/* Desktop Sidebar (hidden on mobile, visible on lg+) */}
-      <div className="hidden lg:flex shrink-0">
-        <Sidebar userRole={userRole} />
-      </div>
+      {/* Desktop Sidebar */}
+      <Sidebar currentRole={userRole} />
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col overflow-hidden w-full">
-        {/* Header */}
-        <Header userName={userName} userRole={userRole} />
-
-        {/* Page Content */}
-        <main className={hidePadding ? "flex-1 overflow-y-auto w-full" : "flex-1 overflow-y-auto bg-gradient-to-b from-slate-50 to-slate-100 p-4 md:p-6 w-full"}>
-          <div className={hidePadding ? "w-full h-full" : "mx-auto max-w-[1600px] w-full px-1 md:px-6"}>{children}</div>
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <Header userRole={userRole} userName={userName} />
+        <main className={`flex-1 overflow-y-auto bg-slate-50/50 ${hidePadding ? '' : 'p-4 sm:p-6 lg:p-8'}`}>
+          {children}
         </main>
       </div>
     </div>
