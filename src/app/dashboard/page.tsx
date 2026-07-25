@@ -698,169 +698,14 @@ export default function DashboardPage() {
                     </div>
                   </CardHeader>
                   
-                  <CardContent className="p-6 relative flex-1 flex flex-col justify-center">
-                    {/* Leyenda Gráfica */}
-                    <div className="flex justify-end gap-5 text-xs mb-4 font-semibold text-slate-500">
-                      <div className="flex items-center gap-1.5">
-                        <span className="w-3.5 h-1.5 bg-blue-600 rounded" />
-                        <span>Asistencia Promedio (%)</span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <span className="w-3.5 h-1.5 bg-indigo-500 rounded" style={{ borderTop: '2px dotted #6366f1' }} />
-                        <span>Promedio Académico (GPA)</span>
-                      </div>
+                  <CardContent className="p-12 relative flex-1 flex flex-col items-center justify-center text-center space-y-3">
+                    <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center">
+                      <BarChart3 className="w-6 h-6" />
                     </div>
-
-                    {/* SVG Chart */}
-                    <div className="relative w-full h-64">
-                      <svg viewBox="0 0 500 200" className="w-full h-full select-none overflow-visible">
-                        {/* Grid Lines */}
-                        <line x1="40" y1="20" x2="480" y2="20" className="stroke-slate-100 stroke-1" />
-                        <line x1="40" y1="60" x2="480" y2="60" className="stroke-slate-100 stroke-1" />
-                        <line x1="40" y1="100" x2="480" y2="100" className="stroke-slate-100 stroke-1" />
-                        <line x1="40" y1="140" x2="480" y2="140" className="stroke-slate-100 stroke-1" />
-                        <line x1="40" y1="170" x2="480" y2="170" className="stroke-slate-200 stroke-2" />
-
-                        {/* Eje Y Izquierdo (Asistencia 90% - 100%) */}
-                        <text x="15" y="25" className="fill-slate-400 text-[11px] font-bold">100%</text>
-                        <text x="15" y="75" className="fill-slate-400 text-[11px] font-bold">96%</text>
-                        <text x="15" y="125" className="fill-slate-400 text-[11px] font-bold">92%</text>
-                        <text x="15" y="175" className="fill-slate-400 text-[11px] font-bold">88%</text>
-
-                        {/* Eje Y Derecho (GPA 1 - 10) */}
-                        <text x="485" y="25" className="fill-slate-400 text-[11px] font-bold">10.0</text>
-                        <text x="485" y="75" className="fill-slate-400 text-[11px] font-bold">8.0</text>
-                        <text x="485" y="125" className="fill-slate-400 text-[11px] font-bold">6.0</text>
-                        <text x="485" y="175" className="fill-slate-400 text-[11px] font-bold">4.0</text>
-
-                        {/* Gradiente de Área para Asistencia */}
-                        <defs>
-                          <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#2563eb" stopOpacity="0.25" />
-                            <stop offset="100%" stopColor="#2563eb" stopOpacity="0.0" />
-                          </linearGradient>
-                        </defs>
-
-                        {/* ÁREA DE ASISTENCIA */}
-                        <path 
-                          d="M 40 170 L 40 120 Q 185 92.5 330 80 T 470 95 L 470 170 Z" 
-                          fill="url(#chartGrad)" 
-                          className="transition-all duration-500"
-                        />
-                        <path 
-                          d="M 40 120 Q 185 92.5 330 80 T 470 95" 
-                          fill="none" 
-                          stroke="#2563eb" 
-                          strokeWidth="3" 
-                          className="transition-all duration-500"
-                        />
-
-                        {/* CURVA DE GPA */}
-                        <path 
-                          d="M 40 110 C 110 102.5, 250 82.5, 330 80 T 470 65" 
-                          fill="none" 
-                          stroke="#6366f1" 
-                          strokeWidth="3.5" 
-                          strokeDasharray="4 2" 
-                          className="transition-all duration-500"
-                        />
-
-                        {/* Líneas / Columnas de Selección Interactiva */}
-                        {[
-                          { x: 40, month: 'Febrero', gpa: 7.8, attendance: 91.2, alerts: 14, cases: 4 },
-                          { x: 180, month: 'Marzo', gpa: 8.1, attendance: 93.6, alerts: 10, cases: 6 },
-                          { x: 320, month: 'Abril', gpa: 8.4, attendance: 94.8, alerts: 7, cases: 3 },
-                          { x: 470, month: 'Mayo', gpa: 8.6, attendance: 94.2, alerts: 3, cases: 1 }
-                        ].map((item, idx) => (
-                          <g 
-                            key={item.month} 
-                            onMouseEnter={() => setHoveredDataIndex(idx)}
-                            onMouseLeave={() => setHoveredDataIndex(null)}
-                            className="cursor-pointer"
-                          >
-                            {/* Columna sensible al tacto */}
-                            <rect 
-                              x={item.x - 30} 
-                              y="10" 
-                              width="60" 
-                              height="165" 
-                              className={cn(
-                                "fill-transparent transition duration-200",
-                                hoveredDataIndex === idx && "fill-slate-500/5"
-                              )} 
-                            />
-                            {/* Línea vertical de guía */}
-                            {hoveredDataIndex === idx && (
-                              <line x1={item.x} y1="20" x2={item.x} y2="170" className="stroke-indigo-400 stroke-1 stroke-dasharray-[2_2]" />
-                            )}
-                            
-                            {/* Nodos del Gráfico */}
-                            {/* Asistencia (azul) */}
-                            <circle 
-                              cx={item.x} 
-                              cy={idx === 0 ? 120 : idx === 1 ? 100 : idx === 2 ? 80 : 95} 
-                              r={hoveredDataIndex === idx ? "7" : "5"} 
-                              className="fill-blue-600 stroke-white stroke-2 transition-all duration-200" 
-                            />
-
-                            {/* GPA (morado) */}
-                            <circle 
-                              cx={item.x} 
-                              cy={idx === 0 ? 110 : idx === 1 ? 95 : idx === 2 ? 80 : 65} 
-                              r={hoveredDataIndex === idx ? "7" : "5"} 
-                              className="fill-indigo-600 stroke-white stroke-2 transition-all duration-200" 
-                            />
-
-                            {/* Textos de Meses */}
-                            <text 
-                              x={item.x} 
-                              y="190" 
-                              textAnchor="middle" 
-                              className={cn(
-                                "fill-slate-400 text-xs font-bold transition-all",
-                                hoveredDataIndex === idx && "fill-slate-800 font-extrabold text-xs"
-                              )}
-                            >
-                              {item.month}
-                            </text>
-                          </g>
-                        ))}
-                      </svg>
-
-                      {/* Tooltip Absoluto en HTML */}
-                      {hoveredDataIndex !== null && (
-                        <div 
-                          className="absolute bg-slate-955/95 text-white p-4 rounded-xl shadow-xl border border-slate-850 text-xs w-56 z-30 transition-all duration-300 pointer-events-none animate-fade-in"
-                          style={{
-                            left: `${hoveredDataIndex === 0 ? 55 : hoveredDataIndex === 1 ? 170 : hoveredDataIndex === 2 ? 220 : 240}px`,
-                            top: '15px'
-                          }}
-                        >
-                          <h5 className="font-extrabold text-blue-300 text-xs uppercase tracking-wider mb-2 flex items-center justify-between">
-                            <span>{hoveredDataIndex === 0 ? 'Febrero' : hoveredDataIndex === 1 ? 'Marzo' : hoveredDataIndex === 2 ? 'Abril' : 'Mayo'}</span>
-                            <span className="text-xs bg-slate-800 text-slate-300 font-bold px-1.5 py-0.5 rounded">2026</span>
-                          </h5>
-                          <div className="space-y-1.5 text-slate-350 font-semibold">
-                            <div className="flex justify-between">
-                              <span>Promedio (GPA):</span>
-                              <strong className="text-white font-extrabold text-sm">{hoveredDataIndex === 0 ? '7.8' : hoveredDataIndex === 1 ? '8.1' : hoveredDataIndex === 2 ? '8.4' : '8.6'} / 10</strong>
-                            </div>
-                            <div className="flex justify-between">
-                              <span>Asistencia RFID:</span>
-                              <strong className="text-blue-450 font-extrabold text-sm">{hoveredDataIndex === 0 ? '91.2%' : hoveredDataIndex === 1 ? '93.6%' : hoveredDataIndex === 2 ? '94.8%' : '94.2%'}</strong>
-                            </div>
-                            <div className="flex justify-between border-t border-slate-800 pt-1.5 mt-1.5 text-xs text-slate-400">
-                              <span>Alertas IA:</span>
-                              <span className="text-red-400 font-bold">{hoveredDataIndex === 0 ? '14' : hoveredDataIndex === 1 ? '10' : hoveredDataIndex === 2 ? '7' : '3'}</span>
-                            </div>
-                            <div className="flex justify-between text-xs text-slate-400">
-                              <span>Casos Convivencia:</span>
-                              <span className="text-amber-400 font-bold">{hoveredDataIndex === 0 ? '4' : hoveredDataIndex === 1 ? '6' : hoveredDataIndex === 2 ? '3' : '1'}</span>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
+                    <h4 className="text-base font-bold text-slate-800">Analítica Académica en Espera</h4>
+                    <p className="text-sm text-slate-500 font-medium max-w-sm">
+                      La analítica aparecerá cuando exista información académica.
+                    </p>
                   </CardContent>
                 </Card>
 
@@ -897,112 +742,15 @@ export default function DashboardPage() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {[
-                          { 
-                            course: 'Décimo A (10-A)', 
-                            director: 'Lic. Martínez', 
-                            directorInitials: 'LM',
-                            avatarColor: 'bg-purple-100 text-purple-700',
-                            students: 32, 
-                            gpa: 4.1, 
-                            attendance: 94.2, 
-                            cases: '1 Grave',
-                            casesColor: 'bg-orange-50 text-orange-700 border-orange-100',
-                            workshops: 4, 
-                            status: 'Sincronizado',
-                            statusColor: 'bg-emerald-50 text-emerald-700 border-emerald-100'
-                          },
-                          { 
-                            course: 'Undécimo B (11-B)', 
-                            director: 'Ing. Carlos León', 
-                            directorInitials: 'CL',
-                            avatarColor: 'bg-blue-100 text-blue-700',
-                            students: 28, 
-                            gpa: 3.9, 
-                            attendance: 88.5, 
-                            cases: '2 Leves',
-                            casesColor: 'bg-blue-50 text-blue-700 border-blue-100',
-                            workshops: 2, 
-                            status: 'Pendiente',
-                            statusColor: 'bg-amber-50 text-amber-700 border-amber-100'
-                          },
-                          { 
-                            course: 'Noveno C (9-C)', 
-                            director: 'Dra. Diana Reyes', 
-                            directorInitials: 'DR',
-                            avatarColor: 'bg-emerald-100 text-emerald-700',
-                            students: 30, 
-                            gpa: 4.5, 
-                            attendance: 96.1, 
-                            cases: '0 Casos',
-                            casesColor: 'bg-slate-50 text-slate-500 border-slate-100',
-                            workshops: 1, 
-                            status: 'Retrasado',
-                            statusColor: 'bg-red-50 text-red-700 border-red-100'
-                          }
-                        ].map((row) => (
-                          <TableRow key={row.course} className="hover:bg-slate-50/50 transition-colors">
-                            <TableCell className="font-extrabold text-slate-955 text-base pl-6">{row.course}</TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-2">
-                                <div className={cn("w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ring-2 ring-slate-100", row.avatarColor)}>
-                                  {row.directorInitials}
-                                </div>
-                                <span className="font-bold text-slate-900 text-sm">{row.director}</span>
-                              </div>
-                            </TableCell>
-                            <TableCell className="text-center font-extrabold text-slate-850 text-sm">{row.students} alumnos</TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-3 w-40">
-                                <span className="font-black text-slate-950 text-sm min-w-10">{row.gpa} / 5.0</span>
-                                <div className="flex-1 bg-slate-100 h-2 rounded-full overflow-hidden border border-slate-200/50 shadow-inner">
-                                  <div 
-                                    className={cn(
-                                      "h-full rounded-full transition-all duration-500",
-                                      row.gpa >= 4.0 && "bg-emerald-500",
-                                      row.gpa >= 3.5 && row.gpa < 4.0 && "bg-blue-500",
-                                      row.gpa < 3.5 && "bg-red-500"
-                                    )} 
-                                    style={{ width: `${row.gpa * 20}%` }} 
-                                  />
-                                </div>
-                              </div>
-                            </TableCell>
-                            <TableCell className="text-center">
-                              <span className={cn(
-                                "font-black text-sm px-2.5 py-1 rounded-md border",
-                                row.attendance >= 92.0 ? "bg-emerald-50 text-emerald-800 border-emerald-250" : "bg-red-50 text-red-800 border-red-250"
-                              )}>
-                                {row.attendance}%
-                              </span>
-                            </TableCell>
-                            <TableCell className="text-center">
-                              <span className={cn("font-extrabold text-xs uppercase px-2 py-0.5 rounded-full border", row.casesColor)}>
-                                {row.cases}
-                              </span>
-                            </TableCell>
-                            <TableCell className="text-center">
-                              <span className="text-sm font-extrabold text-slate-850 bg-slate-100 border border-slate-200 px-2.5 py-0.5 rounded">
-                                {row.workshops} talleres
-                              </span>
-                            </TableCell>
-                            <TableCell className="text-center">
-                              <span className={cn("font-black text-xs uppercase px-2.5 py-1 rounded-lg border", row.statusColor)}>
-                                {row.status}
-                              </span>
-                            </TableCell>
-                            <TableCell className="pr-6 text-right">
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                className="h-8 text-sm text-indigo-700 hover:text-indigo-900 font-extrabold hover:bg-slate-50 cursor-pointer flex items-center gap-1.5 ml-auto rounded-lg"
-                              >
-                                <Eye className="w-3.5 h-3.5" />
-                                Ver Ficha
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        ))}
+                        <TableRow>
+                          <TableCell colSpan={9} className="text-center py-12 text-slate-500 font-medium">
+                            <div className="flex flex-col items-center gap-2">
+                              <BookOpen className="w-8 h-8 text-slate-400" />
+                              <p className="font-semibold text-slate-700">Comienza creando tus cursos.</p>
+                              <p className="text-xs text-slate-400">La matriz de consolidado aparecerá cuando tengas cursos y asignaturas parametrizadas.</p>
+                            </div>
+                          </TableCell>
+                        </TableRow>
                       </TableBody>
                     </Table>
                   </CardContent>
@@ -1018,80 +766,27 @@ export default function DashboardPage() {
                       </CardTitle>
                       <p className="text-sm text-slate-550 font-medium">Indicadores comportamentales generales y novedades disciplinarias</p>
                     </div>
-                    <span className="text-sm font-extrabold text-purple-800 bg-purple-50 border border-purple-100 px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-sm">
-                      Índice Convivencia: <strong className="text-purple-800 font-black text-sm">92.4%</strong>
-                    </span>
                   </CardHeader>
-                  <CardContent className="p-6 space-y-5">
-                    {/* Visual de Estado Disciplinario ERP */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="bg-slate-50 border border-slate-155 p-4 rounded-xl space-y-2 hover:shadow transition">
-                        <div className="flex justify-between items-center text-xs">
-                          <span className="text-slate-600 font-extrabold uppercase tracking-widest text-xs">Clima Escolar</span>
-                          <span className="text-emerald-700 font-black text-xs">+1.2%</span>
-                        </div>
-                        <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
-                          <div className="bg-purple-600 h-full rounded-full" style={{ width: '92.4%' }} />
-                        </div>
-                        <p className="text-xs text-slate-500 font-semibold">92.4% de comportamiento positivo general</p>
-                      </div>
-
-                      <div className="bg-slate-50 border border-slate-155 p-4 rounded-xl space-y-2 hover:shadow transition">
-                        <div className="flex justify-between items-center text-xs">
-                          <span className="text-slate-600 font-extrabold uppercase tracking-widest text-xs">Casos en Mediación</span>
-                          <span className="text-amber-700 font-black text-xs">1 Activo</span>
-                        </div>
-                        <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
-                          <div className="bg-amber-500 h-full rounded-full" style={{ width: '33%' }} />
-                        </div>
-                        <p className="text-xs text-slate-500 font-semibold">Revisión programada para comité hoy</p>
-                      </div>
-
-                      <div className="bg-slate-50 border border-slate-155 p-4 rounded-xl space-y-2 hover:shadow transition">
-                        <div className="flex justify-between items-center text-xs">
-                          <span className="text-slate-600 font-extrabold uppercase tracking-widest text-xs">Anotaciones de Gravedad</span>
-                          <span className="text-red-650 font-black text-xs">1 Registro</span>
-                        </div>
-                        <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
-                          <div className="bg-red-500 h-full rounded-full" style={{ width: '15%' }} />
-                        </div>
-                        <p className="text-xs text-slate-500 font-semibold">Falta Grave en 10-A bajo seguimiento</p>
-                      </div>
-                    </div>
-
-                    {/* Historial del Observador */}
-                    <div className="space-y-3">
-                      <h4 className="text-sm font-extrabold text-slate-850 uppercase tracking-widest">Anotaciones del Observador Oficial</h4>
+                  <CardContent className="p-8 text-center space-y-2">
+                    {behaviorRecords.length > 0 ? (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {behaviorRecords.map((rec) => (
-                          <div key={rec.id} className={cn(
-                            "p-3.5 rounded-xl border space-y-1.5 transition-all duration-300 hover:shadow-md",
-                            rec.type === 'Positiva' && "bg-emerald-50/30 border-emerald-100",
-                            rec.type === 'Leve' && "bg-blue-50/30 border-blue-100",
-                            rec.type === 'Grave' && "bg-orange-50/30 border-orange-100",
-                            rec.type === 'Gravísima' && "bg-red-50/30 border-red-100"
-                          )}>
+                          <div key={rec.id} className="p-3.5 rounded-xl border space-y-1.5 text-left">
                             <div className="flex justify-between items-center">
                               <span className="text-sm font-black text-slate-950">{rec.studentName}</span>
-                              <span className={cn(
-                                "text-xs font-black px-2 py-0.5 rounded-full uppercase",
-                                rec.type === 'Positiva' && "bg-emerald-100 text-emerald-800",
-                                rec.type === 'Leve' && "bg-blue-100 text-blue-800",
-                                rec.type === 'Grave' && "bg-orange-100 text-orange-850",
-                                rec.type === 'Gravísima' && "bg-red-100 text-red-800"
-                              )}>
-                                {rec.type}
-                              </span>
+                              <span className="text-xs font-black px-2 py-0.5 rounded-full uppercase bg-blue-100 text-blue-800">{rec.type}</span>
                             </div>
-                            <p className="text-xs text-slate-700 font-medium leading-relaxed line-clamp-2">{rec.description}</p>
-                            <div className="flex items-center justify-between text-xs text-slate-500 font-bold pt-1.5 border-t border-slate-100">
-                              <span>Reportó: {rec.observerName}</span>
-                              <span>{rec.date}</span>
-                            </div>
+                            <p className="text-xs text-slate-700 font-medium leading-relaxed">{rec.description}</p>
                           </div>
                         ))}
                       </div>
-                    </div>
+                    ) : (
+                      <div className="py-6 flex flex-col items-center gap-2">
+                        <Users className="w-8 h-8 text-slate-400" />
+                        <p className="font-semibold text-slate-700">No hay indicadores disponibles.</p>
+                        <p className="text-xs text-slate-400">Las novedades de convivencia aparecerán cuando los docentes o coordinadores registren anotaciones.</p>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
 
@@ -1105,118 +800,19 @@ export default function DashboardPage() {
                       </CardTitle>
                       <p className="text-sm text-slate-550 font-medium">Monitoreo de talleres de recuperación escolar y nivelación académica</p>
                     </div>
-                    <span className="text-sm font-extrabold text-emerald-800 bg-emerald-50 border border-emerald-100 px-2.5 py-1 rounded-full">
-                      8 planes activos
-                    </span>
                   </CardHeader>
-                  <CardContent className="p-6 space-y-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {/* Plan 1 */}
-                      <div className="border border-slate-150 p-4 rounded-xl bg-slate-50/30 hover:bg-slate-50 hover:shadow-md transition-all duration-300 flex flex-col justify-between space-y-3">
-                        <div className="space-y-1">
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs font-bold text-slate-900">Matemáticas - Nivelación</span>
-                            <span className="text-xs bg-emerald-100 text-emerald-800 font-extrabold uppercase px-2 py-0.5 rounded-full">En Proceso</span>
-                          </div>
-                          <p className="text-xs text-slate-400 font-semibold">Curso: 10-A | Docente: Prof. Gómez</p>
-                          <p className="text-xs text-slate-600 font-medium">Resolución de talleres de álgebra de ecuaciones cuadráticas.</p>
-                        </div>
-                        <div className="space-y-1">
-                          <div className="flex justify-between items-center text-xs font-semibold text-slate-500">
-                            <span>Avance de Entregas</span>
-                            <span>65%</span>
-                          </div>
-                          <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
-                            <div className="bg-emerald-600 h-full rounded-full" style={{ width: '65%' }}></div>
-                          </div>
-                          <div className="flex justify-between items-center text-xs text-slate-400 font-bold pt-1">
-                            <span>5 alumnos asignados</span>
-                            <span>Límite: 25 de Mayo</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Plan 2 */}
-                      <div className="border border-slate-150 p-4 rounded-xl bg-slate-50/30 hover:bg-slate-50 hover:shadow-md transition-all duration-300 flex flex-col justify-between space-y-3">
-                        <div className="space-y-1">
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs font-bold text-slate-900">Ciencias Naturales y Educación Ambiental</span>
-                            <span className="text-xs bg-emerald-100 text-emerald-800 font-extrabold uppercase px-2 py-0.5 rounded-full">En Proceso</span>
-                          </div>
-                          <p className="text-xs text-slate-400 font-semibold">Curso: 10-A | Docente: Prof. Gómez</p>
-                          <p className="text-xs text-slate-600 font-medium">Laboratorio recuperatorio de biología y ecosistemas.</p>
-                        </div>
-                        <div className="space-y-1">
-                          <div className="flex justify-between items-center text-xs font-semibold text-slate-500">
-                            <span>Avance de Entregas</span>
-                            <span>80%</span>
-                          </div>
-                          <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
-                            <div className="bg-emerald-600 h-full rounded-full" style={{ width: '80%' }}></div>
-                          </div>
-                          <div className="flex justify-between items-center text-xs text-slate-400 font-bold pt-1">
-                            <span>2 alumnos asignados</span>
-                            <span>Límite: 28 de Mayo</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Plan 3 */}
-                      <div className="border border-slate-150 p-4 rounded-xl bg-slate-50/30 hover:bg-slate-50 hover:shadow-md transition-all duration-300 flex flex-col justify-between space-y-3">
-                        <div className="space-y-1">
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs font-bold text-slate-900">Biología y Química - Enlaces</span>
-                            <span className="text-xs bg-red-100 text-red-800 font-extrabold uppercase px-2 py-0.5 rounded-full">Crítico</span>
-                          </div>
-                          <p className="text-xs text-slate-400 font-semibold">Curso: 9-C | Docente: Dra. Diana Reyes</p>
-                          <p className="text-xs text-slate-600 font-medium">Talleres remediales de enlaces atómicos y tabla periódica.</p>
-                        </div>
-                        <div className="space-y-1">
-                          <div className="flex justify-between items-center text-xs font-semibold text-slate-500">
-                            <span>Avance de Entregas</span>
-                            <span>35%</span>
-                          </div>
-                          <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
-                            <div className="bg-red-500 h-full rounded-full" style={{ width: '35%' }}></div>
-                          </div>
-                          <div className="flex justify-between items-center text-xs text-slate-450 font-bold pt-1">
-                            <span>1 alumno asignado</span>
-                            <span>Límite: 27 de Mayo</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Plan 4 */}
-                      <div className="border border-slate-150 p-4 rounded-xl bg-slate-50/30 hover:bg-slate-50 hover:shadow-md transition-all duration-300 flex flex-col justify-between space-y-3">
-                        <div className="space-y-1">
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs font-bold text-slate-900">Literatura Castellana</span>
-                            <span className="text-xs bg-amber-100 text-amber-800 font-extrabold uppercase px-2 py-0.5 rounded-full">Demorado</span>
-                          </div>
-                          <p className="text-xs text-slate-400 font-semibold">Curso: 10-A | Docente: Lic. Martínez</p>
-                          <p className="text-xs text-slate-600 font-medium">Entrega de análisis pendientes sobre obras clásicas españolas.</p>
-                        </div>
-                        <div className="space-y-1">
-                          <div className="flex justify-between items-center text-xs font-semibold text-slate-500">
-                            <span>Avance de Entregas</span>
-                            <span>50%</span>
-                          </div>
-                          <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
-                            <div className="bg-amber-500 h-full rounded-full" style={{ width: '50%' }}></div>
-                          </div>
-                          <div className="flex justify-between items-center text-xs text-slate-400 font-bold pt-1">
-                            <span>4 alumnos asignados</span>
-                            <span>Límite: 31 de Mayo</span>
-                          </div>
-                        </div>
-                      </div>
+                  <CardContent className="p-8 text-center">
+                    <div className="py-6 flex flex-col items-center gap-2">
+                      <FileText className="w-8 h-8 text-slate-400" />
+                      <p className="font-semibold text-slate-700">Aún no has registrado estudiantes.</p>
+                      <p className="text-xs text-slate-400">Los planes de nivelación académica estarán disponibles al matricular estudiantes en los cursos.</p>
                     </div>
                   </CardContent>
                 </Card>
 
                 {/* Visualizaciones Finales de AulaCore - Power BI Style */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* A. Gráfico de Torta (Pie Chart) - Convivencia y Clima Escolar */}
+                  {/* A. Casos de Convivencia */}
                   <Card className="border-slate-200 shadow-sm overflow-hidden bg-white rounded-2xl flex flex-col justify-between hover:shadow-md transition duration-200">
                     <CardHeader className="bg-gradient-to-r from-slate-50 to-slate-100/50 border-b border-slate-200 px-5 py-4">
                       <CardTitle className="text-lg font-extrabold text-slate-950 flex items-center gap-2">
@@ -1225,89 +821,14 @@ export default function DashboardPage() {
                       </CardTitle>
                       <p className="text-xs text-slate-550 font-medium">Proporción general de reportes registrados</p>
                     </CardHeader>
-                    <CardContent className="p-5 flex flex-col items-center justify-center space-y-4">
-                      {/* Donut Chart SVG */}
-                      <div className="relative w-36 h-36 flex items-center justify-center">
-                        <svg viewBox="0 0 100 100" className="w-full h-full transform -rotate-90">
-                          {/* Segmento 1: Positivas (65%) */}
-                          <circle
-                            cx="50"
-                            cy="50"
-                            r="40"
-                            fill="transparent"
-                            stroke="#10b981"
-                            strokeWidth="11"
-                            strokeDasharray="163.36 251.32"
-                            strokeDashoffset="0"
-                            className="transition-all duration-300 hover:stroke-emerald-600 cursor-pointer"
-                          />
-                          {/* Segmento 2: Leves (20%) */}
-                          <circle
-                            cx="50"
-                            cy="50"
-                            r="40"
-                            fill="transparent"
-                            stroke="#3b82f6"
-                            strokeWidth="11"
-                            strokeDasharray="50.26 251.32"
-                            strokeDashoffset="-163.36"
-                            className="transition-all duration-300 hover:stroke-blue-600 cursor-pointer"
-                          />
-                          {/* Segmento 3: Graves (10%) */}
-                          <circle
-                            cx="50"
-                            cy="50"
-                            r="40"
-                            fill="transparent"
-                            stroke="#f59e0b"
-                            strokeWidth="11"
-                            strokeDasharray="25.13 251.32"
-                            strokeDashoffset="-213.62"
-                            className="transition-all duration-300 hover:stroke-amber-600 cursor-pointer"
-                          />
-                          {/* Segmento 4: Críticas (5%) */}
-                          <circle
-                            cx="50"
-                            cy="50"
-                            r="40"
-                            fill="transparent"
-                            stroke="#ef4444"
-                            strokeWidth="11"
-                            strokeDasharray="12.56 251.32"
-                            strokeDashoffset="-238.75"
-                            className="transition-all duration-300 hover:stroke-red-600 cursor-pointer"
-                          />
-                        </svg>
-                        {/* Texto Central */}
-                        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none select-none text-center">
-                          <span className="text-xl font-black text-slate-900 tracking-tight leading-none">92.4%</span>
-                          <span className="text-xs text-slate-400 font-bold uppercase tracking-wider mt-0.5">Clima</span>
-                        </div>
-                      </div>
-
-                      {/* Leyenda */}
-                      <div className="grid grid-cols-2 gap-x-2 gap-y-1.5 w-full text-xs font-semibold text-slate-655 border-t border-slate-100 pt-3">
-                        <div className="flex items-center gap-1 justify-start">
-                          <span className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" />
-                          <span className="truncate">Positivas (65%)</span>
-                        </div>
-                        <div className="flex items-center gap-1 justify-start">
-                          <span className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0" />
-                          <span className="truncate">Leves (20%)</span>
-                        </div>
-                        <div className="flex items-center gap-1 justify-start">
-                          <span className="w-2 h-2 rounded-full bg-amber-500 flex-shrink-0" />
-                          <span className="truncate">Graves (10%)</span>
-                        </div>
-                        <div className="flex items-center gap-1 justify-start">
-                          <span className="w-2 h-2 rounded-full bg-red-500 flex-shrink-0" />
-                          <span className="truncate">Críticas (5%)</span>
-                        </div>
-                      </div>
+                    <CardContent className="p-8 flex flex-col items-center justify-center text-center space-y-2">
+                      <Users className="w-8 h-8 text-slate-400" />
+                      <p className="font-semibold text-slate-700 text-sm">No hay indicadores disponibles.</p>
+                      <p className="text-xs text-slate-400">Sin reportes registrados.</p>
                     </CardContent>
                   </Card>
 
-                  {/* B. Gráfico de Barras (Bar Chart) - Rendimiento por Curso */}
+                  {/* B. Rendimiento por Curso */}
                   <Card className="border-slate-200 shadow-sm overflow-hidden bg-white rounded-2xl flex flex-col justify-between hover:shadow-md transition duration-200">
                     <CardHeader className="bg-gradient-to-r from-slate-50 to-slate-100/50 border-b border-slate-200 px-5 py-4">
                       <CardTitle className="text-lg font-extrabold text-slate-950 flex items-center gap-2">
@@ -1316,60 +837,10 @@ export default function DashboardPage() {
                       </CardTitle>
                       <p className="text-xs text-slate-550 font-medium">Promedio académico institucional (GPA)</p>
                     </CardHeader>
-                    <CardContent className="p-5 flex flex-col justify-center flex-1 space-y-4">
-                      <div className="relative w-full h-36">
-                        <svg viewBox="0 0 240 100" className="w-full h-full overflow-visible select-none">
-                          {/* Grid Lines */}
-                          <line x1="20" y1="10" x2="230" y2="10" className="stroke-slate-100 stroke-1" />
-                          <line x1="20" y1="40" x2="230" y2="40" className="stroke-slate-100 stroke-1" />
-                          <line x1="20" y1="70" x2="230" y2="70" className="stroke-slate-100 stroke-1" />
-                          <line x1="20" y1="90" x2="230" y2="90" className="stroke-slate-200 stroke-1" />
-
-                          {/* Eje Y */}
-                          <text x="12" y="13" className="fill-slate-400 text-[10px] font-bold text-right" textAnchor="end">10.0</text>
-                          <text x="12" y="43" className="fill-slate-400 text-[10px] font-bold text-right" textAnchor="end">7.0</text>
-                          <text x="12" y="73" className="fill-slate-400 text-[10px] font-bold text-right" textAnchor="end">4.0</text>
-
-                          {/* Bars */}
-                          {[
-                            { name: '10-A', gpa: 8.2, height: 60, x: 30, color: '#6366f1' },
-                            { name: '11-B', gpa: 7.9, height: 57, x: 72, color: '#3b82f6' },
-                            { name: '9-C', gpa: 8.5, height: 64, x: 114, color: '#10b981' },
-                            { name: '8-A', gpa: 7.4, height: 52, x: 156, color: '#f59e0b' },
-                            { name: '11-A', gpa: 8.9, height: 69, x: 198, color: '#8b5cf6' }
-                          ].map((bar) => {
-                            return (
-                              <g key={bar.name} className="cursor-pointer">
-                                <rect
-                                  x={bar.x}
-                                  y={90 - bar.height}
-                                  width="16"
-                                  height={bar.height}
-                                  fill={bar.color}
-                                  rx="2"
-                                  className="transition-all duration-300 hover:opacity-90"
-                                />
-                                <text
-                                  x={bar.x + 8}
-                                  y={85 - bar.height}
-                                  textAnchor="middle"
-                                  className="fill-slate-700 text-[11px] font-extrabold"
-                                >
-                                  {bar.gpa}
-                                </text>
-                                <text
-                                  x={bar.x + 8}
-                                  y="98"
-                                  textAnchor="middle"
-                                  className="fill-slate-400 text-[11px] font-bold"
-                                >
-                                  {bar.name}
-                                </text>
-                              </g>
-                            );
-                          })}
-                        </svg>
-                      </div>
+                    <CardContent className="p-8 flex flex-col items-center justify-center text-center space-y-2">
+                      <BarChart3 className="w-8 h-8 text-slate-400" />
+                      <p className="font-semibold text-slate-700 text-sm">No hay indicadores disponibles.</p>
+                      <p className="text-xs text-slate-400">Sin calificaciones generadas.</p>
                     </CardContent>
                   </Card>
                 </div>
