@@ -96,47 +96,7 @@ interface InstitutionalSettings {
 }
 
 // ESTADO VACÍO – Se usa como punto de partida antes de recibir datos reales de Supabase
-const EMPTY_SETTINGS: InstitutionalSettings = {
-  name: '',
-  slogan: '',
-  daneCode: '',
-  nit: '',
-  resolution: '',
-  legalNature: 'Privada',
-  rectorName: '',
-  secretaryName: '',
-  logoPrincipal: '',
-  logoSecundario: '',
-  signatureUrl: '',
-  sedes: [],
-  minPassGrade: 3.0,
-  periodsCount: 4,
-  scales: [
-    { label: 'Desempeño Superior', min: 4.6, max: 5.0, color: 'emerald', description: 'Supera de forma excepcional todos los logros y compromisos académicos.' },
-    { label: 'Desempeño Alto', min: 4.0, max: 4.5, color: 'indigo', description: 'Cumple satisfactoriamente con los logros con alto nivel intelectual.' },
-    { label: 'Desempeño Básico', min: 3.0, max: 3.9, color: 'amber', description: 'Alcanza los objetivos mínimos requeridos con esfuerzo regular.' },
-    { label: 'Desempeño Bajo', min: 1.0, max: 2.9, color: 'rose', description: 'No alcanza los objetivos curriculares mínimos. Requiere plan de apoyo.' }
-  ],
-  bulletinShowPhoto: false,
-  bulletinShowRanking: false,
-  observadorAutosave: true,
-  primaryColor: '#6366f1',
-  sidebarColor: 'slate-900',
-  backgroundStyle: 'dots',
-  faviconUrl: '',
-  rfidTolerance: 15,
-  rfidAlertsEnabled: false,
-  rfidZones: [],
-  rfidTerminals: [],
-  whatsappEnabled: false,
-  whatsappApiKey: '',
-  smsGatewayEnabled: false,
-  emailSmtpHost: '',
-  pushNotificationsEnabled: false,
-  academicRiskThreshold: 75,
-  desertionPredictionModel: 'Básico',
-  onboardingAutoRules: false
-};
+const EMPTY_SETTINGS: InstitutionalSettings = {};
 
 // Sin datos de demostración — los logs y sesiones son vacíos por defecto
 const SEED_LOGS: AuditLog[] = [];

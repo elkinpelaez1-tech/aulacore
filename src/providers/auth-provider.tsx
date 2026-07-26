@@ -109,47 +109,50 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     console.log('[Auth Flow] 2. Usuario autenticado (auth.uid()):', currentUser.id, '| email:', currentUser.email);
     
     try {
-      // Step A: Consulta a profiles con timeout de 3s
+      // Step A & B: Parallel fetch of profiles and user_roles with timeout of 3s
       let profileData: any = null;
-      try {
-        console.log('[Auth Flow] 3. Iniciando consulta a profiles...');
-        const result = await withTimeout(
-          supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', currentUser.id)
-            .maybeSingle(),
-          'Consulta a profiles'
-        );
-        profileData = result.data;
+      let rolesData: any = null;
+
+      console.log('[Auth Flow] 3. Iniciando consultas paralelas a profiles y user_roles...');
+      const profilePromise = withTimeout(
+        supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', currentUser.id)
+          .maybeSingle(),
+        'Consulta a profiles'
+      );
+      const rolesPromise = withTimeout(
+        supabase
+          .from('user_roles')
+          .select('*')
+          .eq('user_id', currentUser.id),
+        'Consulta a user_roles'
+      );
+
+      const [profileResult, rolesResult] = await Promise.allSettled([profilePromise, rolesPromise]);
+
+      if (profileResult.status === 'fulfilled') {
+        profileData = profileResult.value.data;
         console.log('[Auth Flow] 3. Consulta a profiles exitosa:', profileData);
-      } catch (err: any) {
-        console.error('[Auth Flow] Error en consulta a profiles:', err?.message || err);
+      } else {
+        console.error('[Auth Flow] Error en consulta a profiles:', profileResult.reason?.message || profileResult.reason);
       }
 
+      if (rolesResult.status === 'fulfilled') {
+        rolesData = rolesResult.value.data;
+        console.log('[Auth Flow] 4. Consulta a user_roles exitosa:', rolesData);
+      } else {
+        console.error('[Auth Flow] Error en consulta a user_roles:', rolesResult.reason?.message || rolesResult.reason);
+      }
+
+      // Construir perfil con fallback de metadata si es necesario
       const userProfile = profileData || {
         first_name: currentUser.user_metadata?.first_name || currentUser.user_metadata?.name || 'Usuario',
         last_name: currentUser.user_metadata?.last_name || 'Institucional',
         avatar_url: currentUser.user_metadata?.avatar_url || '',
       };
       setProfile(userProfile as AuthProfile);
-
-      // Step B: Consulta a user_roles con timeout de 3s
-      let rolesData: any = null;
-      try {
-        console.log('[Auth Flow] 4. Iniciando consulta a user_roles...');
-        const result = await withTimeout(
-          supabase
-            .from('user_roles')
-            .select('*')
-            .eq('user_id', currentUser.id),
-          'Consulta a user_roles'
-        );
-        rolesData = result.data;
-        console.log('[Auth Flow] 4. Consulta a user_roles exitosa:', rolesData);
-      } catch (err: any) {
-        console.error('[Auth Flow] Error en consulta a user_roles:', err?.message || err);
-      }
 
       let userRoles = (rolesData?.map((r: any) => r.role) || []) as UserRole[];
       
