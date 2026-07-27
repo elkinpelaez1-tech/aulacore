@@ -7,6 +7,7 @@ import {
   MapPin, Clock, Calendar, Check, Info, ShieldAlert,
   Smartphone, Eye, Power
 } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 import { cn } from '@/lib/utils';
 
 // TYPES & INTERFACES
@@ -38,147 +39,8 @@ interface RFIDDevice {
   accessLogs: AccessLog[];
 }
 
-// INITIAL HIGH FIDELITY SEED DATA
-const SEED_RFID_DEVICES: RFIDDevice[] = [
-  {
-    id: 'rf-1',
-    rfidCode: 'RF-8092-A',
-    deviceType: 'Manilla',
-    status: 'Activo',
-    userName: 'Juan Pablo Montoya',
-    role: 'Estudiante',
-    avatar: '👦',
-    course: '11-B',
-    sede: 'Sede Campestre',
-    jornada: 'Mañana',
-    lastAccessTime: 'Hoy, 07:15 AM',
-    lastAccessLocation: 'Portería Vehicular',
-    deliveryDate: '12 Ene 2026',
-    deliveryBy: 'Lic. Claudia Gómez',
-    permissionLevel: 'Bajo',
-    observations: 'Dispositivo nominal en manilla de silicona azul.',
-    replacementsCount: 0,
-    accessLogs: [
-      { timestamp: 'Hoy, 07:15 AM', location: 'Portería Vehicular', direction: 'Entrada', status: 'Exitoso' },
-      { timestamp: 'Ayer, 02:40 PM', location: 'Portería Peatonal', direction: 'Salida', status: 'Exitoso' },
-      { timestamp: 'Ayer, 07:05 AM', location: 'Portería Vehicular', direction: 'Entrada', status: 'Exitoso' }
-    ]
-  },
-  {
-    id: 'rf-2',
-    rfidCode: 'RF-1002-X',
-    deviceType: 'Tarjeta',
-    status: 'Activo',
-    userName: 'Dr. Carlos Mario Hoyos',
-    role: 'Rector',
-    avatar: '👨‍💼',
-    sede: 'Sede Principal',
-    jornada: 'Completa',
-    lastAccessTime: 'Ayer, 06:45 PM',
-    lastAccessLocation: 'Acceso Administrativo',
-    deliveryDate: '05 Ene 2026',
-    deliveryBy: 'Soporte Técnico AulaCore',
-    permissionLevel: 'Elevado',
-    observations: 'Credencial corporativa con chip NTAG215 de alta seguridad.',
-    replacementsCount: 1,
-    accessLogs: [
-      { timestamp: 'Ayer, 06:45 PM', location: 'Acceso Administrativo', direction: 'Salida', status: 'Exitoso' },
-      { timestamp: 'Ayer, 07:30 AM', location: 'Portería Peatonal', direction: 'Entrada', status: 'Exitoso' }
-    ]
-  },
-  {
-    id: 'rf-3',
-    rfidCode: 'RF-3391-B',
-    deviceType: 'Tarjeta',
-    status: 'Reposición',
-    userName: 'Ing. Andrés Beltrán',
-    role: 'Docente',
-    avatar: '👨‍🏫',
-    sede: 'Sede Principal',
-    jornada: 'Mañana',
-    lastAccessTime: 'Hace 2 días, 02:30 PM',
-    lastAccessLocation: 'Acceso Primaria B',
-    deliveryDate: '10 Ene 2026',
-    deliveryBy: 'Rectoría',
-    permissionLevel: 'Medio',
-    observations: 'Reporta fallo intermitente en antena de biblioteca. Pendiente por cambio físico.',
-    replacementsCount: 0,
-    accessLogs: [
-      { timestamp: 'Hace 2 días, 02:30 PM', location: 'Acceso Primaria B', direction: 'Salida', status: 'Exitoso' },
-      { timestamp: 'Hace 2 días, 06:55 AM', location: 'Portería Peatonal', direction: 'Entrada', status: 'Exitoso' }
-    ]
-  },
-  {
-    id: 'rf-4',
-    rfidCode: 'RF-9921-W',
-    deviceType: 'Tag',
-    status: 'Activo',
-    userName: 'Don Ramón Valdés',
-    role: 'Vigilancia',
-    avatar: '👮',
-    sede: 'Sede Campestre',
-    jornada: 'Nocturna',
-    lastAccessTime: 'Hoy, 05:40 AM',
-    lastAccessLocation: 'Portería Peatonal',
-    deliveryDate: '15 Ene 2026',
-    deliveryBy: 'Coordinación',
-    permissionLevel: 'Crítico',
-    observations: 'Llavero RFID de alta resistencia para rondas perimetrales físicas.',
-    replacementsCount: 2,
-    accessLogs: [
-      { timestamp: 'Hoy, 05:40 AM', location: 'Portería Peatonal', direction: 'Entrada', status: 'Exitoso' },
-      { timestamp: 'Ayer, 06:10 AM', location: 'Portería Peatonal', direction: 'Salida', status: 'Exitoso' },
-      { timestamp: 'Ayer, 05:55 PM', location: 'Portería Peatonal', direction: 'Entrada', status: 'Exitoso' }
-    ]
-  },
-  {
-    id: 'rf-5',
-    rfidCode: 'RF-4882-C',
-    deviceType: 'Manilla',
-    status: 'Perdido',
-    userName: 'Valentina Restrepo',
-    role: 'Estudiante',
-    avatar: '👧',
-    course: '10-A',
-    sede: 'Sede Principal',
-    jornada: 'Tarde',
-    lastAccessTime: 'Hace 3 días, 01:10 PM',
-    lastAccessLocation: 'Portería Peatonal',
-    deliveryDate: '20 Ene 2026',
-    deliveryBy: 'Secretaría',
-    permissionLevel: 'Bajo',
-    observations: 'Reportado como extraviado por el acudiente en el patio escolar. Tarjeta anulada.',
-    replacementsCount: 1,
-    accessLogs: [
-      { timestamp: 'Hace 3 días, 02:15 PM', location: 'Biblioteca Central', direction: 'Salida', status: 'Denegado' },
-      { timestamp: 'Hace 3 días, 01:10 PM', location: 'Portería Peatonal', direction: 'Entrada', status: 'Exitoso' }
-    ]
-  },
-  {
-    id: 'rf-6',
-    rfidCode: 'RF-7112-T',
-    deviceType: 'Tag',
-    status: 'Suspendido',
-    userName: 'Carlos Andrés Gómez',
-    role: 'Transporte',
-    avatar: '👨‍🔧',
-    sede: 'Sede Campestre',
-    jornada: 'Completa',
-    lastAccessTime: 'Hace 1 semana',
-    lastAccessLocation: 'Acceso Parqueadero',
-    deliveryDate: '18 Ene 2026',
-    deliveryBy: 'Secretaría',
-    permissionLevel: 'Bajo',
-    observations: 'Tag vehicular suspendido temporalmente por retiro preventivo del bus.',
-    replacementsCount: 0,
-    accessLogs: [
-      { timestamp: 'Hace 1 semana', location: 'Acceso Parqueadero', direction: 'Salida', status: 'Exitoso' }
-    ]
-  }
-];
-
 export default function RFIDDevicesManagerPage() {
-  const [devices, setDevices] = useState<RFIDDevice[]>(SEED_RFID_DEVICES);
+  const [devices, setDevices] = useState<RFIDDevice[]>([]);
   
   // Search & Filter States
   const [searchTerm, setSearchTerm] = useState('');
@@ -209,17 +71,19 @@ export default function RFIDDevicesManagerPage() {
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  // Load from local storage
+  // Load RFID devices from Supabase
   useEffect(() => {
-    const raw = localStorage.getItem('aulacore-rfid-settings');
-    if (raw) {
-      try {
-        const parsed = JSON.parse(raw);
-        if (parsed && parsed.length > 0) setDevices(parsed);
-      } catch (e) {
-        console.error('Error loading RFID settings', e);
+    const fetchDevices = async () => {
+      const { data, error } = await supabase.from('rfid_devices').select('*');
+      if (error) {
+        console.error('Error fetching RFID devices:', error);
+        return;
       }
-    }
+      setDevices(data as RFIDDevice[]);
+      // Cache fetched data
+      localStorage.setItem('aulacore-rfid-settings', JSON.stringify(data));
+    };
+    fetchDevices();
   }, []);
 
   const saveDevices = (updatedList: RFIDDevice[]) => {

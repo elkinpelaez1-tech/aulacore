@@ -6,6 +6,7 @@ import {
   Plus, X, ChevronRight, ChevronDown, Check, AlertTriangle, 
   Terminal, ShieldCheck, Sparkles, Search, CheckCircle2, Info
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { supabase } from '@/lib/supabase';
 
 // TYPES & INTERFACES
@@ -68,33 +69,19 @@ export default function CurriculumOperationsHubPage() {
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  // Load curriculums from local storage or fetch from Supabase
+  // Load curriculums from Supabase
   useEffect(() => {
-    const loadCurriculums = async () => {
-      const raw = localStorage.getItem('aulacore-mallas-settings');
-      if (raw) {
-        try {
-          const parsed = JSON.parse(raw);
-          if (parsed && parsed.length > 0) {
-            setCurriculums(parsed as CurriculumDetails[]);
-            return;
-          }
-        } catch (e) {
-          console.error('Error loading mallas settings', e);
-        }
-      }
-      // Fetch from Supabase if no local data
+    const fetchCurriculums = async () => {
       const { data, error } = await supabase.from('curriculums').select('*');
       if (error) {
         console.error('Error fetching curriculums:', error);
         return;
       }
-      if (data) {
-        setCurriculums(data as CurriculumDetails[]);
-        localStorage.setItem('aulacore-mallas-settings', JSON.stringify(data));
-      }
+      setCurriculums(data as CurriculumDetails[]);
+      // Cache fetched data
+      localStorage.setItem('aulacore-mallas-settings', JSON.stringify(data));
     };
-    loadCurriculums();
+    fetchCurriculums();
   }, []);
 
   const saveCurriculums = (updatedList: CurriculumDetails[]) => {
