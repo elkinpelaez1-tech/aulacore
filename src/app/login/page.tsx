@@ -297,7 +297,7 @@ function LoginContent() {
       console.log(`[PERF AUDIT] [Supabase Auth] signInWithPassword TERMINA (${duration}ms)`, { user: data?.user?.id, error: signInError });
         if (signInError) {
           // EN PRODUCCIÓN: JAMÁS PERMITIR ACCESO DEMO OFFLINE ANTE CREDENCIALES INVÁLIDAS
-          if (process.env.NODE_ENV !== 'production' && DEMO_ACCOUNTS.some(acc => acc.email.toLowerCase() === email.toLowerCase())) {
+          if (process.env.NODE_ENV !== 'production' && showDemo && DEMO_ACCOUNTS.some(acc => acc.email.toLowerCase() === email.toLowerCase())) {
             console.log('Fallo inicio en Supabase en DEV, activando sesión demo offline...');
             assignRoleFromEmail(email);
             setSuccess(true);
