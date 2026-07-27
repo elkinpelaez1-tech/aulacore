@@ -61,7 +61,7 @@ export async function POST(request: Request) {
     }
 
     // B. Crear o Vincular usuario en auth.users y generar enlace de invitación (SIN ENVIAR CORREO DE SUPABASE)
-    const targetRedirectUrl = `${baseUrl}/login?email=${encodeURIComponent(email)}&inst=${institutionId}`;
+    const targetRedirectUrl = `${baseUrl}/auth/complete-invitation?email=${encodeURIComponent(email)}&inst=${institutionId}`;
 
     if (supabaseUrl && serviceRoleKey) {
       const adminSupabase = activeClient;
