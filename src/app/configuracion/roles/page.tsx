@@ -8,6 +8,7 @@ import {
   Lock, ArrowRight, UserPlus, Info, CheckCircle2, ChevronRight
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/lib/supabase';
 
 // TYPES & INTERFACES
 interface RolePermission {
@@ -62,199 +63,14 @@ const MODULES_LIST = [
   { id: 'configuracion', label: 'Configuración de Marca' },
   { id: 'matriculas', label: 'Matrículas & Onboarding' },
   { id: 'pagos', label: 'Facturación & Pagos' },
-  { id: 'ia', label: 'IA & Reglas' }
+  { id: 'ia', label: 'IA & Reg' }
 ];
 
-const SEED_ROLES: RoleDetails[] = [
-  {
-    id: 'r-1',
-    name: 'Rector',
-    description: 'Control operacional maestro y representación legal de toda la red de campus de AulaCore.',
-    hierarchy: 'Alta',
-    usersCount: 1,
-    securityStatus: 'secure',
-    mfaActive: 'Biométrico',
-    rfidScope: 'Total',
-    hoursRestriction: 'Ilimitado',
-    campusScope: 'Multi-Campus',
-    status: 'active',
-    permissions: {
-      dashboard: { view: true, create: true, edit: true, delete: true, export: true, approve: true },
-      estudiantes: { view: true, create: true, edit: true, delete: true, export: true, approve: true },
-      cursos: { view: true, create: true, edit: true, delete: true, export: true, approve: true },
-      reportes: { view: true, create: true, edit: true, delete: true, export: true, approve: true },
-      alertas: { view: true, create: true, edit: true, delete: true, export: true, approve: true },
-      rfid: { view: true, create: true, edit: true, delete: true, export: true, approve: true },
-      configuracion: { view: true, create: true, edit: true, delete: true, export: true, approve: true },
-      matriculas: { view: true, create: true, edit: true, delete: true, export: true, approve: true },
-      pagos: { view: true, create: true, edit: true, delete: true, export: true, approve: true },
-      ia: { view: true, create: true, edit: true, delete: true, export: true, approve: true }
-    }
-  },
-  {
-    id: 'r-2',
-    name: 'Coordinador',
-    description: 'Gestor de disciplina, control de asistencia curricular y organización horaria académica.',
-    hierarchy: 'Alta',
-    usersCount: 2,
-    securityStatus: 'secure',
-    mfaActive: 'Llave + RFID',
-    rfidScope: 'Total',
-    hoursRestriction: '06:00 - 20:00',
-    campusScope: 'Multi-Campus',
-    status: 'active',
-    permissions: {
-      dashboard: { view: true, create: false, edit: true, delete: false, export: true, approve: true },
-      estudiantes: { view: true, create: true, edit: true, delete: false, export: true, approve: true },
-      cursos: { view: true, create: true, edit: true, delete: true, export: true, approve: true },
-      reportes: { view: true, create: false, edit: true, delete: false, export: true, approve: false },
-      alertas: { view: true, create: true, edit: true, delete: false, export: true, approve: true },
-      rfid: { view: true, create: false, edit: true, delete: false, export: true, approve: false },
-      configuracion: { view: true, create: false, edit: false, delete: false, export: false, approve: false },
-      matriculas: { view: true, create: false, edit: true, delete: false, export: true, approve: true },
-      pagos: { view: true, create: false, edit: false, delete: false, export: false, approve: false },
-      ia: { view: true, create: false, edit: true, delete: false, export: false, approve: false }
-    }
-  },
-  {
-    id: 'r-3',
-    name: 'Secretario Académico',
-    description: 'Operario de admisiones, registro de calificaciones oficiales, matrículas y actas de grado.',
-    hierarchy: 'Media',
-    usersCount: 2,
-    securityStatus: 'secure',
-    mfaActive: 'Llave + RFID',
-    rfidScope: 'Administrativo',
-    hoursRestriction: '07:00 - 18:00',
-    campusScope: 'Sede Principal',
-    status: 'active',
-    permissions: {
-      dashboard: { view: true, create: false, edit: false, delete: false, export: false, approve: false },
-      estudiantes: { view: true, create: true, edit: true, delete: false, export: true, approve: false },
-      cursos: { view: true, create: false, edit: true, delete: false, export: true, approve: false },
-      reportes: { view: true, create: true, edit: true, delete: false, export: true, approve: true },
-      alertas: { view: true, create: false, edit: false, delete: false, export: false, approve: false },
-      rfid: { view: false, create: false, edit: false, delete: false, export: false, approve: false },
-      configuracion: { view: true, create: false, edit: true, delete: false, export: false, approve: false },
-      matriculas: { view: true, create: true, edit: true, delete: true, export: true, approve: true },
-      pagos: { view: true, create: true, edit: true, delete: false, export: true, approve: false },
-      ia: { view: false, create: false, edit: false, delete: false, export: false, approve: false }
-    }
-  },
-  {
-    id: 'r-4',
-    name: 'Docente',
-    description: 'Generador de notas, controlador de asistencia del aula, creador de mallas curriculares.',
-    hierarchy: 'Media',
-    usersCount: 42,
-    securityStatus: 'secure',
-    mfaActive: 'Clave simple',
-    rfidScope: 'Salón',
-    hoursRestriction: '06:00 - 18:00',
-    campusScope: 'Sede Asignada',
-    status: 'active',
-    permissions: {
-      dashboard: { view: true, create: false, edit: false, delete: false, export: false, approve: false },
-      estudiantes: { view: true, create: false, edit: true, delete: false, export: false, approve: false },
-      cursos: { view: true, create: false, edit: false, delete: false, export: false, approve: false },
-      reportes: { view: true, create: true, edit: true, delete: false, export: false, approve: false },
-      alertas: { view: true, create: false, edit: false, delete: false, export: false, approve: false },
-      rfid: { view: false, create: false, edit: false, delete: false, export: false, approve: false },
-      configuracion: { view: false, create: false, edit: false, delete: false, export: false, approve: false },
-      matriculas: { view: false, create: false, edit: false, delete: false, export: false, approve: false },
-      pagos: { view: false, create: false, edit: false, delete: false, export: false, approve: false },
-      ia: { view: true, create: false, edit: false, delete: false, export: false, approve: false }
-    }
-  },
-  {
-    id: 'r-5',
-    name: 'Vigilancia',
-    description: 'Encargado del control físico de accesos, lectura RFID de portería y aforo en zonas comunes.',
-    hierarchy: 'Baja',
-    usersCount: 4,
-    securityStatus: 'secure',
-    mfaActive: 'RFID Tag',
-    rfidScope: 'Portería Total',
-    hoursRestriction: 'Ilimitado',
-    campusScope: 'Sede Asignada',
-    status: 'active',
-    permissions: {
-      dashboard: { view: false, create: false, edit: false, delete: false, export: false, approve: false },
-      estudiantes: { view: false, create: false, edit: false, delete: false, export: false, approve: false },
-      cursos: { view: false, create: false, edit: false, delete: false, export: false, approve: false },
-      reportes: { view: false, create: false, edit: false, delete: false, export: false, approve: false },
-      alertas: { view: true, create: false, edit: false, delete: false, export: false, approve: false },
-      rfid: { view: true, create: true, edit: true, delete: false, export: true, approve: true },
-      configuracion: { view: false, create: false, edit: false, delete: false, export: false, approve: false },
-      matriculas: { view: false, create: false, edit: false, delete: false, export: false, approve: false },
-      pagos: { view: false, create: false, edit: false, delete: false, export: false, approve: false },
-      ia: { view: false, create: false, edit: false, delete: false, export: false, approve: false }
-    }
-  },
-  {
-    id: 'r-6',
-    name: 'Transporte',
-    description: 'Conductores y coordinadores de rutas escolares con telemetría GPS e indexación RFID.',
-    hierarchy: 'Baja',
-    usersCount: 8,
-    securityStatus: 'restricted',
-    mfaActive: 'RFID Tag',
-    rfidScope: 'Acceso Vehículos',
-    hoursRestriction: '05:00 - 19:00',
-    campusScope: 'Sede Rural/Principal',
-    status: 'active',
-    permissions: {
-      dashboard: { view: false, create: false, edit: false, delete: false, export: false, approve: false },
-      estudiantes: { view: true, create: false, edit: false, delete: false, export: false, approve: false },
-      cursos: { view: false, create: false, edit: false, delete: false, export: false, approve: false },
-      reportes: { view: false, create: false, edit: false, delete: false, export: false, approve: false },
-      alertas: { view: true, create: false, edit: false, delete: false, export: false, approve: false },
-      rfid: { view: true, create: false, edit: true, delete: false, export: false, approve: false },
-      configuracion: { view: false, create: false, edit: false, delete: false, export: false, approve: false },
-      matriculas: { view: false, create: false, edit: false, delete: false, export: false, approve: false },
-      pagos: { view: false, create: false, edit: false, delete: false, export: false, approve: false },
-      ia: { view: false, create: false, edit: false, delete: false, export: false, approve: false }
-    }
-  }
-];
-
-const SEED_USERS: Record<string, AssignedUser[]> = {
-  'r-1': [
-    { name: 'Dra. Mariana Restrepo', email: 'm.restrepo@aulacore.edu.co', avatar: '👩‍💼', lastActive: 'Activa ahora', activeNow: true, device: 'Safari - macOS' }
-  ],
-  'r-2': [
-    { name: 'Lic. Claudia Gómez', email: 'c.gomez@aulacore.edu.co', avatar: '👩‍🏫', lastActive: 'Hace 5 min', activeNow: true, device: 'Chrome - Windows 11' },
-    { name: 'Ing. Alberto González', email: 'a.gonzalez@aulacore.edu.co', avatar: '👨‍🏫', lastActive: 'Ayer, 04:30 PM', activeNow: false, device: 'iPad App' }
-  ],
-  'r-3': [
-    { name: 'Dr. Carlos Mario Hoyos', email: 'c.hoyos@aulacore.edu.co', avatar: '👨‍💼', lastActive: 'Activo ahora', activeNow: true, device: 'Chrome - Windows 11' },
-    { name: 'Dra. María Clara Tobón', email: 'mc.tobon@aulacore.edu.co', avatar: '👩‍💼', lastActive: 'Hace 12 h', activeNow: false, device: 'Safari - iOS' }
-  ],
-  'r-4': [
-    { name: 'Lic. Sofia Tobón', email: 's.tobon@aulacore.edu.co', avatar: '👩‍🏫', lastActive: 'Activa ahora', activeNow: true, device: 'Chrome - macOS' },
-    { name: 'Prof. Andrés Beltrán', email: 'a.beltran@aulacore.edu.co', avatar: '👨‍🏫', lastActive: 'Hace 20 min', activeNow: false, device: 'Android Phone' },
-    { name: 'Lic. Martha Restrepo', email: 'martha.r@aulacore.edu.co', avatar: '👩‍🏫', lastActive: 'Hace 3 h', activeNow: false, device: 'Firefox - Linux' }
-  ]
-};
-
-const SEED_LOGS: Record<string, SecurityLog[]> = {
-  'r-1': [
-    { time: 'Hace 12 min', action: 'Elevación de privilegios en Matrícula', user: 'Mariana Restrepo', ip: '190.24.45.12', level: 'info' },
-    { time: 'Hace 2 h', action: 'Doble autenticación biométrica exitosa', user: 'Mariana Restrepo', ip: '190.24.45.12', level: 'info' }
-  ],
-  'r-2': [
-    { time: 'Hace 23 min', action: 'Modificó tolerancia de retardo RFID a 15min', user: 'Claudia Gómez', ip: '190.24.45.13', level: 'info' },
-    { time: 'Ayer', action: 'Intento de ingreso bloqueado fuera de horario', user: 'Alberto González', ip: '186.115.30.94', level: 'warning' }
-  ],
-  'r-4': [
-    { time: 'Hace 4 min', action: 'Ingreso masivo de notas matemáticas 11-A', user: 'Sofia Tobón', ip: '190.24.45.88', level: 'info' },
-    { time: 'Ayer', action: 'Exportó boletines de periodo 1 (Pre-aprobación)', user: 'Sofia Tobón', ip: '190.24.45.88', level: 'info' }
-  ]
-};
+// No hardcoded logs – logs will be fetched as needed.
 
 export default function IdentityAccessControlCenterPage() {
-  const [roles, setSedes] = useState<RoleDetails[]>(SEED_ROLES);
-  const [selectedRoleId, setSelectedRoleId] = useState<string>('r-1');
+  const [roles, setSedes] = useState<RoleDetails[]>([]);
+  const [selectedRoleId, setSelectedRoleId] = useState<string>('');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Search & Filter State
@@ -280,17 +96,37 @@ export default function IdentityAccessControlCenterPage() {
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  // Sync state with LocalStorage roles settings
+  // Sync state with Supabase roles
   useEffect(() => {
-    const rawRoles = localStorage.getItem('aulacore-roles-settings');
-    if (rawRoles) {
-      try {
-        const parsed = JSON.parse(rawRoles);
-        if (parsed && parsed.length > 0) setSedes(parsed);
-      } catch (e) {
-        console.error('Error loading roles settings', e);
+    const fetchRoles = async () => {
+      const { data, error } = await supabase.from('roles').select('*');
+      if (error) {
+        console.error('Error fetching roles:', error);
+        return;
       }
-    }
+      if (data) {
+        const defaultPermissions: Record<string, RolePermission> = {};
+        MODULES_LIST.forEach(mod => {
+          defaultPermissions[mod.id] = { view: true, create: false, edit: false, delete: false, export: false, approve: false };
+        });
+        const fetchedRoles: RoleDetails[] = (data as any[]).map(row => ({
+          id: row.id,
+          name: row.name ?? 'Unnamed',
+          description: row.description ?? '',
+          hierarchy: row.hierarchy ?? 'Media',
+          usersCount: row.usersCount ?? 0,
+          securityStatus: row.securityStatus ?? 'secure',
+          mfaActive: row.mfaActive ?? 'Ninguno',
+          rfidScope: row.rfidScope ?? 'Ninguno',
+          hoursRestriction: row.hoursRestriction ?? 'Ilimitado',
+          campusScope: row.campusScope ?? 'Sede Asignada',
+          status: row.status ?? 'active',
+          permissions: defaultPermissions,
+        }));
+        setSedes(fetchedRoles);
+      }
+    };
+    fetchRoles();
   }, []);
 
   const saveRoles = (updatedList: RoleDetails[]) => {
@@ -299,7 +135,7 @@ export default function IdentityAccessControlCenterPage() {
   };
 
   // Get active role details for the Matrix
-  const activeRole = roles.find(r => r.id === selectedRoleId) || roles[0];
+  const activeRole = roles.find(r => r.id === selectedRoleId) || (roles.length > 0 ? roles[0] : null);
 
   // Get selected drawer role details
   const drawerRole = roles.find(r => r.id === drawerRoleId) || null;
@@ -323,7 +159,7 @@ export default function IdentityAccessControlCenterPage() {
     });
 
     saveRoles(updatedRoles);
-    triggerToast(`✓ Permiso ${actionKey.toUpperCase()} de ${moduleId.toUpperCase()} modificado para ${activeRole.name}.`);
+    triggerToast(`✓ Permiso ${actionKey.toUpperCase()} de ${moduleId.toUpperCase()} modificado para ${activeRole?.name ?? ''}.`);
   };
 
   // Enable/Disable role switch
@@ -384,18 +220,15 @@ export default function IdentityAccessControlCenterPage() {
     if (drawerRoleId === id) setDrawerOpen(false);
   };
 
-  // Helper values for security logs
+  // Helper values for security logs (no demo data)
   const getRoleLogs = (roleId: string): SecurityLog[] => {
-    return SEED_LOGS[roleId] || [
-      { time: 'Hace 4 h', action: 'Acceso autorizado al portal', user: 'Usuario de Red', ip: '190.24.45.15', level: 'info' },
-      { time: 'Ayer', action: 'Lectura de credencial RFID física', user: 'Usuario de Red', ip: '190.24.45.15', level: 'info' }
-    ];
+    // TODO: Replace with real Supabase fetch if logs table exists
+    return [];
   };
 
   const getRoleUsers = (roleId: string): AssignedUser[] => {
-    return SEED_USERS[roleId] || [
-      { name: 'Administrador de Pruebas', email: 'admin.temp@aulacore.edu.co', avatar: '👨‍💻', lastActive: 'Hace 2 d', activeNow: false, device: 'Chrome - Linux' }
-    ];
+    // TODO: Replace with real Supabase fetch if user-role mapping exists
+    return [];
   };
 
   // Filtered Roles Grid list
@@ -412,10 +245,11 @@ export default function IdentityAccessControlCenterPage() {
   const totalRoles = roles.length;
   const activeRolesCount = roles.filter(r => r.status === 'active').length;
   
-  // Count connected users
+  // Count connected users (based on fetched role users)
   let connectedUsers = 0;
-  Object.values(SEED_USERS).forEach(userList => {
-    userList.forEach(u => { if (u.activeNow) connectedUsers++; });
+  roles.forEach(role => {
+    const users = getRoleUsers(role.id);
+    users.forEach(u => { if (u.activeNow) connectedUsers++; });
   });
 
   // Count active critical permissions (delete, export, approve)
@@ -662,7 +496,7 @@ export default function IdentityAccessControlCenterPage() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100 pb-4">
           <div>
             <h3 className="text-lg font-semibold text-slate-800 tracking-tight">Matriz de Permisos Global</h3>
-            <p className="text-xs text-slate-450 font-medium">Audita y edita la matriz cruzada de privilegios de acceso para el rol de <span className="text-indigo-600 font-bold underline leading-none uppercase">{activeRole.name}</span>.</p>
+            <p className="text-xs text-slate-450 font-medium">Audita y edita la matriz cruzada de privilegios de acceso para el rol de <span className="text-indigo-600 font-bold underline leading-none uppercase">{activeRole?.name ?? ''}</span>.</p>
           </div>
 
           {/* Active Role selector drop */}
@@ -696,7 +530,7 @@ export default function IdentityAccessControlCenterPage() {
             </thead>
             <tbody className="divide-y divide-slate-100 font-medium">
               {MODULES_LIST.map(mod => {
-                const permissions = activeRole.permissions[mod.id] || { view: false, create: false, edit: false, delete: false, export: false, approve: false };
+                const permissions = (activeRole?.permissions[mod.id]) || { view: false, create: false, edit: false, delete: false, export: false, approve: false };
 
                 return (
                   <tr key={mod.id} className="hover:bg-slate-50/50 transition-colors">
