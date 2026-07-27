@@ -295,26 +295,23 @@ function LoginContent() {
       });
       const duration = (performance.now() - startTime).toFixed(2);
       console.log(`[PERF AUDIT] [Supabase Auth] signInWithPassword TERMINA (${duration}ms)`, { user: data?.user?.id, error: signInError });
-
-      if (signInError) {
-        // EN PRODUCCIÓN: JAMÁS PERMITIR ACCESO DEMO OFFLINE ANTE CREDENCIALES INVÁLIDAS
-        if (process.env.NODE_ENV !== 'production' && (email.toLowerCase().includes('@aulacore.com') || email.toLowerCase().includes('@sed.gov.co') || email.toLowerCase().includes('territorio') || email.toLowerCase().includes('secretario'))) {
-          console.log('Fallo inicio en Supabase en DEV, activando sesión demo offline...');
-          assignRoleFromEmail(email);
-          setSuccess(true);
-          await refreshSession();
-          window.location.href = getTargetUrl(email);
-          return;
+        if (signInError) {
+          // EN PRODUCCIÓN: JAMÁS PERMITIR ACCESO DEMO OFFLINE ANTE CREDENCIALES INVÁLIDAS
+          if (process.env.NODE_ENV !== 'production' && DEMO_ACCOUNTS.some(acc => acc.email.toLowerCase() === email.toLowerCase())) {
+            console.log('Fallo inicio en Supabase en DEV, activando sesión demo offline...');
+            assignRoleFromEmail(email);
+            setSuccess(true);
+            await refreshSession();
+            window.location.href = getTargetUrl(email);
+            return;
+          }
+          // Not a demo account or production env: propagate error
+          throw signInError;
         }
-        throw signInError;
-      }
-
-      if (email.toLowerCase().includes('@aulacore.com') || email.toLowerCase().includes('@sed.gov.co') || email.toLowerCase().includes('territorio') || email.toLowerCase().includes('secretario')) {
-        assignRoleFromEmail(email);
-      }
-      setSuccess(true);
-      await refreshSession();
-      window.location.href = getTargetUrl(email);
+        // Normal successful login flow
+        setSuccess(true);
+        await refreshSession();
+        window.location.href = getTargetUrl(email);
     } catch (err: any) {
       console.error('Error al iniciar sesión:', err);
       let userFriendlyError = err.message || 'Ocurrió un error inesperado al intentar iniciar sesión.';
