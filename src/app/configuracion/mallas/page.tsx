@@ -6,7 +6,7 @@ import {
   Plus, X, ChevronRight, ChevronDown, Check, AlertTriangle, 
   Terminal, ShieldCheck, Sparkles, Search, CheckCircle2, Info
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { supabase } from '@/lib/supabase';
 
 // TYPES & INTERFACES
 interface Subject {
@@ -37,90 +37,9 @@ interface CurriculumDetails {
   areas: AreaDetails[];
 }
 
-// INITIAL HIGH FIDELITY SEED DATA
-const SEED_CURRICULUMS: CurriculumDetails[] = [
-  {
-    id: 'c-1',
-    name: 'Malla Curricular Integral - Transición',
-    levelName: 'Preescolar',
-    coordinator: 'Lic. Claudia Gómez',
-    subjectsCount: 3,
-    hoursWeeklyTotal: 20,
-    coursesCount: 4,
-    status: 'Aprobado',
-    lastUpdated: 'Hace 3 días',
-    areas: [
-      {
-        name: 'Dimensiones del Desarrollo',
-        code: 'DIM-PRE',
-        subjects: [
-          { name: 'Dimensión Corporal', hoursWeekly: 6, teacherSuggested: 'Lic. Claudia Gómez', avatar: '👩‍🏫', linkedCourses: ['Jardín A', 'Transición B'], description: 'Desarrollo psicomotriz, coordinación física, expresión corporal y lateralidad en los alumnos.' },
-          { name: 'Dimensión Cognitiva', hoursWeekly: 8, teacherSuggested: 'Lic. María Clara Tobón', avatar: '👩‍💼', linkedCourses: ['Jardín A', 'Transición B'], description: 'Pensamiento lógico, exploración del entorno, matemáticas iniciales y resolución de problemas sencillos.' },
-          { name: 'Dimensión Comunicativa', hoursWeekly: 6, teacherSuggested: 'Lic. Sofia Tobón', avatar: '👩‍🏫', linkedCourses: ['Jardín A', 'Transición B'], description: 'Lectoescritura inicial, comprensión del lenguaje oral, vocabulario y fonética lúdica.' }
-        ]
-      }
-    ]
-  },
-  {
-    id: 'c-2',
-    name: 'Malla Curricular Básica - Ciclo Primaria',
-    levelName: 'Primaria',
-    coordinator: 'Lic. Sofia Tobón',
-    subjectsCount: 5,
-    hoursWeeklyTotal: 25,
-    coursesCount: 6,
-    status: 'Aprobado',
-    lastUpdated: 'Hace 1 semana',
-    areas: [
-      {
-        name: 'Áreas Académicas Elementales',
-        code: 'ARE-PRIM',
-        subjects: [
-          { name: 'Matemáticas', hoursWeekly: 5, teacherSuggested: 'Dr. Carlos Mario Hoyos', avatar: '👨‍💼', linkedCourses: ['1-A', '2-A', '3-A', '4-B', '5-A'], description: 'Aritmética elemental, geometría de formas básicas, conjuntos, sumas, restas y multiplicaciones.' },
-          { name: 'Lengua Castellana', hoursWeekly: 5, teacherSuggested: 'Lic. Sofia Tobón', avatar: '👩‍🏫', linkedCourses: ['1-A', '2-A', '3-A', '4-B', '5-A'], description: 'Comprensión lectora, gramática inicial, ortografía, redacción de textos breves y oratoria.' },
-          { name: 'Ciencias Naturales', hoursWeekly: 4, teacherSuggested: 'Lic. Claudia Gómez', avatar: '👩‍🏫', linkedCourses: ['1-A', '2-A', '3-A', '4-B', '5-A'], description: 'Conocimiento del cuerpo humano, la fauna, la flora local, ecosistemas básicos y cuidado ambiental.' },
-          { name: 'Ciencias Sociales', hoursWeekly: 4, teacherSuggested: 'Lic. Martha Restrepo', avatar: '👩‍🏫', linkedCourses: ['1-A', '2-A', '3-A', '4-B', '5-A'], description: 'Geografía colombiana, historia de la comunidad, deberes cívicos y convivencia pacífica.' },
-          { name: 'Inglés Comunicativo', hoursWeekly: 7, teacherSuggested: 'Prof. Andrés Beltrán', avatar: '👨‍🏫', linkedCourses: ['1-A', '2-A', '3-A', '4-B', '5-A'], description: 'Vocabulario interactivo, escucha activa, saludos y diálogos elementales en lengua extranjera.' }
-        ]
-      }
-    ]
-  },
-  {
-    id: 'c-3',
-    name: 'Malla Curricular Oficial - Bachillerato Técnico',
-    levelName: 'Bachillerato',
-    coordinator: 'Dr. Carlos Mario Hoyos',
-    subjectsCount: 8,
-    hoursWeeklyTotal: 30,
-    coursesCount: 10,
-    status: 'Aprobado',
-    lastUpdated: 'Ayer, 04:30 PM',
-    areas: [
-      {
-        name: 'Ciencias Exactas & Naturales',
-        code: 'CIEN-BACH',
-        subjects: [
-          { name: 'Álgebra & Cálculo', hoursWeekly: 5, teacherSuggested: 'Dr. Carlos Mario Hoyos', avatar: '👨‍💼', linkedCourses: ['8-A', '9-B', '10-A', '11-B'], description: 'Ecuaciones de primer y segundo grado, funciones trigonométricas, límites e introducción al cálculo diferencial.' },
-          { name: 'Física Clásica', hoursWeekly: 4, teacherSuggested: 'Ing. Andrés Beltrán', avatar: '👨‍🏫', linkedCourses: ['10-A', '11-B'], description: 'Mecánica de fluidos, cinemática, electromagnetismo elemental y termodinámica aplicada.' },
-          { name: 'Química Orgánica', hoursWeekly: 4, teacherSuggested: 'Ing. Andrés Beltrán', avatar: '👨‍🏫', linkedCourses: ['10-A', '11-B'], description: 'Estructuras de carbono, reacciones, balanceo de ecuaciones y tablas periódicas avanzadas.' }
-        ]
-      },
-      {
-        name: 'Humanidades & Tecnología',
-        code: 'HUM-TECN',
-        subjects: [
-          { name: 'Filosofía & Ética', hoursWeekly: 3, teacherSuggested: 'Lic. Martha Restrepo', avatar: '👩‍🏫', linkedCourses: ['10-A', '11-B'], description: 'Historia del pensamiento occidental, lógica proposicional, análisis crítico y ética ciudadana.' },
-          { name: 'Tecnología & Programación', hoursWeekly: 4, teacherSuggested: 'Ing. Andrés Beltrán', avatar: '👨‍🏫', linkedCourses: ['6-A', '7-B', '8-A', '9-B', '10-A', '11-B'], description: 'Pensamiento algorítmico, lógica digital, diagramas de flujo y bases de datos relacionales.' },
-          { name: 'Lengua Castellana Superior', hoursWeekly: 4, teacherSuggested: 'Lic. Sofia Tobón', avatar: '👩‍🏫', linkedCourses: ['6-A', '7-B', '8-A', '9-B', '10-A', '11-B'], description: 'Literatura hispanoamericana, semiótica, análisis de textos y técnicas avanzadas de oratoria.' },
-          { name: 'Inglés Técnico C1', hoursWeekly: 6, teacherSuggested: 'Prof. Andrés Beltrán', avatar: '👨‍🏫', linkedCourses: ['6-A', '7-B', '8-A', '9-B', '10-A', '11-B'], description: 'Lecturas especializadas, debates académicos, preparación para el examen IELTS e inglés de negocios.' }
-        ]
-      }
-    ]
-  }
-];
-
 export default function CurriculumOperationsHubPage() {
-  const [curriculums, setCurriculums] = useState<CurriculumDetails[]>(SEED_CURRICULUMS);
+  // Fetch curriculums from Supabase
+  const [curriculums, setCurriculums] = useState<CurriculumDetails[]>([]);
   const [activeTab, setActiveTab] = useState<'mallas' | 'areas' | 'asignaturas' | 'intensidad'>('mallas');
   
   // Drawer state
@@ -149,17 +68,33 @@ export default function CurriculumOperationsHubPage() {
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  // Load from local storage
+  // Load curriculums from local storage or fetch from Supabase
   useEffect(() => {
-    const raw = localStorage.getItem('aulacore-mallas-settings');
-    if (raw) {
-      try {
-        const parsed = JSON.parse(raw);
-        if (parsed && parsed.length > 0) setCurriculums(parsed);
-      } catch (e) {
-        console.error('Error loading mallas settings', e);
+    const loadCurriculums = async () => {
+      const raw = localStorage.getItem('aulacore-mallas-settings');
+      if (raw) {
+        try {
+          const parsed = JSON.parse(raw);
+          if (parsed && parsed.length > 0) {
+            setCurriculums(parsed as CurriculumDetails[]);
+            return;
+          }
+        } catch (e) {
+          console.error('Error loading mallas settings', e);
+        }
       }
-    }
+      // Fetch from Supabase if no local data
+      const { data, error } = await supabase.from('curriculums').select('*');
+      if (error) {
+        console.error('Error fetching curriculums:', error);
+        return;
+      }
+      if (data) {
+        setCurriculums(data as CurriculumDetails[]);
+        localStorage.setItem('aulacore-mallas-settings', JSON.stringify(data));
+      }
+    };
+    loadCurriculums();
   }, []);
 
   const saveCurriculums = (updatedList: CurriculumDetails[]) => {
