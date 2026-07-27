@@ -58,21 +58,10 @@ export default function DocumentosPage() {
   const { userRole, mounted } = useRole();
 
   // 1. Estados Locales de Documentos & Informes
-  const [documentsList, setDocumentsList] = useState<DocumentItem[]>([
-    { id: 'doc-1', type: 'Boletín', title: 'Boletines Académicos Período 2 - Grado 10-A', recipients: 'Padres de 10-A', date: '29 May', status: 'Concluido' },
-    { id: 'doc-2', type: 'Circular', title: 'Circular Salida de Campo Pedagógica a Observatorio', recipients: 'Padres de 10-A, 11-B', date: '28 May', status: 'Enviado' },
-    { id: 'doc-3', type: 'Certificado', title: 'Certificado de Matrícula Oficial - Pedro Ramírez', recipients: 'Acudiente Carlos Ortiz', date: '28 May', status: 'Concluido' },
-    { id: 'doc-4', type: 'Informe', title: 'Informe de Asistencia RFID Consolidado P2', recipients: 'Rectoría / Coordinación', date: '25 May', status: 'Concluido' },
-    { id: 'doc-5', type: 'Circular', title: 'Convocatoria a Escuela de Padres de Primaria', recipients: 'Padres de Primaria', date: '22 May', status: 'Concluido' }
-  ]);
+  const [documentsList, setDocumentsList] = useState<DocumentItem[]>([]);
 
   // 2. Estados Locales de Reuniones
-  const [meetingsList, setMeetingsList] = useState<MeetingItem[]>([
-    { id: 'meet-1', title: 'Cita con Acudiente Carlos Ortiz', participants: 'Lic. Carlos Martínez • Acudiente', date: '2026-05-29', time: '02:00 PM', mode: 'Presencial', status: 'Programada' },
-    { id: 'meet-2', title: 'Reunión General de Personal Administrativo', participants: 'Toda la Secretaría', date: '2026-05-30', time: '08:30 AM', mode: 'Presencial', status: 'Programada' },
-    { id: 'meet-3', title: 'Comité de Convivencia Extraordinario Grado 9°', participants: 'Coord. Convivencia • Docentes', date: '2026-05-26', time: '11:00 AM', mode: 'Virtual', status: 'Concluida' },
-    { id: 'meet-4', title: 'Inducción de Plataforma AulaCore a Docentes', participants: 'Todos los Docentes', date: '2026-05-15', time: '02:00 PM', mode: 'Virtual', status: 'Concluida' }
-  ]);
+  const [meetingsList, setMeetingsList] = useState<MeetingItem[]>([]);
 
   // 3. Pestaña Activa en Formulario Elaborar Comunicado
   const [formTab, setFormTab] = useState<'circular' | 'cita'>('circular');
@@ -239,7 +228,7 @@ export default function DocumentosPage() {
               <Megaphone className="w-4.5 h-4.5 text-amber-600" />
             </div>
             <div className="mt-2.5">
-              <span className="text-2xl font-black text-slate-800 tracking-tight">24</span>
+              <span className="text-2xl font-black text-slate-800 tracking-tight">{documentsList.length}</span>
               <p className="text-[9px] text-slate-400 font-bold mt-1">Enviados a padres y docentes</p>
             </div>
           </Card>
@@ -250,7 +239,7 @@ export default function DocumentosPage() {
               <Calendar className="w-4.5 h-4.5 text-indigo-500" />
             </div>
             <div className="mt-2.5">
-              <span className="text-2xl font-black text-slate-800 tracking-tight">6</span>
+              <span className="text-2xl font-black text-slate-800 tracking-tight">{meetingsList.length}</span>
               <p className="text-[9px] text-indigo-600 font-bold mt-1">Programadas para esta semana</p>
             </div>
           </Card>
@@ -261,7 +250,7 @@ export default function DocumentosPage() {
               <CheckCircle2 className="w-4.5 h-4.5 text-emerald-500" />
             </div>
             <div className="mt-2.5">
-              <span className="text-2xl font-black text-slate-800 tracking-tight">12</span>
+              <span className="text-2xl font-black text-slate-800 tracking-tight">{documentsList.filter(d => d.type === 'Informe').length}</span>
               <p className="text-[9px] text-emerald-600 font-bold mt-1">Sincronizados en la base de datos</p>
             </div>
           </Card>
@@ -272,7 +261,7 @@ export default function DocumentosPage() {
               <FileText className="w-4.5 h-4.5 text-slate-500" />
             </div>
             <div className="mt-2.5">
-              <span className="text-2xl font-black text-slate-800 tracking-tight">5</span>
+              <span className="text-2xl font-black text-slate-800 tracking-tight">0</span>
               <p className="text-[9px] text-slate-400 font-bold mt-1">Formatos de circular cargados</p>
             </div>
           </Card>
