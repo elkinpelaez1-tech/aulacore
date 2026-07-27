@@ -1132,18 +1132,8 @@ export default function DashboardPage() {
           )}
 
           {rectorTab === 'audit_vault' && (() => {
-            const mockAuditTrail = [
-              { id: '1', doc: 'AC-VERIFY-777A', type: 'Boletín Académico', action: 'Generado & Firmado', actor: 'Patricia Martínez (Directora)', time: 'Hace 2 horas', status: 'signed' },
-              { id: '2', doc: 'AC-VERIFY-999C', type: 'Compromiso Académico', action: 'Firmado Digitalmente', actor: 'Carlos Ortiz (Acudiente)', time: 'Hace 3 horas', status: 'signed' },
-              { id: '3', doc: 'AC-VERIFY-888B', type: 'Citación Oficial', action: 'Enviado por Correo', actor: 'Patricia Martínez (Directora)', time: 'Ayer', status: 'emailed' },
-              { id: '4', doc: 'AC-VERIFY-777A', type: 'Boletín Académico', action: 'Impreso', actor: 'Carlos Ortiz (Acudiente)', time: 'Ayer', status: 'printed' },
-            ];
-
-            const mockDocsList = [
-              { code: 'AC-VERIFY-777A', type: 'academic_report', name: 'Boletín Académico', student: 'Alejandro Ortiz', course: '10-A', status: 'signed', date: '24/05/2026', actor: 'Lic. Martínez' },
-              { code: 'AC-VERIFY-888B', type: 'citations', name: 'Citación Oficial', student: 'Sofía Ramírez', course: '10-A', status: 'emailed', date: '24/05/2026', actor: 'Lic. Martínez' },
-              { code: 'AC-VERIFY-999C', type: 'academic_compromise', name: 'Compromiso Académico', student: 'Mateo Gómez', course: '10-A', status: 'signed', date: '23/05/2026', actor: 'Lic. Martínez' },
-            ];
+            const mockAuditTrail: any[] = [];
+            const mockDocsList: any[] = [];
 
             const handleVerifyByCode = (verifyCode: string) => {
               let type: DocumentType = 'academic_report';
@@ -1243,9 +1233,9 @@ export default function DashboardPage() {
                     </h4>
                     <div className="space-y-3.5 pt-1.5">
                       {[
-                        { label: 'Documentos Emitidos', val: '1,482', pct: '100%', color: 'text-slate-850' },
-                        { label: 'Firmas Criptográficas Activas', val: '1,424', pct: '96%', color: 'text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-150 shadow-xs' },
-                        { label: 'Auditorías Registradas', val: '4,892', pct: '100%', color: 'text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-150 shadow-xs' }
+                        { label: 'Documentos Emitidos', val: `${mockDocsList.length}`, pct: '0%', color: 'text-slate-850' },
+                        { label: 'Firmas Criptográficas Activas', val: '0', pct: '0%', color: 'text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-150 shadow-xs' },
+                        { label: 'Auditorías Registradas', val: `${mockAuditTrail.length}`, pct: '0%', color: 'text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-150 shadow-xs' }
                       ].map((kpi, idx) => (
                         <div key={idx} className="flex justify-between items-center text-xs font-bold">
                           <span className="text-slate-500">{kpi.label}</span>
