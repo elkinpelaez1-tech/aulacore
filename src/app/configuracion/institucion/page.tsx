@@ -96,7 +96,42 @@ interface InstitutionalSettings {
 }
 
 // ESTADO VACÍO – Se usa como punto de partida antes de recibir datos reales de Supabase
-const EMPTY_SETTINGS: InstitutionalSettings = {};
+const EMPTY_SETTINGS: InstitutionalSettings = {
+  name: '',
+  slogan: '',
+  daneCode: '',
+  nit: '',
+  resolution: '',
+  legalNature: 'Privada',
+  rectorName: '',
+  secretaryName: '',
+  logoPrincipal: '',
+  logoSecundario: '',
+  signatureUrl: '',
+  sedes: [],
+  minPassGrade: 0,
+  periodsCount: 0,
+  scales: [],
+  bulletinShowPhoto: false,
+  bulletinShowRanking: false,
+  observadorAutosave: false,
+  primaryColor: '#000000',
+  sidebarColor: 'slate-900',
+  backgroundStyle: 'none',
+  faviconUrl: '',
+  rfidTolerance: 0,
+  rfidAlertsEnabled: false,
+  rfidZones: [],
+  rfidTerminals: [],
+  whatsappEnabled: false,
+  whatsappApiKey: '',
+  smsGatewayEnabled: false,
+  emailSmtpHost: '',
+  pushNotificationsEnabled: false,
+  academicRiskThreshold: 0,
+  desertionPredictionModel: 'Básico',
+  onboardingAutoRules: false
+};
 
 // Sin datos de demostración — los logs y sesiones son vacíos por defecto
 const SEED_LOGS: AuditLog[] = [];
