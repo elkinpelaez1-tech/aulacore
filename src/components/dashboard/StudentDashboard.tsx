@@ -227,18 +227,7 @@ const SUBJECT_PERFORMANCE = [
                 </div>
               </div>
             ) : (
-              <div className="mt-4 bg-rose-50 border border-rose-100 rounded-lg p-3 flex items-start gap-3">
-                <AlertCircle className="w-5 h-5 text-rose-500 shrink-0 mt-0.5" />
-                <div>
-                  <h4 className="text-sm font-bold text-rose-800 mb-1">Riesgo en Tecnología</h4>
-                  <p className="text-xs text-rose-600 font-medium leading-tight">
-                    Tu promedio actual es 2.8. El Tutor IA sugiere repasar "Lógica y Diagramas de Flujo" antes de la evaluación final.
-                  </p>
-                  <Button variant="link" className="p-0 h-auto text-xs font-bold text-rose-700 mt-2">
-                    Ver Plan de Recuperación <ChevronRight className="w-3 h-3 ml-1" />
-                  </Button>
-                </div>
-              </div>
+              <div className="mt-4 text-center text-slate-500">Sin datos de riesgo</div>
             )}
           </CardContent>
         </Card>

@@ -87,9 +87,9 @@ export default function DashboardPage() {
   // --- ESTADOS DE GENERACIÓN DOCUMENTAL (DocumentEngine Layer) ---
   const [isDocEngineOpen, setIsDocEngineOpen] = useState(false);
   const [docEngineType, setDocEngineType] = useState<DocumentType>('academic_report');
-  const [docEngineStudentId, setDocEngineStudentId] = useState('77777777-7777-7777-7777-777777777777');
-  const [docEngineStudentName, setDocEngineStudentName] = useState('Alejandro Ortiz');
-  const [docEngineCourseName, setDocEngineCourseName] = useState('Grado Décimo A (10-A)');
+  const [docEngineStudentId, setDocEngineStudentId] = useState('');
+  const [docEngineStudentName, setDocEngineStudentName] = useState('');
+  const [docEngineCourseName, setDocEngineCourseName] = useState('');
   const [docEngineMetadata, setDocEngineMetadata] = useState<Record<string, any>>({});
   
   const [showCurriculumBuilder, setShowCurriculumBuilder] = useState(false);
@@ -142,13 +142,7 @@ export default function DashboardPage() {
   // --- ESTADOS INTERACTIVOS PARA DEMO SaaS PREMIUM ---
   
   // 1. Asistencia en caliente (Director de Grupo)
-  const [attendanceList, setAttendanceList] = useState<Record<string, 'Asiste' | 'Falta' | 'Tarde'>>({
-    'est-01': 'Asiste',
-    'est-02': 'Tarde',
-    'est-03': 'Asiste',
-    'est-04': 'Falta',
-    'est-05': 'Asiste',
-  });
+  const [attendanceList, setAttendanceList] = useState<Record<string, 'Asiste' | 'Falta' | 'Tarde'>>({});
 
   const toggleAttendance = (studentId: string, status: 'Asiste' | 'Falta' | 'Tarde') => {
     // Si el periodo está cerrado o en revisión, bloquear modificaciones de asistencia

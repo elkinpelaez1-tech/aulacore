@@ -309,9 +309,9 @@ export default function Student360({ initialStudentId }: { initialStudentId?: st
   const { userName, institutionId } = useRole();
 
   // --- CONFIGURACIÓN & ENTIDADES GLOBALES ---
-  const [settings, setSettings] = useState<AcademicSettings>(MOCK_SETTINGS);
-  const [periods, setPeriods] = useState<AcademicPeriod[]>(MOCK_PERIODS);
-  const [students, setStudents] = useState<StudentListItem[]>(MOCK_STUDENTS);
+  const [settings, setSettings] = useState<AcademicSettings>({} as AcademicSettings);
+  const [periods, setPeriods] = useState<AcademicPeriod[]>([]);
+  const [students, setStudents] = useState<StudentListItem[]>([]);
 
   // --- FILTROS & ESTADOS DE SELECCIÓN ---
   const [searchQuery, setSearchQuery] = useState('');

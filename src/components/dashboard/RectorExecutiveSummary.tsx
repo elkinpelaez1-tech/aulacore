@@ -145,7 +145,7 @@ export function RectorExecutiveSummary({ roleTitle = 'Rector', institutionId }: 
   const [stats, setStats] = useState({
     totalStudents: 0,
     totalTeachers: 0,
-    totalAdmin: 1,
+    totalAdmin: 0,
     academicAvg: 0,
     dropoutRate: 0,
     convivenciaAvg: 0,
@@ -174,7 +174,7 @@ export function RectorExecutiveSummary({ roleTitle = 'Rector', institutionId }: 
           setStats({
             totalStudents: 0,
             totalTeachers: 0,
-            totalAdmin: 1,
+            totalAdmin: 0,
             academicAvg: 0,
             dropoutRate: 0,
             convivenciaAvg: 0,
