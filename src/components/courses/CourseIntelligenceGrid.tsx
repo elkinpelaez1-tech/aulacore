@@ -23,9 +23,10 @@ export function CourseIntelligenceGrid() {
   const [selectedCourse, setSelectedCourse] = useState<any | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-  // Courses state with local cache persistence
+  // Courses state with local cache persistence (demo only)
+  const isDemo = process.env.NEXT_PUBLIC_DEMO === 'true';
   const [courses, setCourses] = useState<any[]>(() => {
-    if (typeof window !== 'undefined') {
+    if (isDemo && typeof window !== 'undefined') {
       const saved = localStorage.getItem('aulacore-courses-list');
       if (saved) {
         try {
@@ -39,8 +40,10 @@ export function CourseIntelligenceGrid() {
   });
 
   useEffect(() => {
-    localStorage.setItem('aulacore-courses-list', JSON.stringify(courses));
-  }, [courses]);
+    if (isDemo) {
+      localStorage.setItem('aulacore-courses-list', JSON.stringify(courses));
+    }
+  }, [courses, isDemo]);
 
   // Modal States for Nuevo Curso
   const [isNewCourseModalOpen, setIsNewCourseModalOpen] = useState(false);
