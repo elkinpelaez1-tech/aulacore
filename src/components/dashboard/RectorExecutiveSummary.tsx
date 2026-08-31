@@ -214,7 +214,7 @@ export function RectorExecutiveSummary({ roleTitle = 'Rector', institutionId }: 
         setStats({
           totalStudents: countEst || 0,
           totalTeachers: countDoc || 0,
-          totalAdmin: countAdm || 1,
+          totalAdmin: countAdm || 0,
           academicAvg: 0,
           dropoutRate: 0,
           convivenciaAvg: 0,
