@@ -43,12 +43,7 @@ import {
 } from 'recharts';
 import { cn } from '@/lib/utils';
 
-const ACADEMIC_TREND = [
-  { period: 'P1', nota: 3.8 },
-  { period: 'P2', nota: 4.2 },
-  { period: 'P3', nota: 4.5 },
-  { period: 'Actual', nota: 4.7 },
-];
+const ACADEMIC_TREND: any[] = [];
 
 const SUBJECT_PERFORMANCE = [
   { subject: 'Matemáticas', score: 4.8, fill: '#10b981' },
@@ -91,10 +86,10 @@ const SUBJECT_PERFORMANCE = [
           className="h-full" 
           studentName={userName || undefined}
           email={onboardingStudent?.email || (userName && typeof userName === 'string' ? `${userName.toLowerCase().replace(/\s+/g, '.')}@aulacore.edu.co` : undefined)}
-          studentId={onboardingStudent?.nationalId || (userName && typeof userName === 'string' ? `TI. 102${userName.length}4050` : undefined)}
-          grade={onboardingStudent ? "Bachillerato (Grado por Asignar)" : "11° - B (Media Académica)"}
-          birthDate={onboardingStudent ? `Pre-registro el ${onboardingStudent.registrationDate}` : "15 de Mayo de 2008 (18 años)"}
-          parentName={onboardingStudent ? "Pendiente de Asignación por Secretaría" : "María Fernanda Ruiz (Madre)"}
+          studentId={onboardingStudent?.nationalId || (userName && typeof userName === 'string' ? "Sin datos" : undefined)}
+          grade={onboardingStudent ? "Bachillerato (Grado por Asignar)" : "Sin datos"}
+          birthDate={onboardingStudent ? `Pre-registro el ${onboardingStudent.registrationDate}` : "Sin datos"}
+          parentName={onboardingStudent ? "Pendiente de Asignación por Secretaría" : "Sin datos"}
         />
 
         {/* GPA & Progress Card */}
@@ -130,10 +125,13 @@ const SUBJECT_PERFORMANCE = [
                 <p className="text-sm text-indigo-300 font-bold uppercase tracking-wider mb-1">Promedio General</p>
                 <div className="flex items-baseline gap-2">
                   <span className="text-5xl font-black text-white">
-                    {onboardingStudent ? "10.0" : "4.5"}
+                                        <span className="text-5xl font-black text-white">0</span>
+                    <span className="text-emerald-400 font-bold flex items-center text-sm">
+                      <TrendingUp className="w-4 h-4 mr-1" /> 0
+                    </span>
                   </span>
                   <span className="text-emerald-400 font-bold flex items-center text-sm">
-                    <TrendingUp className="w-4 h-4 mr-1" /> {onboardingStudent ? "Nuevo" : "+0.3"}
+                    <TrendingUp className="w-4 h-4 mr-1" /> {onboardingStudent ? "Nuevo" : "0"}
                   </span>
                 </div>
               </div>
@@ -141,11 +139,11 @@ const SUBJECT_PERFORMANCE = [
               <div className="flex-1 max-w-xs">
                 <div className="flex justify-between text-xs font-bold text-indigo-200 mb-2">
                   <span>
-                    {onboardingStudent ? "Progreso de Matrícula" : "Progreso de Meta (4.8)"}
+                    {onboardingStudent ? "Progreso de Matrícula" : "Progreso"}
                   </span>
-                  <span>100%</span>
+                  <span>0%</span>
                 </div>
-                <Progress value={100} className="h-2.5 bg-indigo-950/50" />
+                <Progress value={0} className="h-2.5 bg-indigo-950/50" />
               </div>
             </div>
           </CardContent>
