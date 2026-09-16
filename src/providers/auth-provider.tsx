@@ -139,13 +139,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.error('[Auth Flow] Error en consulta a profiles:', profileResult.reason?.message || profileResult.reason);
       }
 
-      if (rolesResult.status === 'fulfilled') {
-        rolesData = rolesResult.value.data;
-        console.log('[Auth Flow] 4. Consulta a user_roles exitosa:', rolesData);
-      } else {
-        console.error('[Auth Flow] Error en consulta a user_roles:', rolesResult.reason?.message || rolesResult.reason);
-      }
-
       // Construir perfil con fallback de metadata si es necesario
       const userProfile = profileData || {
         first_name: currentUser.user_metadata?.first_name || currentUser.user_metadata?.name || 'Usuario',
@@ -154,35 +147,50 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       };
       setProfile(userProfile as AuthProfile);
 
-      let userRoles = (rolesData?.map((r: any) => r.role) || []) as UserRole[];
-      
-      // FALLBACK SEGURO: Si user_roles está vacío pero el metadato traía rol (ej. rector)
-      if (userRoles.length === 0 && currentUser.user_metadata?.role) {
-        userRoles = [currentUser.user_metadata.role as UserRole];
-        console.log('[Auth Flow] Fallback aplicado desde user_metadata.role:', userRoles);
-      }
-      setRoles(userRoles);
-
-      // Resolución inmediata del rol activo (sin demorar por consultas secundarias de instituciones)
+      let userRoles: UserRole[] = [];
       let selectedRole: UserRole | null = null;
-      if (userRoles.length > 0) {
-        const savedRole = typeof window !== 'undefined' ? localStorage.getItem('aulacore-user-role') as UserRole : null;
-        if (savedRole && userRoles.includes(savedRole)) {
-          selectedRole = savedRole;
-        } else {
-          const hierarchy: UserRole[] = ['super_admin', 'rector', 'coordinador', 'director_grupo', 'docente', 'secretaria', 'padre_familia', 'estudiante'];
-          for (const role of hierarchy) {
-            if (userRoles.includes(role)) {
-              selectedRole = role;
-              break;
-            }
-          }
-          if (!selectedRole) selectedRole = userRoles[0];
-          if (typeof window !== 'undefined') localStorage.setItem('aulacore-user-role', selectedRole);
+
+      // Evaluar éxito estricto de la consulta a user_roles (fulfilled y sin error en la respuesta de Supabase)
+      const isRolesQuerySuccessful = rolesResult.status === 'fulfilled' && !rolesResult.value.error;
+
+      if (isRolesQuerySuccessful) {
+        rolesData = rolesResult.value.data;
+        console.log('[Auth Flow] 4. Consulta a user_roles exitosa:', rolesData);
+
+        userRoles = (rolesData?.map((r: any) => r.role) || []) as UserRole[];
+        
+        // FALLBACK SEGURO: Si user_roles está vacío pero el metadato traía rol (ej. rector)
+        if (userRoles.length === 0 && currentUser.user_metadata?.role) {
+          userRoles = [currentUser.user_metadata.role as UserRole];
+          console.log('[Auth Flow] Fallback aplicado desde user_metadata.role:', userRoles);
         }
+        setRoles(userRoles);
+
+        // Resolución inmediata del rol activo (sin demorar por consultas secundarias de instituciones)
+        if (userRoles.length > 0) {
+          const savedRole = typeof window !== 'undefined' ? (localStorage.getItem('aulacore-user-role') as UserRole) : null;
+          if (savedRole && userRoles.includes(savedRole)) {
+            selectedRole = savedRole;
+          } else {
+            const hierarchy: UserRole[] = ['super_admin', 'rector', 'coordinador', 'director_grupo', 'docente', 'secretaria', 'padre_familia', 'estudiante'];
+            for (const role of hierarchy) {
+              if (userRoles.includes(role)) {
+                selectedRole = role;
+                break;
+              }
+            }
+            if (!selectedRole) selectedRole = userRoles[0];
+            if (typeof window !== 'undefined') localStorage.setItem('aulacore-user-role', selectedRole);
+          }
+        }
+        setActiveRoleState(selectedRole);
+        console.log('[Auth Flow] 6. Rol obtenido:', selectedRole);
+      } else {
+        const rolesError = rolesResult.status === 'rejected'
+          ? (rolesResult.reason?.message || rolesResult.reason)
+          : rolesResult.value.error?.message;
+        console.warn('[Auth Flow] Consulta a user_roles falló o timeout. Preservando roles previos para evitar falso Acceso Denegado:', rolesError);
       }
-      setActiveRoleState(selectedRole);
-      console.log('[Auth Flow] 6. Rol obtenido:', selectedRole);
 
       let defaultInstId = rolesData && rolesData.length > 0 ? rolesData[0].institution_id : null;
       if (!defaultInstId && currentUser.user_metadata?.institution_id) {
