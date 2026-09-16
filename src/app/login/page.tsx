@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, Suspense } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/providers/auth-provider';
 import { UserRole, ROLE_DISPLAY_NAMES } from '@/lib/navigation';
@@ -10,20 +10,19 @@ import {
   Lock, 
   ArrowRight, 
   Loader2, 
-  Sparkles, 
   ShieldCheck, 
   AlertTriangle, 
-  User, 
+  Eye, 
+  EyeOff, 
   Copy, 
-  Check,
-  Eye,
-  EyeOff,
-  ChevronLeft,
-  ChevronRight,
-  Calendar,
-  MapPin,
-  Cloud,
-  BrainCircuit
+  Check, 
+  Globe, 
+  ChevronDown, 
+  BarChart3, 
+  Users, 
+  AlertCircle, 
+  TrendingUp, 
+  Sparkles
 } from 'lucide-react';
 
 interface DemoAccount {
@@ -102,120 +101,6 @@ const DEMO_ACCOUNTS: DemoAccount[] = [
   }
 ];
 
-// Ecosystem configurations
-interface EcosystemContent {
-  id: string;
-  title: string;
-  subtitle?: string;
-  imageUrl: string;
-  buttonText: string;
-  buttonUrl: string;
-  contentType: 'banner' | 'card';
-  date?: string;
-  location?: string;
-  descShort?: string;
-  flagUrl?: string;
-}
-
-const CAROUSEL_BANNERS: EcosystemContent[] = [
-  {
-    id: 'b-1',
-    title: 'Congreso Internacional Escuela y Paz 2027',
-    subtitle: 'Innovación, convivencia y liderazgo para transformar la educación.',
-    imageUrl: '/ecosystem/congreso_paz.png',
-    buttonText: 'Conocer más',
-    buttonUrl: 'https://aulacore.org/ecosistema/escuela-y-paz',
-    contentType: 'banner',
-    date: '24 y 25 de abril de 2027',
-    location: 'Medellín, Colombia'
-  },
-  {
-    id: 'b-2',
-    title: 'Pasantía Educativa Finlandia 2027',
-    subtitle: 'Conoce el sistema educativo líder del mundo y sus metodologías de enseñanza activa.',
-    imageUrl: '/ecosystem/finlandia_edu.png',
-    buttonText: 'Conocer más',
-    buttonUrl: 'https://aulacore.org/ecosistema/finlandia',
-    contentType: 'banner',
-    date: '12 al 22 de mayo de 2027',
-    location: 'Helsinki, Finlandia'
-  },
-  {
-    id: 'b-3',
-    title: 'Pasantía Educativa Japón 2027',
-    subtitle: 'Innovación, disciplina y excelencia escolar dentro del ecosistema tecnológico de vanguardia.',
-    imageUrl: '/ecosystem/japon_edu.png',
-    buttonText: 'Conocer más',
-    buttonUrl: 'https://aulacore.org/ecosistema/japon',
-    contentType: 'banner',
-    date: '10 al 20 de junio de 2027',
-    location: 'Tokio, Japón'
-  },
-  {
-    id: 'b-4',
-    title: 'Curso de Neuroeducación Consciente',
-    subtitle: 'Formación avanzada y herramientas prácticas para docentes que inspiran y transforman mentes.',
-    imageUrl: '/ecosystem/neuro_edu.png',
-    buttonText: 'Conocer más',
-    buttonUrl: 'https://aulacore.org/ecosistema/neuroeducacion',
-    contentType: 'banner',
-    date: 'Inicio: 15 de julio de 2027',
-    location: 'Online Sincrónico'
-  },
-  {
-    id: 'b-5',
-    title: 'Diplomado IA para Directivos Colegios',
-    subtitle: 'Estrategias, ética y herramientas de Inteligencia Artificial para el liderazgo escolar moderno.',
-    imageUrl: '/ecosystem/ia_directivos.png',
-    buttonText: 'Conocer más',
-    buttonUrl: 'https://aulacore.org/ecosistema/ia-directivos',
-    contentType: 'banner',
-    date: 'Inicio: 1 de agosto de 2027',
-    location: 'Híbrido (Bogotá / Online)'
-  }
-];
-
-const ECOSISTEMA_CARDS: EcosystemContent[] = [
-  {
-    id: 'c-1',
-    title: 'Pasantía Educativa Finlandia 2027',
-    descShort: 'Conoce el sistema educativo líder del mundo.',
-    imageUrl: '/ecosystem/finlandia_edu.png',
-    buttonText: 'Ver programa',
-    buttonUrl: 'https://aulacore.org/ecosistema/finlandia',
-    contentType: 'card',
-    flagUrl: '🇫🇮'
-  },
-  {
-    id: 'c-2',
-    title: 'Pasantía Educativa Japón 2027',
-    descShort: 'Innovación, disciplina y excelencia educativa.',
-    imageUrl: '/ecosystem/japon_edu.png',
-    buttonText: 'Ver programa',
-    buttonUrl: 'https://aulacore.org/ecosistema/japon',
-    contentType: 'card',
-    flagUrl: '🇯🇵'
-  },
-  {
-    id: 'c-3',
-    title: 'Neuroeducación Consciente',
-    descShort: 'Formación para educadores que inspiran mentes.',
-    imageUrl: '/ecosystem/neuro_edu.png',
-    buttonText: 'Ver programa',
-    buttonUrl: 'https://aulacore.org/ecosistema/neuroeducacion',
-    contentType: 'card'
-  },
-  {
-    id: 'c-4',
-    title: 'Diplomado IA para Directivos',
-    descShort: 'Lidera el cambio con inteligencia artificial.',
-    imageUrl: '/ecosystem/ia_directivos.png',
-    buttonText: 'Inscribirse',
-    buttonUrl: 'https://aulacore.org/ecosistema/ia-directivos',
-    contentType: 'card'
-  }
-];
-
 function LoginContent() {
   const { refreshSession } = useAuth();
   const searchParams = useSearchParams();
@@ -224,29 +109,12 @@ function LoginContent() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
-
-  // Carousel State
-  const [bannerIndex, setBannerIndex] = useState(0);
-
-  // Auto transition for banner carrousel
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setBannerIndex((prevIndex) => (prevIndex + 1) % CAROUSEL_BANNERS.length);
-    }, 6000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const handlePrevBanner = () => {
-    setBannerIndex((prevIndex) => (prevIndex - 1 + CAROUSEL_BANNERS.length) % CAROUSEL_BANNERS.length);
-  };
-
-  const handleNextBanner = () => {
-    setBannerIndex((prevIndex) => (prevIndex + 1) % CAROUSEL_BANNERS.length);
-  };
+  const [socialNotice, setSocialNotice] = useState<string | null>(null);
 
   const assignRoleFromEmail = (mail: string) => {
     if (typeof window === 'undefined') return;
@@ -280,6 +148,7 @@ function LoginContent() {
 
     setLoading(true);
     setError(null);
+    setSocialNotice(null);
     setSuccess(false);
     if (typeof window !== 'undefined') {
       localStorage.removeItem('aulacore-user-role');
@@ -297,7 +166,6 @@ function LoginContent() {
       console.log(`[PERF AUDIT] [Supabase Auth] signInWithPassword TERMINA (${duration}ms)`, { user: data?.user?.id, error: signInError });
 
       if (signInError) {
-        // EN PRODUCCIÓN: JAMÁS PERMITIR ACCESO DEMO OFFLINE ANTE CREDENCIALES INVÁLIDAS
         if (process.env.NODE_ENV !== 'production' && (email.toLowerCase().includes('@aulacore.com') || email.toLowerCase().includes('@sed.gov.co') || email.toLowerCase().includes('territorio') || email.toLowerCase().includes('secretario'))) {
           console.log('Fallo inicio en Supabase en DEV, activando sesión demo offline...');
           assignRoleFromEmail(email);
@@ -333,6 +201,7 @@ function LoginContent() {
     setEmail(demoEmail);
     setPassword('AulaCore2026!');
     setError(null);
+    setSocialNotice(null);
     setLoading(true);
     if (typeof window !== 'undefined') {
       localStorage.removeItem('aulacore-user-role');
@@ -346,11 +215,9 @@ function LoginContent() {
       });
 
       if (signInError) {
-        // En producción no existe bypass: si las credenciales en Supabase no coinciden, se rechaza
         if (process.env.NODE_ENV === 'production') {
           throw signInError;
         }
-        // Solo en desarrollo se permite sesión simulada
         assignRoleFromEmail(demoEmail);
         setSuccess(true);
         await refreshSession();
@@ -377,285 +244,312 @@ function LoginContent() {
     }, 2000);
   };
 
-  const currentBanner = CAROUSEL_BANNERS[bannerIndex];
+  const handleSocialClick = (provider: string) => {
+    setSocialNotice(`El inicio de sesión con ${provider} se habilitará próximamente según las políticas de tu institución.`);
+  };
 
   return (
-    <main className="min-h-screen bg-slate-50 flex flex-col justify-center font-sans w-full">
-      <div className="w-full max-w-[1600px] mx-auto flex flex-col lg:flex-row items-stretch">
+    <main className="min-h-screen w-full bg-[#f4f7fc] flex flex-col lg:flex-row font-sans selection:bg-blue-100 selection:text-blue-900">
+      
+      {/* ========================================================================= */}
+      {/* 🏛️ PANEL IZQUIERDO: INFORMATIVO, BRANDING Y VALOR EDUCATIVO (≈ 58-60%) */}
+      {/* ========================================================================= */}
+      <section className="relative w-full lg:w-[58%] xl:w-[60%] bg-gradient-to-br from-white via-[#f7faff] to-[#edf4fe] flex flex-col justify-between overflow-hidden border-b lg:border-b-0 lg:border-r border-slate-200/70 select-none">
         
-        {/* 🏛️ COLUMNA IZQUIERDA: Ecosistema AulaCore (53% Desktop Only) */}
-        <section className="hidden lg:flex lg:w-[53%] bg-transparent relative overflow-hidden flex-col justify-center items-center p-6 xl:p-8 select-none">
+        {/* Esfera decorativa superior y resplandor suave */}
+        <div className="absolute top-0 right-0 w-[420px] h-[420px] bg-gradient-to-bl from-blue-200/35 via-indigo-100/20 to-transparent rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
+        <div className="absolute top-1/3 left-[-100px] w-[350px] h-[350px] bg-gradient-to-tr from-sky-100/40 via-blue-50/20 to-transparent rounded-full blur-3xl pointer-events-none" />
+
+        {/* Contenido principal superior e intermedio */}
+        <div className="relative z-10 p-8 sm:p-12 lg:p-12 xl:p-16 flex-1 flex flex-col justify-between max-w-[920px]">
           
-          {/* Card Ecosistema AulaCore */}
-          <div className="w-full h-[calc(100vh-3rem)] max-h-[820px] bg-[#030712] rounded-[2.5rem] border border-slate-800/40 relative overflow-hidden flex flex-col justify-between p-8 xl:p-10 text-white shadow-2xl">
-            
-            {/* Glows abstractos */}
-            <div className="absolute top-[-30%] left-[-20%] w-[90%] h-[90%] bg-blue-600/5 rounded-full blur-3xl animate-pulse pointer-events-none" />
-            <div className="absolute bottom-[-20%] right-[-10%] w-[70%] h-[70%] bg-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
-
-            {/* Content container inside Card */}
-            <div className="w-full h-full flex flex-col justify-between relative z-10">
-              
-              {/* Header Logo */}
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-blue-600/10 flex items-center justify-center p-1.5 backdrop-blur-md border border-blue-500/25 shadow-inner">
-                  <img 
-                    src="/logo-aulacore.png" 
-                    alt="AulaCore Logo" 
-                    className="w-full h-full object-contain"
-                  />
-                </div>
-                <span className="font-extrabold text-sm tracking-widest bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-100 to-slate-350">
-                  AULACORE
-                </span>
-              </div>
-
-              {/* Ecosistema Content Panel */}
-              <div className="flex-1 flex flex-col justify-start pt-3 pb-2 gap-5">
-                
-                {/* 1. CAROUSEL BANNER (240px) */}
-                <div className="relative w-full h-[240px] rounded-2xl overflow-hidden border border-slate-800 bg-slate-950/40 backdrop-blur-md group transition-all duration-300 shadow-2xl">
-                  {/* Background image loaded dynamically with overlay */}
-                  <div 
-                    className="absolute inset-0 bg-cover bg-center transition-all duration-700 transform scale-100 group-hover:scale-102"
-                    style={{ backgroundImage: `url(${currentBanner.imageUrl})` }}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/85 to-transparent" />
-                  
-                  {/* Carousel navigation arrows */}
-                  <button 
-                    type="button"
-                    onClick={handlePrevBanner}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-slate-900/60 hover:bg-slate-950 border border-slate-700/50 flex items-center justify-center text-slate-300 hover:text-white transition cursor-pointer z-20"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                  </button>
-                  <button 
-                    type="button"
-                    onClick={handleNextBanner}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-slate-900/60 hover:bg-slate-950 border border-slate-700/50 flex items-center justify-center text-slate-300 hover:text-white transition cursor-pointer z-20"
-                  >
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
-
-                  {/* Inner Content Area */}
-                  <div className="absolute inset-0 flex flex-col justify-between p-6 pl-12 pr-12 relative z-10">
-                    <div className="space-y-2 max-w-[85%]">
-                      <span className="text-[9px] font-black tracking-widest text-indigo-400 bg-indigo-550/10 border border-indigo-500/20 px-2.5 py-0.5 rounded-full uppercase leading-none inline-block">
-                        Eventos & Alianzas
-                      </span>
-                      <h2 className="text-xl font-black tracking-tight leading-tight text-white pt-1">
-                        {currentBanner.title}
-                      </h2>
-                      <p className="text-xs text-slate-300 leading-relaxed font-semibold">
-                        {currentBanner.subtitle}
-                      </p>
-                    </div>
-
-                    <div className="flex items-center justify-between pt-4 border-t border-slate-800/40">
-                      <div className="flex items-center gap-4 text-[10px] font-bold text-slate-400">
-                        {currentBanner.date && (
-                          <span className="flex items-center gap-1.5">
-                            <Calendar className="w-3.5 h-3.5 text-indigo-400" />
-                            {currentBanner.date}
-                          </span>
-                        )}
-                        {currentBanner.location && (
-                          <span className="flex items-center gap-1.5">
-                            <MapPin className="w-3.5 h-3.5 text-indigo-400" />
-                            {currentBanner.location}
-                          </span>
-                        )}
-                      </div>
-
-                      <a 
-                        href={currentBanner.buttonUrl}
-                        className="bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs px-4 py-2 rounded-lg flex items-center gap-1.5 transition shadow-md shadow-blue-500/10 cursor-pointer"
-                      >
-                        {currentBanner.buttonText}
-                        <ArrowRight className="w-3.5 h-3.5" />
-                      </a>
-                    </div>
-                  </div>
-
-                  {/* Bottom dots indicators */}
-                  <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-20">
-                    {CAROUSEL_BANNERS.map((_, idx) => (
-                      <button
-                        key={idx}
-                        type="button"
-                        onClick={() => setBannerIndex(idx)}
-                        className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${bannerIndex === idx ? "bg-white w-4" : "bg-slate-600 hover:bg-slate-450"}`}
-                      />
-                    ))}
-                  </div>
-                </div>
-
-                {/* 2. GRID DE TARJETAS DEL ECOSISTEMA (4 Tarjetas) */}
-                <div className="space-y-3">
-                  <h3 className="text-sm font-black text-slate-200 tracking-wider uppercase">
-                    Ecosistema AulaCore
-                  </h3>
-                  
-                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-                    {ECOSISTEMA_CARDS.map((card) => (
-                      <div 
-                        key={card.id}
-                        className="bg-slate-950/30 border border-slate-800/80 rounded-xl overflow-hidden hover:border-slate-700 transition flex flex-col justify-between h-[160px] hover:shadow-lg group"
-                      >
-                        <div className="relative h-[65px] bg-cover bg-center shrink-0" style={{ backgroundImage: `url(${card.imageUrl})` }}>
-                          <div className="absolute inset-0 bg-slate-950/60" />
-                          {card.flagUrl && (
-                            <span className="absolute top-2 left-2 text-md leading-none filter drop-shadow">
-                              {card.flagUrl}
-                            </span>
-                          )}
-                        </div>
-
-                        <div className="p-3 flex-1 flex flex-col justify-between gap-1.5">
-                          <div>
-                            <h4 className="text-[11px] font-black text-white leading-tight truncate-2-lines">
-                              {card.title}
-                            </h4>
-                            <p className="text-[9px] text-slate-400 font-semibold leading-snug line-clamp-2 mt-0.5">
-                              {card.descShort}
-                            </p>
-                          </div>
-
-                          <a 
-                            href={card.buttonUrl}
-                            className="text-[9px] font-black text-indigo-400 hover:text-indigo-300 flex items-center gap-1 group-hover:translate-x-0.5 transition-all cursor-pointer mt-auto"
-                          >
-                            {card.buttonText}
-                            <ChevronRight className="w-3 h-3" />
-                          </a>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* 3. BENEFICIOS AULACORE (100px) */}
-              <div className="border-t border-slate-800/60 pt-6 pb-2 flex items-center justify-between gap-6 text-slate-400">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-450 shrink-0">
-                    <ShieldCheck className="w-4.5 h-4.5" />
-                  </div>
-                  <div>
-                    <span className="text-[11px] font-black text-slate-200 block">Seguridad Avanzada</span>
-                    <p className="text-[9px] font-semibold text-slate-500 leading-none mt-0.5">Aislamiento y políticas RLS estrictas.</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-450 shrink-0">
-                    <Cloud className="w-4.5 h-4.5" />
-                  </div>
-                  <div>
-                    <span className="text-[11px] font-black text-slate-200 block">Plataforma en la Nube</span>
-                    <p className="text-[9px] font-semibold text-slate-500 leading-none mt-0.5">Acceso 24/7 de alta disponibilidad.</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-450 shrink-0">
-                    <BrainCircuit className="w-4.5 h-4.5" />
-                  </div>
-                  <div>
-                    <span className="text-[11px] font-black text-slate-200 block">Inteligencia Predictiva</span>
-                    <p className="text-[9px] font-semibold text-slate-500 leading-none mt-0.5">Modelos de IA aplicados a la educación.</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Footer legal block */}
-              <div className="flex items-center justify-between text-[10px] text-slate-500 border-t border-slate-800/30 pt-4 font-semibold">
-                <span>&copy; {new Date().getFullYear()} AulaCore S.A.S. Todos los derechos reservados.</span>
-                <div className="flex gap-4">
-                  <a href="https://aulacore.org/terminos" className="hover:text-slate-400">Términos de uso</a>
-                  <span>|</span>
-                  <a href="https://aulacore.org/privacidad" className="hover:text-slate-400">Política de privacidad</a>
-                  <span>|</span>
-                  <a href="https://aulacore.org/soporte" className="hover:text-slate-400">Soporte</a>
-                </div>
-              </div>
-
+          {/* 1. Header / Logo AulaCore con Tagline */}
+          <div className="space-y-1">
+            <div className="flex items-center gap-3">
+              <img 
+                src="/logo-aulacore.png" 
+                alt="AulaCore Logo" 
+                className="h-10 sm:h-12 w-auto object-contain"
+              />
             </div>
-
-          </div>
-
-        </section>
-
-        {/* 🔐 COLUMNA DERECHA: Formulario de Login (47% Desktop/Tablet/Mobile) */}
-        <section className="flex-1 lg:w-[47%] bg-slate-50 flex flex-col justify-between p-8 sm:p-12 overflow-y-auto min-h-screen">
-        
-        {/* Top Spacer or Mobile Header */}
-        <div className="lg:hidden flex items-center justify-center gap-2 mb-6">
-          <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center p-1 border border-slate-200 shadow-md">
-            <img 
-              src="/logo-aulacore.png" 
-              alt="AulaCore Logo" 
-              className="w-full h-full object-contain"
-            />
-          </div>
-          <span className="font-extrabold text-slate-900 tracking-wider text-sm">AULACORE</span>
-        </div>
-        <div className="hidden lg:block shrink-0" />
-
-        {/* Central Login Card (White premium card floating on light gray canvas) */}
-        <div className="w-full max-w-md mx-auto space-y-6 my-auto bg-white p-6 sm:p-8 rounded-[2rem] border border-slate-200/80 shadow-lg">
-          
-          {/* Logo & Welcome text */}
-          <div className="text-center space-y-2">
-            <div className="hidden lg:flex justify-center items-center mb-4">
-              <div className="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center p-2.5 border border-slate-150 shadow-inner">
-                <img 
-                  src="/logo-aulacore.png" 
-                  alt="AulaCore Logo" 
-                  className="w-full h-full object-contain"
-                />
-              </div>
-            </div>
-            
-            <h2 className="text-2xl font-black text-slate-900 tracking-tight font-heading">
-              Bienvenido a <span className="text-blue-600">AulaCore</span>
-            </h2>
-            <p className="text-xs text-slate-500 font-semibold">
-              Ingresa tus credenciales para acceder a la plataforma corporativa.
+            <p className="text-[11px] sm:text-xs text-slate-500 font-medium tracking-tight pl-1">
+              Gestión educativa predictiva: Predice. Conecta. Transforma.
             </p>
           </div>
 
-          {/* Form */}
+          {/* 2. Cuerpo Central: Titular, Descripción, Grilla de Capacidades y Fotografía */}
+          <div className="my-8 xl:my-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            
+            {/* Columna Textual y Capacidades (7 columnas en desktop) */}
+            <div className="lg:col-span-7 space-y-6">
+              
+              {/* Eyebrow Tag */}
+              <div className="inline-block">
+                <span className="text-[10px] sm:text-[11px] font-black tracking-widest text-slate-500 uppercase">
+                  DATOS HOY, MEJORES OPORTUNIDADES MAÑANA
+                </span>
+              </div>
+
+              {/* Titular Principal */}
+              <h1 className="text-3xl sm:text-4xl xl:text-[45px] font-black text-slate-900 tracking-tight font-heading leading-[1.12]">
+                La educación <br />
+                toma mejores <br />
+                decisiones <br />
+                <span className="text-blue-600 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700">
+                  con datos
+                </span>
+              </h1>
+
+              {/* Párrafo Descriptivo */}
+              <p className="text-slate-600 text-xs sm:text-sm xl:text-[15px] leading-relaxed font-normal max-w-lg">
+                AulaCore identifica riesgos académicos, ausentismo, deserción y alertas institucionales antes de que se conviertan en crisis.
+              </p>
+
+              {/* 4 Indicadores / Capacidades */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 max-w-lg">
+                
+                {/* 1. Rendimiento Académico */}
+                <div className="flex flex-col items-center text-center p-2.5 rounded-2xl bg-white/90 border border-emerald-100/90 shadow-xs backdrop-blur-xs">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-200/70 flex items-center justify-center text-emerald-600 mb-2 shrink-0">
+                    <BarChart3 className="w-5 h-5" />
+                  </div>
+                  <span className="text-[11px] font-bold text-slate-800 leading-tight">Rendimiento</span>
+                  <span className="text-[10px] text-slate-500 leading-tight">académico</span>
+                </div>
+
+                {/* 2. Ausentismo y Permanencia */}
+                <div className="flex flex-col items-center text-center p-2.5 rounded-2xl bg-white/90 border border-blue-100/90 shadow-xs backdrop-blur-xs">
+                  <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200/70 flex items-center justify-center text-blue-600 mb-2 shrink-0">
+                    <Users className="w-5 h-5" />
+                  </div>
+                  <span className="text-[11px] font-bold text-slate-800 leading-tight">Ausentismo</span>
+                  <span className="text-[10px] text-slate-500 leading-tight">y permanencia</span>
+                </div>
+
+                {/* 3. Alertas Tempranas */}
+                <div className="flex flex-col items-center text-center p-2.5 rounded-2xl bg-white/90 border border-amber-100/90 shadow-xs backdrop-blur-xs">
+                  <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200/70 flex items-center justify-center text-amber-600 mb-2 shrink-0">
+                    <AlertCircle className="w-5 h-5" />
+                  </div>
+                  <span className="text-[11px] font-bold text-slate-800 leading-tight">Alertas</span>
+                  <span className="text-[10px] text-slate-500 leading-tight">tempranas</span>
+                </div>
+
+                {/* 4. Decisiones con Impacto */}
+                <div className="flex flex-col items-center text-center p-2.5 rounded-2xl bg-white/90 border border-purple-100/90 shadow-xs backdrop-blur-xs">
+                  <div className="w-10 h-10 rounded-xl bg-purple-50 border border-purple-200/70 flex items-center justify-center text-purple-600 mb-2 shrink-0">
+                    <TrendingUp className="w-5 h-5" />
+                  </div>
+                  <span className="text-[11px] font-bold text-slate-800 leading-tight">Decisiones</span>
+                  <span className="text-[10px] text-slate-500 leading-tight">con impacto</span>
+                </div>
+
+              </div>
+
+              {/* Tarjeta Institucional */}
+              <div className="p-4 rounded-2xl bg-blue-50/90 border border-blue-150/80 flex items-center gap-3.5 shadow-xs max-w-lg backdrop-blur-xs">
+                <div className="w-10 h-10 rounded-xl bg-white shadow-xs border border-blue-100 flex items-center justify-center text-blue-600 shrink-0">
+                  <Sparkles className="w-5 h-5" />
+                </div>
+                <p className="text-xs sm:text-[13px] font-semibold text-slate-800 leading-snug">
+                  Más que una plataforma, <br className="hidden sm:inline" />
+                  un aliado para transformar la educación.
+                </p>
+              </div>
+
+            </div>
+
+            {/* Columna Visual / Fotografía y Frase (5 columnas en desktop) */}
+            <div className="hidden lg:flex lg:col-span-5 flex-col items-center relative">
+              
+              {/* Frase inspiradora superior en la composición */}
+              <div className="w-full text-right mb-3 pr-2">
+                <p className="text-xs sm:text-sm font-serif italic text-slate-400 font-medium leading-tight">
+                  <span className="text-slate-600 font-bold not-italic font-sans text-xs uppercase tracking-wider block mb-0.5">“Grandes” futuros</span>
+                  comienzan en aulas más conscientes
+                </p>
+              </div>
+
+              {/* Matriz decorativa de puntos */}
+              <div className="absolute -top-3 right-0 grid grid-cols-5 gap-2 opacity-35 pointer-events-none">
+                {Array.from({ length: 15 }).map((_, i) => (
+                  <div key={i} className="w-1.5 h-1.5 rounded-full bg-blue-600" />
+                ))}
+              </div>
+
+              {/* Contenedor Fotográfico con máscara y borde estilizado */}
+              <div className="relative w-full max-w-[320px] xl:max-w-[360px] aspect-[4/5] rounded-[2.5rem] overflow-hidden shadow-2xl shadow-blue-900/15 border-4 border-white bg-slate-100">
+                <img 
+                  src="/images/aulacore-hero-education.jpg" 
+                  alt="Docente y estudiantes en aula de clase AulaCore" 
+                  className="w-full h-full object-cover object-center transform hover:scale-102 transition-transform duration-700"
+                />
+                
+                {/* Degradado inferior integrado para fundirse con la base */}
+                <div className="absolute inset-0 bg-gradient-to-t from-blue-900/40 via-transparent to-transparent pointer-events-none" />
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+        {/* 3. Ondas Orgánicas Inferiores y Footer del Panel */}
+        <div className="relative w-full overflow-hidden mt-auto">
+          
+          {/* Ondas vectoriales fluidas multicapa con degradados AulaCore (Azul -> Celeste -> Violeta) */}
+          <svg 
+            viewBox="0 0 1000 220" 
+            fill="none" 
+            xmlns="http://www.w3.org/2000/svg" 
+            className="w-full h-28 sm:h-36 lg:h-44 object-cover"
+            preserveAspectRatio="none"
+          >
+            <defs>
+              <linearGradient id="waveBgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.4" />
+                <stop offset="50%" stopColor="#60a5fa" stopOpacity="0.35" />
+                <stop offset="100%" stopColor="#a855f7" stopOpacity="0.45" />
+              </linearGradient>
+              <linearGradient id="waveMainGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#2563eb" />
+                <stop offset="45%" stopColor="#3b82f6" />
+                <stop offset="85%" stopColor="#6366f1" />
+                <stop offset="100%" stopColor="#7c3aed" />
+              </linearGradient>
+            </defs>
+
+            {/* Onda posterior */}
+            <path 
+              d="M0,70 C180,130 350,15 620,75 C820,115 920,40 1000,50 L1000,220 L0,220 Z" 
+              fill="url(#waveBgGradient)" 
+            />
+
+            {/* Onda principal frontal */}
+            <path 
+              d="M0,120 C220,60 400,165 680,105 C850,70 940,115 1000,90 L1000,220 L0,220 Z" 
+              fill="url(#waveMainGradient)" 
+            />
+          </svg>
+
+          {/* Información institucional y frase sobre las ondas */}
+          <div className="absolute inset-0 flex items-end justify-between px-6 sm:px-12 pb-4 sm:pb-6 text-white z-10 pointer-events-none">
+            
+            {/* Copyright y propósito */}
+            <div className="space-y-0.5 text-[10px] sm:text-[11px] font-medium text-white/90 drop-shadow-sm">
+              <p className="font-bold">
+                &copy; 2026 AulaCore S.A.S. Todos los derechos reservados.
+              </p>
+              <p className="text-white/80">
+                Transformamos la educación con inteligencia y corazón.
+              </p>
+            </div>
+
+            {/* Frase poética / misión en cursiva elegante */}
+            <div className="text-right pb-0.5">
+              <p className="font-serif italic text-xs sm:text-sm text-white/95 leading-snug drop-shadow-sm tracking-wide">
+                Educación <br />
+                que anticipa, <br />
+                vidas que avanzan.
+              </p>
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+      {/* ========================================================================= */}
+      {/* 🔐 PANEL DERECHO: FORMULARIO DE ACCESO Y EXPERIENCIA DE LOGIN (≈ 40-42%) */}
+      {/* ========================================================================= */}
+      <section className="w-full lg:w-[42%] xl:w-[40%] bg-[#f8faff] flex flex-col justify-between p-6 sm:p-10 lg:p-8 xl:p-12 overflow-y-auto min-h-screen">
+        
+        {/* Barra superior con Selector de Idioma */}
+        <div className="w-full flex items-center justify-between lg:justify-end mb-4 sm:mb-6">
+          {/* Logo visible en pantallas pequeñas para móviles */}
+          <div className="lg:hidden flex items-center gap-2">
+            <img 
+              src="/logo-aulacore.png" 
+              alt="AulaCore Logo" 
+              className="h-8 w-auto object-contain"
+            />
+          </div>
+
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 transition border border-slate-200/80 px-3 py-1.5 rounded-full shadow-xs cursor-pointer select-none">
+            <Globe className="w-3.5 h-3.5 text-slate-500" />
+            <span>Español</span>
+            <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+          </div>
+        </div>
+
+        {/* Tarjeta Central Flotante de Inicio de Sesión */}
+        <div className="w-full max-w-[480px] sm:max-w-[500px] mx-auto my-auto bg-white rounded-[2.5rem] border border-slate-150/90 shadow-[0_20px_50px_rgba(37,99,235,0.07),0_4px_16px_rgba(15,23,42,0.03)] p-7 sm:p-10 space-y-6">
+          
+          {/* Encabezado de la Tarjeta: Logo y Bienvenida */}
+          <div className="text-center space-y-2">
+            <div className="flex justify-center items-center mb-1">
+              <img 
+                src="/logo-aulacore.png" 
+                alt="AulaCore Logo" 
+                className="h-10 sm:h-11 w-auto object-contain select-none"
+              />
+            </div>
+            
+            <p className="text-[10px] text-slate-400 font-medium tracking-tight">
+              Gestión educativa predictiva: Predice. Conecta. Transforma.
+            </p>
+
+            <h2 className="text-2xl sm:text-[26px] font-black text-slate-900 tracking-tight font-heading pt-2">
+              Bienvenido a <span className="text-blue-600 font-extrabold">AulaCore</span>
+            </h2>
+
+            <p className="text-xs sm:text-[13px] text-slate-500 font-medium leading-relaxed max-w-sm mx-auto">
+              Ingresa tus credenciales para acceder a la plataforma educativa y continuar transformando la educación.
+            </p>
+          </div>
+
+          {/* Formulario de Login */}
           <form onSubmit={handleLogin} className="space-y-4">
+            
+            {/* Notificaciones de error y éxito */}
             {error && (
-              <div className="p-3 rounded-xl bg-red-50 border border-red-150 text-red-700 text-xs font-bold flex items-start gap-2.5 shadow-sm">
-                <AlertTriangle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
-                <span>{error}</span>
+              <div className="p-3.5 rounded-2xl bg-red-50/90 border border-red-200 text-red-700 text-xs font-bold flex items-start gap-2.5 shadow-xs animate-in fade-in-50">
+                <AlertTriangle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
+                <span className="leading-snug">{error}</span>
+              </div>
+            )}
+
+            {socialNotice && (
+              <div className="p-3 rounded-2xl bg-blue-50 border border-blue-200 text-blue-800 text-xs font-medium flex items-start gap-2 shadow-xs">
+                <Sparkles className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+                <span>{socialNotice}</span>
               </div>
             )}
 
             {success && (
-              <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-150 text-emerald-700 text-xs font-bold flex items-center gap-2.5 shadow-sm">
+              <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold flex items-center gap-2.5 shadow-xs animate-in fade-in-50">
                 <Loader2 className="w-4 h-4 text-emerald-600 animate-spin" />
-                <span>Autenticación exitosa. Redirigiendo...</span>
+                <span>Autenticación exitosa. Redirigiendo a tu consola...</span>
               </div>
             )}
 
+            {/* Campo: CORREO ELECTRÓNICO */}
             <div className="space-y-1.5">
-              <label htmlFor="email" className="text-[10px] font-black text-slate-600 tracking-wide uppercase">
+              <label htmlFor="email" className="text-[11px] font-black text-slate-700 tracking-wider uppercase block">
                 Correo Electrónico
               </label>
-              <div className="relative">
-                <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400">
-                  <Mail className="w-4 h-4" />
+              <div className="relative rounded-2xl border border-slate-200/90 bg-[#f1f6fd] focus-within:bg-white focus-within:border-blue-500 focus-within:ring-4 focus-within:ring-blue-100 transition-all shadow-xs">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                  <Mail className="w-4.5 h-4.5" />
                 </div>
                 <input
                   id="email"
                   type="email"
                   required
-                  placeholder="ejemplo@aulacore.com"
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder-slate-400 font-semibold text-xs focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 shadow-sm transition-all"
+                  placeholder="info@corporacionprofesalaula.org"
+                  className="w-full pl-11 pr-4 py-3.5 text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 font-medium bg-transparent focus:outline-none disabled:opacity-60"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={loading || success}
@@ -663,20 +557,21 @@ function LoginContent() {
               </div>
             </div>
 
+            {/* Campo: CONTRASEÑA */}
             <div className="space-y-1.5">
-              <label htmlFor="password" className="text-[10px] font-black text-slate-600 tracking-wide uppercase">
+              <label htmlFor="password" className="text-[11px] font-black text-slate-700 tracking-wider uppercase block">
                 Contraseña
               </label>
-              <div className="relative">
-                <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400">
-                  <Lock className="w-4 h-4" />
+              <div className="relative rounded-2xl border border-slate-200/90 bg-[#f1f6fd] focus-within:bg-white focus-within:border-blue-500 focus-within:ring-4 focus-within:ring-blue-100 transition-all shadow-xs">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                  <Lock className="w-4.5 h-4.5" />
                 </div>
                 <input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
                   required
                   placeholder="••••••••••••"
-                  className="w-full pl-10 pr-12 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder-slate-400 font-semibold text-xs focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 shadow-sm transition-all"
+                  className="w-full pl-11 pr-12 py-3.5 text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 font-medium bg-transparent focus:outline-none disabled:opacity-60"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={loading || success}
@@ -684,81 +579,151 @@ function LoginContent() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition p-1 cursor-pointer"
                   disabled={loading || success}
+                  title={showPassword ? "Ocultar contraseña" : "Ver contraseña"}
                 >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showPassword ? <EyeOff className="w-4.5 h-4.5" /> : <Eye className="w-4.5 h-4.5" />}
                 </button>
               </div>
             </div>
 
-            {/* Checkbox Recordarme & Recuperar Contraseña */}
-            <div className="flex items-center justify-between text-[11px] font-bold text-slate-600 pt-1">
-              <label className="flex items-center gap-2 cursor-pointer select-none">
+            {/* Opciones: Recordarme & Recuperación */}
+            <div className="flex items-center justify-between text-xs pt-1">
+              <label className="flex items-center gap-2 cursor-pointer select-none text-slate-600 font-semibold hover:text-slate-800">
                 <input
                   type="checkbox"
-                  className="w-4 h-4 border-slate-300 rounded text-blue-600 focus:ring-blue-500 cursor-pointer bg-white"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="w-4 h-4 rounded-md border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer bg-white"
                   disabled={loading || success}
                 />
                 <span>Recordarme</span>
               </label>
               
-              <a href="https://aulacore.org/recuperar" className="text-blue-650 hover:underline">
+              <a 
+                href="https://aulacore.org/recuperar" 
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-bold text-blue-600 hover:text-blue-700 hover:underline transition"
+              >
                 ¿Olvidaste tu contraseña?
               </a>
             </div>
 
+            {/* Botón Principal CTA: Iniciar sesión */}
             <button
               type="submit"
               disabled={loading || success}
-              className="w-full py-3 px-4 rounded-xl bg-slate-950 text-white font-black text-xs uppercase tracking-widest shadow-md hover:bg-slate-850 active:bg-slate-950 focus:outline-none focus:ring-2 focus:ring-slate-400 disabled:opacity-75 disabled:pointer-events-none transition-all flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full h-[52px] sm:h-[56px] py-3.5 px-6 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 hover:from-blue-700 hover:via-indigo-700 hover:to-violet-700 text-white font-black text-sm tracking-wide shadow-lg shadow-blue-500/25 active:scale-[0.99] focus:outline-none focus:ring-4 focus:ring-blue-100 disabled:opacity-60 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 cursor-pointer mt-3"
             >
               {loading ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Validando...</span>
+                  <Loader2 className="w-4.5 h-4.5 animate-spin" />
+                  <span>Validando credenciales...</span>
                 </>
               ) : (
                 <>
-                  <span>Iniciar Sesión</span>
-                  <ArrowRight className="w-4 h-4" />
+                  <span>Iniciar sesión</span>
+                  <ArrowRight className="w-4.5 h-4.5" />
                 </>
               )}
             </button>
           </form>
 
-          {/* Secure details card (Linear/Stripe style) */}
-          <div className="p-4 bg-slate-50 border border-slate-150 rounded-xl flex items-start gap-3.5">
-            <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
-              <ShieldCheck className="w-4.5 h-4.5" />
+          {/* Divisor "o continúa con" */}
+          <div className="relative flex items-center justify-center my-5">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-slate-200" />
             </div>
-            <div className="space-y-0.5">
-              <span className="text-[10px] font-black text-slate-800 uppercase tracking-wide block">Plataforma segura y confiable</span>
-              <p className="text-[10px] text-slate-500 font-semibold leading-normal">Cumplimos con los más altos estándares de seguridad y protección de datos escolares.</p>
+            <span className="relative bg-white px-3 text-xs font-semibold text-slate-400">
+              o continúa con
+            </span>
+          </div>
+
+          {/* Botones de Social Login (Google, Microsoft, Apple) */}
+          <div className="grid grid-cols-3 gap-3">
+            
+            {/* Google */}
+            <button
+              type="button"
+              onClick={() => handleSocialClick('Google')}
+              className="py-2.5 px-3 rounded-xl border border-slate-200/90 hover:border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold flex items-center justify-center gap-2 shadow-2xs transition active:scale-[0.98] cursor-pointer"
+            >
+              <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+              </svg>
+              <span>Google</span>
+            </button>
+
+            {/* Microsoft */}
+            <button
+              type="button"
+              onClick={() => handleSocialClick('Microsoft')}
+              className="py-2.5 px-3 rounded-xl border border-slate-200/90 hover:border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold flex items-center justify-center gap-2 shadow-2xs transition active:scale-[0.98] cursor-pointer"
+            >
+              <svg className="w-4 h-4 shrink-0" viewBox="0 0 21 21">
+                <rect x="1" y="1" width="9" height="9" fill="#f25022"/>
+                <rect x="11" y="1" width="9" height="9" fill="#7fba00"/>
+                <rect x="1" y="11" width="9" height="9" fill="#00a4ef"/>
+                <rect x="11" y="11" width="9" height="9" fill="#ffb900"/>
+              </svg>
+              <span>Microsoft</span>
+            </button>
+
+            {/* Apple */}
+            <button
+              type="button"
+              onClick={() => handleSocialClick('Apple')}
+              className="py-2.5 px-3 rounded-xl border border-slate-200/90 hover:border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold flex items-center justify-center gap-2 shadow-2xs transition active:scale-[0.98] cursor-pointer"
+            >
+              <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.66-.82 1.11-1.96.99-3.1-.96.04-2.12.64-2.8 1.45-.6.69-1.12 1.83-.98 2.95 1.07.08 2.15-.56 2.79-1.3"/>
+              </svg>
+              <span>Apple</span>
+            </button>
+
+          </div>
+
+          {/* Bloque Institucional de Seguridad y Privacidad */}
+          <div className="p-3.5 rounded-2xl bg-[#f0f6fe] border border-blue-100 flex items-center gap-3.5 shadow-2xs">
+            <div className="w-9 h-9 rounded-xl bg-white flex items-center justify-center text-blue-600 shadow-xs shrink-0 border border-blue-100">
+              <ShieldCheck className="w-5 h-5 text-blue-600" />
+            </div>
+            <div className="text-left">
+              <span className="text-xs font-bold text-slate-900 block leading-tight">
+                Plataforma segura y confiable
+              </span>
+              <span className="text-[11px] text-slate-600 font-medium block leading-snug mt-0.5">
+                Protegemos tus datos y los de tu comunidad educativa.
+              </span>
             </div>
           </div>
 
-          {/* ⚡ PANEL DEMO: Muestra condicionalmente con ?demo=true */}
+          {/* ⚡ PANEL DEMO: Se activa condicionalmente con ?demo=true */}
           {showDemo && (
-            <div className="space-y-3.5 pt-4 border-t border-slate-200 animate-fade-in">
+            <div className="space-y-3 pt-4 border-t border-slate-100 animate-in fade-in-50">
               <div className="flex items-center justify-between">
-                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
                   Consolas de Demostración Activas
                 </span>
-                <span className="text-[8px] font-black text-blue-650 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100 uppercase tracking-wider">
+                <span className="text-[9px] font-black text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100 uppercase tracking-wider">
                   Auto-fill
                 </span>
               </div>
               
-              <div className="grid grid-cols-1 gap-2">
+              <div className="grid grid-cols-1 gap-2 max-h-[220px] overflow-y-auto pr-1">
                 {DEMO_ACCOUNTS.map((account, idx) => (
                   <div
                     key={account.role}
                     onClick={() => handleDemoClick(account.email)}
-                    className="p-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 flex items-center justify-between gap-3 cursor-pointer transition active:scale-[0.99]"
+                    className="p-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-blue-50/60 hover:border-blue-200 flex items-center justify-between gap-3 cursor-pointer transition active:scale-[0.99]"
                   >
-                    <div className="flex items-center gap-3">
-                      <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 font-black text-[10px] border shadow-sm ${account.color}`}>
+                    <div className="flex items-center gap-2.5">
+                      <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 font-black text-[10px] border shadow-xs ${account.color}`}>
                         {ROLE_DISPLAY_NAMES[account.role].charAt(0)}
                       </div>
                       <div>
@@ -766,7 +731,7 @@ function LoginContent() {
                           <span className="font-bold text-slate-800 text-xs">
                             {account.name}
                           </span>
-                          <span className={`text-[8px] font-black px-1.5 py-0.2 rounded border ${account.color} leading-none scale-90`}>
+                          <span className={`text-[8px] font-black px-1.5 py-0.5 rounded border ${account.color} leading-none`}>
                             {ROLE_DISPLAY_NAMES[account.role]}
                           </span>
                         </div>
@@ -782,47 +747,34 @@ function LoginContent() {
                         e.stopPropagation();
                         handleCopy(account.email, idx);
                       }}
-                      className="p-1 rounded-md hover:bg-slate-200 text-slate-400 hover:text-slate-600 transition-colors relative z-20 cursor-pointer shrink-0"
+                      className="p-1.5 rounded-md hover:bg-slate-200 text-slate-400 hover:text-slate-600 transition relative z-20 cursor-pointer shrink-0"
                       title="Copiar correo"
                     >
                       {copiedIndex === idx ? (
-                        <Check className="w-3 h-3 text-emerald-600" />
+                        <Check className="w-3.5 h-3.5 text-emerald-600" />
                       ) : (
-                        <Copy className="w-3 h-3" />
+                        <Copy className="w-3.5 h-3.5" />
                       )}
                     </button>
                   </div>
                 ))}
               </div>
               
-              <p className="text-[9px] text-slate-400 font-bold text-center">
-                Contraseña demo: <strong className="text-slate-650 font-black select-all">AulaCore2026!</strong>
+              <p className="text-[10px] text-slate-400 font-semibold text-center pt-1">
+                Contraseña demo: <strong className="text-slate-700 font-bold select-all">AulaCore2026!</strong>
               </p>
             </div>
           )}
 
         </div>
 
-        {/* Central Logo and Footer */}
-        <div className="pt-6 border-t border-slate-200/60 text-center flex flex-col items-center gap-1.5 mt-8 shrink-0">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-md bg-white flex items-center justify-center p-1 border border-slate-150 shadow-sm">
-              <img 
-                src="/logo-aulacore.png" 
-                alt="AulaCore Logo" 
-                className="w-full h-full object-contain"
-              />
-            </div>
-            <span className="font-black text-slate-800 tracking-wider text-xs">AulaCore</span>
-          </div>
-          <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider leading-none">
-            Transformamos la educación con inteligencia y corazón.
-          </p>
+        {/* Footer sutil móvil */}
+        <div className="lg:hidden text-center text-[10px] text-slate-400 pt-6">
+          &copy; {new Date().getFullYear()} AulaCore S.A.S. Todos los derechos reservados.
         </div>
 
       </section>
-      
-      </div>
+
     </main>
   );
 }
@@ -832,7 +784,7 @@ export default function LoginPage() {
     <Suspense fallback={
       <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white gap-3 select-none">
         <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-        <div className="text-slate-500 font-bold text-xs uppercase tracking-widest">Iniciando Ecosistema AulaCore...</div>
+        <div className="text-slate-400 font-bold text-xs uppercase tracking-widest">Iniciando Ecosistema AulaCore...</div>
       </div>
     }>
       <LoginContent />
