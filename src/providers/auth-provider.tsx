@@ -163,6 +163,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       setRoles(userRoles);
 
+      // Resolución inmediata del rol activo (sin demorar por consultas secundarias de instituciones)
+      let selectedRole: UserRole | null = null;
+      if (userRoles.length > 0) {
+        const savedRole = typeof window !== 'undefined' ? localStorage.getItem('aulacore-user-role') as UserRole : null;
+        if (savedRole && userRoles.includes(savedRole)) {
+          selectedRole = savedRole;
+        } else {
+          const hierarchy: UserRole[] = ['super_admin', 'rector', 'coordinador', 'director_grupo', 'docente', 'secretaria', 'padre_familia', 'estudiante'];
+          for (const role of hierarchy) {
+            if (userRoles.includes(role)) {
+              selectedRole = role;
+              break;
+            }
+          }
+          if (!selectedRole) selectedRole = userRoles[0];
+          if (typeof window !== 'undefined') localStorage.setItem('aulacore-user-role', selectedRole);
+        }
+      }
+      setActiveRoleState(selectedRole);
+      console.log('[Auth Flow] 6. Rol obtenido:', selectedRole);
+
       let defaultInstId = rolesData && rolesData.length > 0 ? rolesData[0].institution_id : null;
       if (!defaultInstId && currentUser.user_metadata?.institution_id) {
         defaultInstId = currentUser.user_metadata.institution_id;
@@ -206,28 +227,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else {
         setActiveInstitution(null);
       }
-
-      // Step F: Rol activo resuelto
-      let selectedRole: UserRole | null = null;
-      if (userRoles.length > 0) {
-        const savedRole = typeof window !== 'undefined' ? localStorage.getItem('aulacore-user-role') as UserRole : null;
-        if (savedRole && userRoles.includes(savedRole)) {
-          selectedRole = savedRole;
-        } else {
-          const hierarchy: UserRole[] = ['super_admin', 'rector', 'coordinador', 'director_grupo', 'docente', 'secretaria', 'padre_familia', 'estudiante'];
-          for (const role of hierarchy) {
-            if (userRoles.includes(role)) {
-              selectedRole = role;
-              break;
-            }
-          }
-          if (!selectedRole) selectedRole = userRoles[0];
-          if (typeof window !== 'undefined') localStorage.setItem('aulacore-user-role', selectedRole);
-        }
-      }
-      
-      setActiveRoleState(selectedRole);
-      console.log('[Auth Flow] 6. Rol obtenido:', selectedRole);
 
       // Determinar Dashboard destino
       const targetDashboard = selectedRole === 'super_admin' ? '/configuracion/saas' : '/dashboard';
@@ -311,11 +310,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (newSession && newSession.user) {
         console.log('[Auth Flow] setSession() exitoso en onAuthStateChange. User ID:', newSession.user.id);
+        setLoading(true);
         setSession(newSession);
         setUser(newSession.user);
-        const savedOverride = typeof window !== 'undefined' ? localStorage.getItem('aulacore-override-institution-id') : null;
-        await loadUserData(newSession.user, newSession, savedOverride);
-        setLoading(false);
+        try {
+          const savedOverride = typeof window !== 'undefined' ? localStorage.getItem('aulacore-override-institution-id') : null;
+          await loadUserData(newSession.user, newSession, savedOverride);
+        } catch (err) {
+          console.error('[Auth Flow] Error cargando datos en onAuthStateChange:', err);
+        } finally {
+          if (isMounted) {
+            setLoading(false);
+          }
+        }
         
         if (pathname === '/login') {
           router.replace('/dashboard');
