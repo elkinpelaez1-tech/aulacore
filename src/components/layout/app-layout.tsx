@@ -16,7 +16,7 @@ interface AppLayoutProps {
 
 export function AppLayout({ children, userRole: _propRole, userName: _propName, hidePadding }: AppLayoutProps) {
   const { userRole, userName, mounted, activeInstitution } = useRole();
-  const { loading, isAuthenticated, signOut } = useAuth();
+  const { loading, isAuthenticated, signOut, roles } = useAuth();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [hasTimedOut, setHasTimedOut] = useState(false);
 
@@ -86,7 +86,7 @@ export function AppLayout({ children, userRole: _propRole, userName: _propName, 
     );
   }
 
-  if (isAuthenticated && !userRole) {
+  if (isAuthenticated && !loading && !userRole && roles.length === 0) {
     console.log('[AppLayout] User authenticated but no role. Showing Access Denied.');
     return (
       <div className="flex h-screen bg-slate-50 items-center justify-center">
