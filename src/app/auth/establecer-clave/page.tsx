@@ -38,58 +38,79 @@ function EstablecerClaveContent() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
-  // Validación de la sesión generada por el enlace de invitación
+  // Validación de la sesión generada por el enlace de invitación / recuperación
   useEffect(() => {
     let isMounted = true;
 
-    // 1. Escuchar evento de autenticación (el cliente Supabase parsea el hash de la URL automáticamente)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (!isMounted) return;
-      if (session?.user) {
-        setHasValidSession(true);
-        if (session.user.email) setUserEmail(session.user.email);
-        setCheckingSession(false);
-      }
-    });
-
-    // 2. Verificar getSession() directamente
-    const checkInitialSession = async () => {
+    const processAuth = async () => {
       try {
+        // 1. Detectar si existe window.location.hash con tokens de Supabase Auth
+        if (typeof window !== 'undefined' && window.location.hash) {
+          const hashString = window.location.hash.startsWith('#')
+            ? window.location.hash.substring(1)
+            : window.location.hash;
+          const hashParams = new URLSearchParams(hashString);
+          const accessToken = hashParams.get('access_token');
+          const refreshToken = hashParams.get('refresh_token');
+
+          if (accessToken && refreshToken) {
+            // Suministrar directamente los tokens a Supabase Auth para sortear la incompatibilidad PKCE del SDK
+            const { data, error: setSessionError } = await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken,
+            });
+
+            if (!isMounted) return;
+
+            if (!setSessionError && data?.session?.user) {
+              setHasValidSession(true);
+              if (data.session.user.email) {
+                setUserEmail(data.session.user.email);
+              }
+              // Limpiar de forma segura el hash sensible de la barra de direcciones sin recargar
+              window.history.replaceState(
+                null,
+                '',
+                window.location.pathname + window.location.search
+              );
+              setCheckingSession(false);
+              return;
+            } else {
+              console.error('[EstablecerClave] Error en setSession con tokens del hash:', setSessionError);
+              setHasValidSession(false);
+              setCheckingSession(false);
+              return;
+            }
+          }
+        }
+
+        // 2. Fallback: Si no hay hash (o si el usuario ya tenía sesión activa / refrescó la página)
         const { data: { session } } = await supabase.auth.getSession();
         if (!isMounted) return;
 
         if (session?.user) {
           setHasValidSession(true);
-          if (session.user.email) setUserEmail(session.user.email);
-          setCheckingSession(false);
+          if (session.user.email) {
+            setUserEmail(session.user.email);
+          }
         } else {
-          // Ventana de gracia para permitir que Supabase procese el fragmento hash en la carga inicial
-          setTimeout(async () => {
-            if (!isMounted) return;
-            const { data: { session: retrySession } } = await supabase.auth.getSession();
-            if (retrySession?.user) {
-              setHasValidSession(true);
-              if (retrySession.user.email) setUserEmail(retrySession.user.email);
-            } else {
-              setHasValidSession(false);
-            }
-            setCheckingSession(false);
-          }, 1200);
+          setHasValidSession(false);
         }
+        setCheckingSession(false);
+
       } catch (err) {
         if (isMounted) {
-          console.error('[EstablecerClave] Error verificando sesión:', err);
+          console.error('[EstablecerClave] Excepción procesando autenticación:', err);
           setHasValidSession(false);
           setCheckingSession(false);
         }
       }
     };
 
-    checkInitialSession();
+    processAuth();
 
     return () => {
       isMounted = false;
-      subscription.unsubscribe();
     };
   }, []);
 
