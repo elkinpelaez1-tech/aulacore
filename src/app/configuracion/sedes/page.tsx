@@ -9,6 +9,7 @@ import {
   Clock, Globe, CheckCircle2, Info, Eye
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useRole } from '@/providers/role-provider';
 
 // TYPES & INTERFACES
 interface SedeDetails {
@@ -73,6 +74,11 @@ interface LocalAuditLog {
 const SEED_CAMPUSES: SedeDetails[] = [];
 
 export default function CampusOperationsCenterPage() {
+  const { activeInstitution, mounted } = useRole();
+  const storageKey = activeInstitution?.id
+    ? `aulacore-institucion-settings-${activeInstitution.id}`
+    : 'aulacore-institucion-settings';
+
   const [sedes, setSedes] = useState<SedeDetails[]>(SEED_CAMPUSES);
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
   
@@ -112,7 +118,9 @@ export default function CampusOperationsCenterPage() {
 
   // Sync with Institutional Settings (LocalStorage unificator)
   useEffect(() => {
-    const rawSettings = localStorage.getItem('aulacore-institucion-settings');
+    if (!mounted || !activeInstitution?.id) return;
+
+    const rawSettings = localStorage.getItem(storageKey);
     if (rawSettings) {
       try {
         const settings = JSON.parse(rawSettings);
@@ -149,16 +157,20 @@ export default function CampusOperationsCenterPage() {
             };
           });
           setSedes(merged);
+        } else {
+          setSedes([]);
         }
       } catch (e) {
         console.error('Error loading institutional settings on Sedes component', e);
       }
+    } else {
+      setSedes([]);
     }
-  }, []);
+  }, [mounted, activeInstitution?.id, storageKey]);
 
   // Map and write changes back to localStorage institutional settings
   const updateSettingsStorage = (updatedList: SedeDetails[]) => {
-    const rawSettings = localStorage.getItem('aulacore-institucion-settings');
+    const rawSettings = localStorage.getItem(storageKey);
     let currentSettings = rawSettings ? JSON.parse(rawSettings) : {};
     
     currentSettings.sedes = updatedList.map(s => ({
@@ -169,7 +181,7 @@ export default function CampusOperationsCenterPage() {
       levels: s.levels
     }));
     
-    localStorage.setItem('aulacore-institucion-settings', JSON.stringify(currentSettings));
+    localStorage.setItem(storageKey, JSON.stringify(currentSettings));
   };
 
   // Generate RFID and log data dynamically on selected Sede
