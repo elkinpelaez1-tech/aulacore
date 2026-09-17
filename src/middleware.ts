@@ -13,6 +13,7 @@ export async function middleware(request: NextRequest) {
   // 1. INVENTARIO DE RUTAS PÚBLICAS (ESTRICTAMENTE NECESARIAS - ALLOW LIST EXCLUSIVA)
   const publicPaths = [
     '/login',
+    '/auth',
     '/verify',
     '/join',
     '/transparencia',
