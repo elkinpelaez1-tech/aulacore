@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { UserRole } from '@/lib/navigation';
 import { User, Session } from '@supabase/supabase-js';
@@ -83,6 +83,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [roles, setRoles] = useState<UserRole[]>([]);
   const [activeRole, setActiveRoleState] = useState<UserRole | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  
+  // Referencias para renovación silenciosa de sesión y prevención de carreras
+  const currentUserRef = useRef<User | null>(null);
+  const isUserDataLoadedRef = useRef<boolean>(false);
   
   const [institutionId, setInstitutionId] = useState<string | null>(null);
   const [activeInstitution, setActiveInstitution] = useState<InstitutionData | null>(null);
@@ -248,6 +252,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         userRole: selectedRole,
         institution: activeId
       });
+      isUserDataLoadedRef.current = true;
 
     } catch (err: any) {
       console.error('[Auth Flow] Excepción general en loadUserData:', err?.message || err);
@@ -259,10 +264,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const { data: { session: currentSession } } = await withTimeout(supabase.auth.getSession(), 'getSession()');
       if (currentSession && currentSession.user) {
+        currentUserRef.current = currentSession.user;
         setSession(currentSession);
         setUser(currentSession.user);
         await loadUserData(currentSession.user, currentSession, overrideInstitutionId);
       } else {
+        currentUserRef.current = null;
+        isUserDataLoadedRef.current = false;
         setUser(null);
         setSession(null);
         setProfile(null);
@@ -293,10 +301,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (initialSession && initialSession.user && !error) {
           console.log('[Auth Flow] setSession() exitoso en initializeAuth. User ID:', initialSession.user.id);
+          currentUserRef.current = initialSession.user;
           setSession(initialSession);
           setUser(initialSession.user);
           await loadUserData(initialSession.user, initialSession, savedOverride);
         } else {
+          currentUserRef.current = null;
+          isUserDataLoadedRef.current = false;
           setUser(null);
           setSession(null);
         }
@@ -317,7 +328,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!isMounted) return;
 
       if (newSession && newSession.user) {
+        // TOKEN_REFRESHED silencioso: Si el usuario ya está autenticado y cargado en memoria,
+        // renovar únicamente los tokens y sesión sin congelar la UI con loading=true ni reconsultar la base de datos.
+        if (event === 'TOKEN_REFRESHED' && currentUserRef.current?.id === newSession.user.id && isUserDataLoadedRef.current) {
+          console.log('[Auth Flow] TOKEN_REFRESHED silencioso. Sesión y tokens actualizados sin congelar UI ni recargar roles.');
+          currentUserRef.current = newSession.user;
+          setSession(newSession);
+          setUser(newSession.user);
+          return;
+        }
+
         console.log('[Auth Flow] setSession() exitoso en onAuthStateChange. User ID:', newSession.user.id);
+        currentUserRef.current = newSession.user;
         setLoading(true);
         setSession(newSession);
         setUser(newSession.user);
@@ -336,6 +358,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           router.replace('/dashboard');
         }
       } else if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
+        currentUserRef.current = null;
+        isUserDataLoadedRef.current = false;
         setUser(null);
         setSession(null);
         setProfile(null);
@@ -366,6 +390,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (err) {
       console.error('Error al cerrar sesión:', err);
     } finally {
+      currentUserRef.current = null;
+      isUserDataLoadedRef.current = false;
       setUser(null);
       setSession(null);
       setProfile(null);
