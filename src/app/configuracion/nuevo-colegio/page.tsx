@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/providers/auth-provider';
@@ -43,6 +43,84 @@ export default function NuevoColegioPage() {
   const [department, setDepartment] = useState('');
   const [municipality, setMunicipality] = useState('');
   const [territorialType, setTerritorialType] = useState('Municipal Certificada');
+
+  // Flag para asegurar que la restauración de sessionStorage termine antes de habilitar el autoguardado
+  const isDraftLoaded = useRef(false);
+
+  // 1. Restaurar borrador de sessionStorage al montar (seguro contra problemas de hidratación SSR)
+  useEffect(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        const savedDraft = sessionStorage.getItem('aulacore_draft_new_school');
+        if (savedDraft) {
+          const draft = JSON.parse(savedDraft);
+          if (draft.name !== undefined) setName(draft.name);
+          if (draft.slug !== undefined) setSlug(draft.slug);
+          if (draft.slogan !== undefined) setSlogan(draft.slogan);
+          if (draft.nit !== undefined) setNit(draft.nit);
+          if (draft.daneCode !== undefined) setDaneCode(draft.daneCode);
+          if (draft.resolution !== undefined) setResolution(draft.resolution);
+          if (draft.legalNature !== undefined) setLegalNature(draft.legalNature);
+          if (draft.rectorName !== undefined) setRectorName(draft.rectorName);
+          if (draft.rectorEmail !== undefined) setRectorEmail(draft.rectorEmail);
+          if (draft.phone !== undefined) setPhone(draft.phone);
+          if (draft.secretaryName !== undefined) setSecretaryName(draft.secretaryName);
+          if (draft.primaryColor !== undefined) setPrimaryColor(draft.primaryColor);
+          if (draft.sidebarColor !== undefined) setSidebarColor(draft.sidebarColor);
+          if (draft.planType !== undefined) setPlanType(draft.planType);
+          if (draft.activeModules !== undefined && Array.isArray(draft.activeModules)) setActiveModules(draft.activeModules);
+          if (draft.logoUrl !== undefined) setLogoUrl(draft.logoUrl);
+          if (draft.orgType !== undefined) setOrgType(draft.orgType);
+          if (draft.department !== undefined) setDepartment(draft.department);
+          if (draft.municipality !== undefined) setMunicipality(draft.municipality);
+          if (draft.territorialType !== undefined) setTerritorialType(draft.territorialType);
+        }
+      }
+    } catch (err) {
+      console.warn('[Nuevo Colegio] Error al restaurar borrador desde sessionStorage:', err);
+    } finally {
+      isDraftLoaded.current = true;
+    }
+  }, []);
+
+  // 2. Autoguardado en sessionStorage cuando los campos cambian (solo después de la carga inicial)
+  useEffect(() => {
+    if (!isDraftLoaded.current) return;
+    try {
+      if (typeof window !== 'undefined') {
+        const draftData = {
+          name,
+          slug,
+          slogan,
+          nit,
+          daneCode,
+          resolution,
+          legalNature,
+          rectorName,
+          rectorEmail,
+          phone,
+          secretaryName,
+          logoUrl,
+          primaryColor,
+          sidebarColor,
+          planType,
+          activeModules,
+          orgType,
+          department,
+          municipality,
+          territorialType
+        };
+        sessionStorage.setItem('aulacore_draft_new_school', JSON.stringify(draftData));
+      }
+    } catch (err) {
+      console.warn('[Nuevo Colegio] Error al guardar borrador en sessionStorage:', err);
+    }
+  }, [
+    name, slug, slogan, nit, daneCode, resolution, legalNature,
+    rectorName, rectorEmail, phone, secretaryName, logoUrl,
+    primaryColor, sidebarColor, planType, activeModules,
+    orgType, department, municipality, territorialType
+  ]);
 
   // Access Control check
   const isSuperAdmin = activeRole === 'super_admin' || (roles as string[])?.includes('super_admin') || (typeof window !== 'undefined' && localStorage.getItem('aulacore-user-role') === 'super_admin') || false;
@@ -232,6 +310,11 @@ const withTimeout = <T,>(promise: PromiseLike<T>, timeoutMs: number, stepName: s
       formatLog('[9] Finalizando transacción', { institutionId });
       setCreatedInstData({ ...rpcDataResult, email: rectorEmail, institution_id: institutionId });
       setSuccess(true);
+      
+      // Limpiar borrador temporal de sessionStorage tras creación exitosa
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('aulacore_draft_new_school');
+      }
       
       // Limpiar formulario
       setName('');
