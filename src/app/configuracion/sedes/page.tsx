@@ -1095,8 +1095,8 @@ export default function CampusOperationsCenterPage() {
             />
 
             {/* Sliding Panel wrapper */}
-            <div className="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-10">
-              <div className="pointer-events-auto w-screen max-w-2xl transform bg-slate-900 text-white border-l border-slate-800 shadow-2xl transition-all duration-300">
+            <div className="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-10 z-10">
+              <div className="pointer-events-auto w-screen max-w-2xl transform bg-slate-900 text-white border-l border-slate-800 shadow-2xl transition-all duration-300 relative z-10">
                 
                 <div className="flex h-full flex-col overflow-y-scroll py-6 px-6 space-y-6">
                   
@@ -1511,20 +1511,19 @@ export default function CampusOperationsCenterPage() {
 
       {/* 6. NOTION-STYLE NEW CAMPUS CREATION MODAL OVERLAY */}
       {addModalOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-          <div className="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-            
-            {/* Backdrop shadow */}
-            <div 
-              onClick={() => setAddModalOpen(false)}
-              className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm transition-opacity duration-300"
-            />
+        <div className="fixed inset-0 z-[60] overflow-y-auto flex items-center justify-center p-4 sm:p-6" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+          {/* Backdrop shadow */}
+          <div 
+            onClick={() => setAddModalOpen(false)}
+            className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs transition-opacity duration-200"
+            aria-hidden="true"
+          />
 
-            {/* Trick center block */}
-            <span className="hidden sm:inline-block sm:h-screen sm:align-middle" aria-hidden="true">&#8203;</span>
-
-            {/* Modal Box */}
-            <div className="inline-block transform overflow-hidden rounded-3xl bg-white border border-slate-200 text-left align-bottom shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:align-middle">
+          {/* Modal Box */}
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="relative z-10 w-full max-w-lg transform overflow-hidden rounded-3xl bg-white border border-slate-200 text-left shadow-2xl transition-all my-8 animate-in zoom-in-95 duration-200"
+          >
               
               <div className="bg-white px-6 pt-6 pb-4 space-y-4">
                 
@@ -1689,26 +1688,24 @@ export default function CampusOperationsCenterPage() {
               </div>
 
             </div>
-
-          </div>
         </div>
       )}
 
       {/* 7. EDIT CAMPUS MODAL OVERLAY */}
       {editModalOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-edit-title" role="dialog" aria-modal="true">
-          <div className="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-            
-            {/* Backdrop shadow */}
-            <div 
-              onClick={() => setEditModalOpen(false)}
-              className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm transition-opacity duration-300"
-            />
+        <div className="fixed inset-0 z-[60] overflow-y-auto flex items-center justify-center p-4 sm:p-6" aria-labelledby="modal-edit-title" role="dialog" aria-modal="true">
+          {/* Backdrop shadow */}
+          <div 
+            onClick={() => setEditModalOpen(false)}
+            className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs transition-opacity duration-200"
+            aria-hidden="true"
+          />
 
-            <span className="hidden sm:inline-block sm:h-screen sm:align-middle" aria-hidden="true">&#8203;</span>
-
-            {/* Modal Box */}
-            <div className="inline-block transform overflow-hidden rounded-3xl bg-white border border-slate-200 text-left align-bottom shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:align-middle">
+          {/* Modal Box */}
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="relative z-10 w-full max-w-lg transform overflow-hidden rounded-3xl bg-white border border-slate-200 text-left shadow-2xl transition-all my-8 animate-in zoom-in-95 duration-200"
+          >
               
               <div className="bg-white px-6 pt-6 pb-4 space-y-4">
                 
@@ -1867,8 +1864,6 @@ export default function CampusOperationsCenterPage() {
               </div>
 
             </div>
-
-          </div>
         </div>
       )}
 
