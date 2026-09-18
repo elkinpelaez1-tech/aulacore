@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/lib/supabase';
+import { useRole } from '@/providers/role-provider';
 
 // TYPES & INTERFACES
 interface Subject {
@@ -30,6 +31,8 @@ interface CurriculumDetails {
   name: string;
   levelName: 'Preescolar' | 'Primaria' | 'Bachillerato' | 'Media' | 'Especialidad';
   coordinator: string;
+  jornada?: string;
+  description?: string;
   subjectsCount: number;
   hoursWeeklyTotal: number;
   coursesCount: number;
@@ -38,9 +41,108 @@ interface CurriculumDetails {
   areas: AreaDetails[];
 }
 
+// CANONICAL DEFAULT MALLAS (Ley 115 Standard MEN Colombia)
+const DEFAULT_MALLAS: CurriculumDetails[] = [
+  {
+    id: 'malla-bachillerato',
+    name: 'Malla Curricular Bachillerato Académico',
+    levelName: 'Bachillerato',
+    coordinator: 'Coordinación Académica',
+    jornada: 'Mañana',
+    description: 'Plan de estudios de educación básica secundaria y media conforme a los estándares de competencias MEN (Ley 115).',
+    subjectsCount: 9,
+    hoursWeeklyTotal: 30,
+    coursesCount: 5,
+    status: 'Aprobado',
+    lastUpdated: 'Vigente 2026',
+    areas: [
+      {
+        name: 'Ciencias Naturales y Educación Ambiental',
+        code: 'CIEN-BACH',
+        subjects: [
+          { name: 'Biología General', hoursWeekly: 4, teacherSuggested: 'Docente de Ciencias', avatar: '🔬', linkedCourses: ['6°', '7°', '8°', '9°'], description: 'Estudio de los ecosistemas, genética y biodiversidad.' },
+          { name: 'Química Orgánica e Inorgánica', hoursWeekly: 3, teacherSuggested: 'Docente de Química', avatar: '🧪', linkedCourses: ['10°', '11°'], description: 'Estructura molecular, estequiometría y reacciones.' }
+        ]
+      },
+      {
+        name: 'Matemáticas y Razonamiento Lógico',
+        code: 'MAT-BACH',
+        subjects: [
+          { name: 'Álgebra y Trigonometría', hoursWeekly: 5, teacherSuggested: 'Docente de Matemáticas', avatar: '📐', linkedCourses: ['8°', '9°', '10°'], description: 'Funciones, identidades y resolución de problemas.' }
+        ]
+      },
+      {
+        name: 'Humanidades y Lengua Castellana',
+        code: 'HUM-BACH',
+        subjects: [
+          { name: 'Lengua Castellana y Literatura', hoursWeekly: 4, teacherSuggested: 'Docente de Humanidades', avatar: '📚', linkedCourses: ['6° a 11°'], description: 'Comprensión lectora, producción textual y análisis literario.' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'malla-primaria',
+    name: 'Malla Curricular Básica Primaria',
+    levelName: 'Primaria',
+    coordinator: 'Coordinación Académica',
+    jornada: 'Mañana',
+    description: 'Desarrollo de habilidades fundamentales en lectoescritura, pensamiento matemático y convivencia.',
+    subjectsCount: 7,
+    hoursWeeklyTotal: 25,
+    coursesCount: 5,
+    status: 'Aprobado',
+    lastUpdated: 'Vigente 2026',
+    areas: [
+      {
+        name: 'Pensamiento Numérico y Geométrico',
+        code: 'MAT-PRIM',
+        subjects: [
+          { name: 'Matemáticas Fundamentales', hoursWeekly: 5, teacherSuggested: 'Docente Primaria', avatar: '🔢', linkedCourses: ['1° a 5°'], description: 'Operaciones básicas, geometría y resolución de problemas cotidianos.' }
+        ]
+      },
+      {
+        name: 'Lenguaje y Comunicación',
+        code: 'LENG-PRIM',
+        subjects: [
+          { name: 'Español y Comprensión Lectora', hoursWeekly: 5, teacherSuggested: 'Docente Primaria', avatar: '📖', linkedCourses: ['1° a 5°'], description: 'Lectura comprensiva, escritura y expresión oral.' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'malla-preescolar',
+    name: 'Malla Curricular Integral Preescolar',
+    levelName: 'Preescolar',
+    coordinator: 'Coordinación Preescolar',
+    jornada: 'Mañana',
+    description: 'Dimensiones del desarrollo infantil: cognitiva, comunicativa, socioafectiva, corporal y estética.',
+    subjectsCount: 5,
+    hoursWeeklyTotal: 20,
+    coursesCount: 3,
+    status: 'Aprobado',
+    lastUpdated: 'Vigente 2026',
+    areas: [
+      {
+        name: 'Dimensiones del Desarrollo Infantil',
+        code: 'DIM-PRE',
+        subjects: [
+          { name: 'Dimensión Cognitiva y Exploración', hoursWeekly: 5, teacherSuggested: 'Docente Transición', avatar: '🎨', linkedCourses: ['Transición'], description: 'Pensamiento lógico temprano y exploración del entorno.' },
+          { name: 'Dimensión Comunicativa', hoursWeekly: 5, teacherSuggested: 'Docente Transición', avatar: '🗣️', linkedCourses: ['Transición'], description: 'Iniciación al lenguaje, narración y expresión artística.' }
+        ]
+      }
+    ]
+  }
+];
+
 export default function CurriculumOperationsHubPage() {
+  const { activeInstitution, institutionId, mounted } = useRole();
+  const currentInstId = activeInstitution?.id || institutionId;
+  const storageKey = currentInstId
+    ? `aulacore-mallas-settings-${currentInstId}`
+    : 'aulacore-mallas-settings';
+
   // Fetch curriculums from Supabase
-  const [curriculums, setCurriculums] = useState<CurriculumDetails[]>([]);
+  const [curriculums, setCurriculums] = useState<CurriculumDetails[]>(DEFAULT_MALLAS);
   const [activeTab, setActiveTab] = useState<'mallas' | 'areas' | 'asignaturas' | 'intensidad'>('mallas');
   
   // Drawer state
@@ -59,8 +161,10 @@ export default function CurriculumOperationsHubPage() {
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [newName, setNewName] = useState('');
   const [newLevel, setNewLevel] = useState<CurriculumDetails['levelName']>('Bachillerato');
+  const [newJornada, setNewJornada] = useState('Mañana');
   const [newCoordinator, setNewCoordinator] = useState('');
   const [newHours, setNewHours] = useState(25);
+  const [newDescription, setNewDescription] = useState('');
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -69,24 +173,69 @@ export default function CurriculumOperationsHubPage() {
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  // Load curriculums from Supabase
+  // Load curriculums from institutional storage with Supabase & default seed fallbacks
   useEffect(() => {
-    const fetchCurriculums = async () => {
-      const { data, error } = await supabase.from('curriculums').select('*');
-      if (error) {
-        console.error('Error fetching curriculums:', error);
-        return;
+    if (!mounted) return;
+
+    const loadMallas = () => {
+      try {
+        const stored = localStorage.getItem(storageKey);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setCurriculums(parsed);
+            return;
+          }
+        }
+      } catch (err) {
+        console.warn('Error reading mallas from storage:', err);
       }
-      setCurriculums(data as CurriculumDetails[]);
-      // Cache fetched data
-      localStorage.setItem('aulacore-mallas-settings', JSON.stringify(data));
+
+      // Check Supabase if table exists, else keep defaults
+      const fetchSupabase = async () => {
+        try {
+          const { data, error } = await supabase.from('curriculums').select('*');
+          if (!error && data && data.length > 0) {
+            setCurriculums(data as CurriculumDetails[]);
+            localStorage.setItem(storageKey, JSON.stringify(data));
+            return;
+          }
+        } catch {
+          // Table doesn't exist or network error: use seed defaults
+        }
+
+        setCurriculums(DEFAULT_MALLAS);
+        localStorage.setItem(storageKey, JSON.stringify(DEFAULT_MALLAS));
+      };
+
+      fetchSupabase();
     };
-    fetchCurriculums();
-  }, []);
+
+    loadMallas();
+
+    const handleSync = () => {
+      try {
+        const stored = localStorage.getItem(storageKey);
+        if (stored) {
+          setCurriculums(JSON.parse(stored));
+        }
+      } catch (_) {}
+    };
+
+    window.addEventListener('aulacore-mallas-updated', handleSync);
+    return () => {
+      window.removeEventListener('aulacore-mallas-updated', handleSync);
+    };
+  }, [mounted, currentInstId, storageKey]);
 
   const saveCurriculums = (updatedList: CurriculumDetails[]) => {
     setCurriculums(updatedList);
-    localStorage.setItem('aulacore-mallas-settings', JSON.stringify(updatedList));
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(updatedList));
+      window.dispatchEvent(new CustomEvent('aulacore-mallas-updated'));
+    } catch (e) {
+      console.error('Error saving mallas:', e);
+    }
   };
 
   const handleToggleAccordion = (code: string) => {
@@ -98,40 +247,60 @@ export default function CurriculumOperationsHubPage() {
 
   // Add a new academic curriculum
   const handleCreateCurriculum = () => {
-    if (!newName || !newCoordinator) {
-      triggerToast('⚠️ Por favor escribe el nombre de la malla y el coordinador.');
+    if (!newName.trim()) {
+      triggerToast('⚠️ Por favor escribe el nombre de la malla.');
       return;
     }
 
+    const assignedCoordinator = newCoordinator.trim() || activeInstitution?.rector_name || 'Coordinación Académica';
+
     const newC: CurriculumDetails = {
       id: 'c-' + Date.now(),
-      name: newName,
+      name: newName.trim(),
       levelName: newLevel,
-      coordinator: newCoordinator,
+      coordinator: assignedCoordinator,
+      jornada: newJornada,
+      description: newDescription.trim() || `Malla curricular para ${newLevel} - Jornada ${newJornada}`,
       subjectsCount: 4,
-      hoursWeeklyTotal: newHours,
-      coursesCount: 2,
+      hoursWeeklyTotal: Number(newHours) || 25,
+      coursesCount: 1,
       status: 'Borrador',
       lastUpdated: 'Hace unos instantes',
       areas: [
         {
-          name: 'Áreas Introductorias de Especialidad',
-          code: 'ARE-NEW-' + Date.now(),
+          name: `Áreas Nucleares - ${newName.trim()}`,
+          code: 'ARE-' + Math.random().toString(36).substring(2, 7).toUpperCase(),
           subjects: [
-            { name: 'Fundamentos Curriculares', hoursWeekly: 5, teacherSuggested: newCoordinator, avatar: '👨‍💼', linkedCourses: ['Curso Único'], description: 'Introducción a la especialidad académica.' },
-            { name: 'Laboratorio de Práctica', hoursWeekly: 5, teacherSuggested: newCoordinator, avatar: '👨‍💼', linkedCourses: ['Curso Único'], description: 'Práctica técnica controlada por docentes de especialidad.' }
+            { 
+              name: 'Fundamentos Curriculares', 
+              hoursWeekly: 5, 
+              teacherSuggested: assignedCoordinator, 
+              avatar: '📘', 
+              linkedCourses: ['Curso Principal'], 
+              description: 'Asignatura base del plan de estudios aprobado.' 
+            },
+            { 
+              name: 'Taller de Profundización', 
+              hoursWeekly: 4, 
+              teacherSuggested: assignedCoordinator, 
+              avatar: '🔬', 
+              linkedCourses: ['Curso Principal'], 
+              description: 'Módulo práctico y de competencias aplicadas.' 
+            }
           ]
         }
       ]
     };
 
-    const updatedList = [...curriculums, newC];
+    const updatedList = [newC, ...curriculums];
     saveCurriculums(updatedList);
     
     setNewName('');
     setNewCoordinator('');
+    setNewDescription('');
+    setNewHours(25);
     setAddModalOpen(false);
-    triggerToast(`✓ Malla ${newName} registrada en el hub.`);
+    triggerToast(`✓ Malla "${newName.trim()}" creada con éxito.`);
   };
 
   // Delete curriculum
@@ -208,9 +377,22 @@ export default function CurriculumOperationsHubPage() {
                 {curr.name}
               </h3>
               
-              <div className="flex items-center gap-1 text-slate-450 text-[10px] font-semibold">
-                <span>Coordinador:</span>
-                <span className="text-slate-650 font-bold">{curr.coordinator}</span>
+              {curr.description && (
+                <p className="text-xs text-slate-500 line-clamp-2 pt-0.5">
+                  {curr.description}
+                </p>
+              )}
+
+              <div className="flex items-center justify-between text-slate-450 text-[10px] font-semibold pt-1">
+                <div className="flex items-center gap-1">
+                  <span>Coordinador:</span>
+                  <span className="text-slate-650 font-bold">{curr.coordinator}</span>
+                </div>
+                {curr.jornada && (
+                  <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[9px] font-medium">
+                    {curr.jornada}
+                  </span>
+                )}
               </div>
             </div>
 
@@ -256,12 +438,12 @@ export default function CurriculumOperationsHubPage() {
             {/* Dark glass backdrop overlay */}
             <div 
               onClick={() => setDrawerOpen(false)}
-              className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm transition-opacity duration-300"
+              className="absolute inset-0 bg-slate-950/60 backdrop-blur-xs transition-opacity duration-300"
             />
 
             {/* Sliding Panel wrapper */}
-            <div className="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-10">
-              <div className="pointer-events-auto w-screen max-w-2xl transform bg-slate-900 text-white border-l border-slate-800 shadow-2xl transition-all duration-300">
+            <div className="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-10 z-10">
+              <div className="pointer-events-auto relative z-10 w-screen max-w-2xl transform bg-slate-900 text-white border-l border-slate-800 shadow-2xl transition-all duration-300">
                 
                 <div className="flex h-full flex-col overflow-y-scroll py-6 px-6 space-y-6">
                   
@@ -272,6 +454,11 @@ export default function CurriculumOperationsHubPage() {
                         <span className="bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-[9px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded">
                           Malla: {selectedCurriculum.levelName}
                         </span>
+                        {selectedCurriculum.jornada && (
+                          <span className="bg-sky-500/10 text-sky-400 border border-sky-500/20 text-[9px] font-semibold px-2 py-0.5 rounded uppercase font-mono">
+                            Jornada {selectedCurriculum.jornada}
+                          </span>
+                        )}
                         <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[9px] font-semibold px-2 py-0.5 rounded uppercase font-mono">
                           {selectedCurriculum.status}
                         </span>
@@ -283,6 +470,11 @@ export default function CurriculumOperationsHubPage() {
                       <p className="text-xs text-slate-350 font-medium">
                         Coordinación Académica a cargo: <span className="text-indigo-400 font-semibold">{selectedCurriculum.coordinator}</span>
                       </p>
+                      {selectedCurriculum.description && (
+                        <p className="text-xs text-slate-400 font-normal pt-1">
+                          {selectedCurriculum.description}
+                        </p>
+                      )}
                     </div>
 
                     <button 
@@ -444,109 +636,167 @@ export default function CurriculumOperationsHubPage() {
 
       {/* 4. NOTION-STYLE NEW CURRICULUM CREATION MODAL OVERLAY */}
       {addModalOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-          <div className="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-            
-            {/* Backdrop shadow */}
-            <div 
-              onClick={() => setAddModalOpen(false)}
-              className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm transition-opacity duration-300"
-            />
+        <div 
+          className="fixed inset-0 z-[60] overflow-y-auto flex items-center justify-center p-4 sm:p-6" 
+          role="dialog" 
+          aria-modal="true"
+        >
+          {/* Backdrop shadow (behind modal, never over modal) */}
+          <div 
+            onClick={() => setAddModalOpen(false)}
+            className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs transition-opacity duration-200"
+            aria-hidden="true"
+          />
 
-            {/* Trick center block */}
-            <span className="hidden sm:inline-block sm:h-screen sm:align-middle" aria-hidden="true">&#8203;</span>
-
-            {/* Modal Box */}
-            <div className="inline-block transform overflow-hidden rounded-3xl bg-white border border-slate-200 text-left align-bottom shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-md sm:align-middle">
+          {/* Modal Box */}
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="relative z-10 w-full max-w-lg transform overflow-hidden rounded-3xl bg-white border border-slate-200 text-left shadow-2xl transition-all my-8 animate-in zoom-in-95 duration-200"
+          >
+            <div className="bg-white px-6 pt-6 pb-4 space-y-4">
               
-              <div className="bg-white px-6 pt-6 pb-4 space-y-4">
-                
-                {/* Header */}
-                <div className="flex justify-between items-center border-b border-slate-100 pb-3">
-                  <h3 className="text-base font-semibold text-slate-900 tracking-tight flex items-center gap-2">
-                    <BookOpen className="w-5 h-5 text-indigo-600" /> Aprovisionar Nueva Malla
-                  </h3>
-                  <button 
-                    onClick={() => setAddModalOpen(false)}
-                    className="text-slate-450 hover:text-slate-650"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-
-                {/* Form fields */}
-                <div className="space-y-4 text-xs font-semibold text-slate-700">
-                  
+              {/* Header */}
+              <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600">
+                    <BookOpen className="w-4 h-4" />
+                  </div>
                   <div>
-                    <label className="text-[10px] font-bold text-slate-450 uppercase tracking-widest block mb-1.5">Nombre de la Malla</label>
-                    <input 
-                      type="text" 
-                      placeholder="Ej. Especialidad en Programación y Software"
-                      value={newName}
-                      onChange={(e) => setNewName(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 outline-none focus:bg-white focus:border-indigo-500 transition-all"
-                    />
+                    <h3 className="text-base font-semibold text-slate-900 tracking-tight">
+                      Nueva Malla Curricular
+                    </h3>
+                    <p className="text-[11px] text-slate-500">Defina el nivel, jornada y especificaciones del plan de estudio</p>
                   </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-[10px] font-bold text-slate-450 uppercase tracking-widest block mb-1.5">Nivel Académico</label>
-                      <select 
-                        value={newLevel} 
-                        onChange={(e) => setNewLevel(e.target.value as any)}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-655 outline-none hover:bg-slate-100 cursor-pointer"
-                      >
-                        <option value="Preescolar">Preescolar</option>
-                        <option value="Primaria">Primaria</option>
-                        <option value="Bachillerato">Bachillerato</option>
-                        <option value="Media">Media Técnica</option>
-                      </select>
-                    </div>
-                    
-                    <div>
-                      <label className="text-[10px] font-bold text-slate-450 uppercase tracking-widest block mb-1.5">Intensidad Horaria Semanal</label>
-                      <input 
-                        type="number" 
-                        value={newHours}
-                        onChange={(e) => setNewHours(parseInt(e.target.value, 10))}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 outline-none focus:bg-white focus:border-indigo-500 transition-all"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="text-[10px] font-bold text-slate-450 uppercase tracking-widest block mb-1.5">Coordinador Líder</label>
-                    <input 
-                      type="text" 
-                      placeholder="Ej. Ing. Andrés Beltrán"
-                      value={newCoordinator}
-                      onChange={(e) => setNewCoordinator(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 outline-none focus:bg-white focus:border-indigo-500 transition-all"
-                    />
-                  </div>
-
                 </div>
-
-              </div>
-
-              {/* Modal actions */}
-              <div className="bg-slate-50 px-6 py-4 flex justify-end gap-2 border-t border-slate-100">
-                <button
+                <button 
                   type="button"
                   onClick={() => setAddModalOpen(false)}
-                  className="px-4 py-2 border border-slate-200 text-slate-600 rounded-xl text-xs font-semibold uppercase tracking-wider hover:bg-slate-100 cursor-pointer"
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
                 >
-                  Cancelar
-                </button>
-                <button
-                  type="button"
-                  onClick={handleCreateCurriculum}
-                  className="px-5 py-2 bg-indigo-600 text-white rounded-xl text-xs font-semibold uppercase tracking-wider hover:bg-indigo-700 shadow-sm active:scale-95 transition-all cursor-pointer"
-                >
-                  Aprovisionar Malla
+                  <X className="w-4 h-4" />
                 </button>
               </div>
 
+              {/* Form fields */}
+              <div className="space-y-4 text-xs font-semibold text-slate-700">
+                
+                {/* Nombre de la Malla */}
+                <div>
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1.5">
+                    Nombre de la Malla <span className="text-rose-500">*</span>
+                  </label>
+                  <input 
+                    type="text" 
+                    placeholder="Ej. Especialidad en Programación y Software"
+                    value={newName}
+                    onChange={(e) => setNewName(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 outline-none focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 transition-all text-slate-900 placeholder:text-slate-400 text-xs font-medium"
+                    autoFocus
+                  />
+                </div>
+
+                {/* Nivel Educativo & Jornada Aplicable */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1.5">
+                      Nivel Educativo
+                    </label>
+                    <select 
+                      value={newLevel} 
+                      onChange={(e) => setNewLevel(e.target.value as CurriculumDetails['levelName'])}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-medium text-slate-800 outline-none focus:bg-white focus:border-indigo-500 cursor-pointer"
+                    >
+                      <option value="Preescolar">Preescolar</option>
+                      <option value="Primaria">Primaria</option>
+                      <option value="Bachillerato">Bachillerato</option>
+                      <option value="Media">Media Técnica</option>
+                      <option value="Especialidad">Especialidad</option>
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1.5">
+                      Jornada Aplicable
+                    </label>
+                    <select 
+                      value={newJornada} 
+                      onChange={(e) => setNewJornada(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-medium text-slate-800 outline-none focus:bg-white focus:border-indigo-500 cursor-pointer"
+                    >
+                      <option value="Mañana">Jornada Mañana</option>
+                      <option value="Tarde">Jornada Tarde</option>
+                      <option value="Única">Jornada Única</option>
+                      <option value="Nocturna">Jornada Nocturna</option>
+                      <option value="Completa">Jornada Completa</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Horas Semanales & Coordinador */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1.5">
+                      Intensidad Horaria Semanal (h)
+                    </label>
+                    <input 
+                      type="number" 
+                      min={1}
+                      max={60}
+                      value={newHours}
+                      onChange={(e) => setNewHours(parseInt(e.target.value, 10) || 0)}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 outline-none focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 transition-all text-slate-900 text-xs font-medium"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1.5">
+                      Coordinador Líder
+                    </label>
+                    <input 
+                      type="text" 
+                      placeholder={activeInstitution?.rector_name || "Ej. Coordinador Académico"}
+                      value={newCoordinator}
+                      onChange={(e) => setNewCoordinator(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 outline-none focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 transition-all text-slate-900 placeholder:text-slate-400 text-xs font-medium"
+                    />
+                  </div>
+                </div>
+
+                {/* Descripción */}
+                <div>
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1.5">
+                    Descripción de la Malla
+                  </label>
+                  <textarea 
+                    rows={2}
+                    placeholder="Enfoque pedagógico, competencias MEN y lineamientos generales de la malla..."
+                    value={newDescription}
+                    onChange={(e) => setNewDescription(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 outline-none focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 transition-all text-slate-900 placeholder:text-slate-400 text-xs font-medium resize-none"
+                  />
+                </div>
+
+              </div>
+
+            </div>
+
+            {/* Modal actions */}
+            <div className="bg-slate-50 px-6 py-4 flex items-center justify-end gap-3 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setAddModalOpen(false)}
+                className="px-4 py-2.5 border border-slate-200 text-slate-600 rounded-xl text-xs font-semibold uppercase tracking-wider hover:bg-slate-100 cursor-pointer transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleCreateCurriculum}
+                className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-sm active:scale-95 transition-all cursor-pointer flex items-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                CREAR MALLA CURRICULAR
+              </button>
             </div>
 
           </div>
