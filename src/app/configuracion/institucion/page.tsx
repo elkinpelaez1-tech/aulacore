@@ -213,8 +213,8 @@ export default function InstitucionSettingsPage() {
         sidebarColor: (activeInstitution.sidebar_color as InstitutionalSettings['sidebarColor']) || 'slate-900',
       };
 
-      // Campos adicionales desde localStorage (específico por institución)
-      const saved = localStorage.getItem(`aulacore-institucion-settings-${activeInstitution.id}`);
+      const currentInstId = activeInstitution?.id || institutionId;
+      const saved = currentInstId ? localStorage.getItem(`aulacore-institucion-settings-${currentInstId}`) : null;
       let extraSettings: Partial<InstitutionalSettings> = {};
       if (saved) {
         try {
@@ -236,7 +236,33 @@ export default function InstitucionSettingsPage() {
       }
     }
     // Si mounted=true pero activeInstitution=null → institución no configurada, dejar campos vacíos
-  }, [mounted, activeInstitution]);
+  }, [mounted, activeInstitution, institutionId]);
+
+  // Sincronizar en tiempo real si Sedes & Jornadas actualiza las sedes
+  useEffect(() => {
+    const handleSync = () => {
+      const currentInstId = activeInstitution?.id || institutionId;
+      if (!currentInstId) return;
+      const raw = localStorage.getItem(`aulacore-institucion-settings-${currentInstId}`);
+      if (raw) {
+        try {
+          const parsed = JSON.parse(raw);
+          if (parsed.sedes) {
+            setSedesList(parsed.sedes);
+            setSettings(prev => ({ ...prev, sedes: parsed.sedes }));
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    };
+    window.addEventListener('aulacore-settings-updated', handleSync);
+    window.addEventListener('storage', handleSync);
+    return () => {
+      window.removeEventListener('aulacore-settings-updated', handleSync);
+      window.removeEventListener('storage', handleSync);
+    };
+  }, [activeInstitution?.id, institutionId]);
 
   const triggerToast = (msg: string) => {
     setToastMessage(msg);
@@ -249,10 +275,14 @@ export default function InstitucionSettingsPage() {
     const updated = { ...settings, [field]: value };
     setSettings(updated);
     // Guardar con clave por institución para aislar configuraciones
-    const storageKey = activeInstitution?.id
-      ? `aulacore-institucion-settings-${activeInstitution.id}`
-      : 'aulacore-institucion-settings-local';
+    const currentInstId = activeInstitution?.id || institutionId;
+    const storageKey = currentInstId
+      ? `aulacore-institucion-settings-${currentInstId}`
+      : 'aulacore-institucion-settings';
     localStorage.setItem(storageKey, JSON.stringify(updated));
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('aulacore-settings-updated', { detail: { settings: updated } }));
+    }
   };
 
   // Add new Sede
@@ -285,6 +315,8 @@ export default function InstitucionSettingsPage() {
     // Reset Form
     setNewSedeName('');
     setNewSedeAddress('');
+    setNewSedeJornadas(['Mañana']);
+    setNewSedeLevels(['Primaria', 'Bachillerato']);
     triggerToast('✓ Sede registrada con éxito.');
   };
 
@@ -364,10 +396,14 @@ export default function InstitucionSettingsPage() {
 
   // Save all settings manually visual trigger
   const handleSaveAll = () => {
-    const storageKey = activeInstitution?.id
-      ? `aulacore-institucion-settings-${activeInstitution.id}`
-      : 'aulacore-institucion-settings-local';
+    const currentInstId = activeInstitution?.id || institutionId;
+    const storageKey = currentInstId
+      ? `aulacore-institucion-settings-${currentInstId}`
+      : 'aulacore-institucion-settings';
     localStorage.setItem(storageKey, JSON.stringify(settings));
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('aulacore-settings-updated', { detail: { settings } }));
+    }
     triggerToast('🚀 Configuración guardada en la base de datos de AulaCore.');
   };
 
@@ -711,6 +747,29 @@ export default function InstitucionSettingsPage() {
                               className="rounded border-slate-300 text-indigo-600"
                             />
                             <span>{lvl}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="text-xs sm:text-sm font-black text-slate-700 uppercase tracking-wider mb-2 block">Jornadas Operacionales Habilitadas</label>
+                    <div className="flex flex-wrap gap-4 text-xs font-semibold text-slate-700">
+                      {['Mañana', 'Tarde', 'Única', 'Nocturna', 'Sabatina'].map(j => {
+                        const isChecked = newSedeJornadas.includes(j);
+                        return (
+                          <label key={j} className="flex items-center gap-1.5 cursor-pointer">
+                            <input 
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={() => {
+                                if (isChecked) setNewSedeJornadas(newSedeJornadas.filter(x => x !== j));
+                                else setNewSedeJornadas([...newSedeJornadas, j]);
+                              }}
+                              className="rounded border-slate-300 text-indigo-600"
+                            />
+                            <span>{j}</span>
                           </label>
                         );
                       })}

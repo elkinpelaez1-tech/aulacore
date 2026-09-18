@@ -6,7 +6,7 @@ import {
   MapPin, Phone, User, Search, SlidersHorizontal, Trash2, 
   Plus, X, ChevronRight, Download, LayoutGrid, List, 
   Terminal, Camera, Check, AlertTriangle, RefreshCw, 
-  Clock, Globe, CheckCircle2, Info, Eye
+  Clock, Globe, CheckCircle2, Info, Eye, Edit2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useRole } from '@/providers/role-provider';
@@ -74,9 +74,10 @@ interface LocalAuditLog {
 const SEED_CAMPUSES: SedeDetails[] = [];
 
 export default function CampusOperationsCenterPage() {
-  const { activeInstitution, mounted } = useRole();
-  const storageKey = activeInstitution?.id
-    ? `aulacore-institucion-settings-${activeInstitution.id}`
+  const { activeInstitution, institutionId, mounted } = useRole();
+  const currentInstId = activeInstitution?.id || institutionId;
+  const storageKey = currentInstId
+    ? `aulacore-institucion-settings-${currentInstId}`
     : 'aulacore-institucion-settings';
 
   const [sedes, setSedes] = useState<SedeDetails[]>(SEED_CAMPUSES);
@@ -109,6 +110,18 @@ export default function CampusOperationsCenterPage() {
   const [newSedeJornadas, setNewSedeJornadas] = useState<string[]>(['Mañana']);
   const [newSedeLevels, setNewSedeLevels] = useState<string[]>(['Primaria', 'Bachillerato']);
 
+  // Modal State for Editing Campus
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingSedeId, setEditingSedeId] = useState<string | null>(null);
+  const [editSedeName, setEditSedeName] = useState('');
+  const [editSedeCode, setEditSedeCode] = useState('');
+  const [editSedeAddress, setEditSedeAddress] = useState('');
+  const [editSedePhone, setEditSedePhone] = useState('');
+  const [editSedeCoordinator, setEditSedeCoordinator] = useState('');
+  const [editSedeCapacity, setEditSedeCapacity] = useState(500);
+  const [editSedeJornadas, setEditSedeJornadas] = useState<string[]>([]);
+  const [editSedeLevels, setEditSedeLevels] = useState<string[]>([]);
+
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const triggerToast = (msg: string) => {
@@ -118,70 +131,101 @@ export default function CampusOperationsCenterPage() {
 
   // Sync with Institutional Settings (LocalStorage unificator)
   useEffect(() => {
-    if (!mounted || !activeInstitution?.id) return;
+    if (!mounted || !currentInstId) return;
 
-    const rawSettings = localStorage.getItem(storageKey);
-    if (rawSettings) {
-      try {
-        const settings = JSON.parse(rawSettings);
-        if (settings.sedes && settings.sedes.length > 0) {
-          // Merge institutional sedes with operational details
-          const merged = settings.sedes.map((s: any) => {
-            const existing = SEED_CAMPUSES.find(c => c.id === s.id || c.name.toLowerCase() === s.name.toLowerCase());
-            return {
-              id: s.id,
-              name: s.name,
-              address: s.address,
-              jornadas: s.jornadas || ['Mañana'],
-              levels: s.levels || ['Primaria', 'Bachillerato'],
-              code: existing?.code || `CAMPUS-${s.name.replace(/\\s+/g, '-').slice(0, 8).toUpperCase()}-${crypto.randomUUID().split('-')[0].substring(0, 4).toUpperCase()}`,
-              phone: existing?.phone || '+57 1 601 9900',
-              coordinator: existing?.coordinator || 'Coordinador Asignado',
-              studentsCount: existing?.studentsCount || 0,
-              teachersCount: existing?.teachersCount || 0,
-              coursesCount: existing?.coursesCount || 0,
-              capacityMax: existing?.capacityMax || 500,
-              rfidStatus: existing?.rfidStatus || 'excellent',
-              rfidDevicesCount: existing?.rfidDevicesCount || 0,
-              rfidOnlineCount: existing?.rfidOnlineCount || 0,
-              iaPredictive: existing?.iaPredictive ?? true,
-              enrollmentSynced: existing?.enrollmentSynced ?? true,
-              internetUptime: existing?.internetUptime || '99.5%',
-              networkType: existing?.networkType || 'Fiber',
-              alerts: existing?.alerts || [],
-              classroomsCount: existing?.classroomsCount || 10,
-              labsCount: existing?.labsCount || 1,
-              securityCamerasCount: existing?.securityCamerasCount || 4,
-              geoCoordinates: existing?.geoCoordinates || '4.7110, -74.0721',
-              transportGpsUptime: existing?.transportGpsUptime || '100%'
-            };
-          });
-          setSedes(merged);
-        } else {
-          setSedes([]);
+    const loadData = () => {
+      const rawSettings = localStorage.getItem(storageKey);
+      if (rawSettings) {
+        try {
+          const settings = JSON.parse(rawSettings);
+          if (settings.sedes && settings.sedes.length > 0) {
+            // Merge institutional sedes with operational details
+            const merged: SedeDetails[] = settings.sedes.map((s: any) => ({
+              id: s.id || 's-' + Date.now(),
+              name: s.name || 'Campus Principal',
+              code: s.code || `CAMPUS-${(s.name || 'SEDE').replace(/\s+/g, '-').slice(0, 8).toUpperCase()}`,
+              address: s.address || 'Dirección no registrada',
+              phone: s.phone || '+57 1 601 9900',
+              coordinator: s.coordinator || 'Coordinador Asignado',
+              studentsCount: typeof s.studentsCount === 'number' ? s.studentsCount : 0,
+              teachersCount: typeof s.teachersCount === 'number' ? s.teachersCount : 0,
+              coursesCount: typeof s.coursesCount === 'number' ? s.coursesCount : 0,
+              capacityMax: typeof s.capacityMax === 'number' && s.capacityMax > 0 ? s.capacityMax : 500,
+              jornadas: Array.isArray(s.jornadas) && s.jornadas.length > 0 ? s.jornadas : ['Mañana'],
+              levels: Array.isArray(s.levels) && s.levels.length > 0 ? s.levels : ['Primaria', 'Bachillerato'],
+              rfidStatus: s.rfidStatus || 'excellent',
+              rfidDevicesCount: typeof s.rfidDevicesCount === 'number' ? s.rfidDevicesCount : 0,
+              rfidOnlineCount: typeof s.rfidOnlineCount === 'number' ? s.rfidOnlineCount : 0,
+              iaPredictive: s.iaPredictive ?? true,
+              enrollmentSynced: s.enrollmentSynced ?? true,
+              internetUptime: s.internetUptime || '100%',
+              networkType: s.networkType || 'Fiber',
+              alerts: Array.isArray(s.alerts) ? s.alerts : [],
+              classroomsCount: typeof s.classroomsCount === 'number' ? s.classroomsCount : 8,
+              labsCount: typeof s.labsCount === 'number' ? s.labsCount : 1,
+              securityCamerasCount: typeof s.securityCamerasCount === 'number' ? s.securityCamerasCount : 2,
+              geoCoordinates: s.geoCoordinates || '4.7110, -74.0721',
+              transportGpsUptime: s.transportGpsUptime || '100%'
+            }));
+            setSedes(merged);
+          } else {
+            setSedes([]);
+          }
+        } catch (e) {
+          console.error('Error loading institutional settings on Sedes component', e);
         }
-      } catch (e) {
-        console.error('Error loading institutional settings on Sedes component', e);
+      } else {
+        setSedes([]);
       }
-    } else {
-      setSedes([]);
-    }
-  }, [mounted, activeInstitution?.id, storageKey]);
+    };
+
+    loadData();
+
+    // Listen for updates from other configuration pages in same session
+    const handleStorageUpdate = () => loadData();
+    window.addEventListener('aulacore-settings-updated', handleStorageUpdate);
+    window.addEventListener('storage', handleStorageUpdate);
+
+    return () => {
+      window.removeEventListener('aulacore-settings-updated', handleStorageUpdate);
+      window.removeEventListener('storage', handleStorageUpdate);
+    };
+  }, [mounted, currentInstId, storageKey]);
 
   // Map and write changes back to localStorage institutional settings
   const updateSettingsStorage = (updatedList: SedeDetails[]) => {
+    if (typeof window === 'undefined') return;
     const rawSettings = localStorage.getItem(storageKey);
     let currentSettings = rawSettings ? JSON.parse(rawSettings) : {};
     
     currentSettings.sedes = updatedList.map(s => ({
       id: s.id,
       name: s.name,
+      code: s.code,
       address: s.address,
+      phone: s.phone,
+      coordinator: s.coordinator,
+      capacityMax: s.capacityMax,
+      studentsCount: s.studentsCount,
+      teachersCount: s.teachersCount,
+      coursesCount: s.coursesCount,
       jornadas: s.jornadas,
-      levels: s.levels
+      levels: s.levels,
+      rfidStatus: s.rfidStatus,
+      rfidDevicesCount: s.rfidDevicesCount,
+      rfidOnlineCount: s.rfidOnlineCount,
+      classroomsCount: s.classroomsCount,
+      labsCount: s.labsCount,
+      securityCamerasCount: s.securityCamerasCount,
+      geoCoordinates: s.geoCoordinates,
+      transportGpsUptime: s.transportGpsUptime,
+      internetUptime: s.internetUptime,
+      networkType: s.networkType,
+      alerts: s.alerts
     }));
     
     localStorage.setItem(storageKey, JSON.stringify(currentSettings));
+    window.dispatchEvent(new CustomEvent('aulacore-settings-updated', { detail: { sedes: currentSettings.sedes } }));
   };
 
   // Generate RFID and log data dynamically on selected Sede
@@ -259,24 +303,31 @@ export default function CampusOperationsCenterPage() {
 
   // Add a new campus physical unit
   const handleAddSede = () => {
-    if (!newSedeName || !newSedeCode || !newSedeAddress || !newSedeCoordinator) {
-      triggerToast('⚠️ Por favor completa los campos principales de identidad.');
+    if (!newSedeName.trim()) {
+      triggerToast('⚠️ Por favor escribe el nombre del campus o sede.');
       return;
     }
 
+    const assignedCode = newSedeCode.trim() || `CAMPUS-${newSedeName.trim().replace(/\s+/g, '-').slice(0, 8).toUpperCase()}-${Math.floor(100 + Math.random() * 900)}`;
+    const instLocation = activeInstitution ? [activeInstitution.municipality, activeInstitution.department].filter(Boolean).join(', ') : '';
+    const assignedAddress = newSedeAddress.trim() || instLocation || 'Dirección no especificada';
+    const assignedCoordinator = newSedeCoordinator.trim() || (activeInstitution?.rector_name || 'Coordinador General');
+    const assignedJornadas = newSedeJornadas.length > 0 ? newSedeJornadas : ['Mañana'];
+    const assignedLevels = newSedeLevels.length > 0 ? newSedeLevels : ['Primaria', 'Bachillerato'];
+
     const newS: SedeDetails = {
       id: 's-' + Date.now(),
-      name: newSedeName,
-      code: newSedeCode,
-      address: newSedeAddress,
-      phone: newSedePhone || '+57 1 601 9900',
-      coordinator: newSedeCoordinator,
+      name: newSedeName.trim(),
+      code: assignedCode,
+      address: assignedAddress,
+      phone: newSedePhone.trim() || '+57 1 601 9900',
+      coordinator: assignedCoordinator,
       studentsCount: 0,
       teachersCount: 0,
       coursesCount: 0,
-      capacityMax: newSedeCapacity,
-      jornadas: newSedeJornadas,
-      levels: newSedeLevels,
+      capacityMax: newSedeCapacity > 0 ? newSedeCapacity : 500,
+      jornadas: assignedJornadas,
+      levels: assignedLevels,
       rfidStatus: 'excellent',
       rfidDevicesCount: 0,
       rfidOnlineCount: 0,
@@ -303,9 +354,91 @@ export default function CampusOperationsCenterPage() {
     setNewSedePhone('');
     setNewSedeCoordinator('');
     setNewSedeCapacity(500);
+    setNewSedeJornadas(['Mañana']);
+    setNewSedeLevels(['Primaria', 'Bachillerato']);
     setAddModalOpen(false);
 
     triggerToast(`✓ Campus ${newSedeName} registrado y sincronizado.`);
+  };
+
+  // Open modal with smart institutional defaults
+  const handleOpenAddModal = () => {
+    const instLocation = activeInstitution ? [activeInstitution.municipality, activeInstitution.department].filter(Boolean).join(', ') : '';
+    setNewSedeName('');
+    setNewSedeCode('');
+    setNewSedeAddress(instLocation);
+    setNewSedePhone('+57 1 601 9900');
+    setNewSedeCoordinator(activeInstitution?.rector_name || 'Coordinador General');
+    setNewSedeCapacity(500);
+    setNewSedeJornadas(['Mañana', 'Tarde']);
+    setNewSedeLevels(['Primaria', 'Bachillerato']);
+    setAddModalOpen(true);
+  };
+
+  // Open modal to edit existing campus
+  const handleOpenEditModal = (sede: SedeDetails, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setEditingSedeId(sede.id);
+    setEditSedeName(sede.name);
+    setEditSedeCode(sede.code);
+    setEditSedeAddress(sede.address);
+    setEditSedePhone(sede.phone);
+    setEditSedeCoordinator(sede.coordinator);
+    setEditSedeCapacity(sede.capacityMax);
+    setEditSedeJornadas(sede.jornadas || ['Mañana']);
+    setEditSedeLevels(sede.levels || ['Primaria', 'Bachillerato']);
+    setEditModalOpen(true);
+  };
+
+  // Save changes to edited campus
+  const handleSaveEditSede = () => {
+    if (!editingSedeId || !editSedeName.trim()) {
+      triggerToast('⚠️ Por favor escribe el nombre del campus.');
+      return;
+    }
+
+    const updatedList = sedes.map(s => {
+      if (s.id === editingSedeId) {
+        return {
+          ...s,
+          name: editSedeName.trim(),
+          code: editSedeCode.trim() || s.code,
+          address: editSedeAddress.trim() || s.address,
+          phone: editSedePhone.trim() || s.phone,
+          coordinator: editSedeCoordinator.trim() || s.coordinator,
+          capacityMax: editSedeCapacity > 0 ? editSedeCapacity : 500,
+          jornadas: editSedeJornadas.length > 0 ? editSedeJornadas : ['Mañana'],
+          levels: editSedeLevels.length > 0 ? editSedeLevels : ['Primaria', 'Bachillerato']
+        };
+      }
+      return s;
+    });
+
+    setSedes(updatedList);
+    updateSettingsStorage(updatedList);
+    setEditModalOpen(false);
+    triggerToast(`✓ Campus ${editSedeName} actualizado y sincronizado.`);
+  };
+
+  // Fast toggle a specific jornada directly on a campus
+  const handleToggleSedeJornada = (sedeId: string, jornadaName: string) => {
+    const updatedList = sedes.map(s => {
+      if (s.id === sedeId) {
+        const hasIt = s.jornadas.some(j => j.toLowerCase() === jornadaName.toLowerCase());
+        const newJornadas = hasIt
+          ? s.jornadas.filter(j => j.toLowerCase() !== jornadaName.toLowerCase())
+          : [...s.jornadas, jornadaName];
+        return {
+          ...s,
+          jornadas: newJornadas.length > 0 ? newJornadas : [jornadaName]
+        };
+      }
+      return s;
+    });
+
+    setSedes(updatedList);
+    updateSettingsStorage(updatedList);
+    triggerToast(`✓ Jornada ${jornadaName} actualizada para esta sede.`);
   };
 
   // Delete Sede physically
@@ -324,13 +457,19 @@ export default function CampusOperationsCenterPage() {
 
   // Dynamic filter chips logic
   const handleToggleJornadaFilter = (j: string) => {
-    if (selectedJornadas.includes(j)) setSelectedJornadas(selectedJornadas.filter(x => x !== j));
-    else setSelectedJornadas([...selectedJornadas, j]);
+    if (selectedJornadas.some(x => x.toLowerCase() === j.toLowerCase())) {
+      setSelectedJornadas(selectedJornadas.filter(x => x.toLowerCase() !== j.toLowerCase()));
+    } else {
+      setSelectedJornadas([...selectedJornadas, j]);
+    }
   };
 
   const handleToggleLevelFilter = (l: string) => {
-    if (selectedLevels.includes(l)) setSelectedLevels(selectedLevels.filter(x => x !== l));
-    else setSelectedLevels([...selectedLevels, l]);
+    if (selectedLevels.some(x => x.toLowerCase() === l.toLowerCase())) {
+      setSelectedLevels(selectedLevels.filter(x => x.toLowerCase() !== l.toLowerCase()));
+    } else {
+      setSelectedLevels([...selectedLevels, l]);
+    }
   };
 
   const isFilterActive = searchQuery !== '' || selectedJornadas.length > 0 || selectedLevels.length > 0 || statusFilter !== 'all' || rfidActiveOnly;
@@ -352,8 +491,12 @@ export default function CampusOperationsCenterPage() {
       sede.coordinator.toLowerCase().includes(searchQuery.toLowerCase()) ||
       sede.address.toLowerCase().includes(searchQuery.toLowerCase());
     
-    const matchesJornadas = selectedJornadas.length === 0 || selectedJornadas.some(j => sede.jornadas.includes(j));
-    const matchesLevels = selectedLevels.length === 0 || selectedLevels.some(l => sede.levels.includes(l));
+    const matchesJornadas = selectedJornadas.length === 0 || selectedJornadas.some(j => 
+      sede.jornadas?.some(sj => sj.trim().toLowerCase() === j.trim().toLowerCase())
+    );
+    const matchesLevels = selectedLevels.length === 0 || selectedLevels.some(l => 
+      sede.levels?.some(sl => sl.trim().toLowerCase() === l.trim().toLowerCase())
+    );
     
     // Status classification: overcapacity is classify as warning/critical
     const occupancyRatio = (sede.studentsCount / (sede.capacityMax || 1)) * 100;
@@ -380,7 +523,7 @@ export default function CampusOperationsCenterPage() {
   const onlineRfidDevices = sedes.reduce((acc, curr) => acc + curr.rfidOnlineCount, 0);
   
   const activeJornadasSet = new Set<string>();
-  sedes.forEach(s => s.jornadas.forEach(j => activeJornadasSet.add(j)));
+  sedes.forEach(s => s.jornadas?.forEach(j => activeJornadasSet.add(j)));
   const totalJornadasCount = activeJornadasSet.size;
 
   return (
@@ -405,7 +548,7 @@ export default function CampusOperationsCenterPage() {
 
         <div className="flex items-center gap-2">
           <button 
-            onClick={() => setAddModalOpen(true)}
+            onClick={handleOpenAddModal}
             className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wider shadow-sm flex items-center gap-2 transition-all active:scale-95 cursor-pointer"
           >
             <Plus className="w-4 h-4" /> Agregar Campus
@@ -687,7 +830,24 @@ export default function CampusOperationsCenterPage() {
                     <span className="bg-indigo-50 border border-indigo-100 text-indigo-700 text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 rounded">
                       {sede.code}
                     </span>
-                    <div className="flex gap-1">
+                    <div className="flex gap-1.5 items-center">
+                      <button
+                        onClick={(e) => handleOpenEditModal(sede, e)}
+                        className="text-slate-400 hover:text-indigo-600 p-1 rounded-lg hover:bg-indigo-50 transition-colors cursor-pointer"
+                        title="Editar Campus"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteSede(sede.id, sede.name);
+                        }}
+                        className="text-slate-400 hover:text-rose-600 p-1 rounded-lg hover:bg-rose-50 transition-colors cursor-pointer"
+                        title="Eliminar Campus"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
                       {sede.iaPredictive && <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" title="IA Activa" />}
                       {sede.rfidDevicesCount > 0 && (
                         <span className={cn(
@@ -785,14 +945,29 @@ export default function CampusOperationsCenterPage() {
           {filteredSedes.length === 0 && (
             <div className="col-span-full border border-dashed border-slate-250 bg-slate-50/30 rounded-3xl p-12 text-center flex flex-col items-center justify-center space-y-3">
               <Building2 className="w-12 h-12 text-slate-350" />
-              <h3 className="text-sm font-semibold text-slate-750 uppercase">No se hallaron sedes registradas</h3>
-              <p className="text-xs text-slate-450 font-medium max-w-sm">Prueba ajustando los filtros de jornadas, los niveles académicos o escribe otro término en el buscador.</p>
-              <button 
-                onClick={handleClearFilters}
-                className="bg-indigo-50 border border-indigo-150 text-indigo-700 px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all"
-              >
-                Limpiar Filtros
-              </button>
+              <h3 className="text-sm font-semibold text-slate-750 uppercase">
+                {sedes.length === 0 ? 'No se hallaron sedes registradas' : 'No hay sedes con los filtros aplicados'}
+              </h3>
+              <p className="text-xs text-slate-450 font-medium max-w-sm">
+                {sedes.length === 0 
+                  ? 'Registra el primer campus de tu institución usando el botón superior "Agregar Campus" para habilitar las jornadas y aulas.' 
+                  : 'Prueba ajustando los filtros de jornadas, los niveles académicos o escribe otro término en el buscador.'}
+              </p>
+              {sedes.length === 0 ? (
+                <button 
+                  onClick={handleOpenAddModal}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wider shadow-sm flex items-center gap-2 cursor-pointer transition-all active:scale-95"
+                >
+                  <Plus className="w-4 h-4" /> Agregar Primer Campus
+                </button>
+              ) : (
+                <button 
+                  onClick={handleClearFilters}
+                  className="bg-indigo-50 border border-indigo-150 text-indigo-700 px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer hover:bg-indigo-100"
+                >
+                  Limpiar Filtros
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -810,7 +985,8 @@ export default function CampusOperationsCenterPage() {
                 <th className="px-6 py-4">Capacidad Local</th>
                 <th className="px-6 py-4">Jornadas</th>
                 <th className="px-6 py-4">Hardware RFID</th>
-                <th className="px-6 py-4 text-right">Uptime Red</th>
+                <th className="px-6 py-4">Uptime Red</th>
+                <th className="px-6 py-4 text-right">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-150/70">
@@ -873,10 +1049,31 @@ export default function CampusOperationsCenterPage() {
                         <span className="text-[11px] font-mono font-medium">{sede.rfidOnlineCount} / {sede.rfidDevicesCount} lectores</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-right">
+                    <td className="px-6 py-4">
                       <span className="bg-slate-100 border border-slate-200 text-slate-600 font-mono text-[10px] px-2 py-0.5 rounded font-semibold uppercase">
                         {sede.internetUptime}
                       </span>
+                    </td>
+                    <td className="px-6 py-4 text-right" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex items-center justify-end gap-1">
+                        <button
+                          onClick={(e) => handleOpenEditModal(sede, e)}
+                          className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors cursor-pointer"
+                          title="Editar"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteSede(sede.id, sede.name);
+                          }}
+                          className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                          title="Eliminar"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -922,12 +1119,22 @@ export default function CampusOperationsCenterPage() {
                       </p>
                     </div>
 
-                    <button 
-                      onClick={() => setDrawerOpen(false)}
-                      className="text-slate-450 hover:text-white p-2 rounded-xl bg-slate-850 border border-slate-800 cursor-pointer transition-colors"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button 
+                        onClick={() => handleOpenEditModal(selectedSede)}
+                        className="text-slate-350 hover:text-white px-3 py-1.5 rounded-xl bg-slate-850 border border-slate-800 cursor-pointer transition-colors text-xs font-semibold flex items-center gap-1.5"
+                        title="Editar Campus"
+                      >
+                        <Edit2 className="w-3.5 h-3.5 text-indigo-400" />
+                        <span>Editar</span>
+                      </button>
+                      <button 
+                        onClick={() => setDrawerOpen(false)}
+                        className="text-slate-450 hover:text-white p-2 rounded-xl bg-slate-850 border border-slate-800 cursor-pointer transition-colors"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
 
                   {/* Tabbed Navigation Inside Drawer for highly structural look */}
@@ -1042,48 +1249,63 @@ export default function CampusOperationsCenterPage() {
                   {/* Tab 2: Operation Hours & journeys local matrix */}
                   {drawerTab === 'jornadas' && (
                     <div className="space-y-4 animate-in fade-in duration-200">
-                      <div>
-                        <h3 className="text-sm font-semibold text-slate-100">Distribución Horaria y Cobertura</h3>
-                        <p className="text-xs text-slate-450 font-medium">Asignación local de estudiantes por jornada institucional activa.</p>
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="text-sm font-semibold text-slate-100">Distribución Horaria y Cobertura</h3>
+                          <p className="text-xs text-slate-450 font-medium">Asignación local de estudiantes y habilitación de turnos en este campus.</p>
+                        </div>
+                        <button
+                          onClick={() => handleOpenEditModal(selectedSede)}
+                          className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-xl text-[10px] font-semibold uppercase tracking-wider flex items-center gap-1.5 cursor-pointer transition-all shadow-sm active:scale-95"
+                        >
+                          <Edit2 className="w-3 h-3" /> Configurar Sede
+                        </button>
                       </div>
 
-                      <div className="space-y-3.5 pt-2">
+                      <div className="space-y-3 pt-2">
                         {[
-                          { name: 'Mañana', hours: '06:00 AM - 12:30 PM', students: selectedSede.id === 's-1' ? 280 : selectedSede.id === 's-2' ? 275 : 0, capacity: selectedSede.id === 's-1' ? 300 : selectedSede.id === 's-2' ? 280 : 0 },
-                          { name: 'Tarde', hours: '12:30 PM - 06:00 PM', students: selectedSede.id === 's-1' ? 240 : 0, capacity: selectedSede.id === 's-1' ? 300 : 0 },
-                          { name: 'Única', hours: '07:00 AM - 03:00 PM', students: selectedSede.id === 's-1' ? 160 : selectedSede.id === 's-3' ? 90 : 0, capacity: selectedSede.id === 's-1' ? 200 : selectedSede.id === 's-3' ? 500 : 0 },
-                          { name: 'Nocturna', hours: '06:00 PM - 10:00 PM', students: selectedSede.id === 's-3' ? 60 : 0, capacity: selectedSede.id === 's-3' ? 500 : 0 },
-                          { name: 'Sabatina', hours: '08:00 AM - 01:00 PM', students: selectedSede.id === 's-2' ? 45 : 0, capacity: selectedSede.id === 's-2' ? 70 : 0 }
-                        ]
-                          .filter(j => selectedSede.jornadas.includes(j.name))
-                          .map(j => {
-                            const ratio = j.students / (j.capacity || 1) * 100;
-                            return (
-                              <div key={j.name} className="bg-slate-850 border border-slate-800 rounded-2xl p-4.5 space-y-3">
-                                <div className="flex justify-between items-start">
-                                  <div>
-                                    <span className="bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-[8.5px] font-bold px-2 py-0.5 rounded uppercase">
-                                      Jornada Activa
-                                    </span>
-                                    <h4 className="text-sm font-semibold text-slate-100 pt-1 flex items-center gap-2">
-                                      {j.name} <span className="text-xs text-slate-500 font-medium font-mono">({j.hours})</span>
-                                    </h4>
-                                  </div>
-                                  <div className="text-right">
-                                    <p className="text-xs font-bold text-slate-100">{j.students} / {j.capacity} alumnos</p>
-                                    <p className="text-[9px] text-slate-500 font-semibold uppercase tracking-wider">Aforo de Jornada</p>
-                                  </div>
+                          { name: 'Mañana', hours: '06:00 AM - 12:30 PM' },
+                          { name: 'Tarde', hours: '12:30 PM - 06:00 PM' },
+                          { name: 'Única', hours: '07:00 AM - 03:00 PM' },
+                          { name: 'Nocturna', hours: '06:00 PM - 10:00 PM' },
+                          { name: 'Sabatina', hours: '08:00 AM - 01:00 PM' }
+                        ].map(j => {
+                          const isActive = selectedSede.jornadas?.some(sj => sj.toLowerCase() === j.name.toLowerCase());
+                          return (
+                            <div key={j.name} className={cn(
+                              "bg-slate-850 border rounded-2xl p-4 flex items-center justify-between gap-4 transition-all",
+                              isActive ? "border-indigo-500/40 bg-slate-850/90 shadow-sm" : "border-slate-800 opacity-60"
+                            )}>
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-2">
+                                  <span className={cn(
+                                    "text-[8.5px] font-bold px-2 py-0.5 rounded uppercase",
+                                    isActive 
+                                      ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" 
+                                      : "bg-slate-800 text-slate-400 border border-slate-700"
+                                  )}>
+                                    {isActive ? 'Activa en este campus' : 'No Habilitada'}
+                                  </span>
                                 </div>
-
-                                <div className="w-full bg-slate-900 h-1 rounded-full overflow-hidden">
-                                  <div 
-                                    className={cn("h-full rounded-full", ratio > 90 ? "bg-rose-500" : "bg-emerald-500")}
-                                    style={{ width: `${ratio}%` }}
-                                  />
-                                </div>
+                                <h4 className="text-sm font-semibold text-slate-100 pt-0.5 flex items-center gap-2">
+                                  {j.name} <span className="text-xs text-slate-500 font-medium font-mono">({j.hours})</span>
+                                </h4>
                               </div>
-                            );
-                          })}
+
+                              <button
+                                onClick={() => handleToggleSedeJornada(selectedSede.id, j.name)}
+                                className={cn(
+                                  "px-3 py-1.5 rounded-xl text-[11px] font-semibold transition-all cursor-pointer border",
+                                  isActive
+                                    ? "bg-rose-500/10 text-rose-400 border-rose-500/20 hover:bg-rose-500/20"
+                                    : "bg-indigo-600 text-white border-indigo-500 hover:bg-indigo-700 shadow-sm"
+                                )}
+                              >
+                                {isActive ? 'Desactivar' : 'Activar Jornada'}
+                              </button>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   )}
@@ -1258,12 +1480,20 @@ export default function CampusOperationsCenterPage() {
 
                   {/* Drawer Footer controls */}
                   <div className="border-t border-slate-800 pt-5 mt-auto flex items-center justify-between text-xs">
-                    <button
-                      onClick={() => handleDeleteSede(selectedSede.id, selectedSede.name)}
-                      className="text-rose-500 hover:bg-rose-500/10 border border-rose-500/10 px-3.5 py-2 rounded-xl text-[10px] font-semibold uppercase tracking-wider cursor-pointer transition-colors"
-                    >
-                      Eliminar Sede
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleOpenEditModal(selectedSede)}
+                        className="text-indigo-400 hover:bg-indigo-500/10 border border-indigo-500/20 px-3.5 py-2 rounded-xl text-[10px] font-semibold uppercase tracking-wider cursor-pointer transition-colors flex items-center gap-1.5"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" /> Editar Parámetros
+                      </button>
+                      <button
+                        onClick={() => handleDeleteSede(selectedSede.id, selectedSede.name)}
+                        className="text-rose-500 hover:bg-rose-500/10 border border-rose-500/10 px-3.5 py-2 rounded-xl text-[10px] font-semibold uppercase tracking-wider cursor-pointer transition-colors"
+                      >
+                        Eliminar Sede
+                      </button>
+                    </div>
                     
                     <span className="text-[10px] text-slate-500 font-mono uppercase tracking-widest font-semibold leading-none">
                       AulaCore CoreEngine 2026
@@ -1320,7 +1550,13 @@ export default function CampusOperationsCenterPage() {
                       type="text" 
                       placeholder="Ej. Sede Norte Bachillerato"
                       value={newSedeName}
-                      onChange={(e) => setNewSedeName(e.target.value)}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setNewSedeName(val);
+                        if (!newSedeCode || newSedeCode.startsWith('CAMPUS-')) {
+                          setNewSedeCode(val ? `CAMPUS-${val.trim().replace(/\s+/g, '-').slice(0, 8).toUpperCase()}` : '');
+                        }
+                      }}
                       className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 outline-none focus:bg-white focus:border-indigo-500 transition-all"
                     />
                   </div>
@@ -1449,6 +1685,184 @@ export default function CampusOperationsCenterPage() {
                   className="px-5 py-2 bg-indigo-600 text-white rounded-xl text-xs font-semibold uppercase tracking-wider hover:bg-indigo-700 shadow-sm active:scale-95 transition-all cursor-pointer"
                 >
                   Confirmar Registro
+                </button>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* 7. EDIT CAMPUS MODAL OVERLAY */}
+      {editModalOpen && (
+        <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-edit-title" role="dialog" aria-modal="true">
+          <div className="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            
+            {/* Backdrop shadow */}
+            <div 
+              onClick={() => setEditModalOpen(false)}
+              className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm transition-opacity duration-300"
+            />
+
+            <span className="hidden sm:inline-block sm:h-screen sm:align-middle" aria-hidden="true">&#8203;</span>
+
+            {/* Modal Box */}
+            <div className="inline-block transform overflow-hidden rounded-3xl bg-white border border-slate-200 text-left align-bottom shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:align-middle">
+              
+              <div className="bg-white px-6 pt-6 pb-4 space-y-4">
+                
+                {/* Header */}
+                <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+                  <h3 className="text-base font-semibold text-slate-900 tracking-tight flex items-center gap-2">
+                    <Edit2 className="w-5 h-5 text-indigo-600" /> Editar Campus / Sede
+                  </h3>
+                  <button 
+                    onClick={() => setEditModalOpen(false)}
+                    className="text-slate-450 hover:text-slate-650"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {/* Form fields */}
+                <div className="space-y-4 text-xs font-semibold text-slate-700">
+                  
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-450 uppercase tracking-widest block mb-1.5">Nombre del Campus</label>
+                    <input 
+                      type="text" 
+                      placeholder="Ej. Sede Norte Bachillerato"
+                      value={editSedeName}
+                      onChange={(e) => setEditSedeName(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 outline-none focus:bg-white focus:border-indigo-500 transition-all"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-450 uppercase tracking-widest block mb-1.5">Código Único</label>
+                      <input 
+                        type="text" 
+                        placeholder="Ej. CAMPUS-NORTE-04"
+                        value={editSedeCode}
+                        onChange={(e) => setEditSedeCode(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 outline-none focus:bg-white focus:border-indigo-500 transition-all font-mono"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-450 uppercase tracking-widest block mb-1.5">Capacidad Instalada</label>
+                      <input 
+                        type="number" 
+                        placeholder="Ej. 500"
+                        value={editSedeCapacity}
+                        onChange={(e) => setEditSedeCapacity(parseInt(e.target.value, 10) || 0)}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 outline-none focus:bg-white focus:border-indigo-500 transition-all"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-450 uppercase tracking-widest block mb-1.5">Dirección Física</label>
+                    <input 
+                      type="text" 
+                      placeholder="Ej. Carrera 15 # 100 - 32, Bogotá"
+                      value={editSedeAddress}
+                      onChange={(e) => setEditSedeAddress(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 outline-none focus:bg-white focus:border-indigo-500 transition-all"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-450 uppercase tracking-widest block mb-1.5">Teléfono</label>
+                      <input 
+                        type="text" 
+                        placeholder="Ej. +57 1 601 8800"
+                        value={editSedePhone}
+                        onChange={(e) => setEditSedePhone(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 outline-none focus:bg-white focus:border-indigo-500 transition-all"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-450 uppercase tracking-widest block mb-1.5">Coordinador a Cargo</label>
+                      <input 
+                        type="text" 
+                        placeholder="Ej. Lic. Alberto Gómez"
+                        value={editSedeCoordinator}
+                        onChange={(e) => setEditSedeCoordinator(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 outline-none focus:bg-white focus:border-indigo-500 transition-all"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Checkboxes levels */}
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-450 uppercase tracking-widest block mb-2">Niveles Educativos Dictados</label>
+                    <div className="flex flex-wrap gap-4 text-xs font-semibold text-slate-700">
+                      {['Preescolar', 'Primaria', 'Bachillerato', 'Media'].map(lvl => {
+                        const isChecked = editSedeLevels.includes(lvl);
+                        return (
+                          <label key={lvl} className="flex items-center gap-1.5 cursor-pointer">
+                            <input 
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={() => {
+                                if (isChecked) setEditSedeLevels(editSedeLevels.filter(x => x !== lvl));
+                                else setEditSedeLevels([...editSedeLevels, lvl]);
+                              }}
+                              className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                            />
+                            <span>{lvl}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Checkboxes journeys */}
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-450 uppercase tracking-widest block mb-2">Jornadas Operacionales Habilitadas</label>
+                    <div className="flex flex-wrap gap-4 text-xs font-semibold text-slate-700">
+                      {['Mañana', 'Tarde', 'Única', 'Nocturna', 'Sabatina'].map(j => {
+                        const isChecked = editSedeJornadas.some(x => x.toLowerCase() === j.toLowerCase());
+                        return (
+                          <label key={j} className="flex items-center gap-1.5 cursor-pointer">
+                            <input 
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={() => {
+                                if (isChecked) setEditSedeJornadas(editSedeJornadas.filter(x => x.toLowerCase() !== j.toLowerCase()));
+                                else setEditSedeJornadas([...editSedeJornadas, j]);
+                              }}
+                              className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                            />
+                            <span>{j}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                </div>
+
+              </div>
+
+              {/* Modal actions */}
+              <div className="bg-slate-50 px-6 py-4 flex justify-end gap-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setEditModalOpen(false)}
+                  className="px-4 py-2 border border-slate-200 text-slate-600 rounded-xl text-xs font-semibold uppercase tracking-wider hover:bg-slate-100 cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveEditSede}
+                  className="px-5 py-2 bg-indigo-600 text-white rounded-xl text-xs font-semibold uppercase tracking-wider hover:bg-indigo-700 shadow-sm active:scale-95 transition-all cursor-pointer"
+                >
+                  Guardar Cambios
                 </button>
               </div>
 
