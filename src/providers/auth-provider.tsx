@@ -328,10 +328,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!isMounted) return;
 
       if (newSession && newSession.user) {
-        // TOKEN_REFRESHED silencioso: Si el usuario ya está autenticado y cargado en memoria,
-        // renovar únicamente los tokens y sesión sin congelar la UI con loading=true ni reconsultar la base de datos.
-        if (event === 'TOKEN_REFRESHED' && currentUserRef.current?.id === newSession.user.id && isUserDataLoadedRef.current) {
-          console.log('[Auth Flow] TOKEN_REFRESHED silencioso. Sesión y tokens actualizados sin congelar UI ni recargar roles.');
+        // Renovación silenciosa de sesión: Si el usuario ya está autenticado y sus datos cargados en memoria,
+        // cualquier evento de mantenimiento de sesión (TOKEN_REFRESHED, SIGNED_IN por cambio de pestaña/visibilidad, USER_UPDATED o INITIAL_SESSION)
+        // debe únicamente actualizar tokens y sesión sin congelar la UI con loading=true ni volver a consultar la base de datos.
+        const isSameUserAlreadyLoaded =
+          currentUserRef.current?.id === newSession.user.id &&
+          isUserDataLoadedRef.current;
+
+        if (isSameUserAlreadyLoaded && (event === 'TOKEN_REFRESHED' || event === 'SIGNED_IN' || event === 'USER_UPDATED' || event === 'INITIAL_SESSION')) {
+          console.log(`[Auth Flow] ${event} silencioso. Sesión y tokens actualizados sin congelar UI ni recargar roles.`);
           currentUserRef.current = newSession.user;
           setSession(newSession);
           setUser(newSession.user);

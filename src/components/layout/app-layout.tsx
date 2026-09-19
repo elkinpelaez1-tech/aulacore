@@ -35,10 +35,14 @@ export function AppLayout({ children, userRole: _propRole, userName: _propName, 
     };
   }, []);
 
-  // PROTECCIÓN P0: Si el estado de carga dura más de 5 segundos, se fuerza la desactivación del spinner
+  // PROTECCIÓN P0: El bloqueo por timeout y el spinner a pantalla completa aplican ÚNICAMENTE
+  // a la carga inicial de sesión (cuando todavía no se ha resuelto el rol del usuario).
+  // Si el usuario ya está autenticado con un rol activo, las operaciones secundarias no deben desmontar la UI ni destruir el trabajo del usuario.
+  const isInitialLoading = !mounted || (!userRole && loading);
+
   useEffect(() => {
     let timer: NodeJS.Timeout;
-    if (!mounted || loading) {
+    if (isInitialLoading) {
       timer = setTimeout(() => {
         console.error('BLOQUEADO EN: AppLayout (el tiempo de carga superó los 5 segundos)');
         setHasTimedOut(true);
@@ -47,9 +51,9 @@ export function AppLayout({ children, userRole: _propRole, userName: _propName, 
       setHasTimedOut(false);
     }
     return () => clearTimeout(timer);
-  }, [mounted, loading]);
+  }, [isInitialLoading]);
 
-  if ((!mounted || loading) && !hasTimedOut) {
+  if (isInitialLoading && !hasTimedOut) {
     console.log('[AppLayout] Showing loading spinner');
     return (
       <div className="flex h-screen bg-slate-50 items-center justify-center">
@@ -61,7 +65,7 @@ export function AppLayout({ children, userRole: _propRole, userName: _propName, 
     );
   }
 
-  if (hasTimedOut && (!mounted || loading)) {
+  if (hasTimedOut && isInitialLoading) {
     console.error('[AppLayout] Loading timeout exceeded (5s). Hiding spinner and rendering real error UI.');
     return (
       <div className="flex h-screen bg-slate-50 items-center justify-center p-6 text-center">
