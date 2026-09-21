@@ -87,6 +87,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Referencias para renovación silenciosa de sesión y prevención de carreras
   const currentUserRef = useRef<User | null>(null);
   const isUserDataLoadedRef = useRef<boolean>(false);
+  const inFlightLoadUserDataRef = useRef<Promise<void> | null>(null);
+  const currentRolesRef = useRef<UserRole[]>([]);
+  const currentActiveRoleRef = useRef<UserRole | null>(null);
+
+  const updateRolesState = (newRoles: UserRole[]) => {
+    currentRolesRef.current = newRoles;
+    setRoles(newRoles);
+  };
+
+  const updateActiveRoleState = (newRole: UserRole | null) => {
+    currentActiveRoleRef.current = newRole;
+    setActiveRoleState(newRole);
+  };
   
   const [institutionId, setInstitutionId] = useState<string | null>(null);
   const [activeInstitution, setActiveInstitution] = useState<InstitutionData | null>(null);
@@ -109,153 +122,188 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Función para cargar los datos del usuario con instrumentación completa y fallback de metadatos
   const loadUserData = async (currentUser: User, currentSession: Session, overrideId?: string | null) => {
-    console.log('[Auth Flow] 1. Token/Sesión recibida desde Supabase:', currentSession ? 'VÁLIDO' : 'NULO');
-    console.log('[Auth Flow] 2. Usuario autenticado (auth.uid()):', currentUser.id, '| email:', currentUser.email);
-    
-    try {
-      // Step A & B: Parallel fetch of profiles and user_roles with timeout of 3s
-      let profileData: any = null;
-      let rolesData: any = null;
+    // Evitar ejecuciones duplicadas concurrentes para el mismo usuario
+    if (inFlightLoadUserDataRef.current && currentUserRef.current?.id === currentUser.id) {
+      console.log('[Auth Flow] loadUserData ya en ejecución concurrente. Reutilizando promesa en vuelo.');
+      return inFlightLoadUserDataRef.current;
+    }
 
-      console.log('[Auth Flow] 3. Iniciando consultas paralelas a profiles y user_roles...');
-      const profilePromise = withTimeout(
-        supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', currentUser.id)
-          .maybeSingle(),
-        'Consulta a profiles'
-      );
-      const rolesPromise = withTimeout(
-        supabase
-          .from('user_roles')
-          .select('*')
-          .eq('user_id', currentUser.id),
-        'Consulta a user_roles'
-      );
+    const task = (async () => {
+      console.log('[Auth Flow] 1. Token/Sesión recibida desde Supabase:', currentSession ? 'VÁLIDO' : 'NULO');
+      console.log('[Auth Flow] 2. Usuario autenticado (auth.uid()):', currentUser.id, '| email:', currentUser.email);
+      
+      try {
+        // Step A & B: Parallel fetch of profiles and user_roles with timeout of 3s
+        let profileData: any = null;
+        let rolesData: any = null;
 
-      const [profileResult, rolesResult] = await Promise.allSettled([profilePromise, rolesPromise]);
+        console.log('[Auth Flow] 3. Iniciando consultas paralelas a profiles y user_roles...');
+        const profilePromise = withTimeout(
+          supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', currentUser.id)
+            .maybeSingle(),
+          'Consulta a profiles'
+        );
+        const rolesPromise = withTimeout(
+          supabase
+            .from('user_roles')
+            .select('*')
+            .eq('user_id', currentUser.id),
+          'Consulta a user_roles'
+        );
 
-      if (profileResult.status === 'fulfilled') {
-        profileData = profileResult.value.data;
-        console.log('[Auth Flow] 3. Consulta a profiles exitosa:', profileData);
-      } else {
-        console.error('[Auth Flow] Error en consulta a profiles:', profileResult.reason?.message || profileResult.reason);
-      }
+        const [profileResult, rolesResult] = await Promise.allSettled([profilePromise, rolesPromise]);
 
-      // Construir perfil con fallback de metadata si es necesario
-      const userProfile = profileData || {
-        first_name: currentUser.user_metadata?.first_name || currentUser.user_metadata?.name || 'Usuario',
-        last_name: currentUser.user_metadata?.last_name || 'Institucional',
-        avatar_url: currentUser.user_metadata?.avatar_url || '',
-      };
-      setProfile(userProfile as AuthProfile);
-
-      let userRoles: UserRole[] = [];
-      let selectedRole: UserRole | null = null;
-
-      // Evaluar éxito estricto de la consulta a user_roles (fulfilled y sin error en la respuesta de Supabase)
-      const isRolesQuerySuccessful = rolesResult.status === 'fulfilled' && !rolesResult.value.error;
-
-      if (isRolesQuerySuccessful) {
-        rolesData = rolesResult.value.data;
-        console.log('[Auth Flow] 4. Consulta a user_roles exitosa:', rolesData);
-
-        userRoles = (rolesData?.map((r: any) => r.role) || []) as UserRole[];
-        
-        // FALLBACK SEGURO: Si user_roles está vacío pero el metadato traía rol (ej. rector)
-        if (userRoles.length === 0 && currentUser.user_metadata?.role) {
-          userRoles = [currentUser.user_metadata.role as UserRole];
-          console.log('[Auth Flow] Fallback aplicado desde user_metadata.role:', userRoles);
+        if (profileResult.status === 'fulfilled') {
+          profileData = profileResult.value.data;
+          console.log('[Auth Flow] 3. Consulta a profiles exitosa:', profileData);
+        } else {
+          console.error('[Auth Flow] Error en consulta a profiles:', profileResult.reason?.message || profileResult.reason);
         }
-        setRoles(userRoles);
 
-        // Resolución inmediata del rol activo (sin demorar por consultas secundarias de instituciones)
-        if (userRoles.length > 0) {
-          const savedRole = typeof window !== 'undefined' ? (localStorage.getItem('aulacore-user-role') as UserRole) : null;
-          if (savedRole && userRoles.includes(savedRole)) {
-            selectedRole = savedRole;
-          } else {
-            const hierarchy: UserRole[] = ['super_admin', 'rector', 'coordinador', 'director_grupo', 'docente', 'secretaria', 'padre_familia', 'estudiante'];
-            for (const role of hierarchy) {
-              if (userRoles.includes(role)) {
-                selectedRole = role;
-                break;
+        // Construir perfil con fallback de metadata si es necesario
+        const userProfile = profileData || {
+          first_name: currentUser.user_metadata?.first_name || currentUser.user_metadata?.name || 'Usuario',
+          last_name: currentUser.user_metadata?.last_name || 'Institucional',
+          avatar_url: currentUser.user_metadata?.avatar_url || '',
+        };
+        setProfile(userProfile as AuthProfile);
+
+        let userRoles: UserRole[] = [];
+        let selectedRole: UserRole | null = null;
+
+        // Evaluar éxito estricto de la consulta a user_roles (fulfilled y sin error en la respuesta de Supabase)
+        const isRolesQuerySuccessful = rolesResult.status === 'fulfilled' && !rolesResult.value.error;
+
+        if (isRolesQuerySuccessful) {
+          rolesData = rolesResult.value.data;
+          console.log('[Auth Flow] 4. Consulta a user_roles exitosa:', rolesData);
+
+          userRoles = (rolesData?.map((r: any) => r.role) || []) as UserRole[];
+          
+          // FALLBACK SEGURO: Si user_roles en BD está vacío pero el metadato traía rol (ej. rector)
+          if (userRoles.length === 0 && currentUser.user_metadata?.role) {
+            userRoles = [currentUser.user_metadata.role as UserRole];
+            console.log('[Auth Flow] Fallback aplicado desde user_metadata.role:', userRoles);
+          }
+          updateRolesState(userRoles);
+
+          // Resolución inmediata del rol activo (sin demorar por consultas secundarias de instituciones)
+          if (userRoles.length > 0) {
+            const savedRole = typeof window !== 'undefined' ? (localStorage.getItem('aulacore-user-role') as UserRole) : null;
+            if (savedRole && userRoles.includes(savedRole)) {
+              selectedRole = savedRole;
+            } else {
+              const hierarchy: UserRole[] = ['super_admin', 'rector', 'coordinador', 'director_grupo', 'docente', 'secretaria', 'padre_familia', 'estudiante'];
+              for (const role of hierarchy) {
+                if (userRoles.includes(role)) {
+                  selectedRole = role;
+                  break;
+                }
               }
+              if (!selectedRole) selectedRole = userRoles[0];
+              if (typeof window !== 'undefined') localStorage.setItem('aulacore-user-role', selectedRole);
             }
-            if (!selectedRole) selectedRole = userRoles[0];
-            if (typeof window !== 'undefined') localStorage.setItem('aulacore-user-role', selectedRole);
+          }
+          updateActiveRoleState(selectedRole);
+          console.log('[Auth Flow] 6. Rol obtenido:', selectedRole);
+        } else {
+          const rolesError = rolesResult.status === 'rejected'
+            ? (rolesResult.reason?.message || rolesResult.reason)
+            : rolesResult.value.error?.message;
+          console.warn('[Auth Flow] Consulta a user_roles falló o timeout. Evaluando preservación de roles para evitar falso Acceso Denegado:', rolesError);
+
+          // Si ya teníamos roles en memoria (por ejemplo, refresco de sesión o reconexión), preservarlos
+          if (currentRolesRef.current.length > 0) {
+            userRoles = currentRolesRef.current;
+            selectedRole = currentActiveRoleRef.current;
+            console.log('[Auth Flow] Preservando roles previos en memoria:', userRoles);
+          } else if (currentUser.user_metadata?.role) {
+            // Salvaguarda temporal si está presente en los metadatos de la sesión mientras la consulta responde
+            userRoles = [currentUser.user_metadata.role as UserRole];
+            selectedRole = currentUser.user_metadata.role as UserRole;
+            updateRolesState(userRoles);
+            updateActiveRoleState(selectedRole);
+            console.log('[Auth Flow] Salvaguarda temporal aplicada desde user_metadata.role tras fallo de consulta:', userRoles);
+          } else {
+            // Consulta falló o entró en timeout y NO hay datos en memoria ni metadata:
+            // NO clasificar como 'usuario sin roles' prematuramente marcando loading=false con roles=[].
+            console.error('[Auth Flow] Consulta a user_roles no confirmada y sin roles previos en memoria. No se clasifica prematuramente.');
+            throw new Error(`Consulta a user_roles no confirmada: ${rolesError || 'Timeout o error de red'}`);
           }
         }
-        setActiveRoleState(selectedRole);
-        console.log('[Auth Flow] 6. Rol obtenido:', selectedRole);
-      } else {
-        const rolesError = rolesResult.status === 'rejected'
-          ? (rolesResult.reason?.message || rolesResult.reason)
-          : rolesResult.value.error?.message;
-        console.warn('[Auth Flow] Consulta a user_roles falló o timeout. Preservando roles previos para evitar falso Acceso Denegado:', rolesError);
-      }
 
-      let defaultInstId = rolesData && rolesData.length > 0 ? rolesData[0].institution_id : null;
-      if (!defaultInstId && currentUser.user_metadata?.institution_id) {
-        defaultInstId = currentUser.user_metadata.institution_id;
-        console.log('[Auth Flow] Fallback aplicado para institution_id desde metadata:', defaultInstId);
-      }
-
-      // Step C: Cargar todas las instituciones si es super_admin
-      if (userRoles.includes('super_admin')) {
-        try {
-          const { data: allInsts } = await withTimeout(
-            supabase.from('institutions').select('*').order('name'),
-            'Consulta a todas las instituciones'
-          );
-          if (allInsts) setAllInstitutions(allInsts as any);
-        } catch (err: any) {
-          console.error('[Auth Flow] Error cargando lista de instituciones:', err?.message || err);
+        let defaultInstId = rolesData && rolesData.length > 0 ? rolesData[0].institution_id : null;
+        if (!defaultInstId && currentUser.user_metadata?.institution_id) {
+          defaultInstId = currentUser.user_metadata.institution_id;
+          console.log('[Auth Flow] Fallback aplicado para institution_id desde metadata:', defaultInstId);
         }
-      }
 
-      // Step D: institution_id activo
-      const savedOverride = typeof window !== 'undefined' ? localStorage.getItem('aulacore-override-institution-id') : null;
-      const activeId = (userRoles.includes('super_admin') && (overrideId || savedOverride)) 
-        ? (overrideId || savedOverride) 
-        : defaultInstId;
+        // Step C: Cargar todas las instituciones si es super_admin
+        if (userRoles.includes('super_admin')) {
+          try {
+            const { data: allInsts } = await withTimeout(
+              supabase.from('institutions').select('*').order('name'),
+              'Consulta a todas las instituciones'
+            );
+            if (allInsts) setAllInstitutions(allInsts as any);
+          } catch (err: any) {
+            console.error('[Auth Flow] Error cargando lista de instituciones:', err?.message || err);
+          }
+        }
 
-      setInstitutionId(activeId);
-      console.log('[Auth Flow] 5. institution_id resuelto:', activeId);
+        // Step D: institution_id activo
+        const savedOverride = typeof window !== 'undefined' ? localStorage.getItem('aulacore-override-institution-id') : null;
+        const activeId = (userRoles.includes('super_admin') && (overrideId || savedOverride)) 
+          ? (overrideId || savedOverride) 
+          : defaultInstId;
 
-      // Step E: Detalle de institución activa
-      if (activeId) {
-        try {
-          const { data: instData } = await withTimeout(
-            supabase.from('institutions').select('*').eq('id', activeId).maybeSingle(),
-            'Consulta a institución activa'
-          );
-          setActiveInstitution(instData as any);
-        } catch (err: any) {
-          console.error('[Auth Flow] Error cargando institución activa:', err?.message || err);
+        setInstitutionId(activeId);
+        console.log('[Auth Flow] 5. institution_id resuelto:', activeId);
+
+        // Step E: Detalle de institución activa
+        if (activeId) {
+          try {
+            const { data: instData } = await withTimeout(
+              supabase.from('institutions').select('*').eq('id', activeId).maybeSingle(),
+              'Consulta a institución activa'
+            );
+            setActiveInstitution(instData as any);
+          } catch (err: any) {
+            console.error('[Auth Flow] Error cargando institución activa:', err?.message || err);
+            setActiveInstitution(null);
+          }
+        } else {
           setActiveInstitution(null);
         }
-      } else {
-        setActiveInstitution(null);
+
+        // Determinar Dashboard destino
+        const targetDashboard = selectedRole === 'super_admin' ? '/configuracion/saas' : '/dashboard';
+        console.log('[Auth Flow] 7. Dashboard al que intenta redirigir:', targetDashboard);
+
+        console.log('[Auth Flow] 8. Estado Completo de Sesión:', {
+          loading: false,
+          isAuthenticated: true,
+          user: currentUser.id,
+          profile: userProfile,
+          userRole: selectedRole,
+          institution: activeId
+        });
+        isUserDataLoadedRef.current = true;
+
+      } catch (err: any) {
+        console.error('[Auth Flow] Excepción general en loadUserData:', err?.message || err);
+        throw err;
       }
+    })();
 
-      // Determinar Dashboard destino
-      const targetDashboard = selectedRole === 'super_admin' ? '/configuracion/saas' : '/dashboard';
-      console.log('[Auth Flow] 7. Dashboard al que intenta redirigir:', targetDashboard);
-
-      console.log('[Auth Flow] 8. Estado Completo de Sesión:', {
-        loading: false,
-        isAuthenticated: true,
-        user: currentUser.id,
-        profile: userProfile,
-        userRole: selectedRole,
-        institution: activeId
-      });
-      isUserDataLoadedRef.current = true;
-
-    } catch (err: any) {
-      console.error('[Auth Flow] Excepción general en loadUserData:', err?.message || err);
+    inFlightLoadUserDataRef.current = task;
+    try {
+      await task;
+    } finally {
+      inFlightLoadUserDataRef.current = null;
     }
   };
 
@@ -271,18 +319,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else {
         currentUserRef.current = null;
         isUserDataLoadedRef.current = false;
+        inFlightLoadUserDataRef.current = null;
         setUser(null);
         setSession(null);
         setProfile(null);
-        setRoles([]);
-        setActiveRoleState(null);
+        updateRolesState([]);
+        updateActiveRoleState(null);
         setInstitutionId(null);
         setActiveInstitution(null);
       }
     } catch (err) {
       console.error('Error al refrescar sesión:', err);
     } finally {
-      setLoading(false);
+      if (!currentUserRef.current || isUserDataLoadedRef.current) {
+        setLoading(false);
+      }
     }
   };
 
@@ -315,8 +366,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.error('[Auth Flow] Error inicializando autenticación:', err);
       } finally {
         if (isMounted) {
-          console.log('[Auth Flow] Finalizando initializeAuth. Setting loading: false');
-          setLoading(false);
+          if (!currentUserRef.current || isUserDataLoadedRef.current) {
+            console.log('[Auth Flow] Finalizando initializeAuth. Setting loading: false');
+            setLoading(false);
+          } else {
+            console.warn('[Auth Flow] initializeAuth no confirmado por fallo/timeout. Manteniendo loading activo para gestión de timeout de AppLayout.');
+          }
         }
       }
     };
@@ -355,7 +410,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           console.error('[Auth Flow] Error cargando datos en onAuthStateChange:', err);
         } finally {
           if (isMounted) {
-            setLoading(false);
+            if (!currentUserRef.current || isUserDataLoadedRef.current) {
+              setLoading(false);
+            }
           }
         }
         
@@ -365,11 +422,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
         currentUserRef.current = null;
         isUserDataLoadedRef.current = false;
+        inFlightLoadUserDataRef.current = null;
         setUser(null);
         setSession(null);
         setProfile(null);
-        setRoles([]);
-        setActiveRoleState(null);
+        updateRolesState([]);
+        updateActiveRoleState(null);
         setInstitutionId(null);
         setActiveInstitution(null);
         setOverrideInstitutionIdState(null);
@@ -397,11 +455,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       currentUserRef.current = null;
       isUserDataLoadedRef.current = false;
+      inFlightLoadUserDataRef.current = null;
       setUser(null);
       setSession(null);
       setProfile(null);
-      setRoles([]);
-      setActiveRoleState(null);
+      updateRolesState([]);
+      updateActiveRoleState(null);
       setInstitutionId(null);
       setActiveInstitution(null);
       if (typeof window !== 'undefined') {
@@ -423,7 +482,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       roles,
       activeRole,
       setActiveRole: (role) => {
-        setActiveRoleState(role);
+        updateActiveRoleState(role);
         if (typeof window !== 'undefined') localStorage.setItem('aulacore-user-role', role);
       },
       loading,
