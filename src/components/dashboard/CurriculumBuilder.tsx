@@ -19,7 +19,13 @@ import {
   History,
   HardDrive,
   AlertCircle,
-  Loader2
+  Loader2,
+  RotateCcw,
+  ShieldCheck,
+  AlertTriangle,
+  Lock,
+  Check,
+  X
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -31,7 +37,10 @@ import {
   getCurriculumUnit,
   saveCurriculumUnit,
   submitCurriculumUnit,
-  CurriculumDraft
+  approveCurriculumUnit,
+  returnCurriculumUnit,
+  CurriculumDraft,
+  CurriculumUnitRecord
 } from '@/lib/services/curriculum-units';
 
 export interface Competency {
@@ -118,7 +127,17 @@ export function CurriculumBuilder({
   initialData
 }: CurriculumBuilderProps) {
   const { user, profile } = useAuth();
-  const { activeInstitution, institutionId: contextInstId } = useRole();
+  const { userRole, activeInstitution, institutionId: contextInstId } = useRole();
+
+  // Detección de roles canónicos existentes en AulaCore
+  const isDirectivo =
+    userRole === 'coordinador' ||
+    userRole === 'rector' ||
+    userRole === 'super_admin';
+  const canReviewCurriculum =
+    userRole === 'coordinador' ||
+    userRole === 'super_admin';
+  const isDocente = userRole === 'docente' || (!isDirectivo && !!user);
 
   // Identidad institucional
   const effectiveInstitutionId =
@@ -145,6 +164,22 @@ export function CurriculumBuilder({
   const [status, setStatus] = useState<'draft' | 'submitted' | 'revision' | 'approved'>(
     initialData?.status || 'draft'
   );
+
+  // Control de editabilidad: solo editable en draft y revision
+  const canEdit = status === 'draft' || status === 'revision';
+  const isReadOnly = status === 'submitted' || status === 'approved';
+
+  // Registro oficial de Supabase y feedback
+  const [currentUnitRecord, setCurrentUnitRecord] = useState<CurriculumUnitRecord | null>(null);
+  const [reviewFeedback, setReviewFeedback] = useState<string>('');
+
+  // Modales y control de revisión institucional (Directivos)
+  const [isApproveModalOpen, setIsApproveModalOpen] = useState(false);
+  const [approveFeedback, setApproveFeedback] = useState('');
+  const [isReturnModalOpen, setIsReturnModalOpen] = useState(false);
+  const [returnFeedback, setReturnFeedback] = useState('');
+  const [isProcessingReview, setIsProcessingReview] = useState(false);
+  const [reviewError, setReviewError] = useState<string | null>(null);
 
   // Campos pedagógicos controlados
   const [objetivoGeneral, setObjetivoGeneral] = useState<string>(
@@ -247,6 +282,10 @@ export function CurriculumBuilder({
           if (!sbError && unitRecord && unitRecord.content) {
             supabaseFound = true;
             if (isMounted) {
+              setCurrentUnitRecord(unitRecord);
+              if (unitRecord.review_feedback) {
+                setReviewFeedback(unitRecord.review_feedback);
+              }
               const formattedTime = unitRecord.updated_at
                 ? `Hoy, ${new Date(unitRecord.updated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
                 : undefined;
@@ -324,11 +363,11 @@ export function CurriculumBuilder({
   // ============================================================================
   useEffect(() => {
     if (!isDraftLoaded) return;
-    if (status !== 'draft') return;
+    if (!canEdit) return;
 
     setIsAutosaving(true);
     const timer = setTimeout(() => {
-      if (status !== 'draft') {
+      if (!canEdit) {
         setIsAutosaving(false);
         return;
       }
@@ -348,6 +387,7 @@ export function CurriculumBuilder({
     return () => clearTimeout(timer);
   }, [
     isDraftLoaded,
+    canEdit,
     objetivoGeneral,
     competencies,
     contenidos,
@@ -362,7 +402,8 @@ export function CurriculumBuilder({
   // ============================================================================
   const handleSaveDraft = async () => {
     setIsSaving(true);
-    const draft = buildDraft('draft');
+    const targetStatus = status === 'revision' ? 'revision' : 'draft';
+    const draft = buildDraft(targetStatus);
 
     // 1. Guardado local inmediato como garantía contra pérdida de datos
     try {
@@ -375,7 +416,7 @@ export function CurriculumBuilder({
     // 2. Persistir en Supabase
     try {
       if (effectiveInstitutionId && effectiveInstitutionId !== 'institucion-default') {
-        const { error: sbError } = await saveCurriculumUnit({
+        const { data: savedData, error: sbError } = await saveCurriculumUnit({
           institutionId: effectiveInstitutionId,
           academicYear: '2026',
           area,
@@ -383,7 +424,7 @@ export function CurriculumBuilder({
           grade,
           period,
           content: draft,
-          status: 'draft',
+          status: targetStatus,
           userId: currentUserId,
           userName: currentUserName,
           recordAudit: true
@@ -394,6 +435,7 @@ export function CurriculumBuilder({
           setSyncStatus('error');
           setToastMessage('Guardado localmente. La sincronización institucional no pudo completarse.');
         } else {
+          if (savedData) setCurrentUnitRecord(savedData);
           setSyncStatus('synced');
           setShowLocalDraftBanner(false);
           setToastMessage('Borrador guardado y sincronizado con la institución');
@@ -456,7 +498,7 @@ export function CurriculumBuilder({
           grade,
           period,
           content: submittedDraft,
-          status: 'draft',
+          status: status === 'revision' ? 'revision' : 'draft',
           userId: currentUserId,
           userName: currentUserName,
           recordAudit: false
@@ -480,6 +522,10 @@ export function CurriculumBuilder({
 
         if (submitRes.error) {
           throw submitRes.error;
+        }
+
+        if (submitRes.data) {
+          setCurrentUnitRecord(submitRes.data);
         }
 
         // Transición confirmada en Supabase
@@ -563,6 +609,126 @@ export function CurriculumBuilder({
     }, 1500);
   };
 
+  // ============================================================================
+  // 5. ACCIONES DIRECTIVAS: APROBAR Y DEVOLVER (RPC EXCLUSIVA)
+  // ============================================================================
+
+  const handleConfirmApprove = async () => {
+    let targetUnitId = currentUnitRecord?.id;
+
+    if (!targetUnitId && effectiveInstitutionId) {
+      setIsProcessingReview(true);
+      const { data: refreshed } = await getCurriculumUnit({
+        institutionId: effectiveInstitutionId,
+        academicYear: '2026',
+        subject,
+        grade,
+        period
+      });
+      if (refreshed?.id) {
+        targetUnitId = refreshed.id;
+        setCurrentUnitRecord(refreshed);
+      }
+    }
+
+    if (!targetUnitId) {
+      setReviewError('No se encontró el identificador institucional de la unidad curricular para procesar la aprobación.');
+      return;
+    }
+
+    setIsProcessingReview(true);
+    setReviewError(null);
+
+    try {
+      const { data: reviewData, error: rpcError } = await approveCurriculumUnit({
+        unitId: targetUnitId,
+        feedback: approveFeedback.trim() || null
+      });
+
+      if (rpcError) {
+        setReviewError(rpcError.message || 'Error al aprobar la malla curricular.');
+        return;
+      }
+
+      // Éxito: actualización inmediata del estado a approved
+      setStatus('approved');
+      setIsApproveModalOpen(false);
+      setToastMessage('Malla curricular aprobada correctamente.');
+
+      try {
+        const approvedDraft = buildDraft('approved');
+        localStorage.setItem(storageKey, JSON.stringify(approvedDraft));
+        setLastSaved(approvedDraft.updatedAt || 'Aprobada');
+      } catch {}
+    } catch (err) {
+      setReviewError(err instanceof Error ? err.message : 'Error inesperado al conectar con el servicio.');
+    } finally {
+      setIsProcessingReview(false);
+      setTimeout(() => setToastMessage(null), 3500);
+    }
+  };
+
+  const handleConfirmReturn = async () => {
+    let targetUnitId = currentUnitRecord?.id;
+
+    if (!returnFeedback || !returnFeedback.trim()) {
+      setReviewError('La retroalimentación pedagógica es obligatoria para devolver la unidad.');
+      return;
+    }
+
+    if (!targetUnitId && effectiveInstitutionId) {
+      setIsProcessingReview(true);
+      const { data: refreshed } = await getCurriculumUnit({
+        institutionId: effectiveInstitutionId,
+        academicYear: '2026',
+        subject,
+        grade,
+        period
+      });
+      if (refreshed?.id) {
+        targetUnitId = refreshed.id;
+        setCurrentUnitRecord(refreshed);
+      }
+    }
+
+    if (!targetUnitId) {
+      setReviewError('No se encontró el identificador institucional de la unidad curricular para procesar la devolución.');
+      return;
+    }
+
+    setIsProcessingReview(true);
+    setReviewError(null);
+
+    try {
+      const { data: reviewData, error: rpcError } = await returnCurriculumUnit({
+        unitId: targetUnitId,
+        feedback: returnFeedback.trim()
+      });
+
+      if (rpcError) {
+        setReviewError(rpcError.message || 'Error al devolver la malla curricular.');
+        return;
+      }
+
+      // Éxito: actualización inmediata del estado a revision
+      setStatus('revision');
+      setReviewFeedback(returnFeedback.trim());
+      setIsReturnModalOpen(false);
+      setToastMessage('Malla devuelta al docente para ajustes.');
+
+      try {
+        const returnedDraft = buildDraft('revision');
+        localStorage.setItem(storageKey, JSON.stringify(returnedDraft));
+        setLastSaved(returnedDraft.updatedAt || 'Devuelta');
+      } catch {}
+    } catch (err) {
+      setReviewError(err instanceof Error ? err.message : 'Error inesperado al conectar con el servicio.');
+    } finally {
+      setIsProcessingReview(false);
+      setTimeout(() => setToastMessage(null), 3500);
+    }
+  };
+
   return (
     <div className="space-y-6 animate-fade-in pb-12 max-w-6xl mx-auto">
       {/* 🚀 HEADER CONTEXTUAL */}
@@ -575,20 +741,24 @@ export function CurriculumBuilder({
             <div className="flex items-center gap-2 mb-1 flex-wrap">
               <span
                 className={cn(
-                  'text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded border flex items-center gap-1.5',
+                  'text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md border flex items-center gap-1.5',
                   status === 'draft'
-                    ? 'bg-slate-100 text-slate-600 border-slate-200'
+                    ? 'bg-slate-100 text-slate-700 border-slate-300'
                     : status === 'submitted'
-                    ? 'bg-amber-100 text-amber-700 border-amber-200'
+                    ? 'bg-blue-100 text-blue-800 border-blue-300'
                     : status === 'revision'
-                    ? 'bg-red-100 text-red-700 border-red-200'
-                    : 'bg-emerald-100 text-emerald-700 border-emerald-200'
+                    ? 'bg-amber-100 text-amber-800 border-amber-300'
+                    : 'bg-emerald-100 text-emerald-800 border-emerald-300'
                 )}
               >
-                {status === 'draft' && <Clock className="w-3.5 h-3.5" />}
-                {status === 'submitted' && <Send className="w-3.5 h-3.5" />}
-                {status === 'approved' && <CheckCircle2 className="w-3.5 h-3.5" />}
-                Estado: {status.toUpperCase()}
+                {status === 'draft' && <Clock className="w-3.5 h-3.5 text-slate-500" />}
+                {status === 'submitted' && <Lock className="w-3.5 h-3.5 text-blue-600" />}
+                {status === 'revision' && <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />}
+                {status === 'approved' && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />}
+                {status === 'draft' && 'Borrador'}
+                {status === 'submitted' && 'En Revisión'}
+                {status === 'revision' && 'Requiere Ajustes'}
+                {status === 'approved' && 'Aprobada'}
               </span>
 
               <span className="text-[10px] font-bold text-slate-400 bg-slate-50 px-2 py-0.5 rounded border border-slate-100 flex items-center gap-1">
@@ -661,17 +831,151 @@ export function CurriculumBuilder({
                 {isSubmitting ? 'Enviando...' : 'Enviar a Revisión'}
               </Button>
             </>
+          ) : status === 'submitted' ? (
+            <Button
+              variant="outline"
+              className="h-9 gap-2 text-blue-700 bg-blue-50 border-blue-300 font-bold text-xs cursor-default"
+              disabled
+            >
+              <Lock className="w-3.5 h-3.5 text-blue-600" />
+              Bloqueado (En Revisión)
+            </Button>
           ) : (
             <Button
               variant="outline"
-              className="h-9 gap-2 text-amber-700 bg-amber-50 border-amber-200 font-bold text-xs"
+              className="h-9 gap-2 text-emerald-700 bg-emerald-50 border-emerald-300 font-bold text-xs cursor-default"
               disabled
             >
-              Bloqueado (En Revisión)
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+              Aprobada (Solo Lectura)
             </Button>
           )}
         </div>
       </div>
+
+      {/* 🛡️ PANEL DE REVISIÓN INSTITUCIONAL (DIRECTIVO: submitted) */}
+      {status === 'submitted' && isDirectivo && (
+        <div className="bg-gradient-to-r from-blue-50 via-indigo-50/60 to-blue-50 border border-blue-200 rounded-2xl p-5 shadow-sm animate-fade-in">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-start md:items-center gap-3">
+              <div className="p-2.5 bg-blue-600 text-white rounded-xl shadow-xs shrink-0">
+                <ShieldCheck className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-blue-700 bg-blue-100 px-2 py-0.5 rounded">
+                    Revisión Institucional
+                  </span>
+                  <span className="text-xs text-slate-500 font-medium">
+                    Docente: <strong className="text-slate-800">{currentUnitRecord?.created_by_name || 'Docente titular'}</strong>
+                  </span>
+                </div>
+                <h3 className="text-base font-black text-slate-900 mt-0.5">
+                  Unidad curricular en revisión
+                </h3>
+                <p className="text-xs text-slate-600 mt-0.5">
+                  {canReviewCurriculum
+                    ? 'El contenido se encuentra en modo lectura para directivos y bloqueado para el docente. Revise la planeación y seleccione una acción institucional.'
+                    : 'Unidad en proceso de revisión pedagógica institucional por parte de la Coordinación Académica.'}
+                </p>
+              </div>
+            </div>
+            {canReviewCurriculum && (
+              <div className="flex items-center gap-2.5 shrink-0">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setReturnFeedback('');
+                    setReviewError(null);
+                    setIsReturnModalOpen(true);
+                  }}
+                  className="h-10 px-4 gap-2 text-amber-800 border-amber-300 bg-white hover:bg-amber-50 hover:text-amber-900 font-bold text-xs shadow-xs"
+                >
+                  <RotateCcw className="w-4 h-4 text-amber-600" />
+                  Devolver para ajustes
+                </Button>
+                <Button
+                  onClick={() => {
+                    setApproveFeedback('');
+                    setReviewError(null);
+                    setIsApproveModalOpen(true);
+                  }}
+                  className="h-10 px-4 gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-sm"
+                >
+                  <CheckCircle2 className="w-4 h-4 text-white" />
+                  Aprobar malla
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ⚠️ BANNER DE REVISIÓN DOCENTE (status === 'revision') */}
+      {status === 'revision' && (
+        <div className="bg-amber-50 border border-amber-300 rounded-2xl p-5 shadow-sm animate-fade-in">
+          <div className="flex items-start gap-3.5">
+            <div className="p-2.5 bg-amber-500 text-white rounded-xl shadow-xs shrink-0 mt-0.5">
+              <AlertTriangle className="w-5 h-5" />
+            </div>
+            <div className="space-y-1.5 flex-1">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-black uppercase tracking-wider text-amber-800 bg-amber-200/70 px-2 py-0.5 rounded">
+                  Atención requerida
+                </span>
+                <h3 className="text-base font-black text-amber-950">
+                  Esta malla requiere ajustes
+                </h3>
+              </div>
+              <p className="text-xs font-bold text-amber-800">
+                Observaciones del revisor:
+              </p>
+              <div className="bg-white/90 border border-amber-200 rounded-xl p-3.5 text-xs text-amber-950 font-medium leading-relaxed italic shadow-2xs">
+                &quot;{reviewFeedback || currentUnitRecord?.review_feedback || 'Por favor revise los componentes pedagógicos señalados antes de volver a enviar.'}&quot;
+              </div>
+              <p className="text-[11px] text-amber-700 font-medium pt-1">
+                Puede editar los contenidos pedagógicos libremente. Cuando termine los ajustes solicitados, pulse <strong>Enviar a Revisión</strong> para notificar nuevamente a coordinación.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ✅ BANNER DE MALLA APROBADA (status === 'approved') */}
+      {status === 'approved' && (
+        <div className="bg-emerald-50 border border-emerald-300 rounded-2xl p-5 shadow-sm animate-fade-in">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-start sm:items-center gap-3">
+              <div className="p-2.5 bg-emerald-600 text-white rounded-xl shadow-xs shrink-0">
+                <CheckCircle2 className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-emerald-800 bg-emerald-200/70 px-2 py-0.5 rounded">
+                    Vigente Institucional
+                  </span>
+                  {currentUnitRecord?.reviewed_by_name && (
+                    <span className="text-xs text-emerald-800 font-medium">
+                      Aprobada por: <strong>{currentUnitRecord.reviewed_by_name}</strong>
+                    </span>
+                  )}
+                </div>
+                <h3 className="text-base font-black text-emerald-950 mt-0.5">
+                  Malla Curricular Aprobada
+                </h3>
+                <p className="text-xs text-emerald-800 mt-0.5">
+                  Esta planeación ha sido formalmente aprobada para el año lectivo 2026. La unidad se encuentra en modo solo lectura y es inmutable.
+                </p>
+              </div>
+            </div>
+            <div className="shrink-0">
+              <span className="px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest bg-emerald-600 text-white shadow-xs inline-flex items-center gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5" /> APROBADA
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ⚠️ AVISO DISCRETO: BORRADOR LOCAL NO SINCRONIZADO */}
       {showLocalDraftBanner && (
@@ -724,7 +1028,7 @@ export function CurriculumBuilder({
                 placeholder="Describe el propósito principal de aprendizaje para este periodo..."
                 value={objetivoGeneral}
                 onChange={e => setObjetivoGeneral(e.target.value)}
-                disabled={status === 'submitted' || status === 'approved'}
+                disabled={!canEdit}
               />
             </CardContent>
           </Card>
@@ -736,7 +1040,7 @@ export function CurriculumBuilder({
                 <BrainCircuit className="w-4 h-4 text-emerald-600" />
                 Matriz de Competencias
               </CardTitle>
-              {status === 'draft' && (
+              {canEdit && (
                 <Button
                   size="sm"
                   variant="ghost"
@@ -764,7 +1068,7 @@ export function CurriculumBuilder({
                         <select
                           className="text-xs font-bold bg-white border border-slate-200 rounded px-2 py-1 text-slate-700 outline-none cursor-pointer disabled:bg-slate-50 disabled:text-slate-600 disabled:cursor-not-allowed"
                           value={comp.type}
-                          disabled={status !== 'draft'}
+                          disabled={!canEdit}
                           onChange={e => {
                             const newComps = [...competencies];
                             newComps[index].type = e.target.value as any;
@@ -782,11 +1086,11 @@ export function CurriculumBuilder({
                         placeholder="Redacta la competencia..."
                         value={comp.description}
                         onChange={e => handleUpdateCompetency(comp.id, e.target.value)}
-                        disabled={status !== 'draft'}
+                        disabled={!canEdit}
                         rows={2}
                       />
                     </div>
-                    {status === 'draft' && (
+                    {canEdit && (
                       <Button
                         size="icon"
                         variant="ghost"
@@ -800,7 +1104,7 @@ export function CurriculumBuilder({
                 ))}
               </div>
 
-              {status === 'draft' && (
+              {canEdit && (
                 <div className="p-4 border-t border-slate-100 bg-slate-50/30">
                   <Button
                     variant="outline"
@@ -830,18 +1134,18 @@ export function CurriculumBuilder({
                     <input
                       value={item.periodLabel}
                       onChange={e => handleUpdateContenido(item.id, 'periodLabel', e.target.value)}
-                      disabled={status !== 'draft'}
+                      disabled={!canEdit}
                       className="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-1.5 rounded border-0 outline-none w-24 text-center disabled:opacity-80 disabled:cursor-not-allowed"
                       placeholder="Semana..."
                     />
                     <Input
                       placeholder="Ej. Límite de una función real, propiedades básicas"
                       className="text-sm h-9 border-slate-200 flex-1 disabled:bg-slate-50 disabled:text-slate-600 disabled:cursor-not-allowed"
-                      disabled={status !== 'draft'}
+                      disabled={!canEdit}
                       value={item.content}
                       onChange={e => handleUpdateContenido(item.id, 'content', e.target.value)}
                     />
-                    {status === 'draft' && contenidos.length > 1 && (
+                    {canEdit && contenidos.length > 1 && (
                       <Button
                         size="icon"
                         variant="ghost"
@@ -854,7 +1158,7 @@ export function CurriculumBuilder({
                   </div>
                 ))}
               </div>
-              {status === 'draft' && (
+              {canEdit && (
                 <Button
                   variant="ghost"
                   size="sm"
@@ -885,7 +1189,7 @@ export function CurriculumBuilder({
                   placeholder="Ej. Aprendizaje Basado en Problemas, Aula Invertida..."
                   value={metodologia}
                   onChange={e => setMetodologia(e.target.value)}
-                  disabled={status !== 'draft'}
+                  disabled={!canEdit}
                 />
               </div>
               <div>
@@ -895,7 +1199,7 @@ export function CurriculumBuilder({
                 <Input
                   placeholder="Ej. Laboratorio virtual, Geogebra, calculadoras..."
                   className="text-sm border-slate-200 disabled:bg-slate-50 disabled:text-slate-600 disabled:cursor-not-allowed"
-                  disabled={status !== 'draft'}
+                  disabled={!canEdit}
                   value={recursos}
                   onChange={e => setRecursos(e.target.value)}
                 />
@@ -938,7 +1242,7 @@ export function CurriculumBuilder({
                               newEvals[index].component = e.target.value;
                               setEvaluations(newEvals);
                             }}
-                            disabled={status !== 'draft'}
+                            disabled={!canEdit}
                             rows={3}
                             placeholder="Ej. Seguimiento..."
                           />
@@ -952,7 +1256,7 @@ export function CurriculumBuilder({
                               newEvals[index].activities = e.target.value;
                               setEvaluations(newEvals);
                             }}
-                            disabled={status !== 'draft'}
+                            disabled={!canEdit}
                             rows={4}
                             placeholder="• Actividad 1..."
                           />
@@ -968,10 +1272,10 @@ export function CurriculumBuilder({
                                 newEvals[index].percentage = parseInt(e.target.value) || 0;
                                 setEvaluations(newEvals);
                               }}
-                              disabled={status !== 'draft'}
+                              disabled={!canEdit}
                             />
                             <span className="font-bold text-slate-500">%</span>
-                            {status === 'draft' && (
+                            {canEdit && (
                               <Button
                                 size="icon"
                                 variant="ghost"
@@ -988,7 +1292,7 @@ export function CurriculumBuilder({
                   </tbody>
                 </table>
               </div>
-              {status === 'draft' && (
+              {canEdit && (
                 <div className="p-4 border-t border-slate-100 bg-slate-50/30">
                   <Button
                     variant="outline"
@@ -1032,21 +1336,23 @@ export function CurriculumBuilder({
           </Card>
 
           {status === 'revision' && (
-            <Card className="border-red-200 shadow-sm bg-red-50 overflow-hidden animate-fade-in">
-              <CardHeader className="border-b border-red-200 px-5 py-3 bg-white">
-                <CardTitle className="text-sm font-black text-red-900 flex items-center gap-2">
-                  <MessageSquareQuote className="w-4 h-4 text-red-600" />
-                  Feedback del Coordinador
+            <Card className="border-amber-200 shadow-sm bg-amber-50/80 overflow-hidden animate-fade-in">
+              <CardHeader className="border-b border-amber-200 px-5 py-3 bg-white">
+                <CardTitle className="text-sm font-black text-amber-900 flex items-center gap-2">
+                  <MessageSquareQuote className="w-4 h-4 text-amber-600" />
+                  Observaciones del Revisor
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-4">
-                <p className="text-xs font-semibold text-red-800 leading-relaxed italic">
-                  &quot;Profesor, por favor incluir evidencias concretas de tipo &apos;Producto&apos; para las
-                  competencias del Hacer. La redacción de la competencia cognitiva está muy bien.&quot;
+                <p className="text-xs font-semibold text-amber-950 leading-relaxed italic">
+                  &quot;{reviewFeedback || currentUnitRecord?.review_feedback || 'Se requieren ajustes pedagógicos en esta unidad.'}&quot;
                 </p>
-                <div className="mt-3 flex justify-end">
-                  <span className="text-[10px] font-bold text-red-500 uppercase tracking-wider">Hoy, 09:30 AM</span>
-                </div>
+                {currentUnitRecord?.reviewed_by_name && (
+                  <div className="mt-3 pt-2 border-t border-amber-200/60 flex justify-between items-center text-[10px] text-amber-800 font-bold">
+                    <span>Revisado por: {currentUnitRecord.reviewed_by_name}</span>
+                    <span>{currentUnitRecord.reviewed_at ? new Date(currentUnitRecord.reviewed_at).toLocaleDateString() : 'Reciente'}</span>
+                  </div>
+                )}
               </CardContent>
             </Card>
           )}
@@ -1065,7 +1371,9 @@ export function CurriculumBuilder({
               </div>
               <div className="p-4 flex items-center justify-between">
                 <span>Conexión a Boletín</span>
-                <span className="text-amber-400 font-black">Pendiente Aprobación</span>
+                <span className="text-amber-400 font-black">
+                  {status === 'approved' ? 'Aprobado para Boletín' : 'Pendiente Aprobación'}
+                </span>
               </div>
             </CardContent>
           </Card>
@@ -1077,6 +1385,188 @@ export function CurriculumBuilder({
         <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2 text-xs font-bold animate-in fade-in slide-in-from-bottom-2 duration-200 border border-slate-800">
           <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
           <span>{toastMessage}</span>
+        </div>
+      )}
+
+      {/* 📝 MODAL: APROBAR MALLA CURRICULAR */}
+      {isApproveModalOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-slate-200 overflow-hidden">
+            <div className="p-6 border-b border-slate-100 flex items-start gap-4">
+              <div className="p-3 bg-emerald-100 text-emerald-700 rounded-xl shrink-0">
+                <CheckCircle2 className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-lg font-black text-slate-900">
+                  ¿Confirmar aprobación de esta malla curricular?
+                </h3>
+                <p className="text-xs text-slate-500 mt-1">
+                  Al aprobar, la planeación se marcará como vigente para la institución y quedará protegida contra modificaciones.
+                </p>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 grid grid-cols-2 gap-3 text-xs">
+                <div>
+                  <span className="text-slate-400 font-bold block">Área:</span>
+                  <span className="font-bold text-slate-800">{area}</span>
+                </div>
+                <div>
+                  <span className="text-slate-400 font-bold block">Asignatura:</span>
+                  <span className="font-bold text-slate-800">{subject}</span>
+                </div>
+                <div>
+                  <span className="text-slate-400 font-bold block">Grado:</span>
+                  <span className="font-bold text-slate-800">{grade}</span>
+                </div>
+                <div>
+                  <span className="text-slate-400 font-bold block">Período:</span>
+                  <span className="font-bold text-slate-800">{period}</span>
+                </div>
+                <div className="col-span-2 border-t border-slate-200/60 pt-2">
+                  <span className="text-slate-400 font-bold block">Docente:</span>
+                  <span className="font-bold text-slate-800">
+                    {currentUnitRecord?.created_by_name || currentUserName || 'Docente titular'}
+                  </span>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1.5">
+                  Observaciones de aprobación (opcional):
+                </label>
+                <textarea
+                  className="w-full text-xs text-slate-700 bg-white border border-slate-200 rounded-lg p-3 min-h-[70px] focus:ring-2 focus:ring-emerald-100 focus:outline-none resize-none"
+                  placeholder="Comentarios institucionales de felicitación o recomendaciones..."
+                  value={approveFeedback}
+                  onChange={e => setApproveFeedback(e.target.value)}
+                  disabled={isProcessingReview}
+                />
+              </div>
+
+              {reviewError && (
+                <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-xs text-red-700 font-semibold flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{reviewError}</span>
+                </div>
+              )}
+            </div>
+
+            <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2.5">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setIsApproveModalOpen(false);
+                  setReviewError(null);
+                }}
+                disabled={isProcessingReview}
+                className="text-xs font-bold"
+              >
+                Cancelar
+              </Button>
+              <Button
+                size="sm"
+                onClick={handleConfirmApprove}
+                disabled={isProcessingReview}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold gap-2"
+              >
+                {isProcessingReview ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    Procesando aprobación...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    Confirmar aprobación
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 🔄 MODAL: DEVOLVER MALLA PARA AJUSTES */}
+      {isReturnModalOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-slate-200 overflow-hidden">
+            <div className="p-6 border-b border-slate-100 flex items-start gap-4">
+              <div className="p-3 bg-amber-100 text-amber-700 rounded-xl shrink-0">
+                <RotateCcw className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-lg font-black text-slate-900">
+                  Devolver malla para ajustes
+                </h3>
+                <p className="text-xs text-slate-500 mt-1">
+                  Indique las observaciones pedagógicas para que el docente pueda realizar los ajustes requeridos.
+                </p>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1.5">
+                  Observaciones pedagógicas <span className="text-red-500 font-bold">*</span>:
+                </label>
+                <textarea
+                  className="w-full text-xs text-slate-700 bg-white border border-slate-200 rounded-lg p-3 min-h-[100px] focus:ring-2 focus:ring-amber-200 focus:outline-none resize-none"
+                  placeholder="Indique los aspectos que el docente debe revisar o ajustar..."
+                  value={returnFeedback}
+                  onChange={e => setReturnFeedback(e.target.value)}
+                  disabled={isProcessingReview}
+                />
+                {!returnFeedback.trim() && (
+                  <p className="text-[10px] text-amber-600 font-bold mt-1">
+                    * La retroalimentación es obligatoria para devolver la malla.
+                  </p>
+                )}
+              </div>
+
+              {reviewError && (
+                <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-xs text-red-700 font-semibold flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{reviewError}</span>
+                </div>
+              )}
+            </div>
+
+            <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2.5">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setIsReturnModalOpen(false);
+                  setReviewError(null);
+                }}
+                disabled={isProcessingReview}
+                className="text-xs font-bold"
+              >
+                Cancelar
+              </Button>
+              <Button
+                size="sm"
+                onClick={handleConfirmReturn}
+                disabled={isProcessingReview || !returnFeedback.trim()}
+                className="bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold gap-2"
+              >
+                {isProcessingReview ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    Devolviendo...
+                  </>
+                ) : (
+                  <>
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    Confirmar devolución
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
         </div>
       )}
     </div>

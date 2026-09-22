@@ -42,8 +42,9 @@ export interface CurriculumDraft {
 export type CurriculumUnitStatus =
   | 'draft'
   | 'submitted'
-  | 'in_review'
+  | 'revision'
   | 'approved'
+  | 'in_review'
   | 'rejected';
 
 export interface CurriculumUnitRecord {
@@ -72,7 +73,7 @@ export interface CurriculumUnitAuditRecord {
   id: string;
   unit_id: string;
   institution_id: string;
-  action: 'created' | 'updated' | 'submitted' | 'in_review' | 'approved' | 'rejected';
+  action: 'created' | 'updated' | 'submitted' | 'in_review' | 'approved' | 'rejected' | 'returned';
   actor_id: string | null;
   actor_name: string | null;
   actor_role: string | null;
@@ -114,6 +115,23 @@ export interface SubmitCurriculumUnitParams {
   content?: CurriculumDraft;
   userId?: string | null;
   userName?: string | null;
+}
+
+export interface ApproveCurriculumUnitParams {
+  unitId: string;
+  feedback?: string | null;
+}
+
+export interface ReturnCurriculumUnitParams {
+  unitId: string;
+  feedback: string;
+}
+
+export interface CurriculumUnitReviewResult {
+  success: boolean;
+  status: 'approved' | 'revision';
+  unit_id: string;
+  reviewed_by_name: string;
 }
 
 // ============================================================================
@@ -373,6 +391,94 @@ export async function submitCurriculumUnit(
     }
 
     return { data: updatedRecord, error: null };
+  } catch (err) {
+    return {
+      data: null,
+      error: err instanceof Error ? err : new Error(String(err)),
+    };
+  }
+}
+
+/**
+ * Aprueba una unidad curricular en estado 'submitted' invocando la RPC segura 'approve_curriculum_unit'.
+ * Solo coordinadores y rectores de la institución pueden ejecutar esta acción.
+ * NO realiza UPDATE directo a la tabla.
+ */
+export async function approveCurriculumUnit(
+  params: ApproveCurriculumUnitParams,
+  client = supabase
+): Promise<{ data: CurriculumUnitReviewResult | null; error: Error | null }> {
+  try {
+    const { unitId, feedback = null } = params;
+
+    if (!unitId) {
+      return {
+        data: null,
+        error: new Error('El parámetro unitId es obligatorio para aprobar la unidad.'),
+      };
+    }
+
+    const { data, error } = await client.rpc('approve_curriculum_unit', {
+      p_unit_id: unitId,
+      p_feedback: feedback ?? null,
+    });
+
+    if (error) {
+      return { data: null, error: new Error(error.message) };
+    }
+
+    return {
+      data: (data as CurriculumUnitReviewResult) ?? null,
+      error: null,
+    };
+  } catch (err) {
+    return {
+      data: null,
+      error: err instanceof Error ? err : new Error(String(err)),
+    };
+  }
+}
+
+/**
+ * Devuelve una unidad curricular en estado 'submitted' a 'revision' invocando la RPC segura 'return_curriculum_unit'.
+ * Requiere obligatoriamente retroalimentación (feedback).
+ * Solo coordinadores y rectores de la institución pueden ejecutar esta acción.
+ * NO realiza UPDATE directo a la tabla.
+ */
+export async function returnCurriculumUnit(
+  params: ReturnCurriculumUnitParams,
+  client = supabase
+): Promise<{ data: CurriculumUnitReviewResult | null; error: Error | null }> {
+  try {
+    const { unitId, feedback } = params;
+
+    if (!unitId) {
+      return {
+        data: null,
+        error: new Error('El parámetro unitId es obligatorio para devolver la unidad.'),
+      };
+    }
+
+    if (!feedback || !feedback.trim()) {
+      return {
+        data: null,
+        error: new Error('La retroalimentación es obligatoria para devolver la unidad.'),
+      };
+    }
+
+    const { data, error } = await client.rpc('return_curriculum_unit', {
+      p_unit_id: unitId,
+      p_feedback: feedback.trim(),
+    });
+
+    if (error) {
+      return { data: null, error: new Error(error.message) };
+    }
+
+    return {
+      data: (data as CurriculumUnitReviewResult) ?? null,
+      error: null,
+    };
   } catch (err) {
     return {
       data: null,

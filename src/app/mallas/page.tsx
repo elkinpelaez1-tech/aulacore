@@ -10,6 +10,13 @@ import { useAuth } from '@/providers/auth-provider';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/lib/supabase';
+import {
+  CurriculumUnitRecord,
+  approveCurriculumUnit,
+  returnCurriculumUnit,
+  getCurriculumUnit
+} from '@/lib/services/curriculum-units';
 import {
   BookOpen,
   Layers,
@@ -23,7 +30,10 @@ import {
   Lock,
   Compass,
   FileCheck2,
-  LayoutGrid
+  LayoutGrid,
+  RotateCcw,
+  Loader2,
+  ShieldCheck
 } from 'lucide-react';
 
 // Estructura de áreas y asignaturas estándar en Colombia (Ley 115 de 1994)
@@ -140,8 +150,12 @@ const STANDARD_PERIODS = [
 
 export default function MallasPage() {
   const router = useRouter();
-  const { activeInstitution, institutionId } = useRole();
+  const { activeInstitution, institutionId, userRole } = useRole();
   const { user: _user } = useAuth();
+
+  const canApproveCurriculum =
+    userRole === 'coordinador' ||
+    userRole === 'super_admin';
 
   const effectiveInstitutionId =
     activeInstitution?.id ||
@@ -284,9 +298,59 @@ export default function MallasPage() {
     }
   };
 
-  // Función de lectura segura del estado de un borrador en localStorage
+  // Carga de unidades institucionales persistidas en Supabase (Prioridad 1)
+  const [supabaseUnitsMap, setSupabaseUnitsMap] = useState<Map<string, CurriculumUnitRecord>>(new Map());
+
+  const fetchInstitutionalUnits = useCallback(async () => {
+    if (!effectiveInstitutionId || effectiveInstitutionId === 'institucion-default') {
+      return;
+    }
+    try {
+      const { data, error } = await supabase
+        .from('curriculum_units')
+        .select('*')
+        .eq('institution_id', effectiveInstitutionId)
+        .eq('academic_year', '2026');
+
+      if (!error && Array.isArray(data)) {
+        const newMap = new Map<string, CurriculumUnitRecord>();
+        data.forEach(unit => {
+          const key = `${unit.subject_name.toLowerCase()}_${unit.grade.toLowerCase()}_${unit.period.toLowerCase()}`;
+          newMap.set(key, unit as CurriculumUnitRecord);
+        });
+        setSupabaseUnitsMap(newMap);
+      }
+    } catch (err) {
+      console.warn('Error fetching curriculum units from Supabase:', err);
+    }
+  }, [effectiveInstitutionId]);
+
+  useEffect(() => {
+    fetchInstitutionalUnits();
+  }, [fetchInstitutionalUnits, refreshKey]);
+
+  // Función de lectura segura del estado de una unidad:
+  // 1. Supabase (oficial) -> 2. localStorage (fallback) -> 3. null
   const getDraftForCombination = useCallback(
     (subj: string, grd: string, per: string): CurriculumDraft | null => {
+      // 1. Prioridad: Supabase
+      const dbKey = `${subj.toLowerCase()}_${grd.toLowerCase()}_${per.toLowerCase()}`;
+      const dbUnit = supabaseUnitsMap.get(dbKey);
+      if (dbUnit && dbUnit.content) {
+        return {
+          ...dbUnit.content,
+          status: dbUnit.status as any,
+          subject: dbUnit.subject_name,
+          grade: dbUnit.grade,
+          period: dbUnit.period,
+          area: dbUnit.area_name,
+          updatedAt: dbUnit.updated_at
+            ? `Hoy, ${new Date(dbUnit.updated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+            : undefined
+        };
+      }
+
+      // 2. Fallback: localStorage
       if (typeof window === 'undefined') return null;
       try {
         const key = buildDraftKey(subj, grd, per);
@@ -299,7 +363,7 @@ export default function MallasPage() {
       }
       return null;
     },
-    [buildDraftKey, refreshKey]
+    [buildDraftKey, supabaseUnitsMap]
   );
 
   // Borrador actual para la combinación seleccionada en los desplegables
@@ -307,9 +371,126 @@ export default function MallasPage() {
     return getDraftForCombination(selectedSubjectName, selectedGrade, selectedPeriod);
   }, [getDraftForCombination, selectedSubjectName, selectedGrade, selectedPeriod, refreshKey]);
 
-  // Historial rápido: Borradores existentes en localStorage para esta institución
+  // Registro de la unidad actual en Supabase (si existe)
+  const currentUnitKey = `${selectedSubjectName.toLowerCase()}_${selectedGrade.toLowerCase()}_${selectedPeriod.toLowerCase()}`;
+  const currentDbUnit = supabaseUnitsMap.get(currentUnitKey);
+
+  // Estados para modales de aprobación y devolución directa en /mallas
+  const [isApproveModalOpen, setIsApproveModalOpen] = useState(false);
+  const [approveFeedback, setApproveFeedback] = useState('');
+  const [isReturnModalOpen, setIsReturnModalOpen] = useState(false);
+  const [returnFeedback, setReturnFeedback] = useState('');
+  const [isProcessingReview, setIsProcessingReview] = useState(false);
+  const [reviewError, setReviewError] = useState<string | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Manejo de Aprobación Directa desde /mallas
+  const handleConfirmApprove = async () => {
+    let targetUnitId = currentDbUnit?.id;
+
+    if (!targetUnitId && effectiveInstitutionId) {
+      setIsProcessingReview(true);
+      const { data: refreshed } = await getCurriculumUnit({
+        institutionId: effectiveInstitutionId,
+        academicYear: '2026',
+        subject: selectedSubjectName,
+        grade: selectedGrade,
+        period: selectedPeriod
+      });
+      if (refreshed?.id) {
+        targetUnitId = refreshed.id;
+      }
+    }
+
+    if (!targetUnitId) {
+      setReviewError('No se encontró el identificador institucional de la unidad curricular en Supabase.');
+      return;
+    }
+
+    setIsProcessingReview(true);
+    setReviewError(null);
+
+    try {
+      const { error: rpcError } = await approveCurriculumUnit({
+        unitId: targetUnitId,
+        feedback: approveFeedback.trim() || null
+      });
+
+      if (rpcError) {
+        setReviewError(rpcError.message || 'Error al aprobar la malla curricular.');
+        return;
+      }
+
+      await fetchInstitutionalUnits();
+      setRefreshKey(prev => prev + 1);
+      setIsApproveModalOpen(false);
+      setApproveFeedback('');
+      setToastMessage('Malla curricular aprobada correctamente.');
+    } catch (err) {
+      setReviewError(err instanceof Error ? err.message : 'Error inesperado al conectar con el servicio.');
+    } finally {
+      setIsProcessingReview(false);
+      setTimeout(() => setToastMessage(null), 3500);
+    }
+  };
+
+  // Manejo de Devolución Directa desde /mallas
+  const handleConfirmReturn = async () => {
+    if (!returnFeedback || !returnFeedback.trim()) {
+      setReviewError('La retroalimentación pedagógica es obligatoria para devolver la unidad.');
+      return;
+    }
+
+    let targetUnitId = currentDbUnit?.id;
+
+    if (!targetUnitId && effectiveInstitutionId) {
+      setIsProcessingReview(true);
+      const { data: refreshed } = await getCurriculumUnit({
+        institutionId: effectiveInstitutionId,
+        academicYear: '2026',
+        subject: selectedSubjectName,
+        grade: selectedGrade,
+        period: selectedPeriod
+      });
+      if (refreshed?.id) {
+        targetUnitId = refreshed.id;
+      }
+    }
+
+    if (!targetUnitId) {
+      setReviewError('No se encontró el identificador institucional de la unidad curricular en Supabase.');
+      return;
+    }
+
+    setIsProcessingReview(true);
+    setReviewError(null);
+
+    try {
+      const { error: rpcError } = await returnCurriculumUnit({
+        unitId: targetUnitId,
+        feedback: returnFeedback.trim()
+      });
+
+      if (rpcError) {
+        setReviewError(rpcError.message || 'Error al devolver la malla curricular.');
+        return;
+      }
+
+      await fetchInstitutionalUnits();
+      setRefreshKey(prev => prev + 1);
+      setIsReturnModalOpen(false);
+      setReturnFeedback('');
+      setToastMessage('Malla devuelta al docente para ajustes.');
+    } catch (err) {
+      setReviewError(err instanceof Error ? err.message : 'Error inesperado al conectar con el servicio.');
+    } finally {
+      setIsProcessingReview(false);
+      setTimeout(() => setToastMessage(null), 3500);
+    }
+  };
+
+  // Historial unificado: Unidades en Supabase + Borradores locales complementarios
   const institutionalDrafts = useMemo(() => {
-    if (typeof window === 'undefined') return [];
     const results: {
       key: string;
       subject: string;
@@ -318,37 +499,67 @@ export default function MallasPage() {
       period: string;
       status: string;
       updatedAt: string;
+      source?: 'supabase' | 'local';
     }[] = [];
 
-    try {
-      const prefix = `aulacore-curriculum-draft-${sanitizeKeyPart(effectiveInstitutionId)}`;
-      for (let i = 0; i < localStorage.length; i++) {
-        const k = localStorage.key(i);
-        if (k && k.startsWith(prefix)) {
-          const raw = localStorage.getItem(k);
-          if (raw) {
-            try {
-              const d = JSON.parse(raw);
-              if (d && (d.subject || d.grade || d.period)) {
-                results.push({
-                  key: k,
-                  subject: d.subject || 'Sin Asignatura',
-                  grade: d.grade || '11°',
-                  area: d.area || 'Matemáticas',
-                  period: d.period || 'Periodo 1',
-                  status: d.status || 'draft',
-                  updatedAt: d.updatedAt || 'Reciente'
-                });
-              }
-            } catch (_) {}
+    const seenKeys = new Set<string>();
+
+    // A. Unidades oficiales desde Supabase (Prioridad institucional)
+    supabaseUnitsMap.forEach(unit => {
+      const comboKey = `${unit.subject_name.toLowerCase()}_${unit.grade.toLowerCase()}_${unit.period.toLowerCase()}`;
+      seenKeys.add(comboKey);
+      results.push({
+        key: unit.id,
+        subject: unit.subject_name,
+        grade: unit.grade,
+        area: unit.area_name,
+        period: unit.period,
+        status: unit.status,
+        updatedAt: unit.updated_at
+          ? `Hoy, ${new Date(unit.updated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+          : 'Reciente',
+        source: 'supabase'
+      });
+    });
+
+    // B. Borradores en localStorage que no estén en Supabase (Fallback)
+    if (typeof window !== 'undefined') {
+      try {
+        const prefix = `aulacore-curriculum-draft-${sanitizeKeyPart(effectiveInstitutionId)}`;
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i);
+          if (k && k.startsWith(prefix)) {
+            const raw = localStorage.getItem(k);
+            if (raw) {
+              try {
+                const d = JSON.parse(raw);
+                if (d && (d.subject || d.grade || d.period)) {
+                  const comboKey = `${(d.subject || '').toLowerCase()}_${(d.grade || '').toLowerCase()}_${(d.period || '').toLowerCase()}`;
+                  if (!seenKeys.has(comboKey)) {
+                    seenKeys.add(comboKey);
+                    results.push({
+                      key: k,
+                      subject: d.subject || 'Sin Asignatura',
+                      grade: d.grade || '11°',
+                      area: d.area || 'Matemáticas',
+                      period: d.period || 'Periodo 1',
+                      status: d.status || 'draft',
+                      updatedAt: d.updatedAt || 'Reciente',
+                      source: 'local'
+                    });
+                  }
+                }
+              } catch (_) {}
+            }
           }
         }
+      } catch (e) {
+        console.warn('Error scanning institutional drafts:', e);
       }
-    } catch (e) {
-      console.warn('Error scanning institutional drafts:', e);
     }
+
     return results;
-  }, [effectiveInstitutionId, refreshKey]);
+  }, [effectiveInstitutionId, supabaseUnitsMap]);
 
   // 1. Si está en modo construcción, renderizar el CurriculumBuilder conectado
   if (viewMode === 'builder') {
@@ -403,7 +614,7 @@ export default function MallasPage() {
       case 'approved':
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
-            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Aprobada / Vigente
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Aprobada
           </span>
         );
       case 'submitted':
@@ -415,18 +626,18 @@ export default function MallasPage() {
       case 'revision':
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200">
-            <AlertCircle className="w-3.5 h-3.5 text-amber-600" /> Devuelta para Ajustes
+            <AlertCircle className="w-3.5 h-3.5 text-amber-600" /> Requiere Ajustes
           </span>
         );
       case 'draft':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-900 border border-amber-300">
-            <Clock className="w-3.5 h-3.5 text-amber-600" /> Borrador en Curso
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-700 border border-slate-300">
+            <Clock className="w-3.5 h-3.5 text-slate-500" /> Borrador en Curso
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200">
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-500 border border-slate-200">
             <Sparkles className="w-3.5 h-3.5 text-slate-400" /> Sin Iniciar
           </span>
         );
@@ -631,7 +842,7 @@ export default function MallasPage() {
                 </p>
               </div>
 
-              <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+              <div className="flex flex-col sm:flex-row flex-wrap items-center gap-3 w-full md:w-auto">
                 <Button
                   type="button"
                   variant="outline"
@@ -652,6 +863,37 @@ export default function MallasPage() {
                   <BookOpen className="w-5 h-5" />
                   {currentDraft ? 'Construir / Editar Malla' : 'Iniciar Nueva Malla'}
                 </Button>
+
+                {currentDraft?.status === 'submitted' && canApproveCurriculum && (
+                  <>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        setReturnFeedback('');
+                        setReviewError(null);
+                        setIsReturnModalOpen(true);
+                      }}
+                      className="border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100 hover:text-amber-900 font-bold text-sm h-12 px-5 rounded-xl shadow-xs transition-all gap-2 cursor-pointer w-full sm:w-auto"
+                    >
+                      <RotateCcw className="w-4 h-4 text-amber-600" />
+                      Devolver para ajustes
+                    </Button>
+
+                    <Button
+                      type="button"
+                      onClick={() => {
+                        setApproveFeedback('');
+                        setReviewError(null);
+                        setIsApproveModalOpen(true);
+                      }}
+                      className="bg-emerald-600 hover:bg-emerald-500 text-white font-black text-sm h-12 px-6 rounded-xl shadow-lg shadow-emerald-600/25 transition-all gap-2 cursor-pointer w-full sm:w-auto"
+                    >
+                      <CheckCircle2 className="w-5 h-5" />
+                      Aprobar malla
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
           </CardContent>
@@ -795,6 +1037,221 @@ export default function MallasPage() {
               </div>
             </CardContent>
           </Card>
+        )}
+
+        {/* 🔔 NOTIFICACIÓN TOAST */}
+        {toastMessage && (
+          <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white text-xs font-bold px-4 py-3 rounded-xl shadow-xl border border-slate-700 flex items-center gap-2 animate-bounce">
+            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+            <span>{toastMessage}</span>
+          </div>
+        )}
+
+        {/* 📝 MODAL: APROBAR MALLA CURRICULAR */}
+        {isApproveModalOpen && (
+          <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-in">
+            <div className="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-slate-200 overflow-hidden">
+              <div className="p-6 border-b border-slate-100 flex items-start gap-4">
+                <div className="p-3 bg-emerald-100 text-emerald-700 rounded-xl shrink-0">
+                  <CheckCircle2 className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-black text-slate-900">
+                    ¿Aprobar esta malla curricular?
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Al aprobar, la planeación se marcará como vigente para la institución y quedará protegida contra modificaciones.
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-6 space-y-4">
+                <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 grid grid-cols-2 gap-3 text-xs">
+                  <div>
+                    <span className="text-slate-400 font-bold block">Área:</span>
+                    <span className="font-bold text-slate-800">{selectedAreaName}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 font-bold block">Asignatura:</span>
+                    <span className="font-bold text-slate-800">{selectedSubjectName}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 font-bold block">Grado:</span>
+                    <span className="font-bold text-slate-800">{selectedGrade}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 font-bold block">Período:</span>
+                    <span className="font-bold text-slate-800">{selectedPeriod}</span>
+                  </div>
+                  <div className="col-span-2 border-t border-slate-200/60 pt-2">
+                    <span className="text-slate-400 font-bold block">Docente:</span>
+                    <span className="font-bold text-slate-800">
+                      {currentDbUnit?.created_by_name || 'Docente titular'}
+                    </span>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1.5">
+                    Observaciones de aprobación (opcional):
+                  </label>
+                  <textarea
+                    className="w-full text-xs text-slate-700 bg-white border border-slate-200 rounded-lg p-3 min-h-[70px] focus:ring-2 focus:ring-emerald-100 focus:outline-none resize-none"
+                    placeholder="Comentarios institucionales de felicitación o recomendaciones..."
+                    value={approveFeedback}
+                    onChange={e => setApproveFeedback(e.target.value)}
+                    disabled={isProcessingReview}
+                  />
+                </div>
+
+                {reviewError && (
+                  <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-xs text-red-700 font-semibold flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <span>{reviewError}</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2.5">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setIsApproveModalOpen(false);
+                    setReviewError(null);
+                  }}
+                  disabled={isProcessingReview}
+                  className="text-xs font-bold cursor-pointer"
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={handleConfirmApprove}
+                  disabled={isProcessingReview}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold gap-2 cursor-pointer"
+                >
+                  {isProcessingReview ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      Procesando aprobación...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      Confirmar aprobación
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 🔄 MODAL: DEVOLVER MALLA PARA AJUSTES */}
+        {isReturnModalOpen && (
+          <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-in">
+            <div className="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-slate-200 overflow-hidden">
+              <div className="p-6 border-b border-slate-100 flex items-start gap-4">
+                <div className="p-3 bg-amber-100 text-amber-700 rounded-xl shrink-0">
+                  <RotateCcw className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-black text-slate-900">
+                    Devolver malla para ajustes
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Indique las observaciones pedagógicas para que el docente pueda realizar los ajustes requeridos.
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-6 space-y-4">
+                <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 grid grid-cols-2 gap-3 text-xs">
+                  <div>
+                    <span className="text-slate-400 font-bold block">Área:</span>
+                    <span className="font-bold text-slate-800">{selectedAreaName}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 font-bold block">Asignatura:</span>
+                    <span className="font-bold text-slate-800">{selectedSubjectName}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 font-bold block">Grado:</span>
+                    <span className="font-bold text-slate-800">{selectedGrade}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 font-bold block">Período:</span>
+                    <span className="font-bold text-slate-800">{selectedPeriod}</span>
+                  </div>
+                  <div className="col-span-2 border-t border-slate-200/60 pt-2">
+                    <span className="text-slate-400 font-bold block">Docente:</span>
+                    <span className="font-bold text-slate-800">
+                      {currentDbUnit?.created_by_name || 'Docente titular'}
+                    </span>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1.5">
+                    Observaciones pedagógicas <span className="text-red-500 font-bold">*</span>:
+                  </label>
+                  <textarea
+                    className="w-full text-xs text-slate-700 bg-white border border-slate-200 rounded-lg p-3 min-h-[100px] focus:ring-2 focus:ring-amber-200 focus:outline-none resize-none"
+                    placeholder="Indique los aspectos que el docente debe revisar o ajustar..."
+                    value={returnFeedback}
+                    onChange={e => setReturnFeedback(e.target.value)}
+                    disabled={isProcessingReview}
+                  />
+                  {!returnFeedback.trim() && (
+                    <p className="text-[10px] text-amber-600 font-bold mt-1">
+                      * La retroalimentación es obligatoria para devolver la malla.
+                    </p>
+                  )}
+                </div>
+
+                {reviewError && (
+                  <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-xs text-red-700 font-semibold flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <span>{reviewError}</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2.5">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setIsReturnModalOpen(false);
+                    setReviewError(null);
+                  }}
+                  disabled={isProcessingReview}
+                  className="text-xs font-bold cursor-pointer"
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={handleConfirmReturn}
+                  disabled={isProcessingReview || !returnFeedback.trim()}
+                  className="bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold gap-2 cursor-pointer"
+                >
+                  {isProcessingReview ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      Devolviendo...
+                    </>
+                  ) : (
+                    <>
+                      <RotateCcw className="w-3.5 h-3.5" />
+                      Confirmar devolución
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </AppLayout>

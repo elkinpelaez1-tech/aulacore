@@ -147,26 +147,26 @@ export function Malla360View({
       case 'approved':
         return (
           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
-            <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Aprobada / Vigente
+            <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Aprobada
           </span>
         );
       case 'submitted':
         return (
           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-300">
-            <Lock className="w-3 h-3 text-blue-600" /> En Revisión
+            <Lock className="w-3 h-3 text-blue-600" /> En revisión
           </span>
         );
       case 'revision':
         return (
           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
-            <AlertCircle className="w-3 h-3 text-amber-600" /> Devuelta
+            <AlertCircle className="w-3 h-3 text-amber-600" /> Requiere ajustes
           </span>
         );
       case 'draft':
       default:
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-50 text-amber-900 border border-amber-300">
-            <Clock className="w-3 h-3 text-amber-600" /> Borrador
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-300">
+            <Clock className="w-3 h-3 text-slate-500" /> Borrador
           </span>
         );
     }
