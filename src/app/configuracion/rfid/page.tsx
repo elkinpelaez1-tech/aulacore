@@ -618,22 +618,19 @@ export default function RFIDDevicesManagerPage() {
 
       {/* Notion-style new RFID modal creation overlay */}
       {modalOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-          <div className="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-            
-            {/* Backdrop shadow */}
-            <div 
-              onClick={() => setModalOpen(false)}
-              className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm transition-opacity duration-300"
-            />
-
-            {/* Trick center block */}
-            <span className="hidden sm:inline-block sm:h-screen sm:align-middle" aria-hidden="true">&#8203;</span>
-
-            {/* Modal Box */}
-            <div className="inline-block transform overflow-hidden rounded-3xl bg-white border border-slate-200 text-left align-bottom shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-md sm:align-middle">
-              
-              <div className="bg-white px-6 pt-6 pb-4 space-y-4">
+        <div 
+          onClick={() => setModalOpen(false)}
+          className="fixed inset-0 z-50 bg-slate-950/60 flex items-center justify-center p-4 overflow-y-auto" 
+          aria-labelledby="modal-title" 
+          role="dialog" 
+          aria-modal="true"
+        >
+          {/* Modal Box */}
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white border border-slate-200 rounded-3xl max-w-md w-full shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150"
+          >
+            <div className="bg-white px-6 pt-6 pb-4 space-y-4">
                 
                 {/* Header */}
                 <div className="flex justify-between items-center border-b border-slate-100 pb-3">
@@ -794,9 +791,7 @@ export default function RFIDDevicesManagerPage() {
               </div>
 
             </div>
-
           </div>
-        </div>
       )}
 
     </div>
