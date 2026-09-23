@@ -10,9 +10,9 @@ interface PendingApprovalsQueueProps {
   pendingApprovals: PendingApproval[];
   onApprove: (id: string, notes?: string) => void;
   onReject: (id: string, notes?: string) => void;
-  onCorrectionNeeded: (id: string, notes?: string) => void;
-  onUpdateDocumentStatus: (approvalId: string, docId: string, newStatus: 'Validado' | 'Pendiente' | 'Rechazado') => void;
-  onSaveObservations: (id: string, observations: string) => void;
+  onCorrectionNeeded?: (id: string, notes?: string) => void;
+  onUpdateDocumentStatus?: (approvalId: string, docId: string, newStatus: 'Validado' | 'Pendiente' | 'Rechazado') => void;
+  onSaveObservations?: (id: string, observations: string) => void;
 }
 
 export function PendingApprovalsQueue({
@@ -123,9 +123,9 @@ export function PendingApprovalsQueue({
           onReject(id, notes);
           setSelectedApproval(null);
         }}
-        onCorrectionNeeded={(id, notes) => {
+        onCorrectionNeeded={onCorrectionNeeded ? (id, notes) => {
           onCorrectionNeeded(id, notes);
-        }}
+        } : undefined}
         onUpdateDocumentStatus={onUpdateDocumentStatus}
         onSaveObservations={onSaveObservations}
       />

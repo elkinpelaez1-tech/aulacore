@@ -10,9 +10,9 @@ interface ApprovalReviewDrawerProps {
   onClose: () => void;
   onApprove: (id: string, notes?: string) => void;
   onReject: (id: string, notes?: string) => void;
-  onCorrectionNeeded: (id: string, notes?: string) => void;
-  onUpdateDocumentStatus: (approvalId: string, docId: string, newStatus: 'Validado' | 'Pendiente' | 'Rechazado') => void;
-  onSaveObservations: (id: string, observations: string) => void;
+  onCorrectionNeeded?: (id: string, notes?: string) => void;
+  onUpdateDocumentStatus?: (approvalId: string, docId: string, newStatus: 'Validado' | 'Pendiente' | 'Rechazado') => void;
+  onSaveObservations?: (id: string, observations: string) => void;
 }
 
 export function ApprovalReviewDrawer({ 
@@ -33,12 +33,14 @@ export function ApprovalReviewDrawer({
   if (!approval) return null;
 
   const toggleDocStatus = (docId: string, currentStatus: 'Validado' | 'Pendiente' | 'Rechazado') => {
+    if (!onUpdateDocumentStatus) return;
     const order: ('Validado' | 'Pendiente' | 'Rechazado')[] = ['Validado', 'Pendiente', 'Rechazado'];
     const nextIdx = (order.indexOf(currentStatus) + 1) % order.length;
     onUpdateDocumentStatus(approval.id, docId, order[nextIdx]);
   };
 
   const handleBlurNotes = () => {
+    if (!onSaveObservations) return;
     onSaveObservations(approval.id, notes);
   };
 
@@ -86,12 +88,14 @@ export function ApprovalReviewDrawer({
         <div className="flex-1 overflow-y-auto p-6 space-y-8">
           
           {/* Micro-interaction notice */}
-          <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-3 flex items-start gap-2 text-indigo-800 text-[11px]">
-            <AlertCircle className="w-4 h-4 shrink-0 text-indigo-600 mt-0.5" />
-            <p className="font-semibold">
-              Tip: Haz clic en la etiqueta de validación de un documento para alternar rápidamente entre Validado, Pendiente y Rechazado.
-            </p>
-          </div>
+          {onUpdateDocumentStatus && (
+            <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-3 flex items-start gap-2 text-indigo-800 text-[11px]">
+              <AlertCircle className="w-4 h-4 shrink-0 text-indigo-600 mt-0.5" />
+              <p className="font-semibold">
+                Tip: Haz clic en la etiqueta de validación de un documento para alternar rápidamente entre Validado, Pendiente y Rechazado.
+              </p>
+            </div>
+          )}
 
           {/* Documents Section */}
           <div>
@@ -115,17 +119,29 @@ export function ApprovalReviewDrawer({
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <button 
-                      onClick={() => toggleDocStatus(doc.id, doc.status)}
-                      title="Click para cambiar estado de validación"
-                      className={cn(
-                        "text-[9px] font-black uppercase tracking-wider px-2 py-1 rounded-md cursor-pointer transition-all hover:scale-105 active:scale-95",
-                        doc.status === 'Validado' ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200" :
-                        doc.status === 'Rechazado' ? "bg-rose-100 text-rose-700 hover:bg-rose-200" : "bg-amber-100 text-amber-700 hover:bg-amber-200"
-                      )}
-                    >
-                      {doc.status}
-                    </button>
+                    {onUpdateDocumentStatus ? (
+                      <button 
+                        onClick={() => toggleDocStatus(doc.id, doc.status)}
+                        title="Click para cambiar estado de validación"
+                        className={cn(
+                          "text-[9px] font-black uppercase tracking-wider px-2 py-1 rounded-md cursor-pointer transition-all hover:scale-105 active:scale-95",
+                          doc.status === 'Validado' ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200" :
+                          doc.status === 'Rechazado' ? "bg-rose-100 text-rose-700 hover:bg-rose-200" : "bg-amber-100 text-amber-700 hover:bg-amber-200"
+                        )}
+                      >
+                        {doc.status}
+                      </button>
+                    ) : (
+                      <span
+                        className={cn(
+                          "text-[9px] font-black uppercase tracking-wider px-2 py-1 rounded-md select-none",
+                          doc.status === 'Validado' ? "bg-emerald-100 text-emerald-700" :
+                          doc.status === 'Rechazado' ? "bg-rose-100 text-rose-700" : "bg-amber-100 text-amber-700"
+                        )}
+                      >
+                        {doc.status}
+                      </span>
+                    )}
                     {doc.url ? (
                       <a 
                         href={doc.url} 
@@ -155,30 +171,37 @@ export function ApprovalReviewDrawer({
           </div>
 
           {/* Observations Section */}
-          <div>
-            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Observaciones Administrativas</h3>
-            <textarea 
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              onBlur={handleBlurNotes}
-              placeholder="Añadir nota interna (ej. Falta firmar página 2)..." 
-              className="w-full h-24 bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm text-slate-700 outline-none focus:border-indigo-500 resize-none transition-colors"
-            ></textarea>
-          </div>
+          {onSaveObservations && (
+            <div>
+              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Observaciones Administrativas</h3>
+              <textarea 
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                onBlur={handleBlurNotes}
+                placeholder="Añadir nota interna (ej. Falta firmar página 2)..." 
+                className="w-full h-24 bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm text-slate-700 outline-none focus:border-indigo-500 resize-none transition-colors"
+              ></textarea>
+            </div>
+          )}
 
         </div>
 
         {/* Footer Actions */}
         <div className="p-6 border-t border-slate-100 bg-white grid grid-cols-2 gap-3">
-          <button 
-            onClick={() => onCorrectionNeeded(approval.id, notes)}
-            className="col-span-1 px-4 py-3 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl text-xs font-bold transition-colors shadow-sm cursor-pointer"
-          >
-            Solicitar Corrección
-          </button>
+          {onCorrectionNeeded && (
+            <button 
+              onClick={() => onCorrectionNeeded(approval.id, notes)}
+              className="col-span-1 px-4 py-3 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl text-xs font-bold transition-colors shadow-sm cursor-pointer"
+            >
+              Solicitar Corrección
+            </button>
+          )}
           <button 
             onClick={() => onApprove(approval.id, notes)}
-            className="col-span-1 px-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-colors shadow-sm flex items-center justify-center gap-2 cursor-pointer"
+            className={cn(
+              "px-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-colors shadow-sm flex items-center justify-center gap-2 cursor-pointer",
+              onCorrectionNeeded ? "col-span-1" : "col-span-2"
+            )}
           >
             <Check className="w-4 h-4" /> Aprobar Perfil
           </button>

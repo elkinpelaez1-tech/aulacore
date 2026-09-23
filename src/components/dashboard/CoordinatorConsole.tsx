@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   BookOpen,
   Calendar,
@@ -21,7 +21,8 @@ import {
   ArrowRight,
   MessageSquare,
   Sparkles,
-  Award
+  Award,
+  UserPlus
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
@@ -32,10 +33,107 @@ import { cn } from '@/lib/utils';
 import { DocumentEngine } from '@/components/document-engine/DocumentEngine';
 import { SchedulePreviewWidget } from './shared/SchedulePreviewWidget';
 import { RectorExecutiveSummary } from './RectorExecutiveSummary';
+import { useAuth } from '@/providers/auth-provider';
+import { 
+  listOnboardingSubmissions, 
+  approveOnboarding, 
+  rejectOnboarding, 
+  TeacherOnboardingData 
+} from '@/lib/services/teacher-onboarding';
+import { PendingApprovalsQueue } from '@/components/settings/PendingApprovalsQueue';
+import { PendingApproval, AttachedDocument } from '@/lib/data/mock-settings';
 
 export function CoordinatorConsole() {
+  const { activeInstitution, institutionId: authInstId } = useAuth();
+  const currentInstitutionId = activeInstitution?.id || authInstId;
+
+  const [pendingApprovals, setPendingApprovals] = useState<PendingApproval[]>([]);
+  const [loadingOnboardings, setLoadingOnboardings] = useState(false);
+
   const [isDocEngineOpen, setIsDocEngineOpen] = useState(false);
   const [docEngineType, setDocEngineType] = useState<any>('rectoral_report');
+
+  const mapOnboardingToApproval = (t: TeacherOnboardingData): PendingApproval => {
+    const docs: AttachedDocument[] = [];
+    if (t.cv_url) {
+      docs.push({ id: 'cv', name: 'CV_Docente.pdf', type: 'PDF', status: 'Pendiente', size: '2.8 MB', url: t.cv_url });
+    }
+    if (t.diploma_url) {
+      docs.push({ id: 'diploma', name: 'Diploma_Licenciatura.pdf', type: 'PDF', status: 'Pendiente', size: '1.9 MB', url: t.diploma_url });
+    }
+    if (t.escalafon_url) {
+      docs.push({ id: 'escalafon', name: 'Escalafon_MinEdu.pdf', type: 'PDF', status: 'Pendiente', size: '1.4 MB', url: t.escalafon_url });
+    }
+    if (t.background_check_url) {
+      docs.push({ id: 'backgroundCheck', name: 'Antecedentes.pdf', type: 'PDF', status: 'Pendiente', size: '1.2 MB', url: t.background_check_url });
+    }
+    if (t.certifications_url) {
+      docs.push({ id: 'certifications', name: 'Certificaciones_Historico.pdf', type: 'PDF', status: 'Pendiente', size: '3.4 MB', url: t.certifications_url });
+    }
+    if (t.identity_doc_url) {
+      docs.push({ id: 'identityDoc', name: 'Cedula_Identidad.pdf', type: 'PDF', status: 'Pendiente', size: '1.7 MB', url: t.identity_doc_url });
+    }
+
+    return {
+      id: t.id!,
+      name: t.full_name,
+      email: t.email,
+      type: 'Docente',
+      submittedAt: t.created_at ? new Date(t.created_at).toLocaleDateString() : 'Reciente',
+      status: 'pending_approval',
+      documentStatus: docs.length > 0 ? 'Revisión Manual' : 'Faltante',
+      documents: docs,
+      riskScore: 3
+    };
+  };
+
+  const loadPendingOnboardings = async () => {
+    if (!currentInstitutionId) {
+      setPendingApprovals([]);
+      return;
+    }
+    setLoadingOnboardings(true);
+    try {
+      const subs = await listOnboardingSubmissions(currentInstitutionId);
+      const pendingTeachers = subs
+        .filter(t => t.status === 'pending_approval')
+        .map(mapOnboardingToApproval);
+      setPendingApprovals(pendingTeachers);
+    } catch (err) {
+      console.error('Error cargando solicitudes pendientes para el coordinador:', err);
+    } finally {
+      setLoadingOnboardings(false);
+    }
+  };
+
+  useEffect(() => {
+    loadPendingOnboardings();
+  }, [currentInstitutionId]);
+
+  const handleApproveOnboarding = async (id: string, notes?: string) => {
+    if (!currentInstitutionId) return;
+    try {
+      const res = await approveOnboarding(id, currentInstitutionId);
+      if (res.success) {
+        await loadPendingOnboardings();
+      } else {
+        console.error('Error al aprobar docente:', res.error);
+      }
+    } catch (err) {
+      console.error('Excepción al aprobar docente:', err);
+    }
+  };
+
+  const handleRejectOnboarding = async (id: string, notes?: string) => {
+    try {
+      const success = await rejectOnboarding(id);
+      if (success) {
+        await loadPendingOnboardings();
+      }
+    } catch (err) {
+      console.error('Error al rechazar docente:', err);
+    }
+  };
 
   const [planeaciones, setPlaneaciones] = useState([
     {
@@ -217,7 +315,22 @@ export function CoordinatorConsole() {
       </div>
 
       {/* KPI GRID */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <Card className="border-slate-200 shadow-sm bg-white overflow-hidden group border-l-4 border-l-amber-500">
+          <CardContent className="p-4 flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+              <UserPlus className="w-6 h-6 text-amber-600" />
+            </div>
+            <div>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Vinculación Docente</p>
+              <h3 className="text-2xl font-black text-slate-900">{pendingApprovals.length}</h3>
+              <p className="text-[10px] font-bold text-amber-600">
+                {pendingApprovals.length === 1 ? '1 Solicitud Pendiente' : `${pendingApprovals.length} Pendientes`}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
         <Card className="border-slate-200 shadow-sm bg-white overflow-hidden group">
           <CardContent className="p-4 flex items-center gap-4">
             <div className="w-12 h-12 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
@@ -269,6 +382,39 @@ export function CoordinatorConsole() {
             </div>
           </CardContent>
         </Card>
+      </div>
+
+      {/* ========================================================= */}
+      {/* 👥 SECCIÓN: SOLICITUDES DE VINCULACIÓN DOCENTE             */}
+      {/* ========================================================= */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-base font-black text-slate-950 flex items-center gap-2">
+              <UserPlus className="w-4.5 h-4.5 text-indigo-600" />
+              Solicitudes de Vinculación Docente
+            </h3>
+            <p className="text-xs text-slate-500 font-semibold mt-0.5">
+              Candidatos registrados a través del portal de auto-onboarding en espera de validación de credenciales.
+            </p>
+          </div>
+          <span className={cn(
+            "text-[10px] font-black uppercase px-2.5 py-1 rounded-full border",
+            pendingApprovals.length > 0 
+              ? "bg-amber-100 text-amber-800 border-amber-200 animate-pulse" 
+              : "bg-slate-100 text-slate-600 border-slate-200"
+          )}>
+            {pendingApprovals.length} {pendingApprovals.length === 1 ? 'Solicitud Pendiente' : 'Solicitudes Pendientes'}
+          </span>
+        </div>
+
+        <div className="h-[460px]">
+          <PendingApprovalsQueue 
+            pendingApprovals={pendingApprovals} 
+            onApprove={handleApproveOnboarding}
+            onReject={handleRejectOnboarding}
+          />
+        </div>
       </div>
 
       {/* ========================================================= */}
