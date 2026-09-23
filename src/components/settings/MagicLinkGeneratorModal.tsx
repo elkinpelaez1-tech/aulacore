@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { X, Link2, Settings2, ShieldCheck, QrCode, Check, Copy } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MagicLink } from '@/lib/data/mock-settings';
+import { useAuth } from '@/providers/auth-provider';
 
 interface MagicLinkGeneratorModalProps {
   onClose: () => void;
@@ -11,6 +12,7 @@ interface MagicLinkGeneratorModalProps {
 }
 
 export function MagicLinkGeneratorModal({ onClose, onGenerate }: MagicLinkGeneratorModalProps) {
+  const { activeInstitution, institutionId } = useAuth();
   const [step, setStep] = useState<'config' | 'success'>('config');
   const [linkType, setLinkType] = useState('Matrícula');
   const [autoRole, setAutoRole] = useState('Estudiante');
@@ -22,8 +24,11 @@ export function MagicLinkGeneratorModal({ onClose, onGenerate }: MagicLinkGenera
   const handleGenerate = () => {
     const randomSuffix = crypto.randomUUID().split('-')[0].substring(0, 5);
     const origin = typeof window !== 'undefined' ? window.location.origin : 'https://aulacore.com';
-    const url = `${origin}/join/${linkType.toLowerCase().substring(0, 3)}-${randomSuffix}`;
-    const name = `${linkType} ${autoRole === 'Estudiante' ? 'Secundaria' : autoRole} 2026`;
+    const instParam = activeInstitution?.slug || activeInstitution?.id || institutionId || '';
+    const instQuery = instParam ? `?inst=${encodeURIComponent(instParam)}` : '';
+    const url = `${origin}/join/${linkType.toLowerCase().substring(0, 3)}-${randomSuffix}${instQuery}`;
+    const instLabel = activeInstitution?.name ? ` - ${activeInstitution.name}` : '';
+    const name = `${linkType} ${autoRole === 'Estudiante' ? 'Secundaria' : autoRole}${instLabel}`;
     
     const newLink: MagicLink = {
       id: 'ml-' + Date.now(),

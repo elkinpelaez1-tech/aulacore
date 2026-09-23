@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/providers/auth-provider';
 import { uploadOnboardingFile, submitOnboarding, TeacherOnboardingData } from '@/lib/services/teacher-onboarding';
 
 interface TeacherFormData {
@@ -134,6 +135,7 @@ const DAYS_OF_WEEK = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sá
 
 export default function DocentesPage() {
   const router = useRouter();
+  const { activeInstitution, institutionId } = useAuth();
   
   // Master wizard state
   const [step, setStep] = useState<number>(1);
@@ -525,7 +527,7 @@ export default function DocentesPage() {
       }
 
       const payload: TeacherOnboardingData = {
-        institution_id: '11111111-1111-1111-1111-111111111111',
+        institution_id: activeInstitution?.id || institutionId || '3ee6d8c5-e23f-4848-aa36-cd456afb0dfe',
         full_name: formData.fullName,
         document_id: formData.documentId,
         email: formData.email,

@@ -20,6 +20,7 @@ import {
   resendInvitation,
   TeacherOnboardingData 
 } from '@/lib/services/teacher-onboarding';
+import { useAuth } from '@/providers/auth-provider';
 import {
   listStudentOnboardings,
   approveStudentOnboarding,
@@ -38,6 +39,9 @@ type UnifiedOnboardingData =
   | (StudentOnboardingData & { onboardingType: 'Estudiante' });
 
 export default function AutomatizacionPage() {
+  const { activeInstitution, institutionId: currentAuthInstId } = useAuth();
+  const currentInstitutionId = activeInstitution?.id || currentAuthInstId || '3ee6d8c5-e23f-4848-aa36-cd456afb0dfe';
+
   const [magicLinks, setMagicLinks] = useState<MagicLink[]>([]);
   const [pendingApprovals, setPendingApprovals] = useState<PendingApproval[]>([]);
   const [allSubmissions, setAllSubmissions] = useState<UnifiedOnboardingData[]>([]);
@@ -130,8 +134,8 @@ export default function AutomatizacionPage() {
   const loadSubmissions = async () => {
     setLoading(true);
     try {
-      const teacherSubs = await listOnboardingSubmissions();
-      const studentSubs = await listStudentOnboardings();
+      const teacherSubs = await listOnboardingSubmissions(currentInstitutionId);
+      const studentSubs = await listStudentOnboardings(currentInstitutionId);
 
       const teachersWithType = teacherSubs.map(t => ({ ...t, onboardingType: 'Docente' as const }));
       const studentsWithType = studentSubs.map(s => ({ ...s, onboardingType: 'Estudiante' as const }));
@@ -186,7 +190,7 @@ export default function AutomatizacionPage() {
 
   useEffect(() => {
     loadSubmissions();
-  }, []);
+  }, [currentInstitutionId]);
 
   const handleAddLink = (newLink: MagicLink) => {
     setMagicLinks(prev => [newLink, ...prev]);
@@ -196,7 +200,7 @@ export default function AutomatizacionPage() {
   const handleApprove = async (id: string, notes?: string) => {
     showToast('Aprobando candidato...', 'info');
     try {
-      const institutionId = '11111111-1111-1111-1111-111111111111'; // Default active institution
+      const targetInstitutionId = currentInstitutionId;
       const approval = pendingApprovals.find(p => p.id === id);
       if (!approval) {
         showToast('Solicitud no encontrada en la cola', 'error');
@@ -204,7 +208,7 @@ export default function AutomatizacionPage() {
       }
 
       if (approval.type === 'Docente') {
-        const result = await approveOnboarding(id, institutionId);
+        const result = await approveOnboarding(id, targetInstitutionId);
         if (result.success) {
           showToast(`Docente aprobado con éxito. Cuenta Auth creada en Supabase.`, 'success');
           await loadSubmissions();
@@ -212,7 +216,7 @@ export default function AutomatizacionPage() {
           showToast(`Error al aprobar: ${result.error}`, 'error');
         }
       } else {
-        const result = await approveStudentOnboarding(id, institutionId);
+        const result = await approveStudentOnboarding(id, targetInstitutionId);
         if (result.success) {
           showToast(`Estudiante matriculado con éxito. Perfiles de acceso creados.`, 'success');
           await loadSubmissions();

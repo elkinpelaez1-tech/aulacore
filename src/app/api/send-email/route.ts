@@ -36,20 +36,22 @@ export async function POST(request: Request) {
       }
     }
 
-    // Si estamos en entorno productivo y no está autenticado ni por sesión ni por token de servicio
-    if (!isAuthenticated && process.env.NODE_ENV === 'production') {
-      return NextResponse.json(
-        { error: 'No autorizado. Debe iniciar sesión para despachar correos institucionales.' },
-        { status: 401 }
-      );
-    }
-
     const { to, subject, message, category, recipientName } = await request.json();
 
     if (!to || !subject || !message) {
       return NextResponse.json(
         { error: 'Destinatario, asunto y mensaje son obligatorios.' },
         { status: 400 }
+      );
+    }
+
+    const isOnboardingCategory = category === 'onboarding' || category === 'onboarding_approval';
+
+    // Si estamos en entorno productivo y no está autenticado ni por sesión ni por token de servicio
+    if (!isAuthenticated && !isOnboardingCategory && process.env.NODE_ENV === 'production') {
+      return NextResponse.json(
+        { error: 'No autorizado. Debe iniciar sesión para despachar correos institucionales.' },
+        { status: 401 }
       );
     }
 

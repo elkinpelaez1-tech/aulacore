@@ -93,11 +93,17 @@ export async function submitOnboarding(data: TeacherOnboardingData): Promise<Tea
 }
 
 // 3. OBTENER LISTADO COMPLETO (AUDITORÍA Y COLA DE APROBACIÓN)
-export async function listOnboardingSubmissions(): Promise<TeacherOnboardingData[]> {
-  const { data, error } = await supabase
+export async function listOnboardingSubmissions(institutionId?: string): Promise<TeacherOnboardingData[]> {
+  let query = supabase
     .from('teacher_onboardings')
     .select('*')
     .order('created_at', { ascending: false });
+
+  if (institutionId) {
+    query = query.eq('institution_id', institutionId);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     throw error;
@@ -163,6 +169,49 @@ export async function approveOnboarding(
       throw new Error(updateError.message);
     }
 
+    // Despacho real de correo mediante Resend API (/api/send-email)
+    try {
+      await fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: onboarding.email,
+          subject: '✨ Bienvenido a AulaCore - Configura tu Acceso Institucional',
+          category: 'onboarding_approval',
+          metadata: {
+            onboardingId,
+            fullName: onboarding.full_name,
+            activationLink,
+            tempPassword
+          },
+          html: `
+            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff;">
+              <h2 style="color: #0f172a; margin-top: 0;">¡Bienvenido al equipo docente de AulaCore!</h2>
+              <p style="color: #334155; font-size: 15px; line-height: 1.5;">Estimado(a) <strong>${onboarding.full_name}</strong>,</p>
+              <p style="color: #334155; font-size: 15px; line-height: 1.5;">Tu proceso de vinculación ha sido aprobado por la Coordinación Académica. Ya puedes activar tu cuenta y configurar tu perfil docente.</p>
+              
+              <div style="background-color: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 16px; margin: 20px 0;">
+                <p style="margin: 0 0 8px 0; color: #0f172a; font-weight: bold; font-size: 14px;">Tus credenciales temporales de acceso:</p>
+                <p style="margin: 4px 0; font-size: 14px; color: #334155;"><strong>Usuario:</strong> ${onboarding.email}</p>
+                <p style="margin: 4px 0; font-size: 14px; color: #334155;"><strong>Contraseña temporal:</strong> ${tempPassword}</p>
+              </div>
+
+              <div style="text-align: center; margin: 28px 0;">
+                <a href="${activationLink}" style="background-color: #4f46e5; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 15px; display: inline-block;">Activar mi Cuenta y Acceder</a>
+              </div>
+
+              <p style="font-size: 12px; color: #64748b; line-height: 1.4; border-top: 1px solid #f1f5f9; padding-top: 16px;">
+                Si el botón no funciona, copia y pega el siguiente enlace en tu navegador:<br/>
+                <a href="${activationLink}" style="color: #4f46e5; word-break: break-all;">${activationLink}</a>
+              </p>
+            </div>
+          `
+        })
+      });
+    } catch (emailErr) {
+      console.error('Error al despachar correo de bienvenida:', emailErr);
+    }
+
     return { success: true, activationLink };
   } catch (err: any) {
     console.error('Error aprobando onboarding:', err);
@@ -225,6 +274,42 @@ export async function resendInvitation(
 
     if (updateError) {
       throw new Error(updateError.message);
+    }
+
+    // Despacho real de recordatorio mediante Resend API
+    try {
+      await fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: onboarding.email,
+          subject: '✨ Recordatorio: Configura tu Acceso en AulaCore',
+          category: 'onboarding_approval',
+          metadata: {
+            onboardingId,
+            fullName: onboarding.full_name,
+            activationLink
+          },
+          html: `
+            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff;">
+              <h2 style="color: #0f172a; margin-top: 0;">Recordatorio de Activación Docente</h2>
+              <p style="color: #334155; font-size: 15px; line-height: 1.5;">Hola <strong>${onboarding.full_name}</strong>,</p>
+              <p style="color: #334155; font-size: 15px; line-height: 1.5;">Te recordamos que tu invitación para unirte al equipo docente está disponible. Para activar tu cuenta institucional, haz clic en el siguiente enlace:</p>
+              
+              <div style="text-align: center; margin: 28px 0;">
+                <a href="${activationLink}" style="background-color: #4f46e5; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 15px; display: inline-block;">Activar mi Cuenta y Acceder</a>
+              </div>
+
+              <p style="font-size: 12px; color: #64748b; line-height: 1.4; border-top: 1px solid #f1f5f9; padding-top: 16px;">
+                Si el botón no funciona, copia y pega el siguiente enlace en tu navegador:<br/>
+                <a href="${activationLink}" style="color: #4f46e5; word-break: break-all;">${activationLink}</a>
+              </p>
+            </div>
+          `
+        })
+      });
+    } catch (emailErr) {
+      console.error('Error al despachar recordatorio via Resend:', emailErr);
     }
 
     return { success: true };

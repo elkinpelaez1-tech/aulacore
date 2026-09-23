@@ -130,11 +130,17 @@ export async function submitStudentOnboarding(data: StudentOnboardingData): Prom
 }
 
 // 3. OBTENER LISTADO COMPLETO (AUDITORÍA Y COLA DE APROBACIÓN)
-export async function listStudentOnboardings(): Promise<StudentOnboardingData[]> {
-  const { data, error } = await supabase
+export async function listStudentOnboardings(institutionId?: string): Promise<StudentOnboardingData[]> {
+  let query = supabase
     .from('student_onboardings')
     .select('*')
     .order('created_at', { ascending: false });
+
+  if (institutionId) {
+    query = query.eq('institution_id', institutionId);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     throw error;

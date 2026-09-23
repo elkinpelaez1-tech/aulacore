@@ -86,7 +86,7 @@ interface HeaderProps {
 export function Header({ userName, userRole }: HeaderProps) {
   const router = useRouter();
   const { userRole: activeRole, setUserRole } = useRole();
-  const { signOut, roles, user } = useAuth();
+  const { signOut, roles, user, activeInstitution } = useAuth();
 
   // Estado Offline / Conectividad
   const [syncStats, setSyncStats] = useState<any>({
@@ -670,7 +670,7 @@ export function Header({ userName, userRole }: HeaderProps) {
                   <div className="bg-slate-50 border border-slate-150 rounded-xl p-3 space-y-2.5">
                     <div className="flex justify-between items-center">
                       <span className="text-slate-400">Institución Activa</span>
-                      <span className="text-slate-800 font-bold">Colegio AulaCore Central</span>
+                      <span className="text-slate-800 font-bold">{activeInstitution?.name || 'AulaCore'}</span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-slate-400">Identificador de Usuario</span>

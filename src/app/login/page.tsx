@@ -105,8 +105,9 @@ function LoginContent() {
   const { refreshSession } = useAuth();
   const searchParams = useSearchParams();
   const showDemo = searchParams.get('demo') === 'true';
+  const paramEmail = searchParams.get('email') || '';
 
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(paramEmail);
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
