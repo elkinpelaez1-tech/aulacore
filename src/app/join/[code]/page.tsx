@@ -212,12 +212,14 @@ function JoinOnboardingContent() {
 
         // Despacho real de confirmación por correo mediante Resend API
         try {
-          await fetch('/api/send-email', {
+          const emailRes = await fetch('/api/send-email', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               to: cleanEmail,
               subject: `✨ Solicitud de Registro Recibida - ${targetInstitution.name}`,
+              message: `Tu postulación de vinculación docente para ${targetInstitution.name} ha sido recibida con éxito en el sistema AulaCore. Tan pronto la institución revise y apruebe tu solicitud, recibirás un correo electrónico con tus credenciales y el enlace directo para activar tu cuenta institucional.`,
+              recipientName: cleanFullName,
               category: 'onboarding',
               metadata: {
                 fullName: cleanFullName,
@@ -249,6 +251,11 @@ function JoinOnboardingContent() {
               `
             })
           });
+
+          if (!emailRes.ok) {
+            const errorData = await emailRes.json().catch(() => ({}));
+            console.error('Error al despachar correo de pre-registro:', errorData);
+          }
         } catch (emailErr) {
           console.error('Error al despachar correo de pre-registro:', emailErr);
         }

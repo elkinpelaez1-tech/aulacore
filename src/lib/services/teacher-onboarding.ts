@@ -171,12 +171,14 @@ export async function approveOnboarding(
 
     // Despacho real de correo mediante Resend API (/api/send-email)
     try {
-      await fetch('/api/send-email', {
+      const emailRes = await fetch('/api/send-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           to: onboarding.email,
           subject: '✨ Bienvenido a AulaCore - Configura tu Acceso Institucional',
+          message: newEmailLog.body,
+          recipientName: onboarding.full_name,
           category: 'onboarding_approval',
           metadata: {
             onboardingId,
@@ -208,6 +210,11 @@ export async function approveOnboarding(
           `
         })
       });
+
+      if (!emailRes.ok) {
+        const errorData = await emailRes.json().catch(() => ({}));
+        console.error('Error al despachar correo de bienvenida:', errorData);
+      }
     } catch (emailErr) {
       console.error('Error al despachar correo de bienvenida:', emailErr);
     }
@@ -278,12 +285,14 @@ export async function resendInvitation(
 
     // Despacho real de recordatorio mediante Resend API
     try {
-      await fetch('/api/send-email', {
+      const emailRes = await fetch('/api/send-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           to: onboarding.email,
           subject: '✨ Recordatorio: Configura tu Acceso en AulaCore',
+          message: newEmailLog.body,
+          recipientName: onboarding.full_name,
           category: 'onboarding_approval',
           metadata: {
             onboardingId,
@@ -308,6 +317,11 @@ export async function resendInvitation(
           `
         })
       });
+
+      if (!emailRes.ok) {
+        const errorData = await emailRes.json().catch(() => ({}));
+        console.error('Error al despachar recordatorio via Resend:', errorData);
+      }
     } catch (emailErr) {
       console.error('Error al despachar recordatorio via Resend:', emailErr);
     }
