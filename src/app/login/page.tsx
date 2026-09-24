@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, Suspense } from 'react';
+import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/providers/auth-provider';
 import { UserRole, ROLE_DISPLAY_NAMES } from '@/lib/navigation';
@@ -16,6 +17,7 @@ import {
   EyeOff, 
   Copy, 
   Check, 
+  CheckCircle,
   Globe, 
   ChevronDown, 
   BarChart3, 
@@ -106,6 +108,7 @@ function LoginContent() {
   const searchParams = useSearchParams();
   const showDemo = searchParams.get('demo') === 'true';
   const paramEmail = searchParams.get('email') || '';
+  const isResetSuccess = searchParams.get('reset') === 'success';
 
   const [email, setEmail] = useState(paramEmail);
   const [password, setPassword] = useState('');
@@ -515,6 +518,15 @@ function LoginContent() {
           <form onSubmit={handleLogin} className="space-y-4">
             
             {/* Notificaciones de error y éxito */}
+            {isResetSuccess && (
+              <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-start gap-2.5 shadow-xs animate-in fade-in-50">
+                <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                <span className="leading-snug">
+                  Tu contraseña ha sido restablecida exitosamente. Inicia sesión con tus nuevas credenciales.
+                </span>
+              </div>
+            )}
+
             {error && (
               <div className="p-3.5 rounded-2xl bg-red-50/90 border border-red-200 text-red-700 text-xs font-bold flex items-start gap-2.5 shadow-xs animate-in fade-in-50">
                 <AlertTriangle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
@@ -602,14 +614,12 @@ function LoginContent() {
                 <span>Recordarme</span>
               </label>
               
-              <a 
-                href="https://aulacore.org/recuperar" 
-                target="_blank"
-                rel="noopener noreferrer"
+              <Link 
+                href="/auth/recuperar" 
                 className="font-bold text-blue-600 hover:text-blue-700 hover:underline transition"
               >
                 ¿Olvidaste tu contraseña?
-              </a>
+              </Link>
             </div>
 
             {/* Botón Principal CTA: Iniciar sesión */}

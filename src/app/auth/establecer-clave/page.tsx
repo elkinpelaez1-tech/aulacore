@@ -143,9 +143,12 @@ function EstablecerClaveContent() {
 
       setSuccess(true);
 
-      // Redirección directa a /dashboard. AuthProvider resolverá los roles automáticamente desde user_roles
+      // Redirigir a /login?reset=success para inicio de sesión limpio con nuevas credenciales
       setTimeout(() => {
-        window.location.href = '/dashboard';
+        const loginUrl = userEmail 
+          ? `/login?reset=success&email=${encodeURIComponent(userEmail)}`
+          : '/login?reset=success';
+        window.location.href = loginUrl;
       }, 1500);
 
     } catch (err: any) {
@@ -230,11 +233,11 @@ function EstablecerClaveContent() {
             </div>
 
             <h2 className="text-2xl sm:text-[26px] font-black text-slate-900 tracking-tight font-heading pt-1">
-              Activa tu cuenta institucional
+              Configura tu contraseña institucional
             </h2>
 
             <p className="text-xs sm:text-[13px] text-slate-500 font-medium leading-relaxed max-w-sm mx-auto">
-              Bienvenido a AulaCore. Crea tu contraseña privada para completar la activación y acceder a tu consola.
+              Crea tu contraseña privada para acceder de forma segura a tu cuenta institucional en AulaCore.
             </p>
 
             {/* Chip con el correo verificado */}
@@ -264,7 +267,7 @@ function EstablecerClaveContent() {
             {success && (
               <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold flex items-center gap-2.5 shadow-xs animate-in fade-in-50">
                 <Loader2 className="w-4 h-4 text-emerald-600 animate-spin shrink-0" />
-                <span>¡Contraseña configurada con éxito! Redirigiendo a tu consola...</span>
+                <span>¡Contraseña configurada con éxito! Redirigiendo al inicio de sesión...</span>
               </div>
             )}
 

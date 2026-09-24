@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Bell, Search, User, Calendar, Shield, Activity, Menu } from 'lucide-react';
+import { Bell, Search, User, Calendar, Shield, Activity, Menu, Lock, Eye, EyeOff, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -131,6 +132,15 @@ export function Header({ userName, userRole }: HeaderProps) {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [profileName, setProfileName] = useState(userName);
   const [profileEmail, setProfileEmail] = useState('');
+
+  // Estados para Cambio de Contraseña en Perfil
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
   
   const [activePeriod, setActivePeriod] = useState('Periodo 1');
   const [isPeriodModalOpen, setIsPeriodModalOpen] = useState(false);
@@ -241,7 +251,55 @@ export function Header({ userName, userRole }: HeaderProps) {
   const handleSaveProfile = () => {
     localStorage.setItem(`aulacore-profile-name-${activeRole}`, profileName);
     localStorage.setItem(`aulacore-profile-email-${activeRole}`, profileEmail);
+    resetPasswordForm();
     setIsProfileOpen(false);
+  };
+
+  const resetPasswordForm = () => {
+    setNewPassword('');
+    setConfirmNewPassword('');
+    setShowNewPassword(false);
+    setShowConfirmNewPassword(false);
+    setPasswordError(null);
+    setPasswordSuccess(null);
+    setIsChangingPassword(false);
+  };
+
+  const handleChangePassword = async () => {
+    setPasswordError(null);
+    setPasswordSuccess(null);
+
+    if (newPassword.length < 8) {
+      setPasswordError('La contraseña debe tener al menos 8 caracteres.');
+      return;
+    }
+
+    if (newPassword !== confirmNewPassword) {
+      setPasswordError('Las contraseñas no coinciden. Verifica que ambas sean idénticas.');
+      return;
+    }
+
+    setIsChangingPassword(true);
+    try {
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+
+      if (updateError) {
+        throw updateError;
+      }
+
+      setPasswordSuccess('Contraseña actualizada correctamente.');
+      setNewPassword('');
+      setConfirmNewPassword('');
+      setShowNewPassword(false);
+      setShowConfirmNewPassword(false);
+    } catch (err: any) {
+      console.error('[Header Profile] Error al actualizar contraseña:', err);
+      setPasswordError(err.message || 'Ocurrió un error al actualizar la contraseña. Intenta nuevamente.');
+    } finally {
+      setIsChangingPassword(false);
+    }
   };
 
   // Cargar periodos dinámicos en el cliente
@@ -619,8 +677,8 @@ export function Header({ userName, userRole }: HeaderProps) {
             }} 
           />
 
-          <Dialog open={isProfileOpen} onOpenChange={setIsProfileOpen}>
-            <DialogContent className="max-w-md bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-2xl p-6">
+          <Dialog open={isProfileOpen} onOpenChange={(open) => { setIsProfileOpen(open); if (!open) resetPasswordForm(); }}>
+            <DialogContent className="max-w-md max-h-[90vh] bg-white border border-slate-200 rounded-2xl overflow-y-auto shadow-2xl p-6">
               <DialogHeader className="flex flex-col items-center text-center space-y-2 pb-4 border-b border-slate-100">
                 <div className={cn(
                   "w-16 h-16 rounded-full flex items-center justify-center text-white text-2xl font-black shadow-lg",
@@ -686,6 +744,102 @@ export function Header({ userName, userRole }: HeaderProps) {
                     <span className="bg-blue-50 border border-blue-100 text-blue-700 font-bold px-2.5 py-1 rounded-lg text-[9px] uppercase tracking-wide">
                       {ROLE_DISPLAY_NAMES[activeRole]}
                     </span>
+                  </div>
+                </div>
+
+                {/* Sección Seguridad: Cambiar Contraseña */}
+                <div className="space-y-2 pt-2 border-t border-slate-100">
+                  <div className="flex items-center gap-1.5">
+                    <Shield className="w-3.5 h-3.5 text-slate-400" />
+                    <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Seguridad</h4>
+                  </div>
+                  
+                  <div className="bg-slate-50 border border-slate-150 rounded-xl p-3.5 space-y-3">
+                    <div className="flex items-center justify-between pb-1 border-b border-slate-200/60">
+                      <span className="text-[11px] font-bold text-slate-700">Cambiar contraseña</span>
+                      <span className="text-[9px] text-slate-400 font-medium">Supabase Auth IAM</span>
+                    </div>
+
+                    {passwordSuccess && (
+                      <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center gap-2 shadow-xs animate-in fade-in-50">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                        <span>{passwordSuccess}</span>
+                      </div>
+                    )}
+
+                    {passwordError && (
+                      <div className="p-2.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-bold flex items-center gap-2 shadow-xs animate-in fade-in-50">
+                        <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
+                        <span>{passwordError}</span>
+                      </div>
+                    )}
+
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">
+                        Nueva Contraseña
+                      </label>
+                      <div className="relative">
+                        <Input
+                          type={showNewPassword ? 'text' : 'password'}
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          placeholder="Mínimo 8 caracteres"
+                          className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 pr-9 font-medium text-slate-800 text-xs shadow-xs focus:ring-2 focus:ring-blue-100"
+                          disabled={isChangingPassword}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowNewPassword(!showNewPassword)}
+                          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
+                          title={showNewPassword ? "Ocultar" : "Mostrar"}
+                        >
+                          {showNewPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">
+                        Confirmar Contraseña
+                      </label>
+                      <div className="relative">
+                        <Input
+                          type={showConfirmNewPassword ? 'text' : 'password'}
+                          value={confirmNewPassword}
+                          onChange={(e) => setConfirmNewPassword(e.target.value)}
+                          placeholder="Repite la nueva contraseña"
+                          className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 pr-9 font-medium text-slate-800 text-xs shadow-xs focus:ring-2 focus:ring-blue-100"
+                          disabled={isChangingPassword}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowConfirmNewPassword(!showConfirmNewPassword)}
+                          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
+                          title={showConfirmNewPassword ? "Ocultar" : "Mostrar"}
+                        >
+                          {showConfirmNewPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <Button
+                      type="button"
+                      onClick={handleChangePassword}
+                      disabled={isChangingPassword || !newPassword || !confirmNewPassword}
+                      className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-2.5 rounded-xl cursor-pointer shadow-xs flex items-center justify-center gap-1.5 disabled:opacity-50"
+                    >
+                      {isChangingPassword ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          <span>Actualizando contraseña...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Lock className="w-3.5 h-3.5" />
+                          <span>Actualizar Contraseña</span>
+                        </>
+                      )}
+                    </Button>
                   </div>
                 </div>
 
