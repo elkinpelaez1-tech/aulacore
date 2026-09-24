@@ -44,7 +44,38 @@ function EstablecerClaveContent() {
 
     const processAuth = async () => {
       try {
-        // 1. Detectar si existe window.location.hash con tokens de Supabase Auth
+        // 1. FLUJO 1: Código de autorización PKCE (Recuperación de contraseña nativa)
+        // URL: /auth/establecer-clave?code=...
+        const searchCode = typeof window !== 'undefined'
+          ? new URLSearchParams(window.location.search).get('code')
+          : null;
+
+        if (searchCode) {
+          const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(searchCode);
+
+          if (!isMounted) return;
+
+          if (!exchangeError && data?.session?.user) {
+            setHasValidSession(true);
+            if (data.session.user.email) {
+              setUserEmail(data.session.user.email);
+            }
+            // Limpiar de forma segura el código de un solo uso de la barra de direcciones
+            window.history.replaceState(null, '', window.location.pathname);
+            setCheckingSession(false);
+            return;
+          } else {
+            console.error('[EstablecerClave] Error en exchangeCodeForSession:', exchangeError);
+            // Limpiar la URL para evitar reintentos con código inválido o consumido
+            window.history.replaceState(null, '', window.location.pathname);
+            setHasValidSession(false);
+            setCheckingSession(false);
+            return;
+          }
+        }
+
+        // 2. FLUJO 2: Tokens directos en Hash (Activación institucional de docentes)
+        // URL: /auth/establecer-clave#access_token=...&refresh_token=...
         if (typeof window !== 'undefined' && window.location.hash) {
           const hashString = window.location.hash.startsWith('#')
             ? window.location.hash.substring(1)
@@ -84,7 +115,7 @@ function EstablecerClaveContent() {
           }
         }
 
-        // 2. Fallback: Si no hay hash (o si el usuario ya tenía sesión activa / refrescó la página)
+        // 3. FLUJO 3: Sesión Existente / Fallback (Usuario ya autenticado o refresco de pantalla)
         const { data: { session } } = await supabase.auth.getSession();
         if (!isMounted) return;
 
