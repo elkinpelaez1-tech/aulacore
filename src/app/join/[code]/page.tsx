@@ -64,6 +64,32 @@ function JoinOnboardingContent() {
   const [loaderText, setLoaderText] = useState('Analizando código mágico de invitación...');
   const [onboardingComplete, setOnboardingComplete] = useState(false);
 
+  // 1. Detectar y procesar sesión de Supabase Auth si viene en el hash de redirección (#access_token=...)
+  useEffect(() => {
+    const handleAuthHash = async () => {
+      if (typeof window !== 'undefined' && window.location.hash) {
+        const hashString = window.location.hash.startsWith('#')
+          ? window.location.hash.substring(1)
+          : window.location.hash;
+        const hashParams = new URLSearchParams(hashString);
+        const accessToken = hashParams.get('access_token');
+        const refreshToken = hashParams.get('refresh_token');
+
+        if (accessToken && refreshToken) {
+          try {
+            await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken,
+            });
+          } catch (sessionErr) {
+            console.warn('Error configurando sesión desde hash en join:', sessionErr);
+          }
+        }
+      }
+    };
+    handleAuthHash();
+  }, []);
+
   // 1. Resolve institution dynamically from ?inst= parameter if present
   useEffect(() => {
     const resolveInstitution = async () => {
@@ -297,18 +323,6 @@ function JoinOnboardingContent() {
   };
 
   const handleExitAndLogin = async () => {
-    // 1. Terminar cualquier sesión activa anterior (evitar reutilización de la sesión del Rector)
-    try {
-      await supabase.auth.signOut();
-    } catch (err) {
-      console.warn('Error al cerrar sesión anterior:', err);
-    }
-
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('aulacore-user-role');
-      localStorage.removeItem('aulacore-demo-session');
-    }
-
     if (code.toLowerCase().startsWith('act-')) {
       const onboardingId = code.substring(4);
       try {
@@ -322,6 +336,23 @@ function JoinOnboardingContent() {
       } catch (err) {
         console.error('Error al actualizar estado a first_access:', err);
       }
+
+      // Redirigir a establecer-clave pasando el hash de sesión de Supabase si existe, o el correo
+      const hash = typeof window !== 'undefined' ? window.location.hash : '';
+      router.push(`/auth/establecer-clave${hash || `?email=${encodeURIComponent(email)}`}`);
+      return;
+    }
+
+    // Para registros normales que no son de activación:
+    try {
+      await supabase.auth.signOut();
+    } catch (err) {
+      console.warn('Error al cerrar sesión anterior:', err);
+    }
+
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('aulacore-user-role');
+      localStorage.removeItem('aulacore-demo-session');
     }
 
     // Redirigir a login con el email pre-cargado para autenticación segura
@@ -523,7 +554,7 @@ function JoinOnboardingContent() {
                 type="submit"
                 className="w-full mt-4 bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold py-3 rounded-xl transition shadow shadow-indigo-600/20 text-xs cursor-pointer border-none outline-none flex items-center justify-center gap-1.5"
               >
-                {onboardingData ? 'Activar mi Cuenta Docente' : 'Completar Registro Seguro'} <ArrowRight className="w-4 h-4" />
+                {onboardingData ? 'Confirmar Datos y Configurar Contraseña' : 'Completar Registro Seguro'} <ArrowRight className="w-4 h-4" />
               </button>
             </form>
           </div>
@@ -599,7 +630,7 @@ function JoinOnboardingContent() {
               className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold py-3 rounded-xl transition shadow shadow-indigo-650/25 text-xs cursor-pointer border-none outline-none flex items-center justify-center gap-1.5"
             >
               <LogIn className="w-4 h-4" />
-              {code.toLowerCase().startsWith('act-') ? 'Iniciar Sesión en mi Consola' : 'Continuar al Portal de Ingreso'}
+              {code.toLowerCase().startsWith('act-') ? 'Configurar mi Contraseña Personal' : 'Continuar al Portal de Ingreso'}
             </button>
           </div>
         )}

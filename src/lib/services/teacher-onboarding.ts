@@ -112,114 +112,24 @@ export async function listOnboardingSubmissions(institutionId?: string): Promise
   return data || [];
 }
 
-// 4. APROBAR ONBOARDING (RPC AUTH USER + USER ROLES + INVITACIÓN)
+// 4. APROBAR ONBOARDING (DELEGADO A ENDPOINT SEGURO CON SUPABASE GENERATELINK)
 export async function approveOnboarding(
   onboardingId: string,
   institutionId: string
 ): Promise<{ success: boolean; activationLink: string; error?: string }> {
   try {
-    const tempPassword = 'AulaCore2026!'; // Contraseña temporal por defecto
-
-    // Ejecutar el proceso atómico de aprobación mediante el RPC de base de datos
-    const { data: userId, error: rpcError } = await supabase.rpc('approve_teacher_onboarding_rpc', {
-      p_onboarding_id: onboardingId,
-      p_institution_id: institutionId,
-      p_temp_password: tempPassword
+    const res = await fetch('/api/onboarding/approve', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ onboardingId, institutionId })
     });
 
-    if (rpcError || !userId) {
-      throw new Error(rpcError?.message || 'Error al ejecutar RPC de aprobación en el servidor.');
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.error || 'Error al procesar la aprobación en el servidor.');
     }
 
-    // Obtener los datos actuales del onboarding para generar enlace y logs de correo
-    const { data: onboarding, error: fetchError } = await supabase
-      .from('teacher_onboardings')
-      .select('*')
-      .eq('id', onboardingId)
-      .single();
-
-    if (fetchError || !onboarding) {
-      throw new Error(fetchError?.message || 'Onboarding no encontrado tras la aprobación.');
-    }
-
-    // E. Generar enlace de activación e historial de correo
-    const activationLink = `${window.location.origin}/join/act-${onboardingId}`;
-    const newEmailLog = {
-      id: 'eml-' + crypto.randomUUID().split('-')[0].toUpperCase(),
-      sentAt: new Date().toISOString(),
-      subject: '✨ Bienvenido a AulaCore - Configura tu Acceso Institucional',
-      body: `Estimado(a) ${onboarding.full_name},\n\nNos complace darte la bienvenida al equipo docente. Tu proceso de onboarding ha sido aprobado por la Coordinación Académica.\n\nPara activar tu cuenta y configurar tu acceso a las consolas y registros RFID, haz clic en el siguiente enlace:\n${activationLink}\n\nDetalles de la cuenta:\n- Correo: ${onboarding.email}\n- Contraseña temporal: ${tempPassword}\n\nAtentamente,\nCoordinación Académica - AulaCore`,
-      status: 'Enviado'
-    };
-
-    const existingLogs = Array.isArray(onboarding.email_logs) ? onboarding.email_logs : [];
-    const updatedLogs = [newEmailLog, ...existingLogs];
-
-    // Actualizar campos de correo en el cliente
-    const { error: updateError } = await supabase
-      .from('teacher_onboardings')
-      .update({
-        activation_link: activationLink,
-        email_logs: updatedLogs,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', onboardingId);
-
-    if (updateError) {
-      throw new Error(updateError.message);
-    }
-
-    // Despacho real de correo mediante Resend API (/api/send-email)
-    try {
-      const emailRes = await fetch('/api/send-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          to: onboarding.email,
-          subject: '✨ Bienvenido a AulaCore - Configura tu Acceso Institucional',
-          message: newEmailLog.body,
-          recipientName: onboarding.full_name,
-          category: 'onboarding_approval',
-          metadata: {
-            onboardingId,
-            fullName: onboarding.full_name,
-            activationLink,
-            tempPassword
-          },
-          html: `
-            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff;">
-              <h2 style="color: #0f172a; margin-top: 0;">¡Bienvenido al equipo docente de AulaCore!</h2>
-              <p style="color: #334155; font-size: 15px; line-height: 1.5;">Estimado(a) <strong>${onboarding.full_name}</strong>,</p>
-              <p style="color: #334155; font-size: 15px; line-height: 1.5;">Tu proceso de vinculación ha sido aprobado por la Coordinación Académica. Ya puedes activar tu cuenta y configurar tu perfil docente.</p>
-              
-              <div style="background-color: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 16px; margin: 20px 0;">
-                <p style="margin: 0 0 8px 0; color: #0f172a; font-weight: bold; font-size: 14px;">Tus credenciales temporales de acceso:</p>
-                <p style="margin: 4px 0; font-size: 14px; color: #334155;"><strong>Usuario:</strong> ${onboarding.email}</p>
-                <p style="margin: 4px 0; font-size: 14px; color: #334155;"><strong>Contraseña temporal:</strong> ${tempPassword}</p>
-              </div>
-
-              <div style="text-align: center; margin: 28px 0;">
-                <a href="${activationLink}" style="background-color: #4f46e5; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 15px; display: inline-block;">Activar mi Cuenta y Acceder</a>
-              </div>
-
-              <p style="font-size: 12px; color: #64748b; line-height: 1.4; border-top: 1px solid #f1f5f9; padding-top: 16px;">
-                Si el botón no funciona, copia y pega el siguiente enlace en tu navegador:<br/>
-                <a href="${activationLink}" style="color: #4f46e5; word-break: break-all;">${activationLink}</a>
-              </p>
-            </div>
-          `
-        })
-      });
-
-      if (!emailRes.ok) {
-        const errorData = await emailRes.json().catch(() => ({}));
-        console.error('Error al despachar correo de bienvenida:', errorData);
-      }
-    } catch (emailErr) {
-      console.error('Error al despachar correo de bienvenida:', emailErr);
-    }
-
-    return { success: true, activationLink };
+    return { success: true, activationLink: data.activationLink || '' };
   } catch (err: any) {
     console.error('Error aprobando onboarding:', err);
     return { success: false, activationLink: '', error: err.message };
@@ -306,7 +216,7 @@ export async function resendInvitation(
               <p style="color: #334155; font-size: 15px; line-height: 1.5;">Te recordamos que tu invitación para unirte al equipo docente está disponible. Para activar tu cuenta institucional, haz clic en el siguiente enlace:</p>
               
               <div style="text-align: center; margin: 28px 0;">
-                <a href="${activationLink}" style="background-color: #4f46e5; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 15px; display: inline-block;">Activar mi Cuenta y Acceder</a>
+                <a href="${activationLink}" style="background-color: #4f46e5; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 15px; display: inline-block;">Activar mi cuenta y configurar contraseña</a>
               </div>
 
               <p style="font-size: 12px; color: #64748b; line-height: 1.4; border-top: 1px solid #f1f5f9; padding-top: 16px;">
