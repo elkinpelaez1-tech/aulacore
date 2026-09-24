@@ -191,30 +191,30 @@ export function RectorExecutiveSummary({ roleTitle = 'Rector', institutionId }: 
           .eq('id', targetInstId)
           .maybeSingle();
 
-        // 1. Contar estudiantes
+        // 1. Contar estudiantes desde student_onboardings de la institución
         const { count: countEst } = await supabase
-          .from('students')
+          .from('student_onboardings')
           .select('*', { count: 'exact', head: true })
           .eq('institution_id', targetInstId);
 
-        // 2. Contar docentes
+        // 2. Contar docentes vinculados a la institución desde teacher_onboardings (fuente institucional real)
         const { count: countDoc } = await supabase
-          .from('user_roles')
+          .from('teacher_onboardings')
           .select('*', { count: 'exact', head: true })
           .eq('institution_id', targetInstId)
-          .eq('role', 'docente');
+          .in('status', ['invited', 'email_sent', 'activated', 'first_access', 'active', 'approved']);
 
-        // 3. Contar personal administrativo
+        // 3. Contar personal administrativo (directivos / coordinadores)
         const { count: countAdm } = await supabase
-          .from('user_roles')
+          .from('teacher_onboardings')
           .select('*', { count: 'exact', head: true })
           .eq('institution_id', targetInstId)
-          .in('role', ['rector', 'secretaria', 'coordinador']);
+          .contains('selected_roles', ['coordinador']);
 
         setStats({
           totalStudents: countEst || 0,
           totalTeachers: countDoc || 0,
-          totalAdmin: countAdm || 0,
+          totalAdmin: Math.max(1, (countAdm || 0) + 1),
           academicAvg: 0,
           dropoutRate: 0,
           convivenciaAvg: 0,

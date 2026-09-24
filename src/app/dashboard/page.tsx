@@ -74,7 +74,7 @@ import { SecretaryConsole } from '@/components/dashboard/SecretaryConsole';
 import { RectorExecutiveSummary } from '@/components/dashboard/RectorExecutiveSummary';
 
 export default function DashboardPage() {
-  const { userRole, userName } = useRole();
+  const { userRole, userName, institutionId } = useRole();
 
   // --- ESTADOS DE CONTROL DE PERIODO ACADÉMICO ---
   const [periodStatus, setPeriodStatus] = useState<'abierto' | 'en_revisión' | 'cerrado' | 'publicado'>('abierto');
@@ -536,7 +536,7 @@ export default function DashboardPage() {
             {rectorTab === 'institutional' && (
               <>
                 {/* 1. PRIMER PANTALLAZO RECTORÍA: RESUMEN INSTITUCIONAL & MÉTRICAS EJECUTIVAS */}
-                <RectorExecutiveSummary />
+                <RectorExecutiveSummary institutionId={institutionId} />
 
             {/* Diagnóstico IA Reporte */}
             {iaReport && (
