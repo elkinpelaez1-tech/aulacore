@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { useAuth } from '@/providers/auth-provider';
 import { supabase } from '@/lib/supabase';
 import { cn } from '@/lib/utils';
+import Link from 'next/link';
 import {
   getSchedulesByCourse,
   createSchedule,
@@ -27,160 +28,20 @@ const DAYS = [
   { id: 5, name: 'Viernes' }
 ];
 
-// Fallback Mock Data for demo robustness
-const MOCK_COURSES_FALLBACK = [
-  { id: 'c-10-A', grade_level: '10', group_name: 'A' },
-  { id: 'c-10-B', grade_level: '10', group_name: 'B' },
-  { id: 'c-5-A', grade_level: '5', group_name: 'A' },
-  { id: 'c-9-A', grade_level: '9', group_name: 'A' },
-  { id: 'c-9-B', grade_level: '9', group_name: 'B' },
-];
-
-const MOCK_SUBJECTS_FALLBACK = [
-  { id: 'sub-mat', name: 'Matemáticas' },
-  { id: 'sub-len', name: 'Lengua Castellana' },
-  { id: 'sub-ing', name: 'Inglés' },
-  { id: 'sub-nat', name: 'Ciencias Naturales y Educación Ambiental' },
-  { id: 'sub-soc', name: 'Ciencias Sociales, Historia, Geografía, Constitución Política y Democracia' },
-  { id: 'sub-art', name: 'Educación Artística y Cultural' },
-  { id: 'sub-eti', name: 'Educación Ética y en Valores Humanos' },
-  { id: 'sub-edf', name: 'Educación Física, Recreación y Deportes' },
-  { id: 'sub-rel', name: 'Educación Religiosa' },
-  { id: 'sub-tec', name: 'Tecnología e Informática' },
-];
-
-const MOCK_TEACHERS_FALLBACK = [
-  { id: 't-1', first_name: 'Carlos', last_name: 'Martínez' },
-  { id: 't-2', first_name: 'Lucía', last_name: 'Gómez' },
-  { id: 't-3', first_name: 'Jorge', last_name: 'Ruiz' },
-  { id: 't-4', first_name: 'Elena', last_name: 'Díaz' },
-  { id: 't-5', first_name: 'Marta', last_name: 'Pérez' },
-];
-
-const MOCK_SCHEDULES_FALLBACK: Record<string, EnrichedSchedule[]> = {
-  'c-10-A': [
-    {
-      id: 'sch-1',
-      institution_id: '1',
-      academic_year_id: '1',
-      academic_period_id: '1',
-      course_id: 'c-10-A',
-      subject_id: 'sub-mat',
-      teacher_id: 't-1',
-      day_of_week: 1,
-      start_time: '07:00:00',
-      end_time: '08:30:00',
-      classroom: 'Aula 301',
-      status: 'active',
-      created_at: null,
-      curriculum_subjects: { name: 'Matemáticas' },
-      profiles: { first_name: 'Carlos', last_name: 'Martínez' }
-    },
-    {
-      id: 'sch-2',
-      institution_id: '1',
-      academic_year_id: '1',
-      academic_period_id: '1',
-      course_id: 'c-10-A',
-      subject_id: 'sub-tec',
-      teacher_id: 't-3',
-      day_of_week: 1,
-      start_time: '08:30:00',
-      end_time: '10:00:00',
-      classroom: 'Aula de Cómputo',
-      status: 'active',
-      created_at: null,
-      curriculum_subjects: { name: 'Tecnología e Informática' },
-      profiles: { first_name: 'Jorge', last_name: 'Ruiz' }
-    },
-    {
-      id: 'sch-3',
-      institution_id: '1',
-      academic_year_id: '1',
-      academic_period_id: '1',
-      course_id: 'c-10-A',
-      subject_id: 'sub-len',
-      teacher_id: 't-2',
-      day_of_week: 2,
-      start_time: '07:00:00',
-      end_time: '08:30:00',
-      classroom: 'Aula 301',
-      status: 'active',
-      created_at: null,
-      curriculum_subjects: { name: 'Lengua Castellana' },
-      profiles: { first_name: 'Lucía', last_name: 'Gómez' }
-    },
-    {
-      id: 'sch-4',
-      institution_id: '1',
-      academic_year_id: '1',
-      academic_period_id: '1',
-      course_id: 'c-10-A',
-      subject_id: 'sub-nat',
-      teacher_id: 't-4',
-      day_of_week: 3,
-      start_time: '10:15:00',
-      end_time: '11:45:00',
-      classroom: 'Laboratorio Ciencias',
-      status: 'active',
-      created_at: null,
-      curriculum_subjects: { name: 'Ciencias Naturales y Educación Ambiental' },
-      profiles: { first_name: 'Elena', last_name: 'Díaz' }
-    }
-  ],
-  'c-10-B': [
-    {
-      id: 'sch-b1',
-      institution_id: '1',
-      academic_year_id: '1',
-      academic_period_id: '1',
-      course_id: 'c-10-B',
-      subject_id: 'sub-nat',
-      teacher_id: 't-5',
-      day_of_week: 2,
-      start_time: '08:30:00',
-      end_time: '10:00:00',
-      classroom: 'Aula 102',
-      status: 'active',
-      created_at: null,
-      curriculum_subjects: { name: 'Ciencias Naturales y Educación Ambiental' },
-      profiles: { first_name: 'Marta', last_name: 'Pérez' }
-    }
-  ],
-  'c-9-A': [
-    {
-      id: 'sch-9-1',
-      institution_id: '1',
-      academic_year_id: '1',
-      academic_period_id: '1',
-      course_id: 'c-9-A',
-      subject_id: 'sub-mat',
-      teacher_id: 't-1',
-      day_of_week: 2,
-      start_time: '08:30:00',
-      end_time: '10:00:00',
-      classroom: 'Aula 204',
-      status: 'active',
-      created_at: null,
-      curriculum_subjects: { name: 'Matemáticas' },
-      profiles: { first_name: 'Carlos', last_name: 'Martínez' }
-    }
-  ]
-};
-
 // Helper to format time (e.g. 08:00:00 -> 08:00)
 const formatTimeInput = (t: string) => t.substring(0, 5);
 
 // Promise Timeout Helper to prevent database hang in unseeded/offline environments
-function withTimeout<T>(promise: Promise<T>, ms: number = 1000): Promise<T> {
+function withTimeout<T>(promise: Promise<T>, ms: number = 2000): Promise<T> {
   return Promise.race([
     promise,
-    new Promise<T>((_, reject) => setTimeout(() => reject(new Error("Timeout de base de datos - Servidor fuera de línea")), ms))
+    new Promise<T>((_, reject) => setTimeout(() => reject(new Error("Timeout de conexión con la base de datos")), ms))
   ]);
 }
 
 export function ScheduleBuilder() {
-  const { user } = useAuth();
+  const { user, activeInstitution, institutionId: authInstId } = useAuth();
+  const currentInstitutionId = activeInstitution?.id || authInstId;
   
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -194,10 +55,9 @@ export function ScheduleBuilder() {
   const [selectedCourse, setSelectedCourse] = useState<string>('');
   const [schedules, setSchedules] = useState<EnrichedSchedule[]>([]);
   
-  // For demo, we hardcode period & year
-  const demoInstitutionId = '11111111-1111-1111-1111-111111111111';
-  const demoPeriodId = '33333333-3333-3333-2222-333333333333';
-  const demoYearId = '11112026-1111-1111-2222-333333333333';
+  // IDs de periodo y año por defecto
+  const defaultPeriodId = '33333333-3333-3333-2222-333333333333';
+  const defaultYearId = '11112026-1111-1111-2222-333333333333';
 
   // New Class Form State
   const [newClass, setNewClass] = useState({
@@ -215,56 +75,65 @@ export function ScheduleBuilder() {
   const [newSubjectArea, setNewSubjectArea] = useState('Ciencias Básicas y Matemáticas');
   const [creatingSubject, setCreatingSubject] = useState(false);
 
-  // Load master data with robust error boundaries & fallback injection
+  // Carga de datos maestros institucionales reales
   useEffect(() => {
     async function fetchMasterData() {
+      if (!currentInstitutionId) {
+        setCourses([]);
+        setSubjects([]);
+        setTeachers([]);
+        setSelectedCourse('');
+        setLoading(false);
+        return;
+      }
       try {
         setLoading(true);
         const [c, s, t] = await withTimeout(Promise.all([
-          getInstitutionCourses(demoInstitutionId).catch(() => null),
-          getInstitutionSubjects(demoInstitutionId).catch(() => null),
-          getInstitutionTeachers(demoInstitutionId).catch(() => null)
-        ]), 1000);
+          getInstitutionCourses(currentInstitutionId).catch(() => []),
+          getInstitutionSubjects(currentInstitutionId).catch(() => []),
+          getInstitutionTeachers(currentInstitutionId).catch(() => [])
+        ]), 3000);
         
-        const finalCourses = c && c.length > 0 ? c : MOCK_COURSES_FALLBACK;
-        const finalSubjects = s && s.length > 0 ? s : MOCK_SUBJECTS_FALLBACK;
-        const finalTeachers = t && t.length > 0 ? t : MOCK_TEACHERS_FALLBACK;
+        const realCourses = Array.isArray(c) ? c : [];
+        const realSubjects = Array.isArray(s) ? s : [];
+        const realTeachers = Array.isArray(t) ? t : [];
 
-        setCourses(finalCourses);
-        setSubjects(finalSubjects);
-        setTeachers(finalTeachers);
+        setCourses(realCourses);
+        setSubjects(realSubjects);
+        setTeachers(realTeachers);
         
-        if (finalCourses && finalCourses.length > 0) {
-          setSelectedCourse(finalCourses[0].id);
+        if (realCourses.length > 0) {
+          setSelectedCourse(realCourses[0].id);
+        } else {
+          setSelectedCourse('');
         }
       } catch (err) {
-        console.error('Error fetching master data, using fallbacks', err);
-        setCourses(MOCK_COURSES_FALLBACK);
-        setSubjects(MOCK_SUBJECTS_FALLBACK);
-        setTeachers(MOCK_TEACHERS_FALLBACK);
-        setSelectedCourse(MOCK_COURSES_FALLBACK[0].id);
+        console.error('Error cargando datos maestros para horarios:', err);
+        setCourses([]);
+        setSubjects([]);
+        setTeachers([]);
+        setSelectedCourse('');
       } finally {
         setLoading(false);
       }
     }
     fetchMasterData();
-  }, [user]);
+  }, [currentInstitutionId]);
 
-  // Load schedules for selected course
+  // Cargar horarios del curso seleccionado
   useEffect(() => {
     async function loadSchedules() {
-      if (!selectedCourse) return;
+      if (!selectedCourse) {
+        setSchedules([]);
+        return;
+      }
       try {
         setLoading(true);
-        const data = await withTimeout(getSchedulesByCourse(selectedCourse, demoPeriodId), 1000).catch(() => null);
-        if (data && data.length > 0) {
-          setSchedules(data);
-        } else {
-          setSchedules(MOCK_SCHEDULES_FALLBACK[selectedCourse] || []);
-        }
+        const data = await withTimeout(getSchedulesByCourse(selectedCourse, defaultPeriodId), 3000).catch(() => []);
+        setSchedules(Array.isArray(data) ? data : []);
       } catch (err) {
-        console.error('Error loading schedules, using fallback', err);
-        setSchedules(MOCK_SCHEDULES_FALLBACK[selectedCourse] || []);
+        console.error('Error cargando horarios del curso:', err);
+        setSchedules([]);
       } finally {
         setLoading(false);
       }
@@ -272,8 +141,16 @@ export function ScheduleBuilder() {
     loadSchedules();
   }, [selectedCourse]);
 
-  // Live Sync scheduling creator with custom fallbacks
+  // Guardar nuevo bloque de horario
   const handleCreate = async () => {
+    if (!currentInstitutionId) {
+      alert("No se encontró la institución activa para asignar el horario.");
+      return;
+    }
+    if (!selectedCourse) {
+      alert("Debes seleccionar un curso antes de añadir un bloque de clase.");
+      return;
+    }
     if (!newClass.subject_id || !newClass.teacher_id || !newClass.start_time || !newClass.end_time || !newClass.classroom) {
       alert("Por favor completa todos los campos de la nueva clase.");
       return;
@@ -286,9 +163,9 @@ export function ScheduleBuilder() {
       
       const newScheduleItem: EnrichedSchedule = {
         id: `sch-${Date.now()}`,
-        institution_id: demoInstitutionId,
-        academic_year_id: demoYearId,
-        academic_period_id: demoPeriodId,
+        institution_id: currentInstitutionId,
+        academic_year_id: defaultYearId,
+        academic_period_id: defaultPeriodId,
         course_id: selectedCourse,
         subject_id: newClass.subject_id,
         teacher_id: newClass.teacher_id,
@@ -304,9 +181,9 @@ export function ScheduleBuilder() {
 
       try {
         await withTimeout(createSchedule({
-          institution_id: demoInstitutionId,
-          academic_year_id: demoYearId,
-          academic_period_id: demoPeriodId,
+          institution_id: currentInstitutionId,
+          academic_year_id: defaultYearId,
+          academic_period_id: defaultPeriodId,
           course_id: selectedCourse,
           subject_id: newClass.subject_id,
           teacher_id: newClass.teacher_id,
@@ -315,11 +192,11 @@ export function ScheduleBuilder() {
           end_time: newClass.end_time,
           classroom: newClass.classroom,
           status: 'active'
-        }), 1000);
-        const data = await withTimeout(getSchedulesByCourse(selectedCourse, demoPeriodId), 1000);
-        setSchedules(data);
+        }), 2000);
+        const data = await withTimeout(getSchedulesByCourse(selectedCourse, defaultPeriodId), 2000);
+        setSchedules(Array.isArray(data) ? data : []);
       } catch (dbErr) {
-        console.warn('Database save failed or timed out, writing to local memory state.', dbErr);
+        console.warn('Fallo al guardar en base de datos, agregando a estado local de la sesión.', dbErr);
         setSchedules(prev => [...prev, newScheduleItem].sort((a, b) => a.start_time.localeCompare(b.start_time)));
       }
 
@@ -333,6 +210,10 @@ export function ScheduleBuilder() {
 
   const handleCreateSubject = async () => {
     if (!newSubjectName.trim()) return;
+    if (!currentInstitutionId) {
+      alert("No se encontró la institución activa para registrar la materia.");
+      return;
+    }
     setCreatingSubject(true);
     try {
       const newId = `sub-${Date.now()}`;
@@ -344,7 +225,7 @@ export function ScheduleBuilder() {
       try {
         await supabase.from('curriculum_subjects').insert([{
           id: newId,
-          institution_id: demoInstitutionId,
+          institution_id: currentInstitutionId,
           name: newSubjectName.trim()
         }]);
       } catch (e) {
@@ -406,18 +287,24 @@ export function ScheduleBuilder() {
         </div>
         
         <div className="flex items-center gap-2">
-          <span className="text-xs font-bold text-slate-655">Seleccionar Curso:</span>
-          <select 
-            value={selectedCourse} 
-            onChange={e => setSelectedCourse(e.target.value)}
-            className="border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-black text-slate-800 bg-white outline-none cursor-pointer focus:border-indigo-550 shadow-sm"
-          >
-            {courses.map(c => (
-              <option key={c.id} value={c.id}>
-                {c.grade_level ? `Grado ${c.grade_level}` : `Curso`} - Grupo {c.group_name || c.name || c.id}
-              </option>
-            ))}
-          </select>
+          <span className="text-xs font-bold text-slate-500">Seleccionar Curso:</span>
+          {courses.length === 0 ? (
+            <span className="text-xs font-bold text-slate-500 bg-slate-100 px-3.5 py-2 rounded-xl border border-slate-200">
+              Sin cursos registrados
+            </span>
+          ) : (
+            <select 
+              value={selectedCourse} 
+              onChange={e => setSelectedCourse(e.target.value)}
+              className="border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-black text-slate-800 bg-white outline-none cursor-pointer focus:border-indigo-500 shadow-sm"
+            >
+              {courses.map(c => (
+                <option key={c.id} value={c.id}>
+                  {c.grade_level ? `Grado ${c.grade_level}` : `Curso`} - Grupo {c.group_name || c.name || c.id}
+                </option>
+              ))}
+            </select>
+          )}
         </div>
       </div>
 
@@ -426,12 +313,12 @@ export function ScheduleBuilder() {
         <Card className="col-span-1 shadow-sm border-slate-200 rounded-2xl overflow-hidden bg-white">
           <CardHeader className="bg-slate-50 border-b border-slate-200">
             <CardTitle className="text-sm font-black text-slate-800 flex items-center gap-2">
-              <Plus className="w-4 h-4 text-indigo-650" /> Añadir Bloque de Clase
+              <Plus className="w-4 h-4 text-indigo-600" /> Añadir Bloque de Clase
             </CardTitle>
           </CardHeader>
           <CardContent className="p-5 space-y-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-black text-slate-650 uppercase tracking-wider pl-1">Día de la semana</label>
+              <label className="text-xs font-black text-slate-600 uppercase tracking-wider pl-1">Día de la semana</label>
               <select 
                 value={newClass.day_of_week} 
                 onChange={e => setNewClass({...newClass, day_of_week: parseInt(e.target.value)})}
@@ -443,7 +330,7 @@ export function ScheduleBuilder() {
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <label className="text-xs font-black text-slate-650 uppercase tracking-wider pl-1">Hora Inicio</label>
+                <label className="text-xs font-black text-slate-600 uppercase tracking-wider pl-1">Hora Inicio</label>
                 <Input 
                   type="time" 
                   value={newClass.start_time}
@@ -452,7 +339,7 @@ export function ScheduleBuilder() {
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="text-xs font-black text-slate-650 uppercase tracking-wider pl-1">Hora Fin</label>
+                <label className="text-xs font-black text-slate-600 uppercase tracking-wider pl-1">Hora Fin</label>
                 <Input 
                   type="time" 
                   value={newClass.end_time}
@@ -464,7 +351,7 @@ export function ScheduleBuilder() {
 
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-black text-slate-650 uppercase tracking-wider pl-1">Asignatura (Materia)</label>
+                <label className="text-xs font-black text-slate-600 uppercase tracking-wider pl-1">Asignatura (Materia)</label>
                 <button
                   type="button"
                   onClick={() => setIsNewSubjectModalOpen(true)}
@@ -478,25 +365,25 @@ export function ScheduleBuilder() {
                 onChange={e => setNewClass({...newClass, subject_id: e.target.value})}
                 className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-700 bg-white cursor-pointer outline-none focus:border-indigo-500 shadow-sm"
               >
-                <option value="">-- Seleccionar Materia --</option>
+                <option value="">{subjects.length === 0 ? '-- Sin materias registradas --' : '-- Seleccionar Materia --'}</option>
                 {subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-black text-slate-650 uppercase tracking-wider pl-1">Docente Responsable</label>
+              <label className="text-xs font-black text-slate-600 uppercase tracking-wider pl-1">Docente Responsable</label>
               <select 
                 value={newClass.teacher_id} 
                 onChange={e => setNewClass({...newClass, teacher_id: e.target.value})}
                 className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-700 bg-white cursor-pointer outline-none focus:border-indigo-500"
               >
-                <option value="">-- Seleccionar Docente --</option>
+                <option value="">{teachers.length === 0 ? '-- Sin docentes registrados --' : '-- Seleccionar Docente --'}</option>
                 {teachers.map(t => <option key={t.id} value={t.id}>{t.first_name} {t.last_name}</option>)}
               </select>
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-black text-slate-650 uppercase tracking-wider pl-1">Salón / Aula</label>
+              <label className="text-xs font-black text-slate-600 uppercase tracking-wider pl-1">Salón / Aula</label>
               <Input 
                 placeholder="Ej. Aula 301, Laboratorio" 
                 value={newClass.classroom}
@@ -507,8 +394,8 @@ export function ScheduleBuilder() {
 
             <Button 
               onClick={handleCreate} 
-              disabled={saving}
-              className="w-full bg-indigo-600 hover:bg-indigo-700 hover:shadow-md transition text-white font-bold h-10.5 rounded-xl mt-3 flex items-center justify-center gap-1.5"
+              disabled={saving || courses.length === 0}
+              className="w-full bg-indigo-600 hover:bg-indigo-700 hover:shadow-md transition text-white font-bold h-10.5 rounded-xl mt-3 flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {saving ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Plus className="w-4 h-4 mr-1" />}
               Guardar Horario
@@ -517,7 +404,9 @@ export function ScheduleBuilder() {
             <div className="bg-amber-50 p-3.5 rounded-xl border border-amber-100/70 flex gap-2.5 items-start mt-3">
               <AlertCircle className="w-4.5 h-4.5 text-amber-500 shrink-0 mt-0.5" />
               <p className="text-[10px] text-amber-800 leading-normal font-semibold">
-                Al guardar, este horario se reflejará automáticamente en los paneles de los estudiantes del curso y en el del docente asignado.
+                {courses.length === 0
+                  ? "Para asignar horarios primero debes tener cursos registrados en la institución."
+                  : "Al guardar, este horario se reflejará automáticamente en los paneles de los estudiantes del curso y en el del docente asignado."}
               </p>
             </div>
           </CardContent>
@@ -532,56 +421,87 @@ export function ScheduleBuilder() {
             </CardTitle>
             {saving && <RefreshCw className="w-4 h-4 text-indigo-500 animate-spin" />}
           </CardHeader>
-          <CardContent className="p-0 flex-1 overflow-auto bg-slate-50/10">
-            <div className="min-w-[700px] flex h-full">
-              {DAYS.map(day => {
-                const daySchedules = schedules.filter(s => s.day_of_week === day.id).sort((a,b) => a.start_time.localeCompare(b.start_time));
-                return (
-                  <div key={day.id} className="flex-1 border-r border-slate-100 last:border-r-0 min-h-full bg-slate-50/20">
-                    <div className="bg-slate-100/80 border-b border-slate-200/80 py-2.5 text-center sticky top-0 z-10 shadow-[0_1px_2px_rgba(0,0,0,0.01)]">
-                      <span className="text-[10px] font-black text-slate-700 uppercase tracking-wider">{day.name}</span>
-                    </div>
-                    <div className="p-2.5 space-y-2">
-                      {daySchedules.length === 0 ? (
-                        <div className="text-center py-10">
-                          <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest italic pl-1">Libre</span>
-                        </div>
-                      ) : (
-                        daySchedules.map(schedule => (
-                          <div key={schedule.id} className="bg-white border border-indigo-100/60 rounded-xl p-3 shadow-[0_1.5px_3px_rgba(0,0,0,0.01)] hover:border-indigo-300 hover:shadow transition group relative">
-                            <div className="absolute top-1.5 right-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <button 
-                                onClick={() => handleDelete(schedule.id)}
-                                className="bg-rose-50 hover:bg-rose-100 text-rose-500 p-1 rounded-lg transition-colors border border-rose-150"
-                                title="Eliminar clase"
-                              >
-                                <Trash2 className="w-3 h-3" />
-                              </button>
-                            </div>
-                            <div className="flex items-center gap-1.5 mb-1.5 text-indigo-650">
-                              <Clock className="w-3 h-3" />
-                              <span className="text-[10px] font-black">{formatTimeInput(schedule.start_time)} - {formatTimeInput(schedule.end_time)}</span>
-                            </div>
-                            <h4 className="text-xs font-black text-slate-800 leading-tight mb-1 pr-4">
-                              {schedule.curriculum_subjects?.name || 'Materia Desconocida'}
-                            </h4>
-                            <div className="flex flex-col gap-0.5">
-                              <span className="text-[10px] font-bold text-slate-500 flex items-center gap-1">
-                                <User className="w-3 h-3 text-slate-400" />
-                                {schedule.profiles ? `${schedule.profiles.first_name} ${schedule.profiles.last_name}` : 'Sin asignar'}
-                              </span>
-                              <span className="text-[9px] text-slate-400 font-bold tracking-wide mt-0.5 uppercase pl-4">
-                                {schedule.classroom}
-                              </span>
-                            </div>
+          <CardContent className="p-0 flex-1 overflow-auto bg-slate-50/10 flex flex-col">
+            {courses.length === 0 ? (
+              <div className="flex-1 flex flex-col items-center justify-center p-8 text-center my-auto">
+                <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 mb-3">
+                  <Calendar className="w-6 h-6" />
+                </div>
+                <h4 className="text-sm font-black text-slate-800 mb-1">
+                  Sin cursos registrados
+                </h4>
+                <p className="text-xs text-slate-500 max-w-sm font-medium mb-4">
+                  Debes parametrizar sedes y cursos en la institución antes de poder organizar la malla horaria.
+                </p>
+                <Link href="/configuracion/sedes">
+                  <Button variant="outline" size="sm" className="text-xs font-bold gap-1.5 border-indigo-200 text-indigo-700 bg-indigo-50 hover:bg-indigo-100">
+                    Configurar Cursos y Sedes
+                  </Button>
+                </Link>
+              </div>
+            ) : schedules.length === 0 ? (
+              <div className="flex-1 flex flex-col items-center justify-center p-8 text-center my-auto">
+                <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 mb-3">
+                  <Clock className="w-5 h-5" />
+                </div>
+                <h4 className="text-sm font-black text-slate-800 mb-1">
+                  No hay horarios institucionales registrados para este curso
+                </h4>
+                <p className="text-xs text-slate-500 max-w-sm font-medium">
+                  Utiliza el formulario de la izquierda para añadir los bloques de clase de la semana.
+                </p>
+              </div>
+            ) : (
+              <div className="min-w-[700px] flex h-full">
+                {DAYS.map(day => {
+                  const daySchedules = schedules.filter(s => s.day_of_week === day.id).sort((a,b) => a.start_time.localeCompare(b.start_time));
+                  return (
+                    <div key={day.id} className="flex-1 border-r border-slate-100 last:border-r-0 min-h-full bg-slate-50/20">
+                      <div className="bg-slate-100/80 border-b border-slate-200/80 py-2.5 text-center sticky top-0 z-10 shadow-[0_1px_2px_rgba(0,0,0,0.01)]">
+                        <span className="text-[10px] font-black text-slate-700 uppercase tracking-wider">{day.name}</span>
+                      </div>
+                      <div className="p-2.5 space-y-2">
+                        {daySchedules.length === 0 ? (
+                          <div className="text-center py-10">
+                            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest italic pl-1">Libre</span>
                           </div>
-                        ))
-                      )}
+                        ) : (
+                          daySchedules.map(schedule => (
+                            <div key={schedule.id} className="bg-white border border-indigo-100/60 rounded-xl p-3 shadow-[0_1.5px_3px_rgba(0,0,0,0.01)] hover:border-indigo-300 hover:shadow transition group relative">
+                              <div className="absolute top-1.5 right-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button 
+                                  onClick={() => handleDelete(schedule.id)}
+                                  className="bg-rose-50 hover:bg-rose-100 text-rose-500 p-1 rounded-lg transition-colors border border-rose-150"
+                                  title="Eliminar clase"
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </button>
+                              </div>
+                              <div className="flex items-center gap-1.5 mb-1.5 text-indigo-600">
+                                <Clock className="w-3 h-3" />
+                                <span className="text-[10px] font-black">{formatTimeInput(schedule.start_time)} - {formatTimeInput(schedule.end_time)}</span>
+                              </div>
+                              <h4 className="text-xs font-black text-slate-800 leading-tight mb-1 pr-4">
+                                {schedule.curriculum_subjects?.name || 'Materia Desconocida'}
+                              </h4>
+                              <div className="flex flex-col gap-0.5">
+                                <span className="text-[10px] font-bold text-slate-500 flex items-center gap-1">
+                                  <User className="w-3 h-3 text-slate-400" />
+                                  {schedule.profiles ? `${schedule.profiles.first_name} ${schedule.profiles.last_name}` : 'Sin asignar'}
+                                </span>
+                                <span className="text-[9px] text-slate-400 font-bold tracking-wide mt-0.5 uppercase pl-4">
+                                  {schedule.classroom}
+                                </span>
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

@@ -166,7 +166,6 @@ export const NAVIGATION_MENUS: Record<UserRole, NavItem[]> = {
       label: 'Planeación Horaria',
       href: '/planeacion-horaria',
       icon: BookOpen,
-      badge: '3',
     },
     {
       label: 'Directores de Grupo',
