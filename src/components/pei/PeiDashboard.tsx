@@ -5,17 +5,11 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { 
   CheckCircle2, 
-  Layers, 
-  FolderGit2, 
-  FileCheck2, 
-  History, 
   BrainCircuit, 
   Sparkles, 
   ShieldAlert, 
-  Activity,
-  ArrowUpRight
+  Activity
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 interface PeiDashboardProps {
   userRole: string;
@@ -30,20 +24,28 @@ export function PeiDashboard({ userRole, peiData, projects, manualVersions }: Pe
 
   const activeProjectsCount = projects.filter(p => p.status === 'Activo').length;
   const totalEvidencesCount = projects.reduce((acc, curr) => acc + (curr.evidences?.length || 0), 0);
-  const totalUpdatesCount = 12 + manualVersions.length + (peiData ? 1 : 0);
+  const totalUpdatesCount = manualVersions.length;
+  const activeVersion = manualVersions.find(v => v.is_active) || manualVersions[0];
 
   const runAiAudit = () => {
     setRunningAiAudit(true);
     setTimeout(() => {
       setRunningAiAudit(false);
-      setAiAuditReport(
-        'Análisis Semántico Finalizado:\n' +
-        '• Consistencia Misión-Visión: 95% (Fuerte alineación en desarrollo tecnológico y valores cívicos).\n' +
-        '• Enfoque Pedagógico: Constructivismo Social bien integrado con el Aprendizaje Basado en Proyectos (ABP).\n' +
-        '• Brechas de Ley 1620 (Convivencia): Se detecta una versión desactualizada de protocolos para ciberacoso escolar en la versión anterior del manual. La versión activa (v2.0.0) subsana esta brecha en un 98%.\n' +
-        '• Recomendación IA: Integrar el proyecto del PRAE con el plan de Ciencias Naturales en 9° y 10° para optimizar horas transversales.'
-      );
-    }, 1500);
+      if (!peiData?.modelType && projects.length === 0) {
+        setAiAuditReport(
+          'Análisis Semántico:\n' +
+          '• Estado: Sin datos suficientes registrados en el PEI.\n' +
+          '• Recomendación: Ingrese la Identidad Institucional y el Modelo Pedagógico para habilitar el análisis de consistencia frente a la Ley 115 y normativas del MEN.'
+        );
+      } else {
+        setAiAuditReport(
+          'Análisis Semántico Finalizado:\n' +
+          `• Enfoque Pedagógico Registrado: ${peiData?.modelType || 'No especificado'}.\n` +
+          `• Proyectos Transversales: ${projects.length} proyecto(s) registrado(s).\n` +
+          `• Documento Oficial: ${activeVersion ? `Versión ${activeVersion.version}` : 'Pendiente de carga'}.`
+        );
+      }
+    }, 1000);
   };
 
   return (
@@ -54,10 +56,9 @@ export function PeiDashboard({ userRole, peiData, projects, manualVersions }: Pe
           <CardContent className="p-5">
             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Cumplimiento PEI</span>
             <div className="flex items-baseline gap-1 mt-2">
-              <h4 className="text-3xl font-black text-slate-900 leading-none">85.0%</h4>
-              <span className="text-xs text-emerald-600 font-bold flex items-center"><ArrowUpRight className="w-3.5 h-3.5" /> +2.5%</span>
+              <h4 className="text-3xl font-black text-slate-900 leading-none">—</h4>
             </div>
-            <p className="text-[9px] text-slate-400 font-semibold mt-3 pt-2.5 border-t border-slate-100">Meta anual: 90%</p>
+            <p className="text-[9px] text-slate-400 font-semibold mt-3 pt-2.5 border-t border-slate-100">Sin ponderación calculada</p>
           </CardContent>
         </Card>
 
@@ -76,10 +77,10 @@ export function PeiDashboard({ userRole, peiData, projects, manualVersions }: Pe
           <CardContent className="p-5">
             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Actividades Vinculadas</span>
             <div className="flex items-baseline gap-1 mt-2">
-              <h4 className="text-3xl font-black text-slate-900 leading-none">12</h4>
-              <span className="text-xs text-emerald-600 font-bold flex items-center">Estable</span>
+              <h4 className="text-3xl font-black text-slate-900 leading-none">0</h4>
+              <span className="text-xs text-slate-400 font-bold">—</span>
             </div>
-            <p className="text-[9px] text-slate-400 font-semibold mt-3 pt-2.5 border-t border-slate-100">Enlazadas a cronograma</p>
+            <p className="text-[9px] text-slate-400 font-semibold mt-3 pt-2.5 border-t border-slate-100">Sin actividades vinculadas</p>
           </CardContent>
         </Card>
 
@@ -88,9 +89,9 @@ export function PeiDashboard({ userRole, peiData, projects, manualVersions }: Pe
             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Evidencias Cargadas</span>
             <div className="flex items-baseline gap-1 mt-2">
               <h4 className="text-3xl font-black text-slate-900 leading-none">{totalEvidencesCount}</h4>
-              <span className="text-xs text-indigo-600 font-bold">Verificadas</span>
+              <span className="text-xs text-slate-400 font-bold">{totalEvidencesCount > 0 ? 'Verificadas' : '—'}</span>
             </div>
-            <p className="text-[9px] text-slate-400 font-semibold mt-3 pt-2.5 border-t border-slate-100">Documentos y soportes</p>
+            <p className="text-[9px] text-slate-400 font-semibold mt-3 pt-2.5 border-t border-slate-100">Soportes cargados</p>
           </CardContent>
         </Card>
 
@@ -99,7 +100,9 @@ export function PeiDashboard({ userRole, peiData, projects, manualVersions }: Pe
             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Modificaciones</span>
             <div className="flex items-baseline gap-1 mt-2">
               <h4 className="text-3xl font-black text-slate-900 leading-none">{totalUpdatesCount}</h4>
-              <span className="text-xs text-slate-500 font-bold font-mono">v2.0.0</span>
+              <span className="text-xs text-slate-500 font-bold font-mono">
+                {activeVersion?.version ? `v${activeVersion.version}` : '—'}
+              </span>
             </div>
             <p className="text-[9px] text-slate-400 font-semibold mt-3 pt-2.5 border-t border-slate-100">Historial de auditoría</p>
           </CardContent>
@@ -145,14 +148,14 @@ export function PeiDashboard({ userRole, peiData, projects, manualVersions }: Pe
                   {aiAuditReport}
                 </div>
                 <div className="flex items-center gap-4 text-[10px] text-slate-400 font-bold">
-                  <span className="flex items-center gap-1"><Sparkles className="w-3.5 h-3.5 text-yellow-500" /> Coherencia: 95%</span>
-                  <span className="flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> Ley 115: Verificado</span>
+                  <span className="flex items-center gap-1"><Sparkles className="w-3.5 h-3.5 text-yellow-500" /> Coherencia analizada</span>
+                  <span className="flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> Ley 115</span>
                 </div>
               </div>
             ) : (
               <div className="text-center py-10 border border-dashed border-slate-800 rounded-2xl bg-slate-900/20">
                 <Sparkles className="w-10 h-10 mx-auto text-purple-400/40 animate-pulse mb-3" />
-                <h4 className="text-sm font-black text-slate-350">Preparado para Auditoría Pedagógica</h4>
+                <h4 className="text-sm font-black text-slate-300">Preparado para Auditoría Pedagógica</h4>
                 <p className="text-xs text-slate-500 font-semibold max-w-sm mx-auto mt-1 leading-normal">
                   Permite escanear el PEI institucional, contrastarlo con la Ley 115 e identificar brechas académicas o de convivencia automáticamente.
                 </p>
@@ -171,19 +174,27 @@ export function PeiDashboard({ userRole, peiData, projects, manualVersions }: Pe
             <div className="space-y-3.5 pt-2">
               <div className="flex justify-between items-center text-xs font-semibold text-slate-600 border-b border-slate-100 pb-2">
                 <span>Versión Activa:</span>
-                <span className="font-extrabold text-slate-900 bg-slate-100 px-2 py-0.5 rounded">v2.0.0</span>
+                <span className="font-extrabold text-slate-900 bg-slate-100 px-2 py-0.5 rounded">
+                  {activeVersion?.version ? `v${activeVersion.version}` : 'Sin registrar'}
+                </span>
               </div>
               <div className="flex justify-between items-center text-xs font-semibold text-slate-600 border-b border-slate-100 pb-2">
                 <span>Modelo Registrado:</span>
-                <span className="font-extrabold text-indigo-600">{peiData?.model || 'Constructivista'}</span>
+                <span className="font-extrabold text-indigo-600">
+                  {peiData?.modelType || 'Sin registrar'}
+                </span>
               </div>
               <div className="flex justify-between items-center text-xs font-semibold text-slate-600 border-b border-slate-100 pb-2">
                 <span>Última Aprobación:</span>
-                <span className="font-bold text-slate-950">Enero 2026</span>
+                <span className="font-bold text-slate-950">
+                  {activeVersion?.created_at ? new Date(activeVersion.created_at).toLocaleDateString() : 'Sin registrar'}
+                </span>
               </div>
               <div className="flex justify-between items-center text-xs font-semibold text-slate-600 pb-2">
                 <span>Riesgos de Convivencia:</span>
-                <span className="font-black text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded">Bajo Control</span>
+                <span className="font-medium text-slate-500 bg-slate-50 border border-slate-200 px-2 py-0.5 rounded">
+                  Sin alertas registradas
+                </span>
               </div>
             </div>
           </div>

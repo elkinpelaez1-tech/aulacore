@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Save, Blocks } from 'lucide-react';
@@ -18,6 +18,10 @@ interface PeiPedagogicalModelProps {
 export function PeiPedagogicalModel({ userRole, modelData, onSave }: PeiPedagogicalModelProps) {
   const [formData, setFormData] = useState(modelData);
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setFormData(modelData);
+  }, [modelData]);
 
   const canEdit = userRole === 'rector' || userRole === 'secretaria';
 
@@ -48,11 +52,9 @@ export function PeiPedagogicalModel({ userRole, modelData, onSave }: PeiPedagogi
     if (!canEdit) return;
     
     setSaving(true);
-    setTimeout(() => {
-      onSave(formData);
-      setSaving(false);
-      alert('✓ Modelo Pedagógico actualizado y registrado formalmente.');
-    }, 800);
+    onSave(formData);
+    setSaving(false);
+    alert('✓ Modelo Pedagógico actualizado y registrado formalmente.');
   };
 
   return (

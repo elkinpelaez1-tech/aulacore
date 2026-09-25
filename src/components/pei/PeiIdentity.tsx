@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Save, FileSignature, Sparkles } from 'lucide-react';
@@ -23,6 +23,10 @@ export function PeiIdentity({ userRole, identityData, onSave }: PeiIdentityProps
   const [formData, setFormData] = useState(identityData);
   const [saving, setSaving] = useState(false);
 
+  useEffect(() => {
+    setFormData(identityData);
+  }, [identityData]);
+
   const canEdit = userRole === 'rector' || userRole === 'secretaria';
 
   const handleChange = (field: string, value: string) => {
@@ -37,11 +41,9 @@ export function PeiIdentity({ userRole, identityData, onSave }: PeiIdentityProps
     if (!canEdit) return;
     
     setSaving(true);
-    setTimeout(() => {
-      onSave(formData);
-      setSaving(false);
-      alert('✓ Identidad Institucional actualizada exitosamente en los registros.');
-    }, 800);
+    onSave(formData);
+    setSaving(false);
+    alert('✓ Identidad Institucional actualizada exitosamente en los registros.');
   };
 
   const fields = [

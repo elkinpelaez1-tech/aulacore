@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
@@ -28,10 +28,14 @@ export function PeiManualConvivencia({ userRole, versions, onSave }: PeiManualCo
   const [dragActive, setDragActive] = useState(false);
   
   // Form input states
-  const [versionInput, setVersionInput] = useState('2.1.0');
+  const [versionInput, setVersionInput] = useState('1.0.0');
   const [notesInput, setNotesInput] = useState('');
   
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setLocalVersions(versions);
+  }, [versions]);
 
   const canEdit = userRole === 'rector' || userRole === 'secretaria';
   const canDelete = userRole === 'rector';
@@ -183,7 +187,7 @@ export function PeiManualConvivencia({ userRole, versions, onSave }: PeiManualCo
             ) : (
               <div className="text-center py-10 text-slate-400 font-semibold">
                 <AlertCircle className="w-10 h-10 mx-auto text-slate-300 mb-2" />
-                <p>No se registran documentos cargados.</p>
+                <p>No hay documentos del PEI cargados.</p>
               </div>
             )}
           </CardContent>
@@ -287,8 +291,15 @@ export function PeiManualConvivencia({ userRole, versions, onSave }: PeiManualCo
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {localVersions.map((v) => (
-                  <TableRow key={v.id} className={cn("hover:bg-slate-50/50 transition-colors", v.is_active && "bg-indigo-50/10")}>
+                {localVersions.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="p-8 text-center text-xs text-slate-400 font-semibold">
+                      No hay documentos del PEI cargados.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  localVersions.map((v) => (
+                    <TableRow key={v.id} className={cn("hover:bg-slate-50/50 transition-colors", v.is_active && "bg-indigo-50/10")}>
                     <TableCell className="font-black text-slate-950 text-sm pl-6">{v.version}</TableCell>
                     <TableCell className="font-semibold text-slate-700 text-xs">{v.created_at}</TableCell>
                     <TableCell className="text-xs text-slate-500 font-medium max-w-sm truncate leading-snug" title={v.update_notes}>
@@ -339,7 +350,8 @@ export function PeiManualConvivencia({ userRole, versions, onSave }: PeiManualCo
                       </div>
                     </TableCell>
                   </TableRow>
-                ))}
+                  ))
+                )}
               </TableBody>
             </Table>
           </CardContent>

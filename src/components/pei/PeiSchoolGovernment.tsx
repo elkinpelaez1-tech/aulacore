@@ -76,6 +76,7 @@ interface PeiSchoolGovernmentProps {
   onSaveMeetings: (meetings: Meeting[]) => void;
   actas: Acta[];
   onSaveActas: (actas: Acta[]) => void;
+  rector?: { name: string; email?: string; phone?: string; role_title?: string; period?: string } | null;
 }
 
 export function PeiSchoolGovernment({
@@ -87,7 +88,8 @@ export function PeiSchoolGovernment({
   meetings,
   onSaveMeetings,
   actas,
-  onSaveActas
+  onSaveActas,
+  rector
 }: PeiSchoolGovernmentProps) {
   const [activeSubTab, setActiveSubTab] = useState<'members' | 'convocatorias' | 'meetings' | 'actas'>('members');
   
@@ -299,15 +301,7 @@ export function PeiSchoolGovernment({
     onSaveConvocatorias(updated);
     setIsConvModalOpen(false);
 
-    let alertMsg = `✓ Convocatoria guardada en estado ${status}.`;
-    if (status === 'Enviada') {
-      alertMsg += `\n📧 Simulación: 5 correos salientes en cola hacia ${convBodyType}.`;
-      alertMsg += `\n💬 Simulación: Envío a WhatsApp Business preparado para API webhook.`;
-    }
-    if (createCalendarEvent) {
-      alertMsg += `\n📅 Calendario: Evento institucional creado en Calendario Escolar de AulaCore.`;
-    }
-    alert(alertMsg);
+    alert(`✓ Convocatoria guardada en estado ${status}.`);
   };
 
   // --- REUNIONES HANDLERS ---
@@ -534,57 +528,81 @@ export function PeiSchoolGovernment({
 
       {/* --- SUBTAB: MEMBERS (INTEGRANTES) --- */}
       {activeSubTab === 'members' && (
-        <Card className="border-slate-200 shadow-md bg-white rounded-3xl overflow-hidden">
-          <CardHeader className="bg-slate-50 border-b border-slate-200 px-6 py-4 flex flex-row items-center justify-between">
-            <div>
-              <CardTitle className="text-base font-black text-slate-950 flex items-center gap-2">
-                <Users className="w-5 h-5 text-indigo-600" />
-                Integrantes del Gobierno Escolar
-              </CardTitle>
-              <p className="text-xs text-slate-500 font-semibold mt-0.5">
-                Organigrama y miembros activos de los consejos y comités de gobierno escolar.
-              </p>
+        <div className="space-y-4">
+          {/* Tarjeta de Rectoría Institucional */}
+          <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-5 rounded-2xl border border-slate-800 text-white flex items-center justify-between shadow-sm">
+            <div className="flex items-center gap-3.5">
+              <div className="w-11 h-11 rounded-xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
+                <Award className="w-6 h-6" />
+              </div>
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-widest text-indigo-400 block">Rectoría Institucional</span>
+                <h3 className="text-base font-black text-white mt-0.5">
+                  {rector ? rector.name : 'Sin rector asignado'}
+                </h3>
+                <p className="text-xs text-slate-400 font-medium">
+                  {rector?.role_title || 'Rector de la Institución'} · Periodo {rector?.period || '2026'}
+                </p>
+              </div>
             </div>
-            {canEdit && (
-              <Button
-                onClick={handleOpenAddMember}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs h-9 px-4 rounded-xl flex items-center gap-1.5 shadow-md border-none cursor-pointer"
-              >
-                <Plus className="w-4 h-4" />
-                Registrar Integrante
-              </Button>
-            )}
-          </CardHeader>
-          <CardContent className="p-0">
-            {!canEdit && (
-              <div className="p-4 bg-slate-50 border-b border-slate-200 text-xs text-slate-650 font-semibold">
-                ⚠️ Tienes acceso de solo lectura. Solo los roles directivos pueden registrar o modificar integrantes.
-              </div>
-            )}
-            {canEdit && !canDelete && (
-              <div className="p-4 bg-slate-50 border-b border-slate-200 text-xs text-amber-700 font-semibold">
-                ℹ️ Rol Secretaría / Coordinador: Tienes permisos para crear y editar, pero el Rector retiene los privilegios exclusivos para eliminar registros.
-              </div>
-            )}
+            <div className="shrink-0">
+              <span className="text-[10px] font-black uppercase tracking-wider bg-indigo-900/60 border border-indigo-700/50 text-indigo-200 px-3 py-1 rounded-xl">
+                Máxima Autoridad PEI
+              </span>
+            </div>
+          </div>
 
-            <Table>
-              <TableHeader className="bg-slate-50/50">
-                <TableRow>
-                  <TableHead className="font-extrabold text-slate-800 text-xs pl-6">Estamento / Órgano</TableHead>
-                  <TableHead className="font-extrabold text-slate-800 text-xs">Integrante</TableHead>
-                  <TableHead className="font-extrabold text-slate-800 text-xs">Cargo Asignado</TableHead>
-                  <TableHead className="font-extrabold text-slate-800 text-xs text-center">Periodo Lectivo</TableHead>
-                  <TableHead className="font-extrabold text-slate-800 text-xs pr-6 text-right">Acciones</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {localMembers.length === 0 ? (
+          <Card className="border-slate-200 shadow-md bg-white rounded-3xl overflow-hidden">
+            <CardHeader className="bg-slate-50 border-b border-slate-200 px-6 py-4 flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="text-base font-black text-slate-950 flex items-center gap-2">
+                  <Users className="w-5 h-5 text-indigo-600" />
+                  Integrantes del Gobierno Escolar
+                </CardTitle>
+                <p className="text-xs text-slate-500 font-semibold mt-0.5">
+                  Organigrama y miembros activos de los consejos y comités de gobierno escolar.
+                </p>
+              </div>
+              {canEdit && (
+                <Button
+                  onClick={handleOpenAddMember}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs h-9 px-4 rounded-xl flex items-center gap-1.5 shadow-md border-none cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  Registrar Integrante
+                </Button>
+              )}
+            </CardHeader>
+            <CardContent className="p-0">
+              {!canEdit && (
+                <div className="p-4 bg-slate-50 border-b border-slate-200 text-xs text-slate-650 font-semibold">
+                  ⚠️ Tienes acceso de solo lectura. Solo los roles directivos pueden registrar o modificar integrantes.
+                </div>
+              )}
+              {canEdit && !canDelete && (
+                <div className="p-4 bg-slate-50 border-b border-slate-200 text-xs text-amber-700 font-semibold">
+                  ℹ️ Rol Secretaría / Coordinador: Tienes permisos para crear y editar, pero el Rector retiene los privilegios exclusivos para eliminar registros.
+                </div>
+              )}
+
+              <Table>
+                <TableHeader className="bg-slate-50/50">
                   <TableRow>
-                    <TableCell colSpan={5} className="p-8 text-center text-xs text-slate-400 font-semibold">
-                      No se registran integrantes en el Gobierno Escolar de este año lectivo.
-                    </TableCell>
+                    <TableHead className="font-extrabold text-slate-800 text-xs pl-6">Estamento / Órgano</TableHead>
+                    <TableHead className="font-extrabold text-slate-800 text-xs">Integrante</TableHead>
+                    <TableHead className="font-extrabold text-slate-800 text-xs">Cargo Asignado</TableHead>
+                    <TableHead className="font-extrabold text-slate-800 text-xs text-center">Periodo Lectivo</TableHead>
+                    <TableHead className="font-extrabold text-slate-800 text-xs pr-6 text-right">Acciones</TableHead>
                   </TableRow>
-                ) : (
+                </TableHeader>
+                <TableBody>
+                  {localMembers.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="p-8 text-center text-xs text-slate-400 font-semibold">
+                        No hay integrantes registrados en el Gobierno Escolar.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
                   localMembers.map((member) => (
                     <TableRow key={member.id} className="hover:bg-slate-50/50 transition-colors">
                       <TableCell className="font-black text-slate-950 text-sm pl-6">{member.body_type}</TableCell>
@@ -633,6 +651,7 @@ export function PeiSchoolGovernment({
             </Table>
           </CardContent>
         </Card>
+        </div>
       )}
 
       {/* --- SUBTAB: CONVOCATORIAS --- */}
@@ -674,7 +693,7 @@ export function PeiSchoolGovernment({
                 {localConvs.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={6} className="p-8 text-center text-xs text-slate-400 font-semibold">
-                      No se registran convocatorias emitidas.
+                      No hay convocatorias registradas.
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -767,7 +786,7 @@ export function PeiSchoolGovernment({
                 {localMeetings.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={5} className="p-8 text-center text-xs text-slate-400 font-semibold">
-                      No se registran reuniones culminadas.
+                      No hay reuniones registradas.
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -859,7 +878,7 @@ export function PeiSchoolGovernment({
                 {localActas.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={5} className="p-8 text-center text-xs text-slate-400 font-semibold">
-                      No se registran actas archivadas.
+                      No hay actas registradas.
                     </TableCell>
                   </TableRow>
                 ) : (
