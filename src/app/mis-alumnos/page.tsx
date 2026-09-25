@@ -37,18 +37,9 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-// Teacher's subject assignment mapping (for premium realism)
-const SUBJECT_MAPPING: Record<string, string> = {
-  's-101': 'Matemáticas',
-  's-102': 'Matemáticas',
-  's-103': 'Matemáticas',
-  's-104': 'Matemáticas',
-  's-105': 'Matemáticas',
-  's-106': 'Matemáticas',
-  's-107': 'Matemáticas',
-  's-108': 'Matemáticas',
-  's-109': 'Matemáticas',
-  's-110': 'Matemáticas',
+// Helper to resolve student subject assignment
+const getStudentSubject = (student: StudentMockData | null): string => {
+  return (student as any)?.subject || 'General';
 };
 
 // Available communication templates
@@ -110,13 +101,13 @@ export default function MisAlumnosPage() {
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'info' } | null>(null);
 
   // List of unique courses for filters
-  const coursesList = ['Todos', ...Array.from(new Set(students.map((s) => s.group)))];
-  const subjectsList = ['Todas', 'Matemáticas'];
+  const coursesList = ['Todos', ...Array.from(new Set(students.map((s) => s.group).filter(Boolean)))];
+  const subjectsList = ['Todas', ...Array.from(new Set(students.map((s) => (s as any).subject).filter(Boolean)))];
 
   // Handle auto-generated text updates when dialog values change
   useEffect(() => {
     if (commsStudent) {
-      const subject = SUBJECT_MAPPING[commsStudent.id] || 'Matemáticas';
+      const subject = getStudentSubject(commsStudent);
       const text = TEMPLATES[selectedTemplate].generate(
         commsStudent.name,
         commsStudent.guardianName || 'Acudiente',
@@ -150,7 +141,7 @@ export default function MisAlumnosPage() {
     const matchesSearch = s.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           (s.document && s.document.includes(searchTerm));
     const matchesCourse = selectedCourse === 'Todos' || s.group === selectedCourse;
-    const matchesSubject = selectedSubject === 'Todas' || (SUBJECT_MAPPING[s.id]) === selectedSubject;
+    const matchesSubject = selectedSubject === 'Todas' || getStudentSubject(s) === selectedSubject;
     const matchesRisk = selectedRisk === 'Todos' || 
                         (selectedRisk === 'Alto' && s.academicRisk === 'Alto') ||
                         (selectedRisk === 'Medio' && s.academicRisk === 'Medio') ||
@@ -158,11 +149,13 @@ export default function MisAlumnosPage() {
     return matchesSearch && matchesCourse && matchesSubject && matchesRisk;
   });
 
-  // Dynamic KPI calculations based on current assignments
-  const totalStudentsKPI = 132; // Standard KPI requested
-  const riskAcademicKPI = students.filter(s => s.academicRisk === 'Alto').length + 3; // Standard KPI requested (8)
-  const lowAttendanceKPI = students.filter(s => (s.attendanceRate || 100) < 86).length + 2; // Standard KPI requested (5)
-  const averageGpaKPI = 4.1; // Standard KPI requested (4.1)
+  // Dynamic KPI calculations based on real student data
+  const totalStudentsKPI = students.length;
+  const riskAcademicKPI = students.filter(s => s.academicRisk === 'Alto').length;
+  const lowAttendanceKPI = students.filter(s => typeof s.attendanceRate === 'number' && s.attendanceRate < 85).length;
+  const averageGpaKPI = students.length > 0
+    ? (students.reduce((acc, s) => acc + (s.gpa || 0), 0) / students.length).toFixed(1)
+    : '—';
 
   // Traffic light helper for Apple-like premium design
   const getTrafficLight = (student: StudentMockData) => {
@@ -198,14 +191,23 @@ export default function MisAlumnosPage() {
     
     const textEncoded = encodeURIComponent(customizedText);
     if (commsChannel === 'whatsapp') {
-      const mockPhone = '573004567890'; // Simulated guardian phone
-      window.open(`https://wa.me/${mockPhone}?text=${textEncoded}`, '_blank');
+      const phone = commsStudent.guardianPhone || '';
+      if (!phone) {
+        showToast('El acudiente no tiene teléfono registrado', 'info');
+        setCommsStudent(null);
+        return;
+      }
+      window.open(`https://wa.me/${phone.replace(/[^0-9]/g, '')}?text=${textEncoded}`, '_blank');
       showToast(`WhatsApp abierto para acudiente de ${commsStudent.name}`, 'success');
     } else {
-      const guardianNameStr = commsStudent.guardianName || 'Acudiente';
-      const mockEmail = `${guardianNameStr.toLowerCase().replace(' ', '.')}@mail.com`;
+      const guardianEmail = (commsStudent as any).guardianEmail || (commsStudent as any).email || '';
+      if (!guardianEmail) {
+        showToast('El acudiente no tiene correo registrado', 'info');
+        setCommsStudent(null);
+        return;
+      }
       const subjectEncoded = encodeURIComponent(`AulaCore - Seguimiento Académico de ${commsStudent.name}`);
-      window.open(`mailto:${mockEmail}?subject=${subjectEncoded}&body=${textEncoded}`, '_blank');
+      window.open(`mailto:${guardianEmail}?subject=${subjectEncoded}&body=${textEncoded}`, '_blank');
       showToast(`Cliente de correo abierto para acudiente de ${commsStudent.name}`, 'success');
     }
     setCommsStudent(null);
@@ -389,7 +391,15 @@ export default function MisAlumnosPage() {
             <CardContent className="p-4.5 flex items-center justify-between">
               <div>
                 <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Promedio General</p>
-                <h3 className="text-2xl font-black text-emerald-600 mt-1">{averageGpaKPI} <span className="text-xs font-normal text-slate-400">/ 5.0</span></h3>
+                <h3 className="text-2xl font-black text-emerald-600 mt-1">
+                  {students.length > 0 ? (
+                    <>
+                      {averageGpaKPI} <span className="text-xs font-normal text-slate-400">/ 5.0</span>
+                    </>
+                  ) : (
+                    <span className="text-slate-400 text-xl font-bold">—</span>
+                  )}
+                </h3>
               </div>
               <div className="p-3 bg-emerald-50 text-emerald-500 rounded-xl">
                 <GraduationCap className="w-5 h-5" />
@@ -404,7 +414,7 @@ export default function MisAlumnosPage() {
             {filteredStudents.length > 0 ? (
               filteredStudents.map((student) => {
                 const styles = getTrafficLight(student);
-                const subject = SUBJECT_MAPPING[student.id];
+                const subject = getStudentSubject(student);
 
                 return (
                   <Card
@@ -554,6 +564,16 @@ export default function MisAlumnosPage() {
                   </Card>
                 );
               })
+            ) : students.length === 0 ? (
+              <div className="col-span-full py-16 flex flex-col items-center justify-center text-center bg-white rounded-2xl border border-slate-200 p-8 shadow-xs">
+                <div className="w-16 h-16 rounded-2xl bg-indigo-50/70 border border-indigo-100/60 flex items-center justify-center text-indigo-500 mb-4 shadow-inner">
+                  <Users className="w-8 h-8" />
+                </div>
+                <h3 className="font-extrabold text-slate-800 text-lg">No hay estudiantes matriculados</h3>
+                <p className="text-slate-500 text-sm mt-1.5 max-w-md font-medium">
+                  Actualmente no se registran estudiantes matriculados en la institución. Una vez se vinculen alumnos, aparecerán en este directorio.
+                </p>
+              </div>
             ) : (
               <div className="col-span-full py-12 flex flex-col items-center justify-center text-center">
                 <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 mb-3">
@@ -583,7 +603,7 @@ export default function MisAlumnosPage() {
                   {filteredStudents.length > 0 ? (
                     filteredStudents.map((student) => {
                       const styles = getTrafficLight(student);
-                      const subject = SUBJECT_MAPPING[student.id];
+                      const subject = getStudentSubject(student);
                       return (
                         <tr key={student.id} className="hover:bg-slate-50/50 transition-colors group">
                           <td className="py-3 px-4.5 flex items-center gap-3">
@@ -695,6 +715,18 @@ export default function MisAlumnosPage() {
                         </tr>
                       );
                     })
+                  ) : students.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="py-16 text-center">
+                        <div className="w-16 h-16 rounded-2xl bg-indigo-50/70 border border-indigo-100/60 flex items-center justify-center text-indigo-500 mx-auto mb-4 shadow-inner">
+                          <Users className="w-8 h-8" />
+                        </div>
+                        <h3 className="font-extrabold text-slate-800 text-lg">No hay estudiantes matriculados</h3>
+                        <p className="text-slate-500 text-sm mt-1.5 max-w-md mx-auto font-medium">
+                          Actualmente no se registran estudiantes matriculados en la institución. Una vez se vinculen alumnos, aparecerán en este directorio.
+                        </p>
+                      </td>
+                    </tr>
                   ) : (
                     <tr>
                       <td colSpan={7} className="py-12 text-center">
@@ -721,16 +753,18 @@ export default function MisAlumnosPage() {
               </div>
               <div>
                 <p className="text-xs font-black text-blue-900 tracking-wide uppercase">Insights del Roster IA</p>
-                <div className="flex flex-col gap-1 mt-1 text-slate-600 text-xs font-semibold leading-relaxed">
-                  <div className="flex items-center gap-1.5 text-slate-700">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                    <span>Sofía Ramírez mejoró 12% su rendimiento en las últimas tres semanas.</span>
+                {students.length > 0 ? (
+                  <div className="flex flex-col gap-1 mt-1 text-slate-600 text-xs font-semibold leading-relaxed">
+                    <div className="flex items-center gap-1.5 text-slate-700">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                      <span>Diagnósticos y alertas tempranas actualizados según rendimiento del periodo.</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1.5 text-slate-700">
-                    <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
-                    <span>Andrés Gómez presenta caída académica y tres ausencias consecutivas en Matemáticas.</span>
-                  </div>
-                </div>
+                ) : (
+                  <p className="text-xs font-medium text-slate-500 mt-1">
+                    No se registran diagnósticos o alertas tempranas activas. El motor predictivo analizará automáticamente la información cuando se vinculen estudiantes y notas.
+                  </p>
+                )}
               </div>
             </div>
             
@@ -739,7 +773,13 @@ export default function MisAlumnosPage() {
                 variant="ghost" 
                 size="sm" 
                 className="h-8 text-xs font-bold text-blue-600 hover:bg-blue-100/50 flex items-center gap-1 rounded-lg"
-                onClick={() => showToast('Analizando nuevos reportes predictivos en AulaCore...', 'info')}
+                onClick={() => {
+                  if (students.length === 0) {
+                    showToast('No hay estudiantes registrados para generar diagnósticos', 'info');
+                  } else {
+                    showToast('Analizando nuevos reportes predictivos en AulaCore...', 'info');
+                  }
+                }}
               >
                 Actualizar Diagnóstico <ChevronRight className="w-3.5 h-3.5" />
               </Button>
