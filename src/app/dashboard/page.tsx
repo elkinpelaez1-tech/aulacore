@@ -53,15 +53,6 @@ import {
   Printer
 } from 'lucide-react';
 import { useRole } from '@/providers/role-provider';
-import {
-  MOCK_STUDENTS,
-  MOCK_ALERTS,
-  MOCK_BEHAVIOR,
-  MOCK_GRADES,
-  MOCK_TEACHERS,
-  MOCK_COURSES,
-} from '@/services/mock-data';
-
 import { Student, Alert, BehaviorRecord, GradeRecord } from '@/types';
 import { cn } from '@/lib/utils';
 import Student360 from '@/components/dashboard/Student360';
@@ -166,8 +157,8 @@ export default function DashboardPage() {
     e.preventDefault();
     if (!newObsDesc.trim()) return;
 
-    const MOCK_STUDENTS: any[] = [];
-    const studentObj = MOCK_STUDENTS.find(s => s.id === newObsStudentId);
+    const studentsList: any[] = [];
+    const studentObj = studentsList.find(s => s.id === newObsStudentId);
     const newRecord: BehaviorRecord = {
       id: `beh-${Date.now()}`,
       studentId: newObsStudentId,
@@ -417,7 +408,7 @@ export default function DashboardPage() {
 
   const runIaDiagnosis = () => {
     setIaProcessing(false);
-    setIaReport('Análisis predictivo de IA finalizado. Diagnóstico: 1 estudiante con riesgo crítico de deserción escolar (Juan García - 10-A) debido a ausencias acumuladas (88.2% de asistencia) y notas reprobadas en Matemáticas. Recomendación: Iniciar plan de tutoría pedagógica y contactar a acudiente (Mateo García).');
+    setIaReport('Sin diagnósticos disponibles. El motor de análisis predictivo no detectó alertas críticas de deserción o la institución aún no cuenta con suficientes registros académicos consolidados.');
   };
 
   // --- RENDERIZACIÓN DE DASHBOARDS ESPECÍFICOS POR ROL ---
@@ -828,52 +819,27 @@ export default function DashboardPage() {
               {/* COLUMNA OPERATIVA DERECHA (lg:col-span-1) */}
               <div className="lg:col-span-1 space-y-6">
 
-                {/* 1. STUDENT 365 SPOTLIGHT */}
+                {/* 1. STUDENT 360 SPOTLIGHT */}
                 <Card className="border-slate-200 shadow-sm overflow-hidden bg-gradient-to-b from-slate-900 to-slate-950 text-white rounded-2xl">
                   <CardHeader className="bg-slate-955/80 px-6 py-4 flex flex-row items-center gap-3 border-b border-slate-800/60">
-                    <Award className="w-6 h-6 text-yellow-400 animate-bounce" />
+                    <Award className="w-6 h-6 text-yellow-400" />
                     <div>
                       <CardTitle className="text-base font-extrabold text-white">Student 360° Spotlight</CardTitle>
-                      <p className="text-xs text-slate-400 font-medium">Perfil académico estrella de la semana</p>
+                      <p className="text-xs text-slate-400 font-medium">Perfil académico destacado del periodo</p>
                     </div>
                   </CardHeader>
-                  <CardContent className="p-6 text-center space-y-4">
-                    <div className="relative inline-block">
-                      <img
-                        src={MOCK_STUDENTS[0].avatar}
-                        alt={MOCK_STUDENTS[0].name}
-                        className="w-20 h-20 rounded-full border-4 border-indigo-500/20 object-cover mx-auto"
-                      />
-                      <span className="absolute bottom-0 right-0 w-5 h-5 bg-emerald-500 text-white text-xs rounded-full flex items-center justify-center font-bold shadow-md">✓</span>
+                  <CardContent className="p-8 text-center space-y-3">
+                    <div className="w-12 h-12 bg-slate-800 rounded-full flex items-center justify-center mx-auto text-slate-400">
+                      <Award className="w-6 h-6" />
                     </div>
-
-                    <div>
-                      <h4 className="text-2xl font-extrabold text-white leading-snug">{MOCK_STUDENTS[0].name}</h4>
-                      <p className="text-sm text-slate-350 mt-1 font-semibold">Grado {MOCK_STUDENTS[0].grade} | Promedio general {MOCK_STUDENTS[0].gpa}</p>
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-2 py-2 border-y border-slate-800/80">
-                      <div>
-                        <span className="text-xs text-slate-400 font-extrabold uppercase tracking-wider block">Asistencia</span>
-                        <span className="text-base font-black text-slate-200">{MOCK_STUDENTS[0].attendanceRate}%</span>
-                      </div>
-                      <div>
-                        <span className="text-xs text-slate-400 font-extrabold uppercase tracking-wider block">Conducta</span>
-                        <span className="text-base font-black text-slate-200">10/10</span>
-                      </div>
-                      <div>
-                        <span className="text-xs text-slate-400 font-extrabold uppercase tracking-wider block">Riesgo</span>
-                        <span className="text-sm font-black text-emerald-400 block mt-0.5">Mínimo</span>
-                      </div>
-                    </div>
-
-                    <p className="text-sm text-slate-200 leading-relaxed italic bg-slate-900/60 p-2.5 rounded-lg border border-slate-800 font-medium">
-                      "Excelente comportamiento y proactividad. Destacó como líder en el Foro Científico de AulaCore."
+                    <h4 className="text-base font-bold text-white">Sin estudiantes destacados</h4>
+                    <p className="text-xs text-slate-400 max-w-xs mx-auto leading-relaxed">
+                      El cuadro de honor se generará automáticamente tras la consolidación y cierre de calificaciones del periodo activo.
                     </p>
                   </CardContent>
                 </Card>
 
-                {/* 2. ALERTAS DE RIESGO ESCOLAR (ESTADIOS DE RIESGO IA) */}
+                {/* 2. ALERTAS DE RIESGO ESCOLAR */}
                 <Card className="border-slate-200 shadow-sm overflow-hidden bg-white rounded-2xl flex flex-col justify-between">
                   <CardHeader className="bg-gradient-to-r from-slate-50 to-slate-100/50 border-b border-slate-200 px-6 py-4 flex flex-row items-center justify-between">
                     <div>
@@ -887,65 +853,14 @@ export default function DashboardPage() {
                       IA Activa
                     </span>
                   </CardHeader>
-                  <CardContent className="p-6 flex-1 flex flex-col justify-between gap-4">
-                    {/* Tarjetas de Niveles de Riesgo */}
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="bg-red-50/60 border border-red-100 p-3 rounded-xl text-center space-y-0.5 hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 cursor-pointer">
-                        <span className="text-xs font-extrabold text-red-750 block uppercase tracking-widest">Crítico</span>
-                        <h4 className="text-3xl font-black text-red-655">2</h4>
-                        <span className="text-xs text-red-505 font-bold block leading-none">Intervenir ya</span>
-                      </div>
-                      <div className="bg-amber-50/60 border border-amber-100 p-3 rounded-xl text-center space-y-0.5 hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 cursor-pointer">
-                        <span className="text-xs font-extrabold text-amber-700 block uppercase tracking-widest">Alto</span>
-                        <h4 className="text-3xl font-black text-amber-600">4</h4>
-                        <span className="text-xs text-amber-550 font-bold block leading-none">En Observación</span>
-                      </div>
-                      <div className="bg-blue-50/60 border border-blue-100 p-3 rounded-xl text-center space-y-0.5 hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 cursor-pointer">
-                        <span className="text-xs font-extrabold text-blue-700 block uppercase tracking-widest">Medio</span>
-                        <h4 className="text-3xl font-black text-blue-600">12</h4>
-                        <span className="text-xs text-blue-555 font-bold block leading-none">Seguimiento</span>
-                      </div>
-                      <div className="bg-emerald-50/60 border border-emerald-100 p-3 rounded-xl text-center space-y-0.5 hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 cursor-pointer">
-                        <span className="text-xs font-extrabold text-emerald-700 block uppercase tracking-widest">Bajo</span>
-                        <h4 className="text-3xl font-black text-emerald-600">1,227</h4>
-                        <span className="text-xs text-emerald-550 font-bold block leading-none">Estable</span>
-                      </div>
+                  <CardContent className="p-8 text-center space-y-3 flex-1 flex flex-col items-center justify-center">
+                    <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center">
+                      <BrainCircuit className="w-6 h-6" />
                     </div>
-
-                    {/* Detalle Alumnos de Riesgo Crítico */}
-                    <div className="border border-slate-150 rounded-xl overflow-hidden">
-                      <Table>
-                        <TableHeader className="bg-slate-50/70">
-                          <TableRow>
-                            <TableHead className="font-extrabold text-slate-800 text-xs pl-3 py-2">Alumno</TableHead>
-                            <TableHead className="font-extrabold text-slate-800 text-xs py-2 text-center">GPA</TableHead>
-                            <TableHead className="font-extrabold text-slate-800 text-xs pr-3 py-2 text-right">Riesgo</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          <TableRow className="hover:bg-slate-50/50 transition-colors">
-                            <TableCell className="font-bold text-slate-955 text-sm pl-3 py-2 flex items-center gap-1.5">
-                              <img src={MOCK_STUDENTS[6].avatar} className="w-5 h-5 rounded-full object-cover" />
-                              {MOCK_STUDENTS[6].name}
-                            </TableCell>
-                            <TableCell className="text-sm font-extrabold text-red-700 text-center py-2">{MOCK_STUDENTS[6].gpa}</TableCell>
-                            <TableCell className="pr-3 py-2 text-right">
-                              <span className="text-xs bg-red-100 text-red-800 font-black px-1.5 py-0.5 rounded">Crítico</span>
-                            </TableCell>
-                          </TableRow>
-                          <TableRow className="hover:bg-slate-50/50 transition-colors">
-                            <TableCell className="font-bold text-slate-955 text-sm pl-3 py-2 flex items-center gap-1.5">
-                              <img src={MOCK_STUDENTS[1].avatar} className="w-5 h-5 rounded-full object-cover" />
-                              {MOCK_STUDENTS[1].name}
-                            </TableCell>
-                            <TableCell className="text-sm font-extrabold text-red-700 text-center py-2">{MOCK_STUDENTS[1].gpa}</TableCell>
-                            <TableCell className="pr-3 py-2 text-right">
-                              <span className="text-xs bg-red-100 text-red-800 font-black px-1.5 py-0.5 rounded">Crítico</span>
-                            </TableCell>
-                          </TableRow>
-                        </TableBody>
-                      </Table>
-                    </div>
+                    <h4 className="text-base font-bold text-slate-800">Sin alertas de riesgo activas</h4>
+                    <p className="text-xs text-slate-500 max-w-xs leading-relaxed">
+                      Las alertas tempranas y la clasificación de riesgo predictivo se activarán cuando se registren asistencias y notas del periodo escolar.
+                    </p>
                   </CardContent>
                 </Card>
 
@@ -953,55 +868,19 @@ export default function DashboardPage() {
                 <Card className="border-slate-200 shadow-sm overflow-hidden bg-white rounded-2xl">
                   <CardHeader className="bg-slate-50 border-b border-slate-200 px-5 py-3.5">
                     <CardTitle className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-red-600 animate-pulse" />
+                      <Clock className="w-4 h-4 text-red-600" />
                       Control de Ausentismo Crónico
                     </CardTitle>
                     <p className="text-xs text-slate-500">Monitoreo de estudiantes con asistencia inferior al 90%</p>
                   </CardHeader>
-                  <CardContent className="p-4 space-y-4">
-                    <div className="flex items-center gap-3 bg-red-50 border border-red-100 p-3 rounded-lg">
-                      <AlertTriangle className="w-5 h-5 text-red-655 flex-shrink-0" />
-                      <div>
-                        <span className="text-xs font-extrabold text-red-955 block leading-none">Riesgo General Escolar</span>
-                        <span className="text-xs text-red-755 font-medium">3.4% de la matrícula escolar en nivel crítico</span>
-                      </div>
+                  <CardContent className="p-8 text-center space-y-3">
+                    <div className="w-12 h-12 bg-slate-100 text-slate-500 rounded-full flex items-center justify-center mx-auto">
+                      <Clock className="w-6 h-6" />
                     </div>
-
-                    <div className="space-y-3">
-                      {/* Estudiante 1 */}
-                      <div className="p-3 bg-slate-50 rounded-xl border border-slate-150 space-y-2 hover:shadow-sm transition bg-white animate-fade-in">
-                        <div className="flex justify-between items-start">
-                          <div className="flex items-center gap-2">
-                            <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150" className="w-7 h-7 rounded-full object-cover ring-2 ring-red-100" />
-                            <div>
-                              <span className="text-xs font-bold text-slate-900 block leading-tight">Juan García</span>
-                              <span className="text-xs text-slate-500">Curso: 10-A | Acudiente: M. García</span>
-                            </div>
-                          </div>
-                          <span className="text-xs font-extrabold text-red-600 bg-red-50 px-2 py-0.5 rounded border border-red-100">88.2%</span>
-                        </div>
-                        <Button variant="outline" size="sm" className="w-full text-xs h-7 font-bold border-slate-200 hover:bg-red-50 hover:text-red-700 transition cursor-pointer">
-                          Notificar Acudiente
-                        </Button>
-                      </div>
-
-                      {/* Estudiante 2 */}
-                      <div className="p-3 bg-slate-50 rounded-xl border border-slate-150 space-y-2 hover:shadow-sm transition bg-white animate-fade-in">
-                        <div className="flex justify-between items-start">
-                          <div className="flex items-center gap-2">
-                            <div className="w-7 h-7 rounded-full bg-slate-200 flex items-center justify-center text-xs font-bold ring-2 ring-red-100">MD</div>
-                            <div>
-                              <span className="text-xs font-bold text-slate-900 block leading-tight">Mateo Díaz</span>
-                              <span className="text-xs text-slate-500">Curso: 11-B | Acudiente: J. Díaz</span>
-                            </div>
-                          </div>
-                          <span className="text-xs font-extrabold text-red-600 bg-red-50 px-2 py-0.5 rounded border border-red-100">45.0%</span>
-                        </div>
-                        <Button variant="outline" size="sm" className="w-full text-xs h-7 font-bold border-slate-200 hover:bg-red-50 hover:text-red-700 transition cursor-pointer">
-                          Notificar Acudiente
-                        </Button>
-                      </div>
-                    </div>
+                    <h4 className="text-sm font-bold text-slate-800">Sin casos de ausentismo crítico</h4>
+                    <p className="text-xs text-slate-500 max-w-xs mx-auto leading-relaxed">
+                      No se registran estudiantes con niveles de inasistencia por debajo del umbral institucional permitido.
+                    </p>
                   </CardContent>
                 </Card>
 
@@ -1014,90 +893,26 @@ export default function DashboardPage() {
                     </CardTitle>
                     <p className="text-xs text-slate-500">Calendario directivo y juntas escolares oficiales</p>
                   </CardHeader>
-                  <CardContent className="p-4">
-                    <div className="relative border-l-2 border-slate-200 pl-4 space-y-5 py-1.5 ml-2">
-                      {/* Evento 1 */}
-                      <div className="relative">
-                        <span className="absolute -left-[21px] top-1 w-2.5 h-2.5 rounded-full bg-purple-650 ring-4 ring-white animate-pulse" />
-                        <div className="space-y-1">
-                          <div className="flex justify-between items-center text-xs font-bold">
-                            <span className="text-purple-700 uppercase tracking-wider">Comité Convivencia</span>
-                            <span className="text-slate-450 flex items-center gap-1 font-semibold"><Clock className="w-3 h-3" /> 02:00 PM (Hoy)</span>
-                          </div>
-                          <h5 className="text-xs font-bold text-slate-900">Caso Disciplinario: Juan García</h5>
-                          <p className="text-xs text-slate-500 leading-snug">Revisión de inasistencias y anotaciones. Citación en Salón de Juntas Directivas.</p>
-                          <div className="text-xs text-slate-400 font-bold">Asistentes: Rector, Lic. Martínez, Coordinación, Acudiente.</div>
-                        </div>
-                      </div>
-
-                      {/* Evento 2 */}
-                      <div className="relative">
-                        <span className="absolute -left-[21px] top-1 w-2.5 h-2.5 rounded-full bg-blue-600 ring-4 ring-white" />
-                        <div className="space-y-1">
-                          <div className="flex justify-between items-center text-xs font-bold">
-                            <span className="text-blue-700 uppercase tracking-wider">Consejo Directivo</span>
-                            <span className="text-slate-455 flex items-center gap-1 font-semibold"><Clock className="w-3 h-3" /> 08:30 AM (Mañana)</span>
-                          </div>
-                          <h5 className="text-xs font-bold text-slate-900">Cierre Académico y Nivelaciones Periodo I</h5>
-                          <p className="text-xs text-slate-500 leading-snug">Aprobación del consolidado general de notas, análisis de deserción escolar.</p>
-                          <div className="text-xs text-slate-400 font-bold">Asistentes: Todos los Directores de Grupo, Rector, Secretaría.</div>
-                        </div>
-                      </div>
-
-                      {/* Evento 3 */}
-                      <div className="relative">
-                        <span className="absolute -left-[21px] top-1 w-2.5 h-2.5 rounded-full bg-amber-500 ring-4 ring-white" />
-                        <div className="space-y-1">
-                          <div className="flex justify-between items-center text-xs font-bold">
-                            <span className="text-amber-700 uppercase tracking-wider">Citación Acudiente</span>
-                            <span className="text-slate-455 flex items-center gap-1 font-semibold"><Clock className="w-3 h-3" /> 10:00 AM (26 Mayo)</span>
-                          </div>
-                          <h5 className="text-xs font-bold text-slate-900">Seguimiento Asistencia: Carlos Pérez</h5>
-                          <p className="text-xs text-slate-500 leading-snug">Revisión de alertas automatizadas del wearable RFID por fallas consecutivas.</p>
-                          <div className="text-xs text-slate-400 font-bold">Asistentes: Director de Grupo, Acudiente.</div>
-                        </div>
-                      </div>
+                  <CardContent className="p-8 text-center space-y-3">
+                    <div className="w-12 h-12 bg-slate-100 text-slate-500 rounded-full flex items-center justify-center mx-auto">
+                      <Calendar className="w-6 h-6" />
                     </div>
+                    <h4 className="text-sm font-bold text-slate-800">Sin reuniones ni comités programados</h4>
+                    <p className="text-xs text-slate-500 max-w-xs mx-auto leading-relaxed">
+                      La agenda institucional reflejará comités de convivencia, consejos directivos y citaciones oficiales que se agenden.
+                    </p>
                   </CardContent>
                 </Card>
 
                 {/* 5. DISTRIBUCIÓN POR RENDIMIENTO */}
-                <Card className="border-slate-200 shadow-sm p-5 space-y-4 bg-white rounded-2xl">
-                  <h4 className="font-bold text-slate-900 text-sm flex items-center gap-2">
-                    <BarChart3 className="w-4 h-4 text-blue-600" />
-                    Distribución de Calificaciones Académicas
-                  </h4>
-                  <div className="space-y-3">
-                    <div>
-                      <div className="flex justify-between text-xs font-semibold text-slate-655 mb-1">
-                        <span>Desempeño Superior (Promedio &gt; 9.0)</span>
-                        <span>42%</span>
-                      </div>
-                      <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                        <div className="bg-blue-600 h-full rounded-full" style={{ width: '42%' }}></div>
-                      </div>
-                    </div>
-
-                    <div>
-                      <div className="flex justify-between text-xs font-semibold text-slate-655 mb-1">
-                        <span>Desempeño Alto (7.0 - 8.9)</span>
-                        <span>48%</span>
-                      </div>
-                      <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                        <div className="bg-indigo-500 h-full rounded-full" style={{ width: '48%' }}></div>
-                      </div>
-                    </div>
-
-                    <div>
-                      <div className="flex justify-between text-xs font-semibold text-slate-655 mb-1">
-                        <span>Desempeño Básico / Bajo (&lt; 7.0)</span>
-                        <span>10%</span>
-                      </div>
-                      <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                        <div className="bg-red-500 h-full rounded-full" style={{ width: '10%' }}></div>
-                      </div>
-                    </div>
+                <Card className="border-slate-200 shadow-sm p-6 space-y-3 bg-white rounded-2xl text-center">
+                  <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto">
+                    <BarChart3 className="w-6 h-6" />
                   </div>
+                  <h4 className="font-bold text-slate-900 text-sm">Distribución de Calificaciones Académicas</h4>
+                  <p className="text-xs text-slate-500 max-w-xs mx-auto leading-relaxed">
+                    La distribución por escalas de desempeño aparecerá cuando los docentes consoliden las calificaciones del periodo.
+                  </p>
                 </Card>
 
               </div>
@@ -1110,75 +925,12 @@ export default function DashboardPage() {
           )}
 
           {rectorTab === 'audit_vault' && (() => {
-            const mockAuditTrail = [
-              { id: '1', doc: 'AC-VERIFY-777A', type: 'Boletín Académico', action: 'Generado & Firmado', actor: 'Patricia Martínez (Directora)', time: 'Hace 2 horas', status: 'signed' },
-              { id: '2', doc: 'AC-VERIFY-999C', type: 'Compromiso Académico', action: 'Firmado Digitalmente', actor: 'Carlos Ortiz (Acudiente)', time: 'Hace 3 horas', status: 'signed' },
-              { id: '3', doc: 'AC-VERIFY-888B', type: 'Citación Oficial', action: 'Enviado por Correo', actor: 'Patricia Martínez (Directora)', time: 'Ayer', status: 'emailed' },
-              { id: '4', doc: 'AC-VERIFY-777A', type: 'Boletín Académico', action: 'Impreso', actor: 'Carlos Ortiz (Acudiente)', time: 'Ayer', status: 'printed' },
-            ];
-
-            const mockDocsList = [
-              { code: 'AC-VERIFY-777A', type: 'academic_report', name: 'Boletín Académico', student: 'Alejandro Ortiz', course: '10-A', status: 'signed', date: '24/05/2026', actor: 'Lic. Martínez' },
-              { code: 'AC-VERIFY-888B', type: 'citations', name: 'Citación Oficial', student: 'Sofía Ramírez', course: '10-A', status: 'emailed', date: '24/05/2026', actor: 'Lic. Martínez' },
-              { code: 'AC-VERIFY-999C', type: 'academic_compromise', name: 'Compromiso Académico', student: 'Mateo Gómez', course: '10-A', status: 'signed', date: '23/05/2026', actor: 'Lic. Martínez' },
-            ];
+            const mockAuditTrail: any[] = [];
+            const mockDocsList: any[] = [];
 
             const handleVerifyByCode = (verifyCode: string) => {
-              let type: DocumentType = 'academic_report';
-              let sName = 'Alejandro Ortiz';
-              let cName = 'Grado Décimo A (10-A)';
-              let payload = {};
-
-              if (verifyCode.includes('999') || verifyCode.toLowerCase().includes('mateo')) {
-                type = 'academic_compromise';
-                sName = 'Mateo Gómez';
-                payload = {
-                  studentName: 'Mateo Gómez',
-                  courseName: 'Grado Décimo A (10-A)',
-                  academicYear: 2026,
-                  remedialSubject: 'Matemáticas & Ciencias Naturales',
-                  academicGpa: 6.5,
-                  failuresCount: 3,
-                  compromises: [
-                    'Asistir diariamente a las monitorías académicas los días martes y jueves en jornada de la tarde.',
-                    'Entregar bitácora de repaso firmada por el acudiente (Sara Gómez) en cada clase de Ciencias Naturales/Álgebra.',
-                    'Desarrollar el taller remedial práctico asignado por el Prof. Gómez con fecha límite del 12 de junio.'
-                  ],
-                  parentName: 'Sara Gómez'
-                };
-              } else if (verifyCode.includes('888') || verifyCode.toLowerCase().includes('sofía')) {
-                type = 'citations';
-                sName = 'Sofía Ramírez';
-                payload = {
-                  studentName: 'Sofía Ramírez',
-                  courseName: 'Grado Décimo A (10-A)',
-                  citationType: 'Comité Convivencial Disciplinario',
-                  dateTime: 'Bogotá D.C., 28 de Mayo de 2026, 09:30 AM',
-                  location: 'Sala de Juntas de Rectoría / Rector Ramón Ramírez',
-                  reason: 'Revisión conjunta de inasistencias RFID injustificadas acumuladas (Asistencia: 72.5%) y establecimiento del compromiso disciplinario.'
-                };
-              } else {
-                type = 'academic_report';
-                sName = 'Alejandro Ortiz';
-                payload = {
-                  studentName: 'Alejandro Ortiz',
-                  courseName: 'Grado Décimo A (10-A)',
-                  academicYear: 2026,
-                  generalGpa: 9.4,
-                  attendanceRate: 98.2,
-                  grades: [
-                    {subject: 'Matemáticas', exams: [4.2, 4.5], homeworks: [4.0, 4.6], participation: [5.0], finalGrade: 4.40},
-                    {subject: 'Ciencias Naturales', exams: [3.8, 4.0], homeworks: [3.5, 3.8], participation: [4.5], finalGrade: 3.85},
-                    {subject: 'Inglés', exams: [4.8, 5.0], homeworks: [4.8, 4.8], participation: [5.0], finalGrade: 4.86}
-                  ]
-                };
-              }
-
-              setDocEngineType(type);
-              setDocEngineStudentName(sName);
-              setDocEngineCourseName(cName);
-              setDocEngineMetadata(payload);
-              setIsDocEngineOpen(true);
+              if (!verifyCode.trim()) return;
+              alert(`No se encontró ningún documento con el código "${verifyCode}" en la bóveda de la institución activa.`);
             };
 
             return (
@@ -1205,7 +957,7 @@ export default function DashboardPage() {
                         className="w-full border border-slate-200 rounded-lg p-2.5 text-xs font-bold text-slate-850 uppercase tracking-widest bg-slate-50 focus:outline-none focus:ring-2 focus:ring-purple-200"
                       />
                       <Button
-                        onClick={() => handleVerifyByCode(searchVerifyCode || 'AC-VERIFY-777A')}
+                        onClick={() => handleVerifyByCode(searchVerifyCode)}
                         className="w-full bg-slate-900 hover:bg-slate-950 text-white font-black text-xs py-2 rounded-lg cursor-pointer transition shadow-inner"
                       >
                         Verificar Documento
@@ -1216,23 +968,13 @@ export default function DashboardPage() {
                   {/* KPIs */}
                   <Card className="border-slate-200 shadow-sm bg-white p-5 space-y-3 rounded-xl">
                     <h4 className="font-extrabold text-slate-900 text-sm border-b pb-2 flex items-center gap-1.5">
-                      <Sparkles className="w-4 h-4 text-yellow-500 animate-pulse" />
+                      <Sparkles className="w-4 h-4 text-yellow-500" />
                       Estadísticas de la Bóveda
                     </h4>
-                    <div className="space-y-3.5 pt-1.5">
-                      {[
-                        { label: 'Documentos Emitidos', val: '1,482', pct: '100%', color: 'text-slate-850' },
-                        { label: 'Firmas Criptográficas Activas', val: '1,424', pct: '96%', color: 'text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-150 shadow-xs' },
-                        { label: 'Auditorías Registradas', val: '4,892', pct: '100%', color: 'text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-150 shadow-xs' }
-                      ].map((kpi, idx) => (
-                        <div key={idx} className="flex justify-between items-center text-xs font-bold">
-                          <span className="text-slate-500">{kpi.label}</span>
-                          <div className="flex items-center gap-1.5">
-                            <span className={cn("font-black", kpi.color)}>{kpi.val}</span>
-                            <span className="text-[10px] text-slate-400">({kpi.pct})</span>
-                          </div>
-                        </div>
-                      ))}
+                    <div className="py-6 flex flex-col items-center justify-center text-center space-y-2">
+                      <FileCheck className="w-8 h-8 text-slate-300" />
+                      <p className="text-xs font-bold text-slate-700">Sin estadísticas registradas</p>
+                      <p className="text-[11px] text-slate-400">Los indicadores se consolidarán con la emisión de los primeros certificados o actas.</p>
                     </div>
                   </Card>
                 </div>
@@ -1246,7 +988,7 @@ export default function DashboardPage() {
                       <div>
                         <CardTitle className="text-sm font-black text-slate-900 flex items-center gap-2">
                           <FileCheck className="w-4 h-4 text-purple-750" />
-                          Registro Documental Reciente (Colegio Central)
+                          Registro Documental Reciente
                         </CardTitle>
                         <p className="text-xs text-slate-450 font-semibold">Trazabilidad oficial de boletines y actas emitidos</p>
                       </div>
@@ -1267,35 +1009,47 @@ export default function DashboardPage() {
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {mockDocsList.map((doc, idx) => (
-                            <TableRow key={idx} className="hover:bg-slate-50/50 transition-colors">
-                              <TableCell className="font-mono font-black text-slate-900 pl-5 text-xs">{doc.code}</TableCell>
-                              <TableCell className="font-bold text-slate-655 text-xs">{doc.name}</TableCell>
-                              <TableCell className="text-xs">
-                                <span className="font-black text-slate-850 block leading-tight">{doc.student}</span>
-                                <span className="text-[10px] text-slate-450 font-bold">Curso: {doc.course}</span>
-                              </TableCell>
-                              <TableCell className="text-center">
-                                <span className={cn(
-                                  "text-[9px] font-black px-2 py-0.5 rounded leading-none inline-block",
-                                  doc.status === 'signed' ? "bg-emerald-50 text-emerald-700 border border-emerald-150 animate-fade-in" : "bg-indigo-50 text-indigo-700 border border-indigo-150 animate-pulse"
-                                )}>
-                                  {doc.status === 'signed' ? 'Firmado' : 'Notificado'}
-                                </span>
-                              </TableCell>
-                              <TableCell className="text-center font-bold text-slate-450 text-[11px]">{doc.date}</TableCell>
-                              <TableCell className="pr-5 text-right">
-                                <Button
-                                  onClick={() => handleVerifyByCode(doc.code)}
-                                  size="sm"
-                                  variant="ghost"
-                                  className="h-7 text-[10px] font-black text-indigo-700 hover:text-indigo-850 hover:bg-slate-100 rounded-md cursor-pointer"
-                                >
-                                  Ver / Exportar
-                                </Button>
+                          {mockDocsList.length === 0 ? (
+                            <TableRow>
+                              <TableCell colSpan={6} className="text-center py-12 text-slate-500 font-medium">
+                                <div className="flex flex-col items-center gap-2">
+                                  <FileCheck className="w-8 h-8 text-slate-300" />
+                                  <p className="font-semibold text-slate-700 text-sm">Sin actas o certificados registrados</p>
+                                  <p className="text-xs text-slate-450">Los documentos oficiales emitidos con firma digital aparecerán en esta bitácora institucional.</p>
+                                </div>
                               </TableCell>
                             </TableRow>
-                          ))}
+                          ) : (
+                            mockDocsList.map((doc, idx) => (
+                              <TableRow key={idx} className="hover:bg-slate-50/50 transition-colors">
+                                <TableCell className="font-mono font-black text-slate-900 pl-5 text-xs">{doc.code}</TableCell>
+                                <TableCell className="font-bold text-slate-655 text-xs">{doc.name}</TableCell>
+                                <TableCell className="text-xs">
+                                  <span className="font-black text-slate-850 block leading-tight">{doc.student}</span>
+                                  <span className="text-[10px] text-slate-450 font-bold">Curso: {doc.course}</span>
+                                </TableCell>
+                                <TableCell className="text-center">
+                                  <span className={cn(
+                                    "text-[9px] font-black px-2 py-0.5 rounded leading-none inline-block",
+                                    doc.status === 'signed' ? "bg-emerald-50 text-emerald-700 border border-emerald-150 animate-fade-in" : "bg-indigo-50 text-indigo-700 border border-indigo-150 animate-pulse"
+                                  )}>
+                                    {doc.status === 'signed' ? 'Firmado' : 'Notificado'}
+                                  </span>
+                                </TableCell>
+                                <TableCell className="text-center font-bold text-slate-450 text-[11px]">{doc.date}</TableCell>
+                                <TableCell className="pr-5 text-right">
+                                  <Button
+                                    onClick={() => handleVerifyByCode(doc.code)}
+                                    size="sm"
+                                    variant="ghost"
+                                    className="h-7 text-[10px] font-black text-indigo-700 hover:text-indigo-850 hover:bg-slate-100 rounded-md cursor-pointer"
+                                  >
+                                    Ver / Exportar
+                                  </Button>
+                                </TableCell>
+                              </TableRow>
+                            ))
+                          )}
                         </TableBody>
                       </Table>
                     </CardContent>
@@ -1308,23 +1062,31 @@ export default function DashboardPage() {
                       Bitácora de Trazabilidad y Auditoría Ministerial (Logs)
                     </h4>
                     <div className="space-y-4">
-                      {mockAuditTrail.map((log) => (
-                        <div key={log.id} className="flex items-start gap-3 text-xs leading-relaxed">
-                          <div className={cn(
-                            "w-2.5 h-2.5 rounded-full mt-1 shrink-0",
-                            log.status === 'signed' ? "bg-emerald-500 animate-pulse" :
-                            log.status === 'printed' ? "bg-indigo-500 animate-pulse" : "bg-amber-500"
-                          )} />
-                          <div className="flex-1">
-                            <p className="font-semibold text-slate-700 leading-tight">
-                              <strong className="text-slate-950 font-black">{log.actor}</strong> realizó la acción de{' '}
-                              <span className="font-black text-indigo-700">{log.action}</span> sobre el documento{' '}
-                              <span className="font-mono text-slate-950 font-bold">{log.doc}</span> ({log.type}).
-                            </p>
-                            <span className="text-[10px] text-slate-400 font-bold block mt-0.5">{log.time}</span>
-                          </div>
+                      {mockAuditTrail.length === 0 ? (
+                        <div className="py-8 flex flex-col items-center justify-center text-center space-y-2">
+                          <Clock className="w-8 h-8 text-slate-300" />
+                          <p className="text-xs font-bold text-slate-700">Sin registros de auditoría disponibles</p>
+                          <p className="text-[11px] text-slate-400">La trazabilidad de firmas, envíos y descargas se registrará en tiempo real.</p>
                         </div>
-                      ))}
+                      ) : (
+                        mockAuditTrail.map((log) => (
+                          <div key={log.id} className="flex items-start gap-3 text-xs leading-relaxed">
+                            <div className={cn(
+                              "w-2.5 h-2.5 rounded-full mt-1 shrink-0",
+                              log.status === 'signed' ? "bg-emerald-500 animate-pulse" :
+                              log.status === 'printed' ? "bg-indigo-500 animate-pulse" : "bg-amber-500"
+                            )} />
+                            <div className="flex-1">
+                              <p className="font-semibold text-slate-700 leading-tight">
+                                <strong className="text-slate-950 font-black">{log.actor}</strong> realizó la acción de{' '}
+                                <span className="font-black text-indigo-700">{log.action}</span> sobre el documento{' '}
+                                <span className="font-mono text-slate-950 font-bold">{log.doc}</span> ({log.type}).
+                              </p>
+                              <span className="text-[10px] text-slate-400 font-bold block mt-0.5">{log.time}</span>
+                            </div>
+                          </div>
+                        ))
+                      )}
                     </div>
                   </Card>
 
