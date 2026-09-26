@@ -59,15 +59,12 @@ export function ConvivenciaAnalyticsTab() {
               <ShieldCheck className="w-5 h-5 text-teal-500" />
               <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Clima Institucional</span>
             </div>
-            <span className="text-[10px] font-extrabold text-teal-700 bg-teal-50 px-2 py-0.5 rounded-full border border-teal-100 flex items-center gap-1">
-              <TrendingUp className="w-3 h-3" /> +0.4% vs P3
-            </span>
           </div>
           <div>
             <div className="flex items-baseline gap-1.5">
-              <span className="text-4xl font-black text-slate-900 tracking-tight">96.8%</span>
+              <span className="text-3xl font-black text-slate-900 tracking-tight">--</span>
             </div>
-            <p className="text-xs font-semibold text-slate-400 mt-2">Nivel Óptimo de Convivencia</p>
+            <p className="text-xs font-semibold text-slate-400 mt-2">Sin novedades de convivencia registradas</p>
           </div>
         </div>
 
@@ -78,16 +75,13 @@ export function ConvivenciaAnalyticsTab() {
               <AlertCircle className="w-5 h-5 text-slate-400" />
               <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Reportes Activos</span>
             </div>
-            <span className="text-[10px] font-extrabold text-teal-700 bg-teal-50 px-2 py-0.5 rounded-full border border-teal-100">
-              -2 casos vs P3
-            </span>
           </div>
           <div>
             <div className="flex items-baseline gap-1.5">
-              <span className="text-4xl font-black text-slate-950 tracking-tight">4</span>
-              <span className="text-xs font-semibold text-slate-400">casos menores</span>
+              <span className="text-3xl font-black text-slate-900 tracking-tight">0</span>
+              <span className="text-xs font-semibold text-slate-400">casos</span>
             </div>
-            <p className="text-xs font-semibold text-slate-400 mt-2">Volumen de atención bajo</p>
+            <p className="text-xs font-semibold text-slate-400 mt-2">Sin reportes activos</p>
           </div>
         </div>
 
@@ -98,15 +92,12 @@ export function ConvivenciaAnalyticsTab() {
               <CheckCircle2 className="w-5 h-5 text-emerald-500" />
               <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Tasa de Mediación</span>
             </div>
-            <span className="text-[10px] font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
-              100% efectividad
-            </span>
           </div>
           <div>
             <div className="flex items-baseline gap-1.5">
-              <span className="text-4xl font-black text-teal-650 tracking-tight">100%</span>
+              <span className="text-3xl font-black text-slate-900 tracking-tight">--</span>
             </div>
-            <p className="text-xs font-semibold text-slate-400 mt-2">Acuerdos escolares restaurativos</p>
+            <p className="text-xs font-semibold text-slate-400 mt-2">Sin mediaciones registradas</p>
           </div>
         </div>
 
@@ -210,7 +201,7 @@ export function ConvivenciaAnalyticsTab() {
             </div>
             
             <p className="text-sm text-slate-600 font-normal leading-relaxed max-w-4xl">
-              El índice de clima escolar se mantiene en un óptimo <strong className="text-teal-900 font-bold">96.8%</strong>. El nivel de <strong className="text-slate-800 font-bold">Bachillerato</strong> registra un leve descenso debido a conflictos interpersonales en grado noveno, logrando mitigar al 100% el escalamiento mediante las mesas de diálogo oportuno. La tasa de resolución alternativa de conflictos consolida <strong className="text-emerald-700 font-semibold">100% de acuerdos firmados</strong> y en seguimiento activo.
+              Sin novedades de convivencia registradas. Los diagnósticos de clima escolar y acuerdos restaurativos se activarán al registrar reportes o seguimientos en el observador escolar.
             </p>
 
             <div className="flex flex-wrap items-center gap-3 pt-1">
@@ -272,47 +263,25 @@ export function ConvivenciaAnalyticsTab() {
             <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
               {activeModal === 'acuerdos' ? (
                 <div className="space-y-6">
-                  <div className="p-4 bg-teal-50/50 border border-teal-100 rounded-xl">
-                    <p className="text-xs text-teal-950 font-medium leading-relaxed">
-                      El Comité de Mediación Escolar ha registrado un <strong>100% de efectividad</strong> en las mesas de conciliación dialogada durante este periodo, firmando acuerdos de convivencia estables sin escalar incidentes a sanciones severas.
+                  <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl">
+                    <p className="text-xs text-slate-600 font-medium leading-relaxed">
+                      Compilación de actas conciliatorias y compromisos de convivencia formalizados en la institución.
                     </p>
                   </div>
 
-                  <div className="space-y-3">
-                    <h4 className="text-xs font-black text-slate-700 uppercase tracking-wider">Últimos Acuerdos Firmados (Grado 9º)</h4>
-                    <div className="border border-slate-100 rounded-xl overflow-hidden text-xs">
-                      <div className="bg-slate-50 border-b border-slate-100 px-4 py-2.5 grid grid-cols-4 font-black uppercase text-slate-500 text-[9px] tracking-wider">
-                        <span>Caso ID</span>
-                        <span>Grado</span>
-                        <span>Compromiso Principal</span>
-                        <span className="text-right">Estado</span>
-                      </div>
-                      <div className="divide-y divide-slate-100">
-                        <div className="px-4 py-3 grid grid-cols-4 font-semibold text-slate-600 items-center">
-                          <span className="text-slate-800 font-bold">#2026-042</span>
-                          <span>9-B</span>
-                          <span className="truncate">Restauración en grupo ...</span>
-                          <span className="text-right"><span className="text-[10px] font-black text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">Firmado</span></span>
-                        </div>
-                        <div className="px-4 py-3 grid grid-cols-4 font-semibold text-slate-600 items-center">
-                          <span className="text-slate-800 font-bold">#2026-039</span>
-                          <span>9-A</span>
-                          <span className="truncate">Mentoría de pares en r...</span>
-                          <span className="text-right"><span className="text-[10px] font-black text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md">Activo</span></span>
-                        </div>
-                        <div className="px-4 py-3 grid grid-cols-4 font-semibold text-slate-600 items-center">
-                          <span className="text-slate-800 font-bold">#2026-035</span>
-                          <span>8-B</span>
-                          <span className="truncate">Servicio social en bibli...</span>
-                          <span className="text-right"><span className="text-[10px] font-black text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">Firmado</span></span>
-                        </div>
-                      </div>
+                  <div className="py-12 flex flex-col items-center justify-center text-center p-6 border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
+                    <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-3">
+                      <MessageSquare className="w-6 h-6 text-slate-400" />
                     </div>
+                    <p className="text-xs font-bold text-slate-700">Sin acuerdos de mediación registrados</p>
+                    <p className="text-[11px] text-slate-400 mt-1 max-w-sm">
+                      Los acuerdos y compromisos formalizados en las mesas de conciliación aparecerán en este registro conforme se documenten en el sistema.
+                    </p>
                   </div>
 
                   <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl">
                     <p className="text-xs font-bold text-slate-800">Mecanismo de Seguimiento</p>
-                    <p className="text-[11px] text-slate-400 font-semibold mt-0.5">Cada acuerdo incluye tres sesiones de seguimiento con el psicólogo orientador de cada sección para asegurar el cumplimiento de las metas restaurativas individuales.</p>
+                    <p className="text-[11px] text-slate-400 font-semibold mt-0.5">Cada acuerdo incluye sesiones de seguimiento con el psicólogo orientador para verificar el cumplimiento de las metas restaurativas individuales.</p>
                   </div>
                 </div>
               ) : (
@@ -371,10 +340,7 @@ export function ConvivenciaAnalyticsTab() {
                       "La compilación de actas conciliatorias se ha descargado correctamente en formato CSV.",
                       () => {
                         const csvContent = "\uFEFF" + [
-                          ["Caso ID", "Grado", "Compromiso Principal", "Estado"],
-                          ["#2026-042", "9-B", "Restauracion en grupo - circulo restaurativo", "Firmado"],
-                          ["#2026-039", "9-A", "Mentoria de pares en resolucion de conflictos", "Activo"],
-                          ["#2026-035", "8-B", "Servicio social en biblioteca escolar", "Firmado"]
+                          ["Caso ID", "Grado", "Compromiso Principal", "Estado"]
                         ].map(row => row.map(cell => `"${cell}"`).join(",")).join("\n");
 
                         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });

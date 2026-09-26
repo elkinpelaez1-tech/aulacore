@@ -54,8 +54,6 @@ export function ReportsFilterBar() {
             className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm font-bold text-slate-700 bg-slate-50 outline-none hover:border-indigo-300 transition-colors cursor-pointer"
           >
             <option value="Todas">Sede: Todas</option>
-            <option value="Sede Principal">Sede Principal</option>
-            <option value="Sede Norte">Sede Norte</option>
           </select>
 
           <select 

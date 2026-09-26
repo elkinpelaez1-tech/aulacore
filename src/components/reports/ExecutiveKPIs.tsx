@@ -54,7 +54,7 @@ export function ExecutiveKPIs({ onNavigateTab }: ExecutiveKPIsProps) {
           <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Población Estudiantil</p>
           <div className="flex items-baseline gap-3">
             <p className="text-5xl font-black text-white leading-none">0</p>
-            <p className="text-sm font-bold text-emerald-400">+12% vs año ant.</p>
+            <p className="text-xs font-medium text-slate-400">Sin datos consolidados</p>
           </div>
         </div>
       </div>
@@ -200,7 +200,7 @@ export function ExecutiveKPIs({ onNavigateTab }: ExecutiveKPIsProps) {
                   ) : (
                     <>
                       <Bell className="w-3.5 h-3.5" />
-                      <span>Notificar a todos los docentes (4)</span>
+                      <span>Notificar a todos los docentes</span>
                     </>
                   )}
                 </button>

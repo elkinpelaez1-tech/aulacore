@@ -63,15 +63,12 @@ export function AsistenciaAnalyticsTab() {
               <UserCheck className="w-5 h-5 text-violet-500" />
               <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Asistencia Diaria</span>
             </div>
-            <span className="text-[10px] font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100 flex items-center gap-1">
-              <TrendingUp className="w-3 h-3" /> +1.2% vs ayer
-            </span>
           </div>
           <div>
             <div className="flex items-baseline gap-1.5">
-              <span className="text-4xl font-black text-slate-900 tracking-tight">94.2%</span>
+              <span className="text-4xl font-black text-slate-900 tracking-tight">--</span>
             </div>
-            <p className="text-xs font-semibold text-slate-400 mt-2">Flujo Institucional Normal</p>
+            <p className="text-xs font-semibold text-slate-400 mt-2">Sin registros de asistencia</p>
           </div>
         </div>
 
@@ -79,19 +76,16 @@ export function AsistenciaAnalyticsTab() {
         <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-[0_2px_4px_-1px_rgba(0,0,0,0.02)] flex flex-col justify-between hover:shadow-md transition-all duration-300">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2 text-slate-655">
-              <Radio className="w-5 h-5 text-slate-450 animate-pulse" />
+              <Radio className="w-5 h-5 text-slate-450" />
               <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Lecturas Exitosas</span>
             </div>
-            <span className="text-[10px] font-extrabold text-slate-600 bg-slate-50 px-2 py-0.5 rounded-full border border-slate-100">
-              Jornada Activa
-            </span>
           </div>
           <div>
             <div className="flex items-baseline gap-1.5">
-              <span className="text-4xl font-black text-slate-950 tracking-tight">1,318</span>
-              <span className="text-xs font-semibold text-slate-400">/ 1,400 alumnos</span>
+              <span className="text-4xl font-black text-slate-950 tracking-tight">0</span>
+              <span className="text-xs font-semibold text-slate-400">lecturas</span>
             </div>
-            <p className="text-xs font-semibold text-slate-400 mt-2">Telemetría RFID en porterías</p>
+            <p className="text-xs font-semibold text-slate-400 mt-2">Sin telemetría RFID activa</p>
           </div>
         </div>
 
@@ -102,16 +96,13 @@ export function AsistenciaAnalyticsTab() {
               <Bell className="w-5 h-5 text-amber-500" />
               <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Notificaciones SMS/WA</span>
             </div>
-            <span className="text-[10px] font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
-              Enviados
-            </span>
           </div>
           <div>
             <div className="flex items-baseline gap-1.5">
-              <span className="text-4xl font-black text-slate-900 tracking-tight">82</span>
+              <span className="text-4xl font-black text-slate-900 tracking-tight">0</span>
               <span className="text-xs font-semibold text-slate-400">alertas de ausencia</span>
             </div>
-            <p className="text-xs font-semibold text-slate-400 mt-2">Notificaciones directas a acudientes</p>
+            <p className="text-xs font-semibold text-slate-400 mt-2">Sin alertas de inasistencia despachadas</p>
           </div>
         </div>
 
@@ -208,25 +199,33 @@ export function AsistenciaAnalyticsTab() {
             </div>
             <p className="text-xs font-semibold text-slate-500 mb-6">Estado operacional en tiempo real de receptores de telemetría escolar.</p>
 
-            <div className="space-y-4">
-              {systemAntennas.map((antenna, i) => (
-                <div key={i} className="flex items-start gap-3 p-3.5 bg-slate-50 border border-slate-100 rounded-xl hover:bg-slate-100/50 transition-all duration-300">
-                  <div className="relative flex h-2.5 w-2.5 mt-1">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-                  </div>
-                  <div className="space-y-0.5">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-slate-800">{antenna.name}</span>
-                      <span className="text-[9px] font-black uppercase text-emerald-700 bg-emerald-50 border border-emerald-100 px-1.5 py-0.2 rounded-md">
-                        {antenna.status}
-                      </span>
+            {systemAntennas.length === 0 ? (
+              <div className="py-10 flex flex-col items-center justify-center text-center p-4 border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
+                <Cpu className="w-8 h-8 text-slate-300 mb-2" />
+                <p className="text-xs font-bold text-slate-600">Sin antenas o dispositivos vinculados</p>
+                <p className="text-[10px] text-slate-400 mt-0.5">Configure receptores RFID en el módulo de infraestructura.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {systemAntennas.map((antenna, i) => (
+                  <div key={i} className="flex items-start gap-3 p-3.5 bg-slate-50 border border-slate-100 rounded-xl hover:bg-slate-100/50 transition-all duration-300">
+                    <div className="relative flex h-2.5 w-2.5 mt-1">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
                     </div>
-                    <p className="text-[10px] font-semibold text-slate-400">{antenna.desc}</p>
+                    <div className="space-y-0.5">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-slate-800">{antenna.name}</span>
+                        <span className="text-[9px] font-black uppercase text-emerald-700 bg-emerald-50 border border-emerald-100 px-1.5 py-0.2 rounded-md">
+                          {antenna.status}
+                        </span>
+                      </div>
+                      <p className="text-[10px] font-semibold text-slate-400">{antenna.desc}</p>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
@@ -253,7 +252,7 @@ export function AsistenciaAnalyticsTab() {
             </div>
             
             <p className="text-sm text-slate-600 font-normal leading-relaxed max-w-4xl">
-              La jornada mañana consolidó un excelente <strong className="text-violet-900 font-bold">96.2% de puntualidad</strong>. No obstante, se detectan retrasos recurrentes en el ciclo de <strong className="text-slate-800 font-bold">Bachillerato</strong> durante el ingreso comprendido entre las 6:30 y 6:45 AM, afectando el promedio general de este nivel (91.2%). El sistema RFID ha notificado en tiempo real a los acudientes ausentes, logrando mitigar el ausentismo no justificado en un <strong className="text-emerald-600 font-semibold">84%</strong> respecto a la semana anterior.
+              Sin telemetría RFID activa. Los análisis de puntualidad y flujo de asistencia se generarán automáticamente conforme se registren accesos en porterías.
             </p>
 
             <div className="flex flex-wrap items-center gap-3 pt-1">
@@ -315,109 +314,38 @@ export function AsistenciaAnalyticsTab() {
             <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
               {activeModal === 'horas' ? (
                 <div className="space-y-6">
-                  <div className="p-4 bg-violet-50/50 border border-violet-100 rounded-xl">
-                    <p className="text-xs text-violet-950 font-medium leading-relaxed">
-                      El sistema de telemetría de porterías ha registrado el pico de ingreso más denso entre las <strong>6:35 AM</strong> y las <strong>6:48 AM</strong>, procesando un promedio de <strong>42 lecturas RFID por minuto</strong>.
+                  <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl">
+                    <p className="text-xs text-slate-600 font-medium leading-relaxed">
+                      Telemetría de ingreso en porterías institucionales y flujo peatonal por intervalos de tiempo.
                     </p>
                   </div>
 
-                  <div className="space-y-3">
-                    <h4 className="text-xs font-black text-slate-700 uppercase tracking-wider">Distribución de Flujo por Intervalo (Ingreso Mañana)</h4>
-                    <div className="space-y-2.5">
-                      <div className="space-y-1">
-                        <div className="flex justify-between text-xs font-bold text-slate-750">
-                          <span>6:00 AM - 6:20 AM (Temprano)</span>
-                          <span>180 alumnos (13%)</span>
-                        </div>
-                        <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                          <div className="h-full bg-violet-400" style={{ width: '13%' }}></div>
-                        </div>
-                      </div>
-                      <div className="space-y-1 border-t border-slate-100 pt-2.5">
-                        <div className="flex justify-between text-xs font-bold text-slate-750">
-                          <span>6:20 AM - 6:35 AM (Fluido)</span>
-                          <span>340 alumnos (24%)</span>
-                        </div>
-                        <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                          <div className="h-full bg-violet-500" style={{ width: '24%' }}></div>
-                        </div>
-                      </div>
-                      <div className="space-y-1 border-t border-slate-100 pt-2.5">
-                        <div className="flex justify-between text-xs font-bold text-rose-650">
-                          <span>6:35 AM - 6:48 AM (Pico Crítico)</span>
-                          <span>680 alumnos (49%)</span>
-                        </div>
-                        <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                          <div className="h-full bg-violet-650" style={{ width: '49%' }}></div>
-                        </div>
-                      </div>
-                      <div className="space-y-1 border-t border-slate-100 pt-2.5">
-                        <div className="flex justify-between text-xs font-bold text-slate-750">
-                          <span>6:48 AM - 7:00 AM (Tardío)</span>
-                          <span>198 alumnos (14%)</span>
-                        </div>
-                        <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                          <div className="h-full bg-violet-400" style={{ width: '14%' }}></div>
-                        </div>
-                      </div>
+                  <div className="py-12 flex flex-col items-center justify-center text-center p-6 border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
+                    <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-3">
+                      <Clock className="w-6 h-6 text-slate-400" />
                     </div>
-                  </div>
-
-                  <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl">
-                    <h5 className="text-xs font-bold text-slate-800 mb-1">Recomendación Estratégica</h5>
-                    <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
-                      Sugerimos habilitar el carril peatonal número 3 de forma exclusiva para el nivel de Bachillerato durante el pico crítico de 6:35 AM para aliviar la congestión.
+                    <p className="text-xs font-bold text-slate-700">Sin lecturas de ingreso registradas</p>
+                    <p className="text-[11px] text-slate-400 mt-1 max-w-sm">
+                      Los intervalos de tráfico y horas pico se calcularán automáticamente cuando los dispositivos RFID transmitan lecturas en portería.
                     </p>
                   </div>
                 </div>
               ) : (
                 <div className="space-y-6">
-                  <div className="p-4 bg-emerald-50/50 border border-emerald-100 rounded-xl">
-                    <p className="text-xs text-emerald-950 font-medium leading-relaxed">
-                      AulaCore envía notificaciones instantáneas de inasistencia a las <strong>7:15 AM</strong> a través de integraciones seguras con WhatsApp y SMS. La tasa de confirmación de lectura por acudientes es del <strong>91.4%</strong>.
+                  <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl">
+                    <p className="text-xs text-slate-600 font-medium leading-relaxed">
+                      Bitácora automatizada de alertas enviadas a acudientes por inasistencia o retraso escolar.
                     </p>
                   </div>
 
-                  <div className="space-y-3">
-                    <h4 className="text-xs font-black text-slate-700 uppercase tracking-wider">Bitácora Reciente de Notificaciones (Hoy)</h4>
-                    <div className="border border-slate-100 rounded-xl overflow-hidden text-xs">
-                      <div className="bg-slate-50 border-b border-slate-100 px-4 py-2.5 grid grid-cols-4 font-black uppercase text-slate-500 text-[9px] tracking-wider">
-                        <span>Estudiante</span>
-                        <span>Grado</span>
-                        <span>Acudiente / Celular</span>
-                        <span className="text-right">Canal / Estado</span>
-                      </div>
-                      <div className="divide-y divide-slate-100">
-                        <div className="px-4 py-3 grid grid-cols-4 font-semibold text-slate-600 items-center">
-                          <span className="text-slate-800 font-bold">Mateo Rivera</span>
-                          <span>9-B</span>
-                          <span className="truncate">Camilo R. (300...)</span>
-                          <span className="text-right text-emerald-650 font-black">WA / Entregado</span>
-                        </div>
-                        <div className="px-4 py-3 grid grid-cols-4 font-semibold text-slate-600 items-center">
-                          <span className="text-slate-800 font-bold">Valeria Ortiz</span>
-                          <span>9-B</span>
-                          <span className="truncate">Elena O. (312...)</span>
-                          <span className="text-right text-emerald-650 font-black">WA / Leído</span>
-                        </div>
-                        <div className="px-4 py-3 grid grid-cols-4 font-semibold text-slate-600 items-center">
-                          <span className="text-slate-800 font-bold">Sebastián Díaz</span>
-                          <span>11-A</span>
-                          <span className="truncate">Pedro D. (315...)</span>
-                          <span className="text-right text-amber-600 font-black">SMS / Reintentando</span>
-                        </div>
-                      </div>
+                  <div className="py-12 flex flex-col items-center justify-center text-center p-6 border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
+                    <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-3">
+                      <Bell className="w-6 h-6 text-slate-400" />
                     </div>
-                  </div>
-
-                  <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-between">
-                    <div>
-                      <p className="text-xs font-bold text-slate-800">Total Alertas Emitidas Hoy</p>
-                      <p className="text-[10px] text-slate-400 font-semibold mt-0.5">82 mensajes programados y despachados exitosamente.</p>
-                    </div>
-                    <span className="text-[10px] font-black text-violet-750 bg-violet-50 border border-violet-100 px-2.5 py-1 rounded-lg">
-                      100% Procesadas
-                    </span>
+                    <p className="text-xs font-bold text-slate-700">Sin notificaciones despachadas</p>
+                    <p className="text-[11px] text-slate-400 mt-1 max-w-sm">
+                      No se registran alertas de inasistencia emitidas en la jornada actual.
+                    </p>
                   </div>
                 </div>
               )}
@@ -436,27 +364,21 @@ export function AsistenciaAnalyticsTab() {
                 onClick={() => {
                   if (activeModal === 'horas') {
                     handleExecuteAction(
-                      "¡Puertas Optimizadas!",
-                      "Se reconfiguró el carril peatonal 3 para flujo preferente de Bachillerato.",
+                      "¡Log Descargado!",
+                      "El registro de telemetría de porterías se ha descargado correctamente.",
                       () => {
                         const txtContent = `==================================================
-LOG DE CONFIGURACION DE CARRIL PEATONAL - AULACORE
+LOG DE TELEMETRIA RFID EN PUERTAS - AULACORE
 ==================================================
-Fecha y Hora: 2026-05-28
-Accion: Optimizacion de Flujo RFID en Puertas
-Objetivo: Disminuir congestion en la Porteria Principal
-
-DETALLE DE CAMBIOS APLICADOS:
-1. Reconfiguracion del Carril Peatonal #3 para flujo prioritario de Bachillerato.
-2. Incremento del tiempo de tolerancia de lectura RFID a 3 segundos.
-3. Despacho de notificaciones a directores para coordinar accesos.
+Fecha: ${new Date().toISOString().split('T')[0]}
+Estado: Sin registros de telemetría disponibles en el periodo consultado.
 ==================================================
 `;
                         const blob = new Blob([txtContent], { type: 'text/plain;charset=utf-8;' });
                         const url = URL.createObjectURL(blob);
                         const link = document.createElement("a");
                         link.setAttribute("href", url);
-                        link.setAttribute("download", "registro_optimizacion_rfid.txt");
+                        link.setAttribute("download", "registro_telemetria_rfid.txt");
                         link.style.visibility = 'hidden';
                         document.body.appendChild(link);
                         link.click();
@@ -465,14 +387,11 @@ DETALLE DE CAMBIOS APLICADOS:
                     );
                   } else {
                     handleExecuteAction(
-                      "¡Auditoría Completada!",
-                      "Se validaron las 82 notificaciones emitidas hoy, con 0 rebotes.",
+                      "¡Auditoría Descargada!",
+                      "Reporte de notificaciones emitidas descargado correctamente.",
                       () => {
                         const csvContent = "\uFEFF" + [
-                          ["Fecha", "Estudiante", "Grado", "Tipo Notificacion", "Canal", "Estado"],
-                          ["2026-05-28", "Gomez Juan", "9-B", "Inasistencia Primera Hora", "SMS", "Enviado"],
-                          ["2026-05-28", "Perez Maria", "8-A", "Inasistencia Primera Hora", "WhatsApp", "Enviado"],
-                          ["2026-05-28", "Rodriguez Luis", "10-A", "Entrada Tardia", "WhatsApp", "Enviado"]
+                          ["Fecha", "Estudiante", "Grado", "Tipo Notificacion", "Canal", "Estado"]
                         ].map(row => row.map(cell => `"${cell}"`).join(",")).join("\n");
 
                         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -493,8 +412,7 @@ DETALLE DE CAMBIOS APLICADOS:
               >
                 {isProcessing && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                 {activeModal === 'horas' 
-                  ? (isProcessing ? 'Optimizando...' : 'Optimizar Puertas') 
-                  : (isProcessing ? 'Auditando...' : 'Auditar Mensajes')}
+                  ? (isProcessing ? 'Descargando...' : 'Descargar Log') : (isProcessing ? 'Descargando...' : 'Descargar Auditoría')}
               </button>
             </div>
           </div>

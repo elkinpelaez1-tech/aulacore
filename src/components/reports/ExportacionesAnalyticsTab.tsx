@@ -93,16 +93,12 @@ export function ExportacionesAnalyticsTab() {
               <Clock className="w-5 h-5 text-slate-400" />
               <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Última Exportación</span>
             </div>
-            <span className="text-[10px] font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100 flex items-center gap-1">
-              <TrendingUp className="w-3 h-3" /> Exitoso
-            </span>
           </div>
           <div>
             <div className="flex items-baseline gap-1.5">
-              <span className="text-4xl font-black text-slate-950 tracking-tight">Hace 10</span>
-              <span className="text-xs font-semibold text-slate-400">minutos atrás</span>
+              <span className="text-4xl font-black text-slate-950 tracking-tight">--</span>
             </div>
-            <p className="text-xs font-semibold text-slate-400 mt-2">Boletines Consolidados Periodo 4</p>
+            <p className="text-xs font-semibold text-slate-400 mt-2">Sin exportaciones recientes</p>
           </div>
         </div>
 
@@ -110,19 +106,16 @@ export function ExportacionesAnalyticsTab() {
         <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-[0_2px_4px_-1px_rgba(0,0,0,0.02)] flex flex-col justify-between hover:shadow-md transition-all duration-300">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2 text-slate-600">
-              <DownloadCloud className="w-5 h-5 text-slate-400 animate-bounce" />
+              <DownloadCloud className="w-5 h-5 text-slate-400" />
               <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Descargas Mensuales</span>
             </div>
-            <span className="text-[10px] font-extrabold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100">
-              Activo
-            </span>
           </div>
           <div>
             <div className="flex items-baseline gap-1.5">
-              <span className="text-4xl font-black text-slate-900 tracking-tight">342</span>
+              <span className="text-4xl font-black text-slate-900 tracking-tight">0</span>
               <span className="text-xs font-semibold text-slate-400">archivos emitidos</span>
             </div>
-            <p className="text-xs font-semibold text-slate-400 mt-2">Historial de descargas auditado</p>
+            <p className="text-xs font-semibold text-slate-400 mt-2">0 descargas en el periodo</p>
           </div>
         </div>
 
@@ -174,11 +167,7 @@ export function ExportacionesAnalyticsTab() {
                               "El consolidado de notas se ha descargado correctamente en formato CSV.",
                               () => {
                                 const csvContent = "\uFEFF" + [
-                                  ["Estudiante", "Curso", "Promedio Periodo 4", "Asistencia", "Estatus"],
-                                  ["Alejandra Gomez", "9-B", "4.2 / 5.0", "95%", "Aprobado"],
-                                  ["Mateo Rodriguez", "9-B", "3.1 / 5.0", "91%", "Aprobado"],
-                                  ["Sofia Martinez", "8-B", "4.8 / 5.0", "98%", "Aprobado"],
-                                  ["Juan Perez", "7-A", "2.9 / 5.0", "85%", "En Riesgo"]
+                                  ["Estudiante", "Curso", "Promedio Periodo", "Asistencia", "Estatus"]
                                 ].map(row => row.map(cell => `"${cell}"`).join(",")).join("\n");
 
                                 const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -199,10 +188,7 @@ export function ExportacionesAnalyticsTab() {
                               "Datos consolidados de inasistencia diaria exportados a CSV.",
                               () => {
                                 const csvContent = "\uFEFF" + [
-                                  ["Estudiante", "Grado", "Tarjeta RFID", "Ultimo Registro", "Estado Asistencia"],
-                                  ["Mateo Rodriguez", "9-B", "RFID-9B-042", "08:15 AM", "Tarde"],
-                                  ["Sofia Martinez", "8-B", "RFID-8B-035", "07:05 AM", "Puntual"],
-                                  ["Juan Perez", "7-A", "RFID-7A-012", "Sin Registro", "Ausente"]
+                                  ["Estudiante", "Grado", "Tarjeta RFID", "Ultimo Registro", "Estado Asistencia"]
                                 ].map(row => row.map(cell => `"${cell}"`).join(",")).join("\n");
 
                                 const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -223,10 +209,7 @@ export function ExportacionesAnalyticsTab() {
                               "La compilación del comité de convivencia se descargó correctamente en formato CSV.",
                               () => {
                                 const csvContent = "\uFEFF" + [
-                                  ["ID Acta", "Fecha", "Grado", "Caso Relacionado", "Estado Resolucion"],
-                                  ["ACT-2026-042", "2026-05-10", "9-B", "Restauracion en grupo - circulo restaurativo", "Firmado"],
-                                  ["ACT-2026-039", "2026-05-15", "9-A", "Mentoria de pares en resolucion de conflictos", "Activo"],
-                                  ["ACT-2026-035", "2026-05-20", "8-B", "Servicio social en biblioteca escolar", "Firmado"]
+                                  ["ID Acta", "Fecha", "Grado", "Caso Relacionado", "Estado Resolucion"]
                                 ].map(row => row.map(cell => `"${cell}"`).join(",")).join("\n");
 
                                 const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -247,10 +230,7 @@ export function ExportacionesAnalyticsTab() {
                               "La cobertura pedagógica docente fue guardada correctamente en formato CSV.",
                               () => {
                                 const csvContent = "\uFEFF" + [
-                                  ["Docente", "Area", "Syllabus Completos", "Clases Dictadas", "Estado Cobertura"],
-                                  ["Carlos Martinez", "Matematicas", "5 / 5", "100%", "Completo"],
-                                  ["Sandra Patricia", "Ciencias", "4 / 5", "90%", "En Progreso"],
-                                  ["Liliana Gomez", "Lenguaje", "5 / 5", "100%", "Completo"]
+                                  ["Docente", "Area", "Syllabus Completos", "Clases Dictadas", "Estado Cobertura"]
                                 ].map(row => row.map(cell => `"${cell}"`).join(",")).join("\n");
 
                                 const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -319,7 +299,7 @@ export function ExportacionesAnalyticsTab() {
               
               {/* Central text index */}
               <div className="absolute flex flex-col items-center justify-center">
-                <span className="text-2xl font-black text-slate-800 tracking-tight">342</span>
+                <span className="text-2xl font-black text-slate-800 tracking-tight">0</span>
                 <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Total</span>
               </div>
             </div>
@@ -359,7 +339,7 @@ export function ExportacionesAnalyticsTab() {
             </div>
             
             <p className="text-sm text-slate-600 font-normal leading-relaxed max-w-4xl">
-              El análisis del centro de descargas indica que el <strong className="text-indigo-900 font-bold">42%</strong> de las exportaciones se concentran en el área académica (Boletín de Notas). Te sugerimos programar una exportación semanal automática del <strong className="text-slate-800 font-bold">Registro RFID de Inasistencia Crítica</strong> para el nivel de Bachillerato. Esto permitirá identificar de forma temprana los patrones de ausentismo del 12% en grado noveno, actuando preventivamente antes del cierre del ciclo.
+              Sin exportaciones registradas en el periodo. Puede generar y descargar plantillas institucionales o configurar envíos programados según los requerimientos de la secretaría académica.
             </p>
 
             <div className="flex flex-wrap items-center gap-3 pt-1">
@@ -432,7 +412,7 @@ export function ExportacionesAnalyticsTab() {
                       <div className="space-y-1.5">
                         <label className="text-[10px] font-black uppercase tracking-wider text-slate-400">Tipo de Reporte</label>
                         <select className="w-full text-xs font-bold text-slate-800 bg-slate-50 border border-slate-200 rounded-xl p-3 focus:outline-none focus:border-indigo-500">
-                          <option>Registro RFID de Inasistencia Crítica (Bachillerato)</option>
+                          <option>Registro de Inasistencia Escolar</option>
                           <option>Boletín Consolidado Académico (General)</option>
                           <option>Resumen de Convivencia y Acuerdos</option>
                           <option>Cumplimiento de Planeación Docente</option>
@@ -464,58 +444,25 @@ export function ExportacionesAnalyticsTab() {
 
                   <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl">
                     <p className="text-[10px] text-slate-500 font-medium">
-                      💡 <strong>Estrategia sugerida:</strong> Una frecuencia semanal los viernes permite auditar el ausentismo recurrente en grado noveno de manera oportuna.
+                      💡 <strong>Estrategia sugerida:</strong> Programe reportes periódicos para recibir resúmenes consolidados de forma automatizada.
                     </p>
                   </div>
                 </div>
-              ) : (
-                <div className="space-y-6">
+              ) : (<div className="space-y-6">
                   <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl">
                     <p className="text-xs text-slate-650 font-medium leading-relaxed">
                       Historial de exportaciones y descargas procesadas por usuarios administrativos de AulaCore para auditorías de protección de datos:
                     </p>
                   </div>
 
-                  <div className="space-y-3">
-                    <h4 className="text-xs font-black text-slate-700 uppercase tracking-wider">Audit Log de Descargas Recientes</h4>
-                    <div className="border border-slate-100 rounded-xl overflow-hidden text-xs">
-                      <div className="bg-slate-50 border-b border-slate-100 px-4 py-2.5 grid grid-cols-4 font-black uppercase text-slate-500 text-[9px] tracking-wider">
-                        <span>Usuario</span>
-                        <span>Archivo Exportado</span>
-                        <span className="text-center">Formato / Peso</span>
-                        <span className="text-right">Fecha / Hora</span>
-                      </div>
-                      <div className="divide-y divide-slate-100">
-                        <div className="px-4 py-3 grid grid-cols-4 font-semibold text-slate-600 items-center">
-                          <span className="text-slate-850 font-bold">Rectoría (Elkin P.)</span>
-                          <span className="truncate">Boletín Consolidado P4</span>
-                          <span className="text-center text-indigo-650 font-bold">PDF / 2.4 MB</span>
-                          <span className="text-right text-slate-400 font-semibold">Hoy, 3:07 PM</span>
-                        </div>
-                        <div className="px-4 py-3 grid grid-cols-4 font-semibold text-slate-600 items-center">
-                          <span className="text-slate-850 font-bold">Sec. General</span>
-                          <span className="truncate">Actas Convivencia 2026</span>
-                          <span className="text-center text-indigo-650 font-bold">ZIP / 1.2 MB</span>
-                          <span className="text-right text-slate-400 font-semibold">Ayer, 4:30 PM</span>
-                        </div>
-                        <div className="px-4 py-3 grid grid-cols-4 font-semibold text-slate-600 items-center">
-                          <span className="text-slate-850 font-bold">Coord. Académica</span>
-                          <span className="truncate">RFID Inasistencia 9-B</span>
-                          <span className="text-center text-indigo-650 font-bold">XLSX / 850 KB</span>
-                          <span className="text-right text-slate-400 font-semibold">Ayer, 9:15 AM</span>
-                        </div>
-                      </div>
+                  <div className="py-12 flex flex-col items-center justify-center text-center p-6 border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
+                    <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-3">
+                      <DownloadCloud className="w-6 h-6 text-slate-400" />
                     </div>
-                  </div>
-
-                  <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-between">
-                    <div>
-                      <p className="text-xs font-bold text-slate-800">Total Descargas Auditadas</p>
-                      <p className="text-[10px] text-slate-400 font-semibold mt-0.5">342 archivos exportados este mes bajo encriptación segura.</p>
-                    </div>
-                    <span className="text-[10px] font-black text-indigo-750 bg-indigo-50 border border-indigo-100 px-2.5 py-1 rounded-lg">
-                      Auditoría Completa
-                    </span>
+                    <p className="text-xs font-bold text-slate-700">Sin historial de exportaciones</p>
+                    <p className="text-[11px] text-slate-400 mt-1 max-w-sm">
+                      Los registros de auditoría y descarga de archivos generados aparecerán en este log.
+                    </p>
                   </div>
                 </div>
               )}
@@ -535,20 +482,15 @@ export function ExportacionesAnalyticsTab() {
                   if (activeModal === 'alertas') {
                     handleExecuteModalAction(
                       "¡Programación Guardada!",
-                      "Se configuró el envío semanal del reporte de inasistencia del Bachillerato.",
+                      "Configuración de reporte automático guardada correctamente.",
                       () => {
                         const txtContent = `==================================================
 AULACORE - PROGRAMACION AUTOMATICA DE REPORTES
 ==================================================
 Estado de la Tarea: Activo
-Frecuencia de Envio: Semanal
-Destinatarios: Coordinacion Academica, Orientacion Escolar
-Filtro Aplicado: Inasistencias Criticas - Bachillerato
-
-LOG DE CONFIGURACION:
-- Regla Creada: Alerta de Ausentismo RFID > 15%
-- Canal de Notificacion: Correo Electronico Institucional + App Acudientes
-- Proxima Ejecucion Programada: Lunes Proximo, 07:00 AM
+Frecuencia de Envio: Programada
+Fecha de Creacion: ${new Date().toISOString().split('T')[0]}
+==================================================
 `;
                         const blob = new Blob([txtContent], { type: 'text/plain;charset=utf-8;' });
                         const url = URL.createObjectURL(blob);
@@ -564,21 +506,17 @@ LOG DE CONFIGURACION:
                   } else {
                     handleExecuteModalAction(
                       "¡Audit Log Descargado!",
-                      "Se descargó el historial completo de descargas del mes actual en formato CSV.",
+                      "Se descargó el historial de auditoría en formato CSV.",
                       () => {
                         const csvContent = "\uFEFF" + [
-                          ["Fecha", "Usuario", "Accion", "Formato", "Tamanho"],
-                          ["2026-05-28 15:30", "Patricia Martinez", "Descarga Boletin Consolidado", "CSV", "2.4 MB"],
-                          ["2026-05-28 14:15", "Carlos Martinez", "Reporte Asistencia RFID", "CSV", "850 KB"],
-                          ["2026-05-28 11:02", "Sandra Patricia", "Actas Comite Convivencia", "CSV", "1.2 MB"],
-                          ["2026-05-28 09:45", "Liliana Gomez", "Auditoria Cobertura Docente", "CSV", "420 KB"]
+                          ["Fecha", "Usuario", "Accion", "Formato", "Tamanho"]
                         ].map(row => row.map(cell => `"${cell}"`).join(",")).join("\n");
 
                         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
                         const url = URL.createObjectURL(blob);
                         const link = document.createElement("a");
                         link.setAttribute("href", url);
-                        link.setAttribute("download", "log_completo_exportaciones_aulacore.csv");
+                        link.setAttribute("download", "log_exportaciones_aulacore.csv");
                         link.style.visibility = 'hidden';
                         document.body.appendChild(link);
                         link.click();

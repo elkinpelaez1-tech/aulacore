@@ -58,16 +58,12 @@ export function AcademicAnalyticsTab() {
               <GraduationCap className="w-5 h-5 text-indigo-500" />
               <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Promedio General</span>
             </div>
-            <span className="text-[10px] font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100 flex items-center gap-1">
-              <TrendingUp className="w-3 h-3" /> +0.1 vs P3
-            </span>
           </div>
           <div>
             <div className="flex items-baseline gap-1.5">
-              <span className="text-4xl font-black text-slate-900 tracking-tight">3.9</span>
-              <span className="text-sm font-semibold text-slate-400">/ 5.0</span>
+              <span className="text-3xl font-black text-slate-900 tracking-tight">--</span>
             </div>
-            <p className="text-xs font-semibold text-slate-400 mt-2">Nivel Satisfactorio Alto</p>
+            <p className="text-xs font-semibold text-slate-400 mt-2">Sin promedio consolidado</p>
           </div>
         </div>
 
@@ -78,15 +74,12 @@ export function AcademicAnalyticsTab() {
               <CheckCircle className="w-5 h-5 text-emerald-500" />
               <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Tasa de Aprobación</span>
             </div>
-            <span className="text-[10px] font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
-              +0.8% vs P3
-            </span>
           </div>
           <div>
             <div className="flex items-baseline gap-1.5">
-              <span className="text-4xl font-black text-emerald-600 tracking-tight">92.4%</span>
+              <span className="text-3xl font-black text-slate-900 tracking-tight">--</span>
             </div>
-            <p className="text-xs font-semibold text-slate-400 mt-2">Basado en promedio &gt;= 3.3</p>
+            <p className="text-xs font-semibold text-slate-400 mt-2">En espera de calificaciones</p>
           </div>
         </div>
 
@@ -94,19 +87,16 @@ export function AcademicAnalyticsTab() {
         <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-[0_2px_4px_-1px_rgba(0,0,0,0.02)] flex flex-col justify-between hover:shadow-md transition-all duration-300">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2 text-rose-600">
-              <AlertTriangle className="w-5 h-5 text-rose-500 animate-pulse" />
+              <AlertTriangle className="w-5 h-5 text-rose-500" />
               <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">En Riesgo Académico</span>
             </div>
-            <span className="text-[10px] font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
-              -3 casos
-            </span>
           </div>
           <div>
             <div className="flex items-baseline gap-1.5">
-              <span className="text-4xl font-black text-slate-900 tracking-tight">12</span>
-              <span className="text-xs font-semibold text-slate-400">/ 1,400 alumnos</span>
+              <span className="text-3xl font-black text-slate-900 tracking-tight">0</span>
+              <span className="text-xs font-semibold text-slate-400">alumnos</span>
             </div>
-            <p className="text-xs font-semibold text-slate-400 mt-2">Bajo plan remedial de tutorías</p>
+            <p className="text-xs font-semibold text-slate-400 mt-2">Sin estudiantes en riesgo registrados</p>
           </div>
         </div>
 
@@ -204,13 +194,13 @@ export function AcademicAnalyticsTab() {
           <div className="space-y-4">
             <div>
               <h4 className="text-sm font-black text-slate-850 uppercase tracking-widest flex items-center gap-2">
-                Insight Clave de Inteligencia Académica AI
+                Insight de Inteligencia Académica
               </h4>
               <p className="text-xs font-semibold text-slate-400 mt-0.5">Diagnóstico ejecutivo para la toma de decisiones Rectoral</p>
             </div>
             
             <p className="text-sm text-slate-600 font-normal leading-relaxed max-w-4xl">
-              El rendimiento académico global se ha consolidado en <strong className="text-indigo-900 font-bold">3.9/5.0</strong> para el cierre de periodo. El nivel de <strong className="text-slate-800 font-bold">Bachillerato</strong> registra la mayor brecha de rendimiento en el área de Matemáticas, con <strong className="text-rose-600 font-semibold">9-B</strong> como curso de atención crítica debido a un promedio de 2.8. No obstante, las tutorías de nivelación activa ya muestran un <strong className="text-emerald-600 font-semibold">65% de efectividad</strong> en la recuperación progresiva de los estudiantes de décimo grado.
+              Sin diagnósticos disponibles. Los análisis predictivos y recomendaciones de nivelación se generarán automáticamente cuando se consoliden las calificaciones de los periodos académicos.
             </p>
 
             <div className="flex flex-wrap items-center gap-3 pt-1">
@@ -269,102 +259,18 @@ export function AcademicAnalyticsTab() {
             </div>
 
             {/* Content */}
-            <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
+            <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto">
               {activeModal === 'mallas' ? (
-                <div className="space-y-6">
-                  <div className="p-4 bg-indigo-50/50 border border-indigo-100 rounded-xl">
-                    <p className="text-xs text-indigo-950 font-medium leading-relaxed">
-                      El sistema de Inteligencia Artificial AulaCore ha detectado una brecha acumulada de rendimiento del <strong>18%</strong> en el área de <strong>Matemáticas</strong> para el nivel de Bachillerato. El núcleo crítico se concentra en la asimilación de competencias sobre <strong>ecuaciones de segundo grado y sistemas algebraicos</strong>.
-                    </p>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl">
-                      <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Temática Crítica</span>
-                      <p className="text-sm font-bold text-slate-800 mt-1">Ecuaciones Cuadráticas & Álgebra</p>
-                      <p className="text-xs text-slate-400 mt-0.5">Nivel sugerido de retroalimentación: Inmediato</p>
-                    </div>
-                    <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl">
-                      <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Cursos de Atención</span>
-                      <p className="text-sm font-bold text-rose-650 mt-1">Grados 9-B y 8-A</p>
-                      <p className="text-xs text-slate-400 mt-0.5">Grupos con GPA por debajo de 3.0</p>
-                    </div>
-                  </div>
-
-                  <div className="space-y-3">
-                    <h4 className="text-xs font-black text-slate-700 uppercase tracking-wider">Plan de Acción Recomendado (Rectoría)</h4>
-                    <div className="space-y-2.5">
-                      <div className="flex gap-3 items-start">
-                        <div className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-650 shrink-0 mt-0.5">1</div>
-                        <p className="text-xs text-slate-600 font-medium leading-relaxed">
-                          <strong>Reestructuración Curricular:</strong> Extender por dos semanas el módulo temático en grado 9º, reajustando la agenda del Periodo 4.
-                        </p>
-                      </div>
-                      <div className="flex gap-3 items-start">
-                        <div className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-650 shrink-0 mt-0.5">2</div>
-                        <p className="text-xs text-slate-600 font-medium leading-relaxed">
-                          <strong>Soporte en AulaCore:</strong> Habilitar de forma obligatoria las guías de autoaprendizaje digital y simulaciones interactivas para todos los estudiantes rezagados.
-                        </p>
-                      </div>
-                      <div className="flex gap-3 items-start">
-                        <div className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-650 shrink-0 mt-0.5">3</div>
-                        <p className="text-xs text-slate-600 font-medium leading-relaxed">
-                          <strong>Evaluación Diagnóstica Extraordinaria:</strong> Programar una prueba corta de validación conceptual programada para la segunda semana de junio.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
+                <div className="text-center py-10 space-y-2">
+                  <BookOpen className="w-8 h-8 text-slate-300 mx-auto" />
+                  <p className="text-sm font-bold text-slate-700">Sin mallas críticas detectadas</p>
+                  <p className="text-xs text-slate-400">No se registran brechas temáticas críticas en la institución.</p>
                 </div>
               ) : (
-                <div className="space-y-6">
-                  <div className="p-4 bg-emerald-50/50 border border-emerald-100 rounded-xl flex items-center gap-3">
-                    <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full shrink-0 animate-pulse"></div>
-                    <p className="text-xs text-emerald-950 font-medium leading-relaxed">
-                      El plan de nivelación institucional presenta una efectividad promedio del <strong>65%</strong> en la recuperación de estudiantes en riesgo académico.
-                    </p>
-                  </div>
-
-                  <div className="space-y-3">
-                    <h4 className="text-xs font-black text-slate-700 uppercase tracking-wider">Monitoreo de Programas Académicos</h4>
-                    <div className="border border-slate-100 rounded-xl overflow-hidden text-xs">
-                      <div className="bg-slate-50 border-b border-slate-100 px-4 py-2.5 grid grid-cols-4 font-black uppercase text-slate-500 text-[9px] tracking-wider">
-                        <span>Programa</span>
-                        <span>Coordinador</span>
-                        <span className="text-center">Progreso</span>
-                        <span className="text-right">Efectividad</span>
-                      </div>
-                      <div className="divide-y divide-slate-100">
-                        <div className="px-4 py-3 grid grid-cols-4 font-semibold text-slate-600 items-center">
-                          <span className="text-slate-800 font-bold">Refuerzo Álgebra 9º</span>
-                          <span>Lic. Sandra P.</span>
-                          <span className="text-center text-indigo-650 font-bold">8 / 10 ses.</span>
-                          <span className="text-right text-emerald-650 font-bold">68%</span>
-                        </div>
-                        <div className="px-4 py-3 grid grid-cols-4 font-semibold text-slate-600 items-center">
-                          <span className="text-slate-800 font-bold">Comprensión Lectora 7º</span>
-                          <span>Lic. Carlos M.</span>
-                          <span className="text-center text-emerald-650 font-bold">Completado</span>
-                          <span className="text-right text-emerald-650 font-bold">72%</span>
-                        </div>
-                        <div className="px-4 py-3 grid grid-cols-4 font-semibold text-slate-600 items-center">
-                          <span className="text-slate-800 font-bold">Tecnología e Informática 10º</span>
-                          <span>Lic. Liliana G.</span>
-                          <span className="text-center text-amber-600 font-bold">3 / 10 ses.</span>
-                          <span className="text-right text-indigo-600 font-bold">55%</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-between">
-                    <div>
-                      <p className="text-xs font-bold text-slate-800">Próximo Hito Institucional</p>
-                      <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Carga de calificaciones de recuperación final</p>
-                    </div>
-                    <span className="text-[10px] font-black text-indigo-700 bg-indigo-50 border border-indigo-100 px-2.5 py-1 rounded-lg">
-                      5 de Junio, 2026
-                    </span>
-                  </div>
+                <div className="text-center py-10 space-y-2">
+                  <CheckCircle2 className="w-8 h-8 text-slate-300 mx-auto" />
+                  <p className="text-sm font-bold text-slate-700">Sin planes de nivelación activos</p>
+                  <p className="text-xs text-slate-400">No hay programas de recuperación pedagógica registrados para el periodo.</p>
                 </div>
               )}
             </div>
@@ -373,74 +279,9 @@ export function AcademicAnalyticsTab() {
             <div className="p-6 border-t border-slate-100 flex items-center justify-end gap-3 bg-slate-50/50">
               <button 
                 onClick={() => setActiveModal(null)}
-                disabled={isProcessing}
-                className="px-4 py-2 text-xs font-bold text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-all disabled:opacity-50"
+                className="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-all"
               >
                 Cerrar Ventana
-              </button>
-              <button 
-                onClick={() => {
-                  if (activeModal === 'mallas') {
-                    handleExecuteAction(
-                      "¡Ajuste Curricular Aplicado!",
-                      "Las mallas críticas de matemáticas se han reestructurado con éxito para el Periodo 4.",
-                      () => {
-                        const txtContent = `==================================================
-COMPROBANTE DE REESTRUCTURACION CURRICULAR - AULACORE
-==================================================
-Fecha: 2026-05-28
-Modulo Curricular: Matematicas (Bachillerato)
-Nucleo del Ajuste: Grados 9-B y 8-A
-
-DETALLE DE ACCIONES APLICADAS EN LA MALLA:
-1. Reestructuracion del modulo curricular de algebra y ecuaciones de segundo grado por dos semanas adicionales.
-2. Habilitacion obligatoria de guias de autoaprendizaje en la plataforma AulaCore.
-3. Evaluacion conceptual diagnostica extraordinaria programada para mediados de junio.
-==================================================
-`;
-                        const blob = new Blob([txtContent], { type: 'text/plain;charset=utf-8;' });
-                        const url = URL.createObjectURL(blob);
-                        const link = document.createElement("a");
-                        link.setAttribute("href", url);
-                        link.setAttribute("download", "comprobante_ajuste_curricular_matematicas.txt");
-                        link.style.visibility = 'hidden';
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                      }
-                    );
-                  } else {
-                    handleExecuteAction(
-                      "¡Plan General Exportado!",
-                      "El plan de nivelación institucional en formato PDF se ha descargado correctamente.",
-                      () => {
-                        const csvContent = "\uFEFF" + [
-                          ["Programa", "Coordinador", "Progreso", "Efectividad"],
-                          ["Refuerzo Algebra 9", "Lic. Sandra P.", "8 / 10 ses.", "68%"],
-                          ["Comprension Lectora 7", "Lic. Carlos M.", "Completado", "72%"],
-                          ["Tecnología e Informática 10", "Lic. Liliana G.", "3 / 10 ses.", "55%"]
-                        ].map(row => row.map(cell => `"${cell}"`).join(",")).join("\n");
-
-                        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-                        const url = URL.createObjectURL(blob);
-                        const link = document.createElement("a");
-                        link.setAttribute("href", url);
-                        link.setAttribute("download", "plan_nivelacion_academico_aulacore.csv");
-                        link.style.visibility = 'hidden';
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                      }
-                    );
-                  }
-                }}
-                disabled={isProcessing}
-                className="px-4 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-all shadow-sm flex items-center gap-1.5 disabled:opacity-80"
-              >
-                {isProcessing && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                {activeModal === 'mallas' 
-                  ? (isProcessing ? 'Aplicando ajuste...' : 'Aplicar Ajuste Curricular') 
-                  : (isProcessing ? 'Exportando plan...' : 'Exportar Plan General')}
               </button>
             </div>
           </div>

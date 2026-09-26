@@ -60,15 +60,12 @@ export function DocentesAnalyticsTab() {
               <ClipboardList className="w-5 h-5 text-orange-500" />
               <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Cumplimiento Planeación</span>
             </div>
-            <span className="text-[10px] font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100 flex items-center gap-1">
-              <TrendingUp className="w-3 h-3" /> +2.1% vs P3
-            </span>
           </div>
           <div>
             <div className="flex items-baseline gap-1.5">
-              <span className="text-4xl font-black text-slate-900 tracking-tight">94.8%</span>
+              <span className="text-4xl font-black text-slate-900 tracking-tight">--</span>
             </div>
-            <p className="text-xs font-semibold text-slate-400 mt-2">Avance Óptimo en Programadores</p>
+            <p className="text-xs font-semibold text-slate-400 mt-2">Sin programadores curriculares cargados</p>
           </div>
         </div>
 
@@ -79,15 +76,12 @@ export function DocentesAnalyticsTab() {
               <Users className="w-5 h-5 text-slate-450" />
               <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Asistencia Docente</span>
             </div>
-            <span className="text-[10px] font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
-              +0.2% vs P3
-            </span>
           </div>
           <div>
             <div className="flex items-baseline gap-1.5">
-              <span className="text-4xl font-black text-slate-950 tracking-tight">99.2%</span>
+              <span className="text-4xl font-black text-slate-950 tracking-tight">--</span>
             </div>
-            <p className="text-xs font-semibold text-slate-400 mt-2">Garantía de continuidad pedagógica</p>
+            <p className="text-xs font-semibold text-slate-400 mt-2">Sin registros de asistencia docente</p>
           </div>
         </div>
 
@@ -98,16 +92,12 @@ export function DocentesAnalyticsTab() {
               <Clock className="w-5 h-5 text-slate-400" />
               <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Carga Operativa Promedio</span>
             </div>
-            <span className="text-[10px] font-extrabold text-slate-600 bg-slate-50 px-2 py-0.5 rounded-full border border-slate-100">
-              Balanceado
-            </span>
           </div>
           <div>
             <div className="flex items-baseline gap-1.5">
-              <span className="text-4xl font-black text-slate-900 tracking-tight">38.5</span>
-              <span className="text-xs font-semibold text-slate-400">horas / semana</span>
+              <span className="text-4xl font-black text-slate-900 tracking-tight">--</span>
             </div>
-            <p className="text-xs font-semibold text-slate-400 mt-2">Distribución académica óptima</p>
+            <p className="text-xs font-semibold text-slate-400 mt-2">Sin asignación académica parametrizada</p>
           </div>
         </div>
 
@@ -211,7 +201,7 @@ export function DocentesAnalyticsTab() {
             </div>
             
             <p className="text-sm text-slate-650 font-normal leading-relaxed max-w-4xl">
-              El desempeño operativo docente registra un sobresaliente <strong className="text-orange-900 font-bold">94.8%</strong> en el cumplimiento global de planeaciones curriculares. El departamento de <strong className="text-slate-800 font-bold">Lengua Castellana</strong> lidera con un <strong className="text-orange-700 font-semibold">98.0%</strong> de avance, mientras que <strong className="text-orange-850 font-bold">Ciencias Sociales</strong> presenta el menor índice relativo con un <strong className="text-orange-600 font-semibold">90.5%</strong> debido a la reciente reestructuración temática de competencias ciudadanas. Asimismo, la cobertura pedagógica de clases garantiza estabilidad absoluta al mantenerse en <strong className="text-emerald-600 font-semibold">99.2%</strong>.
+              Sin programadores curriculares cargados. El seguimiento de avance temático, coberturas de clase y planeaciones se habilitará al registrar la asignación académica docente.
             </p>
 
             <div className="flex flex-wrap items-center gap-3 pt-1">
@@ -273,84 +263,37 @@ export function DocentesAnalyticsTab() {
             <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
               {activeModal === 'planeaciones' ? (
                 <div className="space-y-6">
-                  <div className="p-4 bg-orange-50/50 border border-orange-100 rounded-xl">
-                    <p className="text-xs text-orange-950 font-medium leading-relaxed">
-                      El avance curricular global se encuentra en un sobresaliente <strong>94.8%</strong>. No obstante, se han detectado <strong>3 docentes</strong> con planeaciones rezagadas en el área de <strong>Ciencias Sociales</strong>, acumulando un retraso promedio de 6 días lectivos.
+                  <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl">
+                    <p className="text-xs text-slate-600 font-medium leading-relaxed">
+                      Monitoreo de programadores docentes y seguimiento del syllabus por área curricular.
                     </p>
                   </div>
 
-                  <div className="space-y-3">
-                    <h4 className="text-xs font-black text-slate-700 uppercase tracking-wider">Detalle de Planeaciones Retrasadas</h4>
-                    <div className="border border-slate-100 rounded-xl overflow-hidden text-xs">
-                      <div className="bg-slate-50 border-b border-slate-100 px-4 py-2.5 grid grid-cols-4 font-black uppercase text-slate-500 text-[9px] tracking-wider">
-                        <span>Docente</span>
-                        <span>Departamento</span>
-                        <span>Módulo / Tema</span>
-                        <span className="text-right">Demora</span>
-                      </div>
-                      <div className="divide-y divide-slate-100">
-                        <div className="px-4 py-3 grid grid-cols-4 font-semibold text-slate-600 items-center">
-                          <span className="text-slate-800 font-bold">Prof. Mateo S.</span>
-                          <span>Sociales</span>
-                          <span className="truncate">Cátedra de Paz (9º)</span>
-                          <span className="text-right text-rose-650 font-bold">8 días</span>
-                        </div>
-                        <div className="px-4 py-3 grid grid-cols-4 font-semibold text-slate-600 items-center">
-                          <span className="text-slate-800 font-bold">Dra. Clara H.</span>
-                          <span>Sociales</span>
-                          <span className="truncate">Geografía Económica</span>
-                          <span className="text-right text-rose-650 font-bold">5 días</span>
-                        </div>
-                        <div className="px-4 py-3 grid grid-cols-4 font-semibold text-slate-600 items-center">
-                          <span className="text-slate-800 font-bold">Prof. Jorge T.</span>
-                          <span>Matemáticas</span>
-                          <span className="truncate">Trigonometría (10º)</span>
-                          <span className="text-right text-amber-600 font-bold">3 días</span>
-                        </div>
-                      </div>
+                  <div className="py-12 flex flex-col items-center justify-center text-center p-6 border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
+                    <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-3">
+                      <Calendar className="w-6 h-6 text-slate-400" />
                     </div>
-                  </div>
-
-                  <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl">
-                    <h5 className="text-xs font-bold text-slate-800 mb-1">Acción Directa Requerida</h5>
-                    <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
-                      Se ha enviado una notificación automática a través del panel docente para solicitar la regularización del syllabus antes del viernes.
+                    <p className="text-xs font-bold text-slate-700">Sin planeaciones curriculares rezagadas</p>
+                    <p className="text-[11px] text-slate-400 mt-1 max-w-sm">
+                      No se registran alertas de programadores o syllabus pendientes en el cuerpo docente.
                     </p>
                   </div>
                 </div>
               ) : (
                 <div className="space-y-6">
-                  <div className="p-4 bg-emerald-50/50 border border-emerald-100 rounded-xl flex items-center gap-3">
-                    <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full shrink-0 animate-pulse"></div>
-                    <p className="text-xs text-emerald-950 font-medium leading-relaxed">
-                      La tasa de cobertura pedagógica escolar se sitúa en un robusto <strong>99.2%</strong>. Esto garantiza la total continuidad y estabilidad de los periodos de clase de los estudiantes.
+                  <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl">
+                    <p className="text-xs text-slate-600 font-medium leading-relaxed">
+                      Auditoría de asistencia docente y continuidad pedagógica de las clases programadas.
                     </p>
                   </div>
 
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                      <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl text-center">
-                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 block">Clases Programadas</span>
-                        <span className="text-2xl font-black text-slate-800 mt-1 block">420</span>
-                        <span className="text-[10px] text-slate-400 font-semibold">Esta semana</span>
-                      </div>
-                      <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl text-center">
-                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 block">Clases Cubiertas</span>
-                        <span className="text-2xl font-black text-emerald-650 mt-1 block">417</span>
-                        <span className="text-[10px] text-slate-400 font-semibold">Efectivas</span>
-                      </div>
-                      <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl text-center">
-                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 block">Reemplazos Activos</span>
-                        <span className="text-2xl font-black text-orange-650 mt-1 block">3</span>
-                        <span className="text-[10px] text-slate-400 font-semibold">Por incapacidades</span>
-                      </div>
+                  <div className="py-12 flex flex-col items-center justify-center text-center p-6 border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
+                    <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-3">
+                      <Users className="w-6 h-6 text-slate-400" />
                     </div>
-                  </div>
-
-                  <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl">
-                    <h5 className="text-xs font-bold text-slate-800 mb-1">Mecanismo de Guardias</h5>
-                    <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
-                      El sistema AulaCore asigna automáticamente docentes libres de carga lectiva para cubrir ausencias menores justificadas, impidiendo horas libres sin supervisión y garantizando el cumplimiento temático.
+                    <p className="text-xs font-bold text-slate-700">Sin novedades de cobertura pedagógica</p>
+                    <p className="text-[11px] text-slate-400 mt-1 max-w-sm">
+                      Las métricas de continuidad y asignación de guardias se calcularán conforme se registren las sesiones de clase.
                     </p>
                   </div>
                 </div>
@@ -370,22 +313,14 @@ export function DocentesAnalyticsTab() {
                 onClick={() => {
                   if (activeModal === 'planeaciones') {
                     handleExecuteAction(
-                      "¡Recordatorio Enviado!",
-                      "Se notificó a los 3 docentes con syllabus rezagado a través de su panel AulaCore.",
+                      "¡Notificación Verificada!",
+                      "No existen docentes con rezago de syllabus para notificar.",
                       () => {
                         const txtContent = `==================================================
 CONFIRMACION DE NOTIFICACION DE SYLLABUS - AULACORE
 ==================================================
-Fecha de Despacho: 2026-05-28
-Modulo: Planeaciones de Clase y Syllabus
-Accion: Alerta Informativa Manual de Rectoría
-
-DOCENTES NOTIFICADOS Y ALERTADOS:
-1. Lic. Carlos M. (Grado 9º - Matemáticas)
-2. Lic. Liliana G. (Grado 10º - Tecnología e Informática)
-3. Lic. Sandra P. (Grado 8º - Ciencias Naturales)
-
-Mensaje Enviado: "Atencion docente: Recuerde que el plazo limite para la carga de planeaciones del Periodo 4 finaliza esta semana. Favor ingresar a su panel AulaCore."
+Fecha: ${new Date().toISOString().split('T')[0]}
+Estado: Sin novedades de rezago registradas.
 ==================================================
 `;
                         const blob = new Blob([txtContent], { type: 'text/plain;charset=utf-8;' });
@@ -402,13 +337,10 @@ Mensaje Enviado: "Atencion docente: Recuerde que el plazo limite para la carga d
                   } else {
                     handleExecuteAction(
                       "¡Bitácora Exportada!",
-                      "La bitácora consolidada de guardias y reemplazos se descargó en Excel.",
+                      "La bitácora consolidada de guardias y reemplazos se descargó correctamente.",
                       () => {
                         const csvContent = "\uFEFF" + [
-                          ["Docente Reemplazado", "Asignatura", "Docente de Reemplazo", "Fecha", "Modulo/Bloque", "Estado"],
-                          ["Lic. Carlos M.", "Matemáticas 9-B", "Lic. Sandra P.", "2026-05-28", "Bloque 2 (10:00 - 11:30)", "Completado"],
-                          ["Lic. Liliana G.", "Tecnología e Informática 10-A", "Lic. Juan K.", "2026-05-28", "Bloque 4 (14:00 - 15:30)", "Pendiente"],
-                          ["Lic. Sandra P.", "Ciencias 8-B", "Lic. Carlos M.", "2026-05-28", "Bloque 1 (08:00 - 09:30)", "Completado"]
+                          ["Docente Reemplazado", "Asignatura", "Docente de Reemplazo", "Fecha", "Modulo/Bloque", "Estado"]
                         ].map(row => row.map(cell => `"${cell}"`).join(",")).join("\n");
 
                         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -429,8 +361,7 @@ Mensaje Enviado: "Atencion docente: Recuerde que el plazo limite para la carga d
               >
                 {isProcessing && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                 {activeModal === 'planeaciones' 
-                  ? (isProcessing ? 'Enviando...' : 'Enviar Recordatorio') 
-                  : (isProcessing ? 'Exportando...' : 'Exportar Bitácora')}
+                  ? (isProcessing ? 'Verificando...' : 'Verificar Estado') : (isProcessing ? 'Descargando...' : 'Descargar Bitácora')}
               </button>
             </div>
           </div>
