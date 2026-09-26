@@ -9,6 +9,9 @@ import { cn } from '@/lib/utils';
 
 interface BehaviorAlertsPanelProps {
   onIntervene?: (studentName: string) => void;
+  type1Count?: number;
+  type2Count?: number;
+  type3Count?: number;
 }
 
 interface IncidentReport {
@@ -21,7 +24,12 @@ interface IncidentReport {
   date: string;
 }
 
-export function BehaviorAlertsPanel({ onIntervene }: BehaviorAlertsPanelProps) {
+export function BehaviorAlertsPanel({
+  onIntervene,
+  type1Count = 0,
+  type2Count = 0,
+  type3Count = 0,
+}: BehaviorAlertsPanelProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [isRegistering, setIsRegistering] = useState(false);
   const [toast, setToast] = useState<{ title: string; message: string } | null>(null);
@@ -44,31 +52,28 @@ export function BehaviorAlertsPanel({ onIntervene }: BehaviorAlertsPanelProps) {
     if (!newStudent || !newDesc || !newGroup) return;
 
     setIsRegistering(true);
-    setTimeout(() => {
-      const report: IncidentReport = {
-        id: `i-${Date.now()}`,
-        studentName: newStudent,
-        group: newGroup,
-        type: newType,
-        description: newDesc,
-        status: 'Abierto',
-        date: 'Hoy, Hace unos instantes'
-      };
+    const report: IncidentReport = {
+      id: `i-${Date.now()}`,
+      studentName: newStudent,
+      group: newGroup,
+      type: newType,
+      description: newDesc,
+      status: 'Abierto',
+      date: 'Hoy'
+    };
 
-      setIncidents([report, ...incidents]);
-      setIsRegistering(false);
-      
-      // Reset form
-      setNewStudent('');
-      setNewGroup('');
-      setNewDesc('');
+    setIncidents([report, ...incidents]);
+    setIsRegistering(false);
 
-      setToast({
-        title: 'Incidente Registrado',
-        message: `El reporte conductual para ${report.studentName} ha sido ingresado en la bitácora.`
-      });
-      setTimeout(() => setToast(null), 3000);
-    }, 1200);
+    // Reset form
+    setNewStudent('');
+    setNewGroup('');
+    setNewDesc('');
+
+    setToast({
+      title: 'Incidente Registrado',
+      message: `El reporte conductual para ${report.studentName} ha sido ingresado en la bitácora.`
+    });
   };
 
   const handleAction = (id: string, actionType: 'firmar' | 'resolver', name: string) => {
@@ -88,7 +93,6 @@ export function BehaviorAlertsPanel({ onIntervene }: BehaviorAlertsPanelProps) {
         ? `El acta de convivencia de ${name} ha sido enviada para la firma digital de los padres.`
         : `El caso de ${name} se ha catalogado como resuelto en el comité.`
     });
-    setTimeout(() => setToast(null), 3000);
   };
 
   return (
@@ -102,7 +106,7 @@ export function BehaviorAlertsPanel({ onIntervene }: BehaviorAlertsPanelProps) {
           </div>
           <div>
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Incidentes Tipo I</p>
-            <p className="text-2xl font-black text-slate-800">14</p>
+            <p className="text-2xl font-black text-slate-800">{type1Count}</p>
             <p className="text-[10px] text-slate-500 font-semibold">Leves, manejados por docente</p>
           </div>
         </div>
@@ -113,7 +117,7 @@ export function BehaviorAlertsPanel({ onIntervene }: BehaviorAlertsPanelProps) {
           </div>
           <div>
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Incidentes Tipo II</p>
-            <p className="text-2xl font-black text-amber-600">3</p>
+            <p className="text-2xl font-black text-amber-600">{type2Count}</p>
             <p className="text-[10px] text-amber-500 font-semibold">Moderados, requieren coordinación</p>
           </div>
         </div>
@@ -124,7 +128,7 @@ export function BehaviorAlertsPanel({ onIntervene }: BehaviorAlertsPanelProps) {
           </div>
           <div>
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Incidentes Tipo III</p>
-            <p className="text-2xl font-black text-rose-600">0</p>
+            <p className="text-2xl font-black text-rose-600">{type3Count}</p>
             <p className="text-[10px] text-emerald-600 font-semibold">Graves, activan ruta nacional</p>
           </div>
         </div>
@@ -223,7 +227,8 @@ export function BehaviorAlertsPanel({ onIntervene }: BehaviorAlertsPanelProps) {
             ) : (
               <div className="text-center py-16 text-slate-400 font-semibold border border-dashed border-slate-200 rounded-2xl">
                 <ShieldAlert className="w-10 h-10 mx-auto mb-3 text-slate-300" />
-                <p>No se registran incidentes que coincidan con la búsqueda.</p>
+                <p className="text-xs font-bold text-slate-600">No hay incidentes de convivencia registrados.</p>
+                <p className="text-[11px] text-slate-400 mt-0.5">Los reportes del manual de convivencia aparecerán listados aquí.</p>
               </div>
             )}
           </div>

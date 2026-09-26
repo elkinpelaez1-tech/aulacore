@@ -1,16 +1,29 @@
 'use client';
 
-import React from 'react';
-import { ALERT_KPIS } from '@/lib/data/mock-alerts';
 import { ShieldAlert, AlertTriangle, ActivitySquare, UserMinus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface AlertsExecutivePanelProps {
   activeFilter: { type: 'all' | 'level' | 'critical' | 'dropout'; value?: string } | null;
   onFilterChange: (filter: { type: 'all' | 'level' | 'critical' | 'dropout'; value?: string } | null) => void;
+  openAlerts?: number;
+  preescolarAlerts?: number;
+  primariaAlerts?: number;
+  bachilleratoAlerts?: number;
+  highRiskCases?: number;
+  potentialDropouts?: number;
 }
 
-export function AlertsExecutivePanel({ activeFilter, onFilterChange }: AlertsExecutivePanelProps) {
+export function AlertsExecutivePanel({
+  activeFilter,
+  onFilterChange,
+  openAlerts = 0,
+  preescolarAlerts = 0,
+  primariaAlerts = 0,
+  bachilleratoAlerts = 0,
+  highRiskCases = 0,
+  potentialDropouts = 0,
+}: AlertsExecutivePanelProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
       
@@ -33,7 +46,7 @@ export function AlertsExecutivePanel({ activeFilter, onFilterChange }: AlertsExe
             {activeFilter?.type === 'all' && <span className="text-[9px] text-blue-400 font-bold bg-blue-500/10 border border-blue-500/20 px-2 py-0.5 rounded-full animate-pulse">Filtro Activo</span>}
           </p>
           <div className="flex items-center gap-8">
-            <p className="text-6xl font-black text-white leading-none">{ALERT_KPIS?.openAlerts || 0}</p>
+            <p className="text-6xl font-black text-white leading-none">{openAlerts}</p>
             
             <div className="flex items-center gap-6">
               {/* Preescolar */}
@@ -47,7 +60,7 @@ export function AlertsExecutivePanel({ activeFilter, onFilterChange }: AlertsExe
                   activeFilter?.value === 'Preescolar' ? "border-blue-500 bg-blue-500/10 shadow-inner scale-105" : "border-transparent"
                 )}
               >
-                <span className={cn("text-xl font-black leading-none mb-1.5", activeFilter?.value === 'Preescolar' ? "text-blue-300" : "text-blue-400")}>{ALERT_KPIS?.breakdown?.preescolar || 0}</span>
+                <span className={cn("text-xl font-black leading-none mb-1.5", activeFilter?.value === 'Preescolar' ? "text-blue-300" : "text-blue-400")}>{preescolarAlerts}</span>
                 <div className="w-full min-w-[32px] h-0.5 bg-blue-500/30 mb-1.5 rounded-full"></div>
                 <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Preescolar</span>
               </div>
@@ -63,7 +76,7 @@ export function AlertsExecutivePanel({ activeFilter, onFilterChange }: AlertsExe
                   activeFilter?.value === 'Primaria' ? "border-blue-500 bg-blue-500/10 shadow-inner scale-105" : "border-transparent"
                 )}
               >
-                <span className={cn("text-xl font-black leading-none mb-1.5", activeFilter?.value === 'Primaria' ? "text-blue-300" : "text-blue-400")}>{ALERT_KPIS?.breakdown?.primaria || 0}</span>
+                <span className={cn("text-xl font-black leading-none mb-1.5", activeFilter?.value === 'Primaria' ? "text-blue-300" : "text-blue-400")}>{primariaAlerts}</span>
                 <div className="w-full min-w-[32px] h-0.5 bg-blue-500/30 mb-1.5 rounded-full"></div>
                 <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Primaria</span>
               </div>
@@ -79,7 +92,7 @@ export function AlertsExecutivePanel({ activeFilter, onFilterChange }: AlertsExe
                   activeFilter?.value === 'Bachillerato' ? "border-blue-500 bg-blue-500/10 shadow-inner scale-105" : "border-transparent"
                 )}
               >
-                <span className={cn("text-xl font-black leading-none mb-1.5", activeFilter?.value === 'Bachillerato' ? "text-blue-300" : "text-blue-400")}>{ALERT_KPIS?.breakdown?.bachillerato || 0}</span>
+                <span className={cn("text-xl font-black leading-none mb-1.5", activeFilter?.value === 'Bachillerato' ? "text-blue-300" : "text-blue-400")}>{bachilleratoAlerts}</span>
                 <div className="w-full min-w-[32px] h-0.5 bg-blue-500/30 mb-1.5 rounded-full"></div>
                 <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Bachillerato</span>
               </div>
@@ -106,7 +119,7 @@ export function AlertsExecutivePanel({ activeFilter, onFilterChange }: AlertsExe
           </div>
           {activeFilter?.type === 'critical' && <span className="text-[8px] bg-rose-500 text-white font-black uppercase px-2 py-0.5 rounded">Filtro</span>}
         </div>
-        <p className="text-4xl font-black text-rose-600">{ALERT_KPIS?.highRiskCases || 0}</p>
+        <p className="text-4xl font-black text-rose-600">{highRiskCases}</p>
         <p className="text-xs font-bold text-rose-400 mt-2">Requieren intervención hoy</p>
       </div>
 
@@ -128,7 +141,7 @@ export function AlertsExecutivePanel({ activeFilter, onFilterChange }: AlertsExe
           </div>
           <span className="bg-indigo-100 text-indigo-700 text-[9px] font-black uppercase px-2 py-0.5 rounded-full">IA Activa</span>
         </div>
-        <p className="text-4xl font-black text-amber-600">{ALERT_KPIS?.potentialDropouts || 0}</p>
+        <p className="text-4xl font-black text-amber-600">{potentialDropouts}</p>
         <p className="text-xs font-bold text-amber-500 mt-2">Predicción de abandono {'>'} 80%</p>
       </div>
 

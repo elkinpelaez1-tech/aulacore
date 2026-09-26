@@ -3,10 +3,37 @@
 import React, { useState } from 'react';
 import { Filter, Calendar, Zap, X } from 'lucide-react';
 
-export function AlertsFilterBar() {
-  const [period, setPeriod] = useState('P4');
-  const [campus, setCampus] = useState('Todas');
-  const [urgency, setUrgency] = useState('Todas');
+interface AlertsFilterBarProps {
+  availableSedes?: string[];
+  selectedCampus?: string;
+  onCampusChange?: (campus: string) => void;
+  period?: string;
+  onPeriodChange?: (period: string) => void;
+  urgency?: string;
+  onUrgencyChange?: (urgency: string) => void;
+}
+
+export function AlertsFilterBar({
+  availableSedes = [],
+  selectedCampus,
+  onCampusChange,
+  period: propPeriod,
+  onPeriodChange,
+  urgency: propUrgency,
+  onUrgencyChange,
+}: AlertsFilterBarProps) {
+  const [internalPeriod, setInternalPeriod] = useState('P4');
+  const [internalCampus, setInternalCampus] = useState('Todas');
+  const [internalUrgency, setInternalUrgency] = useState('Todas');
+
+  const period = propPeriod ?? internalPeriod;
+  const setPeriod = onPeriodChange ?? setInternalPeriod;
+
+  const campus = selectedCampus ?? internalCampus;
+  const setCampus = onCampusChange ?? setInternalCampus;
+
+  const urgency = propUrgency ?? internalUrgency;
+  const setUrgency = onUrgencyChange ?? setInternalUrgency;
 
   const hasActiveFilters = campus !== 'Todas' || urgency !== 'Todas' || period !== 'P4';
 
@@ -37,11 +64,19 @@ export function AlertsFilterBar() {
 
           <select 
             value={campus} onChange={e => setCampus(e.target.value)}
-            className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm font-bold text-slate-700 bg-slate-50 outline-none hover:border-indigo-300 transition-colors cursor-pointer"
+            disabled={availableSedes.length === 0}
+            className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm font-bold text-slate-700 bg-slate-50 outline-none hover:border-indigo-300 transition-colors cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed"
           >
-            <option value="Todas">Sede: Todas</option>
-            <option value="Sede Principal">Sede Principal</option>
-            <option value="Sede Norte">Sede Norte</option>
+            {availableSedes.length > 0 ? (
+              <>
+                <option value="Todas">Sede: Todas</option>
+                {availableSedes.map((s, idx) => (
+                  <option key={idx} value={s}>{s}</option>
+                ))}
+              </>
+            ) : (
+              <option value="Todas">Sin sedes configuradas</option>
+            )}
           </select>
 
           <div className="flex items-center gap-2 bg-rose-50 border border-rose-100 rounded-lg px-2 py-1">

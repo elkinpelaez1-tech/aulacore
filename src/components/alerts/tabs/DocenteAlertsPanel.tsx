@@ -16,7 +16,17 @@ interface TeacherAlert {
   contactPhone: string;
 }
 
-export function DocenteAlertsPanel() {
+interface DocenteAlertsPanelProps {
+  teachersCount?: number;
+  cierresDemorados?: number;
+  planeacionesPendientes?: number;
+}
+
+export function DocenteAlertsPanel({
+  teachersCount = 0,
+  cierresDemorados = 0,
+  planeacionesPendientes = 0,
+}: DocenteAlertsPanelProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [toast, setToast] = useState<{ title: string; message: string } | null>(null);
@@ -30,29 +40,11 @@ export function DocenteAlertsPanel() {
   );
 
   const handleSendReminder = (id: string, name: string, type: 'whatsapp' | 'email') => {
-    setLoadingId(`${id}-${type}`);
-    setTimeout(() => {
-      setLoadingId(null);
-      setToast({
-        title: type === 'whatsapp' ? 'WhatsApp Enviado' : 'Correo Despachado',
-        message: type === 'whatsapp'
-          ? `Recordatorio automático enviado a la línea de ${name}.`
-          : `Notificación institucional enviada a la bandeja de ${name}.`
-      });
-      setTimeout(() => setToast(null), 3000);
-    }, 900);
+    // Disabled in clean mode
   };
 
   const handleSendAll = () => {
-    setLoadingId('all');
-    setTimeout(() => {
-      setLoadingId(null);
-      setToast({
-        title: 'Notificaciones Masivas Enviadas',
-        message: 'Se han despachado recordatorios a todos los docentes con pendientes de entrega.'
-      });
-      setTimeout(() => setToast(null), 3000);
-    }, 1200);
+    // Disabled in clean mode
   };
 
   return (
@@ -62,27 +54,27 @@ export function DocenteAlertsPanel() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Docentes Evaluados</p>
-          <p className="text-3xl font-black text-slate-800 mt-1">42</p>
-          <p className="text-[9px] text-emerald-600 font-semibold mt-1">100% activos en AulaCore</p>
+          <p className="text-3xl font-black text-slate-800 mt-1">{teachersCount}</p>
+          <p className="text-[9px] text-slate-500 font-semibold mt-1">Vinculados a la institución</p>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Cierre de Notas Demorado</p>
-          <p className="text-3xl font-black text-rose-500 mt-1">2</p>
-          <p className="text-[9px] text-rose-400 font-semibold mt-1">Periodo 3 pendiente de carga</p>
+          <p className="text-3xl font-black text-slate-700 mt-1">{cierresDemorados}</p>
+          <p className="text-[9px] text-slate-400 font-semibold mt-1">Sin retrasos registrados</p>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Planeaciones Pendientes</p>
-          <p className="text-3xl font-black text-amber-500 mt-1">2</p>
-          <p className="text-[9px] text-slate-500 font-semibold mt-1">Syllabus no cargados en P4</p>
+          <p className="text-3xl font-black text-slate-700 mt-1">{planeacionesPendientes}</p>
+          <p className="text-[9px] text-slate-400 font-semibold mt-1">Syllabus al día</p>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
           <div>
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Soporte y Guardias</p>
-            <p className="text-base font-black text-slate-700 mt-2">1 Reemplazo</p>
-            <p className="text-[9px] text-slate-400 font-semibold mt-1">Activo en sección Bachillerato</p>
+            <p className="text-base font-black text-slate-700 mt-2">0 Reemplazos</p>
+            <p className="text-[9px] text-slate-400 font-semibold mt-1">Sin novedades de personal</p>
           </div>
           <div className="w-10 h-10 rounded-full bg-slate-50 text-slate-400 flex items-center justify-center shrink-0">
             <Users className="w-5 h-5" />
@@ -206,34 +198,17 @@ export function DocenteAlertsPanel() {
             </div>
             
             <p className="text-[11px] text-slate-400 leading-relaxed font-semibold">
-              El índice general de cumplimiento de entregas de syllabus se encuentra en <span className="text-emerald-400">92%</span> en este periodo.
+              Supervisión de entregas académicas y cumplimiento de cronograma docente institucional.
             </p>
 
-            <div className="mt-6 space-y-4">
-              <div className="flex gap-3 bg-white/5 p-4 rounded-xl border border-white/5">
-                <div className="w-1.5 h-auto bg-rose-500 rounded-full shrink-0"></div>
-                <div>
-                  <h5 className="text-xs font-black text-slate-200">Reunión de Cierre</h5>
-                  <p className="text-[10px] text-slate-400 mt-1 font-semibold leading-relaxed">
-                    Citación sugerida de comité para docentes con mora mayor a 4 días en subida de notas.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex gap-3 bg-white/5 p-4 rounded-xl border border-white/5">
-                <div className="w-1.5 h-auto bg-indigo-500 rounded-full shrink-0"></div>
-                <div>
-                  <h5 className="text-xs font-black text-slate-200">Soporte Operativo</h5>
-                  <p className="text-[10px] text-slate-400 mt-1 font-semibold leading-relaxed">
-                    Asignación automática de tutor sustituto activa para cubrimiento en matemáticas de 9-B.
-                  </p>
-                </div>
-              </div>
+            <div className="mt-6 p-6 rounded-xl bg-white/5 border border-white/5 text-center">
+              <p className="text-xs font-semibold text-slate-300">Sin novedades docentes reportadas.</p>
+              <p className="text-[10px] text-slate-400 mt-1">Las alertas de morosidad en notas o planeaciones aparecerán en este panel.</p>
             </div>
           </div>
 
-          <button className="w-full mt-6 py-2.5 bg-indigo-700 hover:bg-indigo-650 text-xs font-bold text-indigo-200 rounded-xl transition-all border border-indigo-600/30 flex items-center justify-center gap-1.5">
-            Manual de Convivencia Docente <ExternalLink className="w-3.5 h-3.5" />
+          <button disabled className="w-full mt-6 py-2.5 bg-slate-800 text-xs font-bold text-slate-500 rounded-xl transition-all border border-slate-700/30 flex items-center justify-center gap-1.5 cursor-not-allowed">
+            Manual Docente (Próximamente) <ExternalLink className="w-3.5 h-3.5" />
           </button>
         </div>
 

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { GraduationCap, Search, BookOpen, Clock, CheckCircle2, User, ChevronRight, AlertTriangle, Calendar, X, Sparkles } from 'lucide-react';
-interface StudentMockData {
+interface StudentAlertData {
   id: string;
   name: string;
   group?: string;
@@ -13,29 +13,33 @@ interface StudentMockData {
   gpa: number;
   attendanceRate: number;
 }
-const MOCK_STUDENTS: StudentMockData[] = [];
+const institutionalStudents: StudentAlertData[] = [];
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 
 interface AcademicAlertsPanelProps {
   onIntervene?: (studentName: string) => void;
+  institutionId?: string | null;
 }
 
-export function AcademicAlertsPanel({ onIntervene }: AcademicAlertsPanelProps) {
+export function AcademicAlertsPanel({ onIntervene, institutionId }: AcademicAlertsPanelProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSubject, setSelectedSubject] = useState<string>('Todas');
   const [loadingStudentId, setLoadingStudentId] = useState<string | null>(null);
   const [toast, setToast] = useState<{ title: string; message: string } | null>(null);
 
+  const tutoriasKey = institutionId ? `aulacore-scheduled-tutorias-${institutionId}` : 'aulacore-scheduled-tutorias';
+  const piarsKey = institutionId ? `aulacore-student-piar-plans-${institutionId}` : 'aulacore-student-piar-plans';
+
   // Modal states
-  const [activeStudent, setActiveStudent] = useState<StudentMockData | null>(null);
+  const [activeStudent, setActiveStudent] = useState<StudentAlertData | null>(null);
   const [isTutorModalOpen, setIsTutorModalOpen] = useState(false);
   const [isPiarModalOpen, setIsPiarModalOpen] = useState(false);
 
   // Form states for Tutoría
-  const [tutorSubject, setTutorSubject] = useState('Matemáticas');
-  const [tutorTeacher, setTutorTeacher] = useState('Carlos Martínez');
+  const [tutorSubject, setTutorSubject] = useState('');
+  const [tutorTeacher, setTutorTeacher] = useState('');
   const [tutorDate, setTutorDate] = useState('');
   const [tutorTime, setTutorTime] = useState('14:00');
   const [tutorMode, setTutorMode] = useState('Presencial');
@@ -56,37 +60,36 @@ export function AcademicAlertsPanel({ onIntervene }: AcademicAlertsPanelProps) {
   useEffect(() => {
     const loadData = () => {
       if (typeof window !== 'undefined') {
-        const tuts = localStorage.getItem('aulacore-scheduled-tutorias');
+        const tuts = localStorage.getItem(tutoriasKey);
         if (tuts) {
           try {
             setScheduledTutorias(JSON.parse(tuts));
           } catch (e) {}
+        } else {
+          setScheduledTutorias([]);
         }
-        const piars = localStorage.getItem('aulacore-student-piar-plans');
+        const piars = localStorage.getItem(piarsKey);
         if (piars) {
           try {
             setActivePiars(JSON.parse(piars));
           } catch (e) {}
+        } else {
+          setActivePiars([]);
         }
       }
     };
     loadData();
     window.addEventListener('storage', loadData);
     return () => window.removeEventListener('storage', loadData);
-  }, [refreshTrigger]);
+  }, [refreshTrigger, tutoriasKey, piarsKey]);
 
-  const academicRiskStudents = MOCK_STUDENTS.filter(s => {
+  const academicRiskStudents = institutionalStudents.filter(s => {
     const matchesSearch = s.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRisk = s.gpa < 3.5 || s.academicRisk === 'Alto' || s.academicRisk === 'Medio';
     return matchesSearch && matchesRisk;
   });
 
-  const subjects = [
-    { name: 'Matemáticas', failCount: 18, riskLevel: 'Alto', color: 'text-rose-600 bg-rose-50' },
-    { name: 'Tecnología e Informática', failCount: 12, riskLevel: 'Alto', color: 'text-rose-600 bg-rose-50' },
-    { name: 'Química', failCount: 9, riskLevel: 'Medio', color: 'text-amber-600 bg-amber-50' },
-    { name: 'Español', failCount: 4, riskLevel: 'Bajo', color: 'text-emerald-600 bg-emerald-50' },
-  ];
+  const subjects: any[] = [];
 
   const handleScheduleTutor = (e: React.FormEvent) => {
     e.preventDefault();
@@ -108,7 +111,7 @@ export function AcademicAlertsPanel({ onIntervene }: AcademicAlertsPanelProps) {
         notes: tutorNotes
       };
 
-      const existingTutoriasStr = localStorage.getItem('aulacore-scheduled-tutorias');
+      const existingTutoriasStr = localStorage.getItem(tutoriasKey);
       let tutoriasList = [];
       if (existingTutoriasStr) {
         try {
@@ -116,7 +119,7 @@ export function AcademicAlertsPanel({ onIntervene }: AcademicAlertsPanelProps) {
         } catch (err) {}
       }
       tutoriasList.push(newTutoria);
-      localStorage.setItem('aulacore-scheduled-tutorias', JSON.stringify(tutoriasList));
+      localStorage.setItem(tutoriasKey, JSON.stringify(tutoriasList));
       setRefreshTrigger(prev => prev + 1);
 
       setToast({
@@ -147,7 +150,7 @@ export function AcademicAlertsPanel({ onIntervene }: AcademicAlertsPanelProps) {
         startDate: piarStartDate || new Date().toLocaleDateString('es-ES')
       };
 
-      const existingPiarsStr = localStorage.getItem('aulacore-student-piar-plans');
+      const existingPiarsStr = localStorage.getItem(piarsKey);
       let piarsList = [];
       if (existingPiarsStr) {
         try {
@@ -155,7 +158,7 @@ export function AcademicAlertsPanel({ onIntervene }: AcademicAlertsPanelProps) {
         } catch (err) {}
       }
       piarsList.push(newPiar);
-      localStorage.setItem('aulacore-student-piar-plans', JSON.stringify(piarsList));
+      localStorage.setItem(piarsKey, JSON.stringify(piarsList));
       setRefreshTrigger(prev => prev + 1);
 
     setToast({
@@ -171,20 +174,28 @@ export function AcademicAlertsPanel({ onIntervene }: AcademicAlertsPanelProps) {
       
       {/* Subject Statistics Block */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {subjects.map(subj => (
-          <div key={subj.name} className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
-            <div>
-              <span className={cn("text-[9px] font-black uppercase px-2 py-0.5 rounded-md", subj.color)}>
-                Riesgo: {subj.riskLevel}
-              </span>
-              <h4 className="text-sm font-black text-slate-800 mt-2">{subj.name}</h4>
-              <p className="text-xs font-semibold text-slate-500 mt-0.5">{subj.failCount} Alumnos con alertas</p>
-            </div>
-            <div className="w-10 h-10 rounded-full bg-slate-50 text-slate-400 flex items-center justify-center">
-              <BookOpen className="w-5 h-5" />
-            </div>
+        {subjects.length === 0 ? (
+          <div className="col-span-full p-8 text-center border border-dashed border-slate-200 rounded-2xl bg-white shadow-sm">
+            <BookOpen className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+            <p className="text-xs font-bold text-slate-600">Sin materias con alertas de rendimiento.</p>
+            <p className="text-[11px] text-slate-400 mt-0.5">Las asignaturas con reprobación o riesgo aparecerán consolidadas aquí.</p>
           </div>
-        ))}
+        ) : (
+          subjects.map(subj => (
+            <div key={subj.name} className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+              <div>
+                <span className={cn("text-[9px] font-black uppercase px-2 py-0.5 rounded-md", subj.color)}>
+                  Riesgo: {subj.riskLevel}
+                </span>
+                <h4 className="text-sm font-black text-slate-800 mt-2">{subj.name}</h4>
+                <p className="text-xs font-semibold text-slate-500 mt-0.5">{subj.failCount} Alumnos con alertas</p>
+              </div>
+              <div className="w-10 h-10 rounded-full bg-slate-50 text-slate-400 flex items-center justify-center">
+                <BookOpen className="w-5 h-5" />
+              </div>
+            </div>
+          ))
+        )}
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
@@ -284,7 +295,7 @@ export function AcademicAlertsPanel({ onIntervene }: AcademicAlertsPanelProps) {
             ) : (
               <div className="text-center py-16 text-slate-400 font-semibold border border-dashed border-slate-200 rounded-2xl">
                 <GraduationCap className="w-10 h-10 mx-auto mb-3 text-slate-300" />
-                <p>No se encontraron estudiantes que coincidan con la búsqueda.</p>
+                <p>No hay estudiantes con alertas académicas registradas.</p>
               </div>
             )}
           </div>
@@ -301,34 +312,17 @@ export function AcademicAlertsPanel({ onIntervene }: AcademicAlertsPanelProps) {
               </div>
               
               <p className="text-[11px] text-slate-400 leading-relaxed font-semibold">
-                El análisis predictivo arroja una correlación del 82% entre la baja nota en Matemáticas del curso 9-B y las ausencias no justificadas de los días martes.
+                Análisis predictivo disponible una vez se consoliden calificaciones del periodo.
               </p>
 
-              <div className="mt-6 space-y-4">
-                <div className="flex gap-3 bg-white/5 p-4 rounded-xl border border-white/5">
-                  <div className="w-1.5 h-auto bg-indigo-500 rounded-full shrink-0"></div>
-                  <div>
-                    <h5 className="text-xs font-black text-slate-200">Refuerzo Prioritario</h5>
-                    <p className="text-[10px] text-slate-400 mt-1 font-semibold leading-relaxed">
-                      Priorizar tutoría en Álgebra para los cursos 9-A y 9-B de forma sincrónica los días miércoles.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex gap-3 bg-white/5 p-4 rounded-xl border border-white/5">
-                  <div className="w-1.5 h-auto bg-amber-500 rounded-full shrink-0"></div>
-                  <div>
-                    <h5 className="text-xs font-black text-slate-200">Ajuste de Syllabus</h5>
-                    <p className="text-[10px] text-slate-400 mt-1 font-semibold leading-relaxed">
-                      Aplazar el examen parcial de Tecnología e Informática de 10-A un periodo de 5 días para equilibrar cobertura curricular.
-                    </p>
-                  </div>
-                </div>
+              <div className="mt-6 p-6 rounded-xl bg-white/5 border border-white/5 text-center">
+                <p className="text-xs font-semibold text-slate-400">Sin recomendaciones predictivas ficticias.</p>
+                <p className="text-[10px] text-slate-500 mt-1">El motor curricular procesará los planes de refuerzo con base en datos reales.</p>
               </div>
             </div>
 
-            <button className="w-full mt-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white rounded-xl shadow-md transition-all">
-              Ver recomendaciones completas
+            <button disabled className="w-full mt-6 py-2.5 bg-slate-800 text-xs font-bold text-slate-500 rounded-xl cursor-not-allowed border border-slate-700/50">
+              Recomendaciones curriculares (Próximamente)
             </button>
           </div>
 
@@ -428,32 +422,24 @@ export function AcademicAlertsPanel({ onIntervene }: AcademicAlertsPanelProps) {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
                     <label className="text-[10px] font-black text-slate-450 uppercase tracking-widest block mb-1">Materia de Refuerzo</label>
-                    <select
+                    <Input
+                      placeholder="Materia a reforzar..."
                       value={tutorSubject}
                       onChange={e => setTutorSubject(e.target.value)}
-                      className="w-full border border-slate-200 rounded-lg px-3 py-2 text-xs font-semibold text-slate-700 bg-slate-50 outline-none hover:border-indigo-300 transition-colors cursor-pointer h-10"
-                    >
-                      <option value="Matemáticas">Matemáticas</option>
-                      <option value="Tecnología e Informática">Tecnología e Informática</option>
-                      <option value="Química">Química</option>
-                      <option value="Español">Español</option>
-                      <option value="Física">Física</option>
-                    </select>
+                      required
+                      className="bg-slate-50 border-slate-200 h-10 font-bold text-xs"
+                    />
                   </div>
 
                   <div className="space-y-1">
                     <label className="text-[10px] font-black text-slate-450 uppercase tracking-widest block mb-1">Docente Asignado</label>
-                    <select
+                    <Input
+                      placeholder="Docente responsable..."
                       value={tutorTeacher}
                       onChange={e => setTutorTeacher(e.target.value)}
-                      className="w-full border border-slate-200 rounded-lg px-3 py-2 text-xs font-semibold text-slate-700 bg-slate-50 outline-none hover:border-indigo-300 transition-colors cursor-pointer h-10"
-                    >
-                      <option value="Carlos Martínez">Carlos Martínez</option>
-                      <option value="Lucía Gómez">Lucía Gómez</option>
-                      <option value="Marta Pérez">Marta Pérez</option>
-                      <option value="Jorge Ruiz">Jorge Ruiz</option>
-                      <option value="Elena Díaz">Elena Díaz</option>
-                    </select>
+                      required
+                      className="bg-slate-50 border-slate-200 h-10 font-bold text-xs"
+                    />
                   </div>
                 </div>
 

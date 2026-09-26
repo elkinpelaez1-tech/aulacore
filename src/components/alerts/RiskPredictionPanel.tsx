@@ -1,15 +1,14 @@
 'use client';
 
-import React from 'react';
-import { PREDICTIVE_ALERTS } from '@/lib/data/mock-alerts';
-import { BrainCircuit, TrendingDown, ArrowRight } from 'lucide-react';
+import { BrainCircuit, TrendingDown, ArrowRight, ShieldCheck } from 'lucide-react';
 
 interface RiskPredictionPanelProps {
   onIntervene?: (studentName: string) => void;
   onViewAIComplete?: () => void;
+  alerts?: any[];
 }
 
-export function RiskPredictionPanel({ onIntervene, onViewAIComplete }: RiskPredictionPanelProps) {
+export function RiskPredictionPanel({ onIntervene, onViewAIComplete, alerts = [] }: RiskPredictionPanelProps) {
   return (
     <div className="bg-gradient-to-br from-indigo-950 to-indigo-900 p-6 rounded-2xl border border-indigo-800 shadow-lg text-white flex flex-col h-full">
       <div className="flex justify-between items-start mb-6">
@@ -24,7 +23,14 @@ export function RiskPredictionPanel({ onIntervene, onViewAIComplete }: RiskPredi
       </div>
 
       <div className="flex-1 space-y-3">
-        {PREDICTIVE_ALERTS.map(alert => (
+        {alerts.length === 0 ? (
+          <div className="py-12 text-center border border-dashed border-indigo-800/80 rounded-xl bg-indigo-950/40 px-4">
+            <ShieldCheck className="w-8 h-8 text-indigo-400 mx-auto mb-2 opacity-60" />
+            <p className="text-xs font-bold text-indigo-200">Sin predicciones de riesgo activas.</p>
+            <p className="text-[11px] text-indigo-300/60 mt-1">El modelo predictivo generará alertas cuando se detecten patrones de riesgo.</p>
+          </div>
+        ) : (
+          alerts.map(alert => (
           <div 
             key={alert.id} 
             onClick={() => onIntervene?.(alert.studentName)}
@@ -54,7 +60,7 @@ export function RiskPredictionPanel({ onIntervene, onViewAIComplete }: RiskPredi
               </span>
             </div>
           </div>
-        ))}
+        )))}
       </div>
 
       <button 

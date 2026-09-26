@@ -1,16 +1,24 @@
 'use client';
 
-import React from 'react';
-import { LIVE_ALERTS, PREDICTIVE_ALERTS, LiveAlert } from '@/lib/data/mock-alerts';
-import { BrainCircuit, AlertTriangle, ArrowRight, Clock, Activity, ShieldAlert, Users } from 'lucide-react';
+import { BrainCircuit, AlertTriangle, ArrowRight, Clock, Activity, ShieldAlert, Users, BellOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
+
+export interface LiveAlert {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  urgency: string;
+  timeAgo: string;
+}
 
 interface CriticalAlertsFeedProps {
   onSelectAlert?: (alert: LiveAlert) => void;
   onViewHistory?: () => void;
+  alerts?: LiveAlert[];
 }
 
-export function CriticalAlertsFeed({ onSelectAlert, onViewHistory }: CriticalAlertsFeedProps) {
+export function CriticalAlertsFeed({ onSelectAlert, onViewHistory, alerts = [] }: CriticalAlertsFeedProps) {
   const getIcon = (category: string) => {
     switch(category) {
       case 'Academica': return <GraduationIcon className="w-4 h-4" />;
@@ -33,7 +41,14 @@ export function CriticalAlertsFeed({ onSelectAlert, onViewHistory }: CriticalAle
       </div>
 
       <div className="flex-1 space-y-4 overflow-y-auto pr-2 scrollbar-hide">
-        {LIVE_ALERTS.map(alert => (
+        {alerts.length === 0 ? (
+          <div className="py-12 text-center border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
+            <BellOff className="w-8 h-8 text-slate-350 mx-auto mb-2 text-slate-400" />
+            <p className="text-xs font-bold text-slate-600">No hay alertas operativas registradas.</p>
+            <p className="text-[11px] text-slate-400 mt-0.5">El sistema notificará eventos críticos en tiempo real.</p>
+          </div>
+        ) : (
+          alerts.map(alert => (
           <div key={alert.id} className="group relative pl-4 pb-4 border-l-2 border-slate-100 last:border-l-0 last:pb-0">
             <div className={cn(
               "absolute -left-[9px] top-0 w-4 h-4 rounded-full border-4 border-white flex items-center justify-center transition-all group-hover:scale-110",
@@ -56,7 +71,7 @@ export function CriticalAlertsFeed({ onSelectAlert, onViewHistory }: CriticalAle
               <p className="text-xs font-medium text-slate-600 line-clamp-2">{alert.description}</p>
             </div>
           </div>
-        ))}
+        )))}
       </div>
       
       <button 

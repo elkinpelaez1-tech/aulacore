@@ -1,19 +1,30 @@
 'use client';
 
 import React from 'react';
-import { HEATMAP_DATA, CourseHeatmapData } from '@/lib/data/mock-alerts';
-import { Activity, ShieldAlert, GraduationCap, BrainCircuit } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { ShieldAlert, GraduationCap, Activity, BrainCircuit } from 'lucide-react';
+export interface CourseHeatmapData {
+  id: string;
+  name: string;
+  level: string;
+  overallRisk: 'Alto' | 'Medio' | 'Saludable';
+  aiRisk: 'Alto' | 'Medio' | 'Saludable';
+  activeAlerts: number;
+  gpa: number;
+  attendance: number;
+  behaviorScore: number;
+}
 
 interface InstitutionalHeatmapProps {
   activeFilter: { type: 'all' | 'level' | 'critical' | 'dropout'; value?: string } | null;
   onSelectCourse?: (courseName: string) => void;
+  courses?: CourseHeatmapData[];
 }
 
-export function InstitutionalHeatmap({ activeFilter, onSelectCourse }: InstitutionalHeatmapProps) {
-  const preescolar = HEATMAP_DATA.filter(c => c.level === 'Preescolar');
-  const primaria = HEATMAP_DATA.filter(c => c.level === 'Primaria');
-  const bachillerato = HEATMAP_DATA.filter(c => c.level === 'Bachillerato');
+export function InstitutionalHeatmap({ activeFilter, onSelectCourse, courses = [] }: InstitutionalHeatmapProps) {
+  const preescolar = courses.filter(c => c.level === 'Preescolar');
+  const primaria = courses.filter(c => c.level === 'Primaria');
+  const bachillerato = courses.filter(c => c.level === 'Bachillerato');
 
   const showPreescolar = !activeFilter || activeFilter.type !== 'level' || activeFilter.value === 'Preescolar';
   const showPrimaria = !activeFilter || activeFilter.type !== 'level' || activeFilter.value === 'Primaria';
@@ -144,9 +155,19 @@ export function InstitutionalHeatmap({ activeFilter, onSelectCourse }: Instituti
         </div>
       </div>
 
-      {showBachillerato && renderLevelGroup('Bachillerato', bachillerato)}
-      {showPrimaria && renderLevelGroup('Primaria', primaria)}
-      {showPreescolar && renderLevelGroup('Preescolar', preescolar)}
+      {courses.length === 0 ? (
+        <div className="py-16 text-center border border-dashed border-slate-200 rounded-2xl bg-white">
+          <ShieldAlert className="w-10 h-10 text-slate-300 mx-auto mb-2" />
+          <p className="text-xs font-bold text-slate-600">Sin cursos o registros de seguimiento configurados para esta institución.</p>
+          <p className="text-[11px] text-slate-400 mt-0.5">El mapa de calor se actualizará automáticamente cuando existan cursos y estudiantes vinculados.</p>
+        </div>
+      ) : (
+        <>
+          {showBachillerato && renderLevelGroup('Bachillerato', bachillerato)}
+          {showPrimaria && renderLevelGroup('Primaria', primaria)}
+          {showPreescolar && renderLevelGroup('Preescolar', preescolar)}
+        </>
+      )}
     </div>
   );
 }

@@ -8,6 +8,10 @@ import { cn } from '@/lib/utils';
 
 interface RfidAttendancePanelProps {
   onIntervene?: (studentName: string) => void;
+  presentesCount?: number;
+  inasistentesCount?: number;
+  tardiasCount?: number;
+  dispositivosCount?: number;
 }
 
 interface RfidLog {
@@ -20,7 +24,13 @@ interface RfidLog {
   device: string;
 }
 
-export function RfidAttendancePanel({ onIntervene }: RfidAttendancePanelProps) {
+export function RfidAttendancePanel({
+  onIntervene,
+  presentesCount = 0,
+  inasistentesCount = 0,
+  tardiasCount = 0,
+  dispositivosCount = 0,
+}: RfidAttendancePanelProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [isSwiping, setIsSwiping] = useState(false);
   const [toast, setToast] = useState<{ title: string; message: string } | null>(null);
@@ -57,7 +67,7 @@ export function RfidAttendancePanel({ onIntervene }: RfidAttendancePanelProps) {
       time: timeStr,
       direction: swipeDirection,
       status: 'A Tiempo',
-      device: 'Lector Demo Biométrico'
+      device: 'Lector Biométrico'
     };
 
     setLogs([newLog, ...logs]);
@@ -65,17 +75,12 @@ export function RfidAttendancePanel({ onIntervene }: RfidAttendancePanelProps) {
 
     setToast({
       title: 'Lectura RFID Registrada',
-      message: `Tarjeta de ${newLog.studentName} leída correctamente [${newLog.direction} - ${newLog.time}].`
+      message: `Lectura registrada para ${newLog.studentName}.`
     });
-    setToast(null);
   };
 
   const handleSendNotification = (studentName: string) => {
-    setToast({
-      title: 'Notificación Despachada',
-      message: `Alerta de inasistencia enviada por WhatsApp al acudiente de ${studentName}.`
-    });
-    setToast(null);
+    // Disabled in clean mode
   };
 
   return (
@@ -86,8 +91,8 @@ export function RfidAttendancePanel({ onIntervene }: RfidAttendancePanelProps) {
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Presentes Hoy</p>
           <div className="flex items-baseline gap-2 mt-1">
-            <span className="text-3xl font-black text-slate-800">1,215</span>
-            <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">94.9%</span>
+            <span className="text-3xl font-black text-slate-800">{presentesCount}</span>
+            <span className="text-xs font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">0.0%</span>
           </div>
           <p className="text-[9px] text-slate-400 font-semibold mt-1">Ingresos registrados en RFID</p>
         </div>
@@ -95,8 +100,8 @@ export function RfidAttendancePanel({ onIntervene }: RfidAttendancePanelProps) {
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Inasistentes Hoy</p>
           <div className="flex items-baseline gap-2 mt-1">
-            <span className="text-3xl font-black text-rose-500">42</span>
-            <span className="text-xs font-bold text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded">3.2%</span>
+            <span className="text-3xl font-black text-rose-500">{inasistentesCount}</span>
+            <span className="text-xs font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">0.0%</span>
           </div>
           <p className="text-[9px] text-slate-400 font-semibold mt-1">Ausencias sin justificar</p>
         </div>
@@ -104,19 +109,19 @@ export function RfidAttendancePanel({ onIntervene }: RfidAttendancePanelProps) {
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Llegadas Tardías</p>
           <div className="flex items-baseline gap-2 mt-1">
-            <span className="text-3xl font-black text-amber-500">23</span>
-            <span className="text-xs font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded">1.8%</span>
+            <span className="text-3xl font-black text-amber-500">{tardiasCount}</span>
+            <span className="text-xs font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">0.0%</span>
           </div>
-          <p className="text-[9px] text-slate-400 font-semibold mt-1">Después del timbre (07:05)</p>
+          <p className="text-[9px] text-slate-400 font-semibold mt-1">Después del timbre</p>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
           <div>
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Estado Dispositivos</p>
-            <p className="text-base font-black text-emerald-600 mt-2">4 Online</p>
-            <p className="text-[9px] text-slate-400 font-semibold mt-1">Sede Principal & Norte</p>
+            <p className="text-base font-black text-slate-600 mt-2">{dispositivosCount} Online</p>
+            <p className="text-[9px] text-slate-400 font-semibold mt-1">Sin terminales RFID vinculadas</p>
           </div>
-          <div className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center shrink-0">
             <MapPin className="w-5 h-5" />
           </div>
         </div>
@@ -146,45 +151,53 @@ export function RfidAttendancePanel({ onIntervene }: RfidAttendancePanelProps) {
           </div>
 
           <div className="space-y-3 max-h-[380px] overflow-y-auto pr-1 scrollbar-hide">
-            {filteredLogs.map(log => (
-              <div 
-                key={log.id} 
-                className="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex items-center justify-between gap-4 hover:border-slate-200 transition-colors"
-              >
-                <div 
-                  onClick={() => onIntervene?.(log.studentName)}
-                  className="flex items-center gap-3 cursor-pointer group"
-                >
-                  <div className={cn(
-                    "w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs text-white shrink-0",
-                    log.direction === 'Entrada' ? "bg-emerald-500" : "bg-blue-600"
-                  )}>
-                    {log.direction.charAt(0)}
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-black text-slate-800 group-hover:text-indigo-600 transition-colors flex items-center gap-1">
-                      {log.studentName}
-                      <ChevronRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all text-indigo-600" />
-                    </h4>
-                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider flex items-center gap-2">
-                      <span>{log.group}</span>
-                      <span>•</span>
-                      <span className="flex items-center gap-0.5"><Clock className="w-3 h-3" /> {log.time}</span>
-                      <span>•</span>
-                      <span>{log.device}</span>
-                    </span>
-                  </div>
-                </div>
-
-                <span className={cn(
-                  "text-[9px] font-black uppercase px-2 py-0.5 rounded shrink-0",
-                  log.status === 'A Tiempo' ? "bg-emerald-50 text-emerald-700" :
-                  log.status === 'Tarde' ? "bg-amber-50 text-amber-700" : "bg-rose-50 text-rose-700"
-                )}>
-                  {log.status}
-                </span>
+            {filteredLogs.length === 0 ? (
+              <div className="py-16 text-center border border-dashed border-slate-200 rounded-2xl bg-white">
+                <Activity className="w-10 h-10 text-slate-300 mx-auto mb-2" />
+                <p className="text-xs font-bold text-slate-600">No hay lecturas de asistencia registradas para la fecha.</p>
+                <p className="text-[11px] text-slate-400 mt-0.5">Los registros de torniquetes y lectores biométricos aparecerán aquí.</p>
               </div>
-            ))}
+            ) : (
+              filteredLogs.map(log => (
+                <div
+                  key={log.id}
+                  className="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex items-center justify-between gap-4 hover:border-slate-200 transition-colors"
+                >
+                  <div
+                    onClick={() => onIntervene?.(log.studentName)}
+                    className="flex items-center gap-3 cursor-pointer group"
+                  >
+                    <div className={cn(
+                      "w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs text-white shrink-0",
+                      log.direction === 'Entrada' ? "bg-emerald-500" : "bg-blue-600"
+                    )}>
+                      {log.direction.charAt(0)}
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-black text-slate-800 group-hover:text-indigo-600 transition-colors flex items-center gap-1">
+                        {log.studentName}
+                        <ChevronRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all text-indigo-600" />
+                      </h4>
+                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider flex items-center gap-2">
+                        <span>{log.group}</span>
+                        <span>•</span>
+                        <span className="flex items-center gap-0.5"><Clock className="w-3 h-3" /> {log.time}</span>
+                        <span>•</span>
+                        <span>{log.device}</span>
+                      </span>
+                    </div>
+                  </div>
+
+                  <span className={cn(
+                    "text-[9px] font-black uppercase px-2 py-0.5 rounded shrink-0",
+                    log.status === 'A Tiempo' ? "bg-emerald-50 text-emerald-700" :
+                    log.status === 'Tarde' ? "bg-amber-50 text-amber-700" : "bg-rose-50 text-rose-700"
+                  )}>
+                    {log.status}
+                  </span>
+                </div>
+              ))
+            )}
           </div>
         </div>
 
@@ -204,7 +217,7 @@ export function RfidAttendancePanel({ onIntervene }: RfidAttendancePanelProps) {
                 <Input 
                   value={swipeName}
                   onChange={e => setSwipeName(e.target.value)}
-                  placeholder="Ej: Mateo, Sofía, Alex..."
+                  placeholder="Nombre del estudiante..."
                   className="bg-slate-950 border-slate-800 text-xs font-semibold text-white placeholder:text-slate-600 rounded-xl"
                   required
                 />
@@ -241,7 +254,7 @@ export function RfidAttendancePanel({ onIntervene }: RfidAttendancePanelProps) {
                 disabled={isSwiping}
                 className="w-full bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white py-2.5 rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5"
               >
-                {isSwiping ? 'Simulando chip RFID...' : 'Simular Entrada / Salida'}
+                {isSwiping ? 'Registrando pase...' : 'Registrar Entrada / Salida'}
               </Button>
             </form>
           </div>
@@ -254,7 +267,12 @@ export function RfidAttendancePanel({ onIntervene }: RfidAttendancePanelProps) {
               </h3>
               
               <div className="space-y-3 overflow-y-auto max-h-[180px] pr-1 scrollbar-hide">
-                {criticalAbsences.map(student => (
+                {criticalAbsences.length === 0 ? (
+                  <div className="py-8 text-center border border-dashed border-slate-100 rounded-xl">
+                    <p className="text-xs font-bold text-slate-500">No hay alertas de ausencias prolongadas registradas.</p>
+                  </div>
+                ) : (
+                  criticalAbsences.map(student => (
                   <div key={student.id} className="flex items-center justify-between gap-3 p-2 bg-slate-50 rounded-xl border border-slate-100/50">
                     <div 
                       onClick={() => onIntervene?.(student.name)}
@@ -271,7 +289,7 @@ export function RfidAttendancePanel({ onIntervene }: RfidAttendancePanelProps) {
                       <MessageSquare className="w-3.5 h-3.5" />
                     </button>
                   </div>
-                ))}
+                )))}
               </div>
             </div>
           </div>

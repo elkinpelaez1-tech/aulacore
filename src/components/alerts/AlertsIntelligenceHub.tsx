@@ -1,12 +1,14 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useRole } from '@/providers/role-provider';
+import { supabase } from '@/lib/supabase';
 import { AlertsFilterBar } from './AlertsFilterBar';
 import { AlertsExecutivePanel } from './AlertsExecutivePanel';
 import { InstitutionalHeatmap } from './InstitutionalHeatmap';
 import { CriticalAlertsFeed } from './CriticalAlertsFeed';
 import { RiskPredictionPanel } from './RiskPredictionPanel';
-interface StudentMockData {
+interface StudentItemData {
   id: string;
   name: string;
   group?: string;
@@ -17,7 +19,7 @@ interface StudentMockData {
   gpa: number;
   attendanceRate: number;
 }
-const MOCK_STUDENTS: StudentMockData[] = [];
+const institutionalStudents: StudentItemData[] = [];
 import { Student360Drawer } from '@/components/students/Student360Drawer';
 
 // Premium Tab Component Imports
@@ -47,9 +49,18 @@ const LIVE_ALERTS: LiveAlert[] = [];
 type AlertTab = 'institucional' | 'academica' | 'convivencia' | 'rfid' | 'docentes' | 'ia';
 
 export function AlertsIntelligenceHub() {
+  const { userRole, institutionId, activeInstitution } = useRole();
+  const effectiveInstitutionId = activeInstitution?.id || institutionId || (typeof window !== 'undefined' ? localStorage.getItem('aulacore-institution-id') : null);
+
   const [activeTab, setActiveTab] = useState<AlertTab>('institucional');
-  const [selectedStudent, setSelectedStudent] = useState<StudentMockData | null>(null);
+  const [selectedStudent, setSelectedStudent] = useState<StudentItemData | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
+  // Institutional real counts & sedes
+  const [studentsCount, setStudentsCount] = useState<number>(0);
+  const [teachersCount, setTeachersCount] = useState<number>(0);
+  const [availableSedes, setAvailableSedes] = useState<string[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
 
   // Filter States
   const [activeFilter, setActiveFilter] = useState<{ type: 'all' | 'level' | 'critical' | 'dropout'; value?: string } | null>(null);
@@ -60,8 +71,66 @@ export function AlertsIntelligenceHub() {
   const [historyFilter, setHistoryFilter] = useState<'Todos' | 'Academica' | 'Convivencia' | 'Asistencia' | 'Docente'>('Todos');
   const [toast, setToast] = useState<{ title: string; message: string } | null>(null);
 
+  useEffect(() => {
+    async function loadInstitutionalData() {
+      if (!effectiveInstitutionId) {
+        setLoading(false);
+        return;
+      }
+      try {
+        setLoading(true);
+        // Load sedes from institutional settings
+        if (typeof window !== 'undefined') {
+          const settingsStr = localStorage.getItem(`aulacore-institucion-settings-${effectiveInstitutionId}`);
+          if (settingsStr) {
+            try {
+              const settings = JSON.parse(settingsStr);
+              if (Array.isArray(settings.sedes)) {
+                setAvailableSedes(settings.sedes.map((s: any) => typeof s === 'string' ? s : s.name).filter(Boolean));
+              }
+            } catch (e) {}
+          }
+        }
+
+        // Query real student count from student_onboardings
+        const { count: sCount, error: sErr } = await supabase
+          .from('student_onboardings')
+          .select('id', { count: 'exact', head: true })
+          .eq('institution_id', effectiveInstitutionId);
+
+        if (!sErr && sCount !== null) {
+          setStudentsCount(sCount);
+        }
+
+        // Query real teacher count from teacher_onboardings
+        const { count: tCount, error: tErr } = await supabase
+          .from('teacher_onboardings')
+          .select('id', { count: 'exact', head: true })
+          .eq('institution_id', effectiveInstitutionId)
+          .in('status', [
+            'invited',
+            'email_sent',
+            'activated',
+            'first_access',
+            'active',
+            'approved'
+          ]);
+
+        if (!tErr && tCount !== null) {
+          setTeachersCount(tCount);
+        }
+      } catch (err) {
+        console.error('Error loading institutional alerts data:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadInstitutionalData();
+  }, [effectiveInstitutionId]);
+
   const handleIntervene = (studentName: string) => {
-    const student = MOCK_STUDENTS.find(s => s.name.toLowerCase() === studentName.toLowerCase());
+    const student = institutionalStudents.find(s => s.name.toLowerCase() === studentName.toLowerCase());
     if (student) {
       setSelectedStudent(student);
       setIsDrawerOpen(true);
@@ -69,8 +138,7 @@ export function AlertsIntelligenceHub() {
   };
 
   const handleSelectAlert = (alert: LiveAlert) => {
-    // Find student in Mock Students database matching first name / full name
-    const student = MOCK_STUDENTS.find(s => 
+    const student = institutionalStudents.find(s =>
       alert.title.toLowerCase().includes(s.name.toLowerCase()) || 
       alert.description.toLowerCase().includes(s.name.toLowerCase()) ||
       alert.description.toLowerCase().includes(s.name.split(' ')[0].toLowerCase())
@@ -82,7 +150,6 @@ export function AlertsIntelligenceHub() {
       return;
     }
 
-    // Otherwise, check if this alert matches a course heatmap block
     const course = HEATMAP_DATA.find(c => 
       alert.title.toLowerCase().includes(c.name.toLowerCase()) || 
       alert.description.toLowerCase().includes(c.name.toLowerCase())
@@ -95,7 +162,7 @@ export function AlertsIntelligenceHub() {
 
   const selectedCourse = HEATMAP_DATA.find(c => c.name === selectedCourseName);
   const courseStudents = selectedCourseName 
-    ? MOCK_STUDENTS.filter(s => s.group === selectedCourseName)
+    ? institutionalStudents.filter(s => s.group === selectedCourseName)
     : [];
 
   const tabs = [
@@ -111,7 +178,7 @@ export function AlertsIntelligenceHub() {
     <div className="space-y-6">
       
       {/* Global Filters */}
-      <AlertsFilterBar />
+      <AlertsFilterBar availableSedes={availableSedes} />
 
       {/* Tabs Navigation */}
       <div className="flex overflow-x-auto pb-2 scrollbar-hide border-b border-slate-200">
@@ -146,7 +213,13 @@ export function AlertsIntelligenceHub() {
           <div className="space-y-6">
             <AlertsExecutivePanel 
               activeFilter={activeFilter} 
-              onFilterChange={setActiveFilter} 
+              onFilterChange={setActiveFilter}
+              openAlerts={0}
+              preescolarAlerts={0}
+              primariaAlerts={0}
+              bachilleratoAlerts={0}
+              highRiskCases={0}
+              potentialDropouts={0}
             />
             
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
@@ -154,6 +227,7 @@ export function AlertsIntelligenceHub() {
                 <InstitutionalHeatmap 
                   activeFilter={activeFilter}
                   onSelectCourse={setSelectedCourseName}
+                  courses={[]}
                 />
               </div>
               <div className="xl:col-span-1 flex flex-col gap-6">
@@ -161,12 +235,14 @@ export function AlertsIntelligenceHub() {
                   <RiskPredictionPanel 
                     onIntervene={handleIntervene}
                     onViewAIComplete={() => setActiveTab('ia')}
+                    alerts={[]}
                   />
                 </div>
                 <div className="flex-1">
                   <CriticalAlertsFeed 
                     onSelectAlert={handleSelectAlert}
                     onViewHistory={() => setIsHistoryOpen(true)}
+                    alerts={[]}
                   />
                 </div>
               </div>
@@ -176,27 +252,51 @@ export function AlertsIntelligenceHub() {
 
         {/* AI Prediction Sub-dashboard */}
         {activeTab === 'ia' && (
-          <PredictiveAIDashboard onIntervene={handleIntervene} />
+          <PredictiveAIDashboard
+            onIntervene={handleIntervene}
+            studentsCount={studentsCount}
+            highRiskCount={0}
+            earlyAlertsCount={0}
+            intervenedCount={0}
+          />
         )}
 
         {/* Académico Sub-dashboard */}
         {activeTab === 'academica' && (
-          <AcademicAlertsPanel onIntervene={handleIntervene} />
+          <AcademicAlertsPanel
+            onIntervene={handleIntervene}
+            institutionId={effectiveInstitutionId}
+          />
         )}
 
         {/* Convivencia Sub-dashboard */}
         {activeTab === 'convivencia' && (
-          <BehaviorAlertsPanel onIntervene={handleIntervene} />
+          <BehaviorAlertsPanel
+            onIntervene={handleIntervene}
+            type1Count={0}
+            type2Count={0}
+            type3Count={0}
+          />
         )}
 
         {/* Asistencia RFID Sub-dashboard */}
         {activeTab === 'rfid' && (
-          <RfidAttendancePanel onIntervene={handleIntervene} />
+          <RfidAttendancePanel
+            onIntervene={handleIntervene}
+            presentesCount={0}
+            inasistentesCount={0}
+            tardiasCount={0}
+            dispositivosCount={0}
+          />
         )}
 
         {/* Docentes Sub-dashboard */}
         {activeTab === 'docentes' && (
-          <DocenteAlertsPanel />
+          <DocenteAlertsPanel
+            teachersCount={teachersCount}
+            cierresDemorados={0}
+            planeacionesPendientes={0}
+          />
         )}
 
       </div>
