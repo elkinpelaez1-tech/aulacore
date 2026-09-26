@@ -5,7 +5,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { 
   FileText, Download, CheckCircle2, 
-  BarChart3, RefreshCw, Calendar 
+  BarChart3, Calendar 
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -14,7 +14,6 @@ interface PaeReportsProps {
 }
 
 export function PaeReports({ userRole }: PaeReportsProps) {
-  const [loadingReportId, setLoadingReportId] = useState<string | null>(null);
 
   const reports = [
     {
@@ -47,16 +46,6 @@ export function PaeReports({ userRole }: PaeReportsProps) {
     }
   ];
 
-  const handleExport = (reportId: string, format: 'PDF' | 'Excel') => {
-    setLoadingReportId(`${reportId}-${format}`);
-    
-    // Simulate generation delay
-    setTimeout(() => {
-      setLoadingReportId(null);
-      alert(`✓ Reporte generado con éxito en formato ${format}. Guardando archivo en descargas del equipo.`);
-    }, 1500);
-  };
-
   return (
     <div className="space-y-6">
       
@@ -78,43 +67,14 @@ export function PaeReports({ userRole }: PaeReportsProps) {
               </p>
             </CardContent>
 
-            <div className="bg-slate-50 border-t border-slate-100 p-4 flex gap-2">
+            <div className="bg-slate-50 border-t border-slate-100 p-4">
               <Button
                 variant="outline"
-                className="flex-1 bg-white border-slate-200 text-slate-700 font-bold text-xs h-9 rounded-xl flex items-center justify-center gap-1.5 cursor-pointer"
-                disabled={!!loadingReportId}
-                onClick={() => handleExport(r.id, 'PDF')}
+                disabled
+                className="w-full bg-white border-slate-200 text-slate-400 font-bold text-xs h-9 rounded-xl flex items-center justify-center gap-1.5 cursor-not-allowed"
               >
-                {loadingReportId === `${r.id}-PDF` ? (
-                  <>
-                    <RefreshCw className="w-3.5 h-3.5 animate-spin text-slate-400" />
-                    <span>Generando...</span>
-                  </>
-                ) : (
-                  <>
-                    <Download className="w-3.5 h-3.5 text-slate-500" />
-                    <span>Exportar PDF</span>
-                  </>
-                )}
-              </Button>
-
-              <Button
-                variant="outline"
-                className="flex-1 bg-white border-slate-200 text-indigo-650 font-bold text-xs h-9 rounded-xl flex items-center justify-center gap-1.5 cursor-pointer"
-                disabled={!!loadingReportId}
-                onClick={() => handleExport(r.id, 'Excel')}
-              >
-                {loadingReportId === `${r.id}-Excel` ? (
-                  <>
-                    <RefreshCw className="w-3.5 h-3.5 animate-spin text-slate-400" />
-                    <span>Generando...</span>
-                  </>
-                ) : (
-                  <>
-                    <Download className="w-3.5 h-3.5 text-indigo-600" />
-                    <span>Exportar Excel</span>
-                  </>
-                )}
+                <Download className="w-3.5 h-3.5 text-slate-400" />
+                <span>Generación de reportes próximamente</span>
               </Button>
             </div>
           </Card>

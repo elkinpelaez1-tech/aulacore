@@ -244,7 +244,9 @@ export function PaeBeneficiaries({
               {filteredStudents.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="p-8 text-center text-xs text-slate-400 font-semibold">
-                    No se encontraron estudiantes para los filtros actuales.
+                    {students.length === 0 
+                      ? 'No hay beneficiarios PAE registrados.' 
+                      : 'No se encontraron estudiantes para los filtros actuales.'}
                   </TableCell>
                 </TableRow>
               ) : (

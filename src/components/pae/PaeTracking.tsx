@@ -47,16 +47,16 @@ export function PaeTracking({
   onSavePurchases,
   visits = [],
   onSaveVisits,
-  totalContractValue = 80000000 // default 80 million COP
+  totalContractValue = 0
 }: PaeTrackingProps) {
   const [activeSubTab, setActiveSubTab] = useState<'supervision' | 'local_purchases'>('supervision');
 
   // Local purchase form state
   const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false);
   const [supplier, setSupplier] = useState('');
-  const [municipality, setMunicipality] = useState('San Antonio de Tequendama');
+  const [municipality, setMunicipality] = useState('');
   const [product, setProduct] = useState('');
-  const [value, setValue] = useState(1000000);
+  const [value, setValue] = useState(0);
   const [purchaseDate, setPurchaseDate] = useState(new Date().toISOString().split('T')[0]);
 
   // Visit form state
@@ -72,13 +72,15 @@ export function PaeTracking({
 
   // Calculate percentages
   const totalLocalPurchases = localPurchases.reduce((acc, curr) => acc + curr.purchase_value, 0);
-  const localPurchasesPercentage = parseFloat(((totalLocalPurchases / totalContractValue) * 100).toFixed(2));
+  const localPurchasesPercentage = totalContractValue > 0
+    ? parseFloat(((totalLocalPurchases / totalContractValue) * 100).toFixed(2))
+    : 0.0;
   const meetsMeta = localPurchasesPercentage >= 20.0;
 
   const handleOpenAddPurchase = () => {
     setSupplier('');
     setProduct('');
-    setValue(1500000);
+    setValue(0);
     setPurchaseDate(new Date().toISOString().split('T')[0]);
     setIsPurchaseModalOpen(true);
   };
@@ -296,21 +298,29 @@ export function PaeTracking({
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {localPurchases.map((pur) => (
-                      <TableRow key={pur.id}>
-                        <TableCell className="font-black text-slate-955 text-xs pl-6">{pur.supplier_name}</TableCell>
-                        <TableCell className="font-semibold text-slate-600 text-xs">{pur.municipality}</TableCell>
-                        <TableCell className="font-bold text-slate-700 text-xs">{pur.product_name}</TableCell>
-                        <TableCell className="font-mono font-black text-slate-900 text-xs text-right">
-                          ${pur.purchase_value.toLocaleString('co-CO', { minimumFractionDigits: 2 })}
-                        </TableCell>
-                        <TableCell className="pr-6 text-right">
-                          <Button variant="ghost" className="h-8 text-[11px] font-black text-indigo-650 hover:bg-indigo-50" onClick={() => downloadPaePurchasePDF(pur)}>
-                            Factura
-                          </Button>
+                    {localPurchases.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={5} className="p-8 text-center text-xs text-slate-400 font-semibold">
+                          No hay compras locales registradas.
                         </TableCell>
                       </TableRow>
-                    ))}
+                    ) : (
+                      localPurchases.map((pur) => (
+                        <TableRow key={pur.id}>
+                          <TableCell className="font-black text-slate-955 text-xs pl-6">{pur.supplier_name}</TableCell>
+                          <TableCell className="font-semibold text-slate-600 text-xs">{pur.municipality}</TableCell>
+                          <TableCell className="font-bold text-slate-700 text-xs">{pur.product_name}</TableCell>
+                          <TableCell className="font-mono font-black text-slate-900 text-xs text-right">
+                            ${pur.purchase_value.toLocaleString('co-CO', { minimumFractionDigits: 2 })}
+                          </TableCell>
+                          <TableCell className="pr-6 text-right">
+                            <Button variant="ghost" className="h-8 text-[11px] font-black text-indigo-650 hover:bg-indigo-50" onClick={() => downloadPaePurchasePDF(pur)}>
+                              Factura
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
                   </TableBody>
                 </Table>
               </CardContent>

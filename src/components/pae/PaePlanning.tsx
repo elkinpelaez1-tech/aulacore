@@ -236,21 +236,29 @@ export function PaePlanning({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {resources.map((res) => (
-                  <TableRow key={res.id}>
-                    <TableCell className="font-black text-slate-950 text-sm pl-6">{res.source_name}</TableCell>
-                    <TableCell className="font-mono font-black text-slate-700 text-xs text-right">
-                      ${res.allocated_value.toLocaleString('co-CO', { minimumFractionDigits: 2 })}
-                    </TableCell>
-                    <TableCell className="text-center font-bold text-slate-500 text-xs">{res.allocation_date}</TableCell>
-                    <TableCell className="text-xs text-slate-600 font-semibold">{res.support_document}</TableCell>
-                    <TableCell className="pr-6 text-right">
-                      <Button variant="ghost" className="h-8 text-indigo-600 font-bold text-xs px-3 hover:bg-indigo-50" onClick={() => downloadPaeResourcePDF(res)}>
-                        <Download className="w-3.5 h-3.5 mr-1" /> PDF
-                      </Button>
+                {resources.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="py-8 text-center text-slate-400 font-bold text-xs">
+                      No hay recursos registrados
                     </TableCell>
                   </TableRow>
-                ))}
+                ) : (
+                  resources.map((res) => (
+                    <TableRow key={res.id}>
+                      <TableCell className="font-black text-slate-950 text-sm pl-6">{res.source_name}</TableCell>
+                      <TableCell className="font-mono font-black text-slate-700 text-xs text-right">
+                        ${res.allocated_value.toLocaleString('co-CO', { minimumFractionDigits: 2 })}
+                      </TableCell>
+                      <TableCell className="text-center font-bold text-slate-500 text-xs">{res.allocation_date}</TableCell>
+                      <TableCell className="text-xs text-slate-600 font-semibold">{res.support_document}</TableCell>
+                      <TableCell className="pr-6 text-right">
+                        <Button variant="ghost" className="h-8 text-indigo-600 font-bold text-xs px-3 hover:bg-indigo-50" onClick={() => downloadPaeResourcePDF(res)}>
+                          <Download className="w-3.5 h-3.5 mr-1" /> PDF
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </CardContent>
@@ -279,31 +287,39 @@ export function PaePlanning({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {prioritizations.map((pri) => (
-                  <TableRow key={pri.id}>
-                    <TableCell className="font-black text-slate-950 text-sm pl-6">{pri.school_sede}</TableCell>
-                    <TableCell className="font-semibold text-slate-700 text-xs">{pri.school_shift}</TableCell>
-                    <TableCell className="text-center font-bold text-slate-600 text-xs">{pri.projected_beneficiaries} estudiantes</TableCell>
-                    <TableCell className="text-center font-black text-indigo-700 text-xs">
-                      {pri.assigned_slots} cupos
-                    </TableCell>
-                    <TableCell className="text-right pr-6">
-                      {canEdit ? (
-                        <button
-                          onClick={() => {
-                            const input = prompt('Ingrese el nuevo número de cupos asignados:', pri.assigned_slots);
-                            if (input !== null) handleUpdateSlots(pri.id, parseInt(input));
-                          }}
-                          className="bg-slate-900 hover:bg-slate-800 text-white font-bold text-[10px] px-3 py-1.5 rounded-xl border-none cursor-pointer"
-                        >
-                          Actualizar Cupos
-                        </button>
-                      ) : (
-                        <span className="text-slate-400 text-xs italic">Solo Lectura</span>
-                      )}
+                {prioritizations.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="py-8 text-center text-slate-400 font-bold text-xs">
+                      Sin sedes PAE configuradas
                     </TableCell>
                   </TableRow>
-                ))}
+                ) : (
+                  prioritizations.map((pri) => (
+                    <TableRow key={pri.id}>
+                      <TableCell className="font-black text-slate-950 text-sm pl-6">{pri.school_sede}</TableCell>
+                      <TableCell className="font-semibold text-slate-700 text-xs">{pri.school_shift}</TableCell>
+                      <TableCell className="text-center font-bold text-slate-600 text-xs">{pri.projected_beneficiaries} estudiantes</TableCell>
+                      <TableCell className="text-center font-black text-indigo-700 text-xs">
+                        {pri.assigned_slots} cupos
+                      </TableCell>
+                      <TableCell className="text-right pr-6">
+                        {canEdit ? (
+                          <button
+                            onClick={() => {
+                              const input = prompt('Ingrese el nuevo número de cupos asignados:', pri.assigned_slots);
+                              if (input !== null) handleUpdateSlots(pri.id, parseInt(input));
+                            }}
+                            className="bg-slate-900 hover:bg-slate-800 text-white font-bold text-[10px] px-3 py-1.5 rounded-xl border-none cursor-pointer"
+                          >
+                            Actualizar Cupos
+                          </button>
+                        ) : (
+                          <span className="text-slate-400 text-xs italic">Solo Lectura</span>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </CardContent>
@@ -313,7 +329,14 @@ export function PaePlanning({
       {/* --- SUBTAB: DIAGNOSTICS --- */}
       {activeSubTab === 'diagnostics' && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {diagnostics.map((diag) => (
+          {diagnostics.length === 0 ? (
+            <div className="col-span-2 p-12 text-center bg-white rounded-3xl border border-dashed border-slate-200 shadow-sm">
+              <Building className="w-8 h-8 text-slate-350 mx-auto mb-2 text-slate-400" />
+              <p className="text-xs font-bold text-slate-600">No hay diagnósticos de infraestructura registrados</p>
+              <p className="text-[11px] text-slate-400 mt-0.5">Los diagnósticos de comedores y cocinas de las sedes aparecerán aquí.</p>
+            </div>
+          ) : (
+            diagnostics.map((diag) => (
             <Card key={diag.id} className="border-slate-200 shadow-md bg-white rounded-3xl overflow-hidden flex flex-col justify-between">
               <div>
                 <CardHeader className="bg-slate-50 border-b border-slate-200 px-6 py-4 flex flex-row items-center justify-between">
@@ -409,14 +432,21 @@ export function PaePlanning({
                 </div>
               )}
             </Card>
-          ))}
+          )))}
         </div>
       )}
 
       {/* --- SUBTAB: OPERATORS --- */}
       {activeSubTab === 'operators' && (
         <div className="space-y-6">
-          {operators.map((op) => (
+          {operators.length === 0 ? (
+            <div className="p-12 text-center bg-white rounded-3xl border border-dashed border-slate-200 shadow-sm">
+              <ShieldCheck className="w-8 h-8 text-slate-350 mx-auto mb-2 text-slate-400" />
+              <p className="text-xs font-bold text-slate-600">No hay operadores registrados.</p>
+              <p className="text-[11px] text-slate-400 mt-0.5">La información contractual del operador PAE aparecerá aquí.</p>
+            </div>
+          ) : (
+            operators.map((op) => (
             <Card key={op.id} className="border-slate-200 shadow-md bg-white rounded-3xl overflow-hidden">
               <CardHeader className="bg-slate-50 border-b border-slate-200 px-6 py-4 flex flex-row items-center justify-between">
                 <div>
@@ -483,7 +513,7 @@ export function PaePlanning({
                 </div>
               </CardContent>
             </Card>
-          ))}
+          )))}
         </div>
       )}
 
@@ -532,15 +562,23 @@ export function PaePlanning({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {team.map((t) => (
-                  <TableRow key={t.id}>
-                    <TableCell className="font-black text-slate-950 text-sm pl-6">{t.member_name}</TableCell>
-                    <TableCell className="font-bold text-slate-700 text-xs">{t.role_title}</TableCell>
-                    <TableCell className="text-xs font-semibold text-slate-500 font-mono">{t.document_number || 'N/A'}</TableCell>
-                    <TableCell className="text-xs font-semibold text-slate-600">{t.email || 'No registrado'}</TableCell>
-                    <TableCell className="text-xs font-bold text-slate-750 pr-6">{t.phone || 'No registrado'}</TableCell>
+                {team.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="py-8 text-center text-slate-400 font-bold text-xs">
+                      No hay integrantes de equipo registrados
+                    </TableCell>
                   </TableRow>
-                ))}
+                ) : (
+                  team.map((t) => (
+                    <TableRow key={t.id}>
+                      <TableCell className="font-black text-slate-950 text-sm pl-6">{t.member_name}</TableCell>
+                      <TableCell className="font-bold text-slate-700 text-xs">{t.role_title}</TableCell>
+                      <TableCell className="text-xs font-semibold text-slate-500 font-mono">{t.document_number || 'N/A'}</TableCell>
+                      <TableCell className="text-xs font-semibold text-slate-600">{t.email || 'No registrado'}</TableCell>
+                      <TableCell className="text-xs font-bold text-slate-750 pr-6">{t.phone || 'No registrado'}</TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </CardContent>
@@ -550,44 +588,52 @@ export function PaePlanning({
       {/* --- SUBTAB: MENUS --- */}
       {activeSubTab === 'menus' && (
         <div className="space-y-6">
-          {menus.map((m) => (
-            <Card key={m.id} className="border-slate-200 shadow-md bg-white rounded-3xl overflow-hidden">
-              <CardHeader className="bg-slate-50 border-b border-slate-200 px-6 py-4">
-                <CardTitle className="text-base font-black text-slate-950 flex items-center gap-2">
-                  <Utensils className="w-5 h-5 text-indigo-600" />
-                  Ciclo de Minutas: Semana {m.week_number}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6 space-y-4">
-                {/* Detalles de Alimentos */}
-                <div className="space-y-1.5">
-                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Menú Vigente</span>
-                  <p className="text-xs text-slate-700 font-semibold leading-relaxed bg-slate-50 p-4 rounded-2xl border border-slate-150">
-                    {m.menu_details}
-                  </p>
-                </div>
-
-                {/* Adjuntos Descargables */}
-                <div className="pt-2 space-y-2">
-                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Descargas Soporte Técnicos (MEN)</span>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <Button variant="outline" className="justify-between text-xs font-bold rounded-xl h-10 border-slate-250 text-slate-700 bg-white" onClick={() => downloadPaeMenuPDF(m)}>
-                      <span>Minuta Patrón</span>
-                      <Download className="w-4 h-4 text-indigo-650" />
-                    </Button>
-                    <Button variant="outline" className="justify-between text-xs font-bold rounded-xl h-10 border-slate-250 text-slate-700 bg-white" onClick={() => alert(`✓ Descargando Análisis Nutricional: ${m.nutrition_analysis_url}`)}>
-                      <span>Análisis Nutricional</span>
-                      <Download className="w-4 h-4 text-indigo-650" />
-                    </Button>
-                    <Button variant="outline" className="justify-between text-xs font-bold rounded-xl h-10 border-slate-250 text-slate-700 bg-white" onClick={() => alert(`✓ Descargando Guía de Preparación: ${m.preparation_guides_url}`)}>
-                      <span>Guía de Preparación</span>
-                      <Download className="w-4 h-4 text-indigo-650" />
-                    </Button>
+          {menus.length === 0 ? (
+            <div className="p-12 text-center bg-white rounded-3xl border border-dashed border-slate-200 shadow-sm">
+              <Utensils className="w-8 h-8 text-slate-350 mx-auto mb-2 text-slate-400" />
+              <p className="text-xs font-bold text-slate-600">No hay ciclos de menú registrados.</p>
+              <p className="text-[11px] text-slate-400 mt-0.5">Las minutas y preparaciones alimentarias semanales aparecerán aquí.</p>
+            </div>
+          ) : (
+            menus.map((m) => (
+              <Card key={m.id} className="border-slate-200 shadow-md bg-white rounded-3xl overflow-hidden">
+                <CardHeader className="bg-slate-50 border-b border-slate-200 px-6 py-4">
+                  <CardTitle className="text-base font-black text-slate-950 flex items-center gap-2">
+                    <Utensils className="w-5 h-5 text-indigo-600" />
+                    Ciclo de Minutas: Semana {m.week_number}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6 space-y-4">
+                  {/* Detalles de Alimentos */}
+                  <div className="space-y-1.5">
+                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Menú Vigente</span>
+                    <p className="text-xs text-slate-700 font-semibold leading-relaxed bg-slate-50 p-4 rounded-2xl border border-slate-150">
+                      {m.menu_details}
+                    </p>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+
+                  {/* Adjuntos Descargables */}
+                  <div className="pt-2 space-y-2">
+                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Descargas Soporte Técnicos (MEN)</span>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <Button variant="outline" className="justify-between text-xs font-bold rounded-xl h-10 border-slate-250 text-slate-700 bg-white" onClick={() => downloadPaeMenuPDF(m)}>
+                        <span>Minuta Patrón</span>
+                        <Download className="w-4 h-4 text-indigo-650" />
+                      </Button>
+                      <Button variant="outline" className="justify-between text-xs font-bold rounded-xl h-10 border-slate-250 text-slate-700 bg-white" onClick={() => alert(`✓ Descargando Análisis Nutricional: ${m.nutrition_analysis_url}`)}>
+                        <span>Análisis Nutricional</span>
+                        <Download className="w-4 h-4 text-indigo-650" />
+                      </Button>
+                      <Button variant="outline" className="justify-between text-xs font-bold rounded-xl h-10 border-slate-250 text-slate-700 bg-white" onClick={() => alert(`✓ Descargando Guía de Preparación: ${m.preparation_guides_url}`)}>
+                        <span>Guía de Preparación</span>
+                        <Download className="w-4 h-4 text-indigo-650" />
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          )}
         </div>
       )}
 

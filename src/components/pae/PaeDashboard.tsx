@@ -11,80 +11,92 @@ import { cn } from '@/lib/utils';
 
 interface PaeDashboardProps {
   userRole: string;
-  beneficiariesCount: number;
-  coveragePercentage: number;
-  scheduledRations: number;
-  deliveredRations: number;
-  incidentsCount: number;
-  activeOperator: string;
-  localPurchasesPercentage: number;
-  etaCount: number;
-  nextCaeDate: string;
+  beneficiariesCount?: number;
+  coveragePercentage?: number;
+  scheduledRations?: number;
+  deliveredRations?: number;
+  incidentsCount?: number;
+  activeOperator?: string;
+  localPurchasesPercentage?: number;
+  etaCount?: number;
+  nextCaeDate?: string;
+  sedes?: { name: string; scheduled: number; delivered: number }[];
 }
 
 export function PaeDashboard({
   userRole,
-  beneficiariesCount = 3,
-  coveragePercentage = 87.5,
-  scheduledRations = 500,
-  deliveredRations = 492,
-  incidentsCount = 1,
-  activeOperator = 'Consorcio Alimentando Futuro 2026',
-  localPurchasesPercentage = 20.0,
+  beneficiariesCount = 0,
+  coveragePercentage = 0,
+  scheduledRations = 0,
+  deliveredRations = 0,
+  incidentsCount = 0,
+  activeOperator = 'Sin operador asignado',
+  localPurchasesPercentage = 0,
   etaCount = 0,
-  nextCaeDate = '2026-07-15'
+  nextCaeDate = '',
+  sedes = []
 }: PaeDashboardProps) {
 
   // Semaforización lógica
-  let semaforoState: 'green' | 'yellow' | 'red' = 'green';
-  let semaforoMessage = 'Operación normal del programa';
-  let semaforoColor = 'from-emerald-500 to-green-600';
+  let semaforoState: 'green' | 'yellow' | 'red' | 'neutral' = 'neutral';
+  let semaforoMessage = 'Sin registros activos en el programa PAE';
+  let semaforoColor = 'from-slate-700 to-slate-800';
 
-  if (etaCount > 0 || incidentsCount >= 3) {
-    semaforoState = 'red';
-    semaforoMessage = etaCount > 0 ? 'ALERTA ROJA: Reporte de ETA activo' : 'ALERTA ROJA: Múltiples incidencias sin resolver';
-    semaforoColor = 'from-rose-500 to-red-650';
-  } else if (incidentsCount > 0 || localPurchasesPercentage < 20.0 || coveragePercentage < 70) {
-    semaforoState = 'yellow';
-    semaforoMessage = localPurchasesPercentage < 20.0 
-      ? 'RIESGO: Compras locales por debajo del 20% legal' 
-      : 'RIESGO: Incidencias abiertas o baja cobertura';
-    semaforoColor = 'from-amber-400 to-orange-550';
+  const hasData = beneficiariesCount > 0 || scheduledRations > 0 || deliveredRations > 0;
+
+  if (hasData) {
+    if (etaCount > 0 || incidentsCount >= 3) {
+      semaforoState = 'red';
+      semaforoMessage = etaCount > 0 ? 'ALERTA ROJA: Reporte de ETA activo' : 'ALERTA ROJA: Múltiples incidencias sin resolver';
+      semaforoColor = 'from-rose-500 to-red-650';
+    } else if (incidentsCount > 0 || localPurchasesPercentage < 20.0 || coveragePercentage < 70) {
+      semaforoState = 'yellow';
+      semaforoMessage = localPurchasesPercentage < 20.0 
+        ? 'RIESGO: Compras locales por debajo del 20% legal' 
+        : 'RIESGO: Incidencias abiertas o baja cobertura';
+      semaforoColor = 'from-amber-400 to-orange-550';
+    } else {
+      semaforoState = 'green';
+      semaforoMessage = 'Operación normal del programa';
+      semaforoColor = 'from-emerald-500 to-green-600';
+    }
   }
 
   const kpis = [
     {
       title: 'Beneficiarios Activos',
       value: beneficiariesCount,
-      subtitle: 'Estudiantes inscritos',
+      subtitle: beneficiariesCount > 0 ? 'Estudiantes inscritos' : 'Sin inscritos',
       icon: Users,
       color: 'text-blue-500 bg-blue-50',
     },
     {
       title: 'Cobertura PAE',
       value: `${coveragePercentage}%`,
-      subtitle: 'Frente a matrícula total',
+      subtitle: 'Frente a raciones programadas',
       icon: TrendingUp,
       color: 'text-indigo-500 bg-indigo-50',
     },
     {
       title: 'Raciones Programadas',
       value: scheduledRations,
-      subtitle: 'Meta diaria contratada',
+      subtitle: scheduledRations > 0 ? 'Meta diaria contratada' : 'Sin raciones',
       icon: Utensils,
       color: 'text-violet-500 bg-violet-50',
     },
     {
       title: 'Raciones Entregadas',
       value: deliveredRations,
-      subtitle: `Cumplimiento: ${Math.round((deliveredRations / Math.max(1, scheduledRations)) * 100)}%`,
+      subtitle: scheduledRations > 0 
+        ? `Cumplimiento: ${Math.round((deliveredRations / Math.max(1, scheduledRations)) * 100)}%`
+        : '0 entregadas',
       icon: ShieldCheck,
       color: 'text-emerald-500 bg-emerald-50',
     },
     {
       title: 'Incidencias Abiertas',
       value: incidentsCount,
-      subtitle: etaCount > 0 ? '⚠️ Alerta de brote ETA' : 'Casos en seguimiento',
+      subtitle: etaCount > 0 ? '⚠️ Alerta de brote ETA' : (incidentsCount > 0 ? 'Casos en seguimiento' : 'Sin incidencias'),
       icon: AlertTriangle,
       color: incidentsCount > 0 ? 'text-rose-500 bg-rose-50 animate-pulse' : 'text-slate-500 bg-slate-100',
     },
@@ -93,7 +105,7 @@ export function PaeDashboard({
       value: `${localPurchasesPercentage}%`,
       subtitle: 'Meta legal: Mínimo 20%',
       icon: Percent,
-      color: localPurchasesPercentage >= 20.0 ? 'text-emerald-600 bg-emerald-50' : 'text-amber-500 bg-amber-50',
+      color: localPurchasesPercentage >= 20.0 ? 'text-emerald-600 bg-emerald-50' : 'text-slate-500 bg-slate-100',
     }
   ];
 
@@ -159,76 +171,71 @@ export function PaeDashboard({
             <p className="text-xs text-slate-500 font-semibold mt-0.5">Visión detallada de raciones entregadas frente a cupos asignados.</p>
           </CardHeader>
           <CardContent className="p-6 space-y-5">
-            {/* Sede 1 */}
-            <div className="space-y-2">
-              <div className="flex justify-between text-xs font-bold text-slate-700">
-                <span>Sede Principal Campestre</span>
-                <span>316 / 320 Raciones (98.7%)</span>
+            {sedes && sedes.length > 0 ? (
+              sedes.map((s, idx) => {
+                const pct = s.scheduled > 0 ? Math.round((s.delivered / s.scheduled) * 100) : 0;
+                return (
+                  <div key={idx} className="space-y-2">
+                    <div className="flex justify-between text-xs font-bold text-slate-700">
+                      <span>{s.name}</span>
+                      <span>{s.delivered} / {s.scheduled} Raciones ({pct}%)</span>
+                    </div>
+                    <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                      <div className="bg-indigo-600 h-full rounded-full" style={{ width: `${Math.min(100, pct)}%` }} />
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="p-8 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                <Utensils className="w-8 h-8 text-slate-350 mx-auto mb-2 text-slate-400" />
+                <p className="text-xs font-bold text-slate-600">Sin sedes PAE configuradas</p>
+                <p className="text-[11px] text-slate-400 mt-0.5">No hay raciones ni sedes registradas para la vigencia actual.</p>
               </div>
-              <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
-                <div className="bg-indigo-600 h-full rounded-full" style={{ width: '98.7%' }} />
-              </div>
-            </div>
-
-            {/* Sede 2 */}
-            <div className="space-y-2">
-              <div className="flex justify-between text-xs font-bold text-slate-700">
-                <span>Sede Anexa Primaria</span>
-                <span>176 / 180 Raciones (97.7%)</span>
-              </div>
-              <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
-                <div className="bg-indigo-600 h-full rounded-full" style={{ width: '97.7%' }} />
-              </div>
-            </div>
+            )}
 
             <div className="pt-4 border-t border-slate-100 grid grid-cols-2 gap-4 text-center">
               <div className="bg-slate-50 p-4 rounded-2xl border border-slate-150">
                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">TOTAL CONTRATADO</span>
-                <span className="text-xl font-black text-slate-900">500 raciones / día</span>
+                <span className="text-xl font-black text-slate-900">{scheduledRations} raciones / día</span>
               </div>
               <div className="bg-slate-50 p-4 rounded-2xl border border-slate-150">
                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">PROMEDIO ENTREGADO</span>
-                <span className="text-xl font-black text-slate-900">492 raciones / día</span>
+                <span className="text-xl font-black text-slate-900">{deliveredRations} raciones / día</span>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Módulo de Inteligencia Artificial (Preparado) */}
+        {/* Módulo de Inteligencia Artificial */}
         <Card className="border-slate-200 shadow-md bg-white rounded-3xl overflow-hidden flex flex-col justify-between">
           <div>
             <CardHeader className="bg-gradient-to-r from-slate-900 to-indigo-950 text-white px-6 py-4 flex flex-row items-center justify-between">
               <div>
                 <CardTitle className="text-sm font-black flex items-center gap-1.5">
-                  <Sparkles className="w-5 h-5 text-indigo-400 animate-pulse" />
+                  <Sparkles className="w-5 h-5 text-indigo-400" />
                   Auditoría Predictiva IA
                 </CardTitle>
                 <p className="text-[10px] text-indigo-200 font-semibold mt-0.5">Modelado analítico y alertas del Ministerio</p>
               </div>
             </CardHeader>
             <CardContent className="p-6 space-y-4">
-              <div className="p-4 bg-indigo-50/50 border border-indigo-200/50 rounded-2xl flex items-start gap-3">
-                <AlertTriangle className="w-5 h-5 text-indigo-600 shrink-0 mt-0.5" />
-                <div className="text-xs font-semibold text-indigo-950 leading-relaxed">
-                  <p className="font-black mb-1 text-[11px] text-indigo-900">Recomendación de Compra Local</p>
-                  El porcentaje de compras locales se encuentra al límite legal (20.0%). El algoritmo predice riesgo de incumplimiento si el proveedor de lácteos reduce pedidos en Junio.
-                </div>
-              </div>
-
               <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl flex items-start gap-3">
-                <Calendar className="w-5 h-5 text-slate-500 shrink-0 mt-0.5" />
+                <Sparkles className="w-5 h-5 text-indigo-500 shrink-0 mt-0.5" />
                 <div className="text-xs font-semibold text-slate-700 leading-relaxed">
-                  <p className="font-black mb-1 text-[11px] text-slate-900">Agenda CAE sugerida</p>
-                  Faltan 10 días para la fecha bimestral sugerida de reunión del Comité CAE. Se recomienda lanzar convocatoria esta semana.
+                  <p className="font-black mb-1 text-[11px] text-slate-900">Auditoría Predictiva</p>
+                  El análisis predictivo estará disponible cuando se registren datos de raciones, beneficiarios y compras locales en el sistema.
                 </div>
               </div>
             </CardContent>
           </div>
           
           <div className="p-6 bg-slate-50 border-t border-slate-100">
-            <button className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-2.5 px-4 rounded-xl transition cursor-pointer border-none flex items-center justify-center gap-1">
-              Ejecutar Simulación de Alertas IA
-              <ChevronRight className="w-4 h-4" />
+            <button 
+              disabled
+              className="w-full bg-slate-200 text-slate-500 font-bold text-xs py-2.5 px-4 rounded-xl border-none flex items-center justify-center gap-1 cursor-not-allowed"
+            >
+              Auditoría IA disponible cuando existan datos PAE
             </button>
           </div>
         </Card>

@@ -46,6 +46,7 @@ interface PaeExecutionProps {
   onSaveAttendance: (data: any[]) => void;
   controls: any[];
   onSaveControls: (data: any[]) => void;
+  availableSedes?: string[];
 }
 
 export function PaeExecution({
@@ -57,24 +58,27 @@ export function PaeExecution({
   attendance = [],
   onSaveAttendance,
   controls = [],
-  onSaveControls
+  onSaveControls,
+  availableSedes = []
 }: PaeExecutionProps) {
   const [activeSubTab, setActiveSubTab] = useState<'deliveries' | 'attendance' | 'controls'>('deliveries');
 
+  const sedes = availableSedes && availableSedes.length > 0 ? availableSedes : [];
+
   // Daily Delivery form states
   const [isDeliveryModalOpen, setIsDeliveryModalOpen] = useState(false);
-  const [delSede, setDelSede] = useState('Sede Principal Campestre');
+  const [delSede, setDelSede] = useState(sedes[0] || '');
   const [delShift, setDelShift] = useState('Única');
   const [delRation, setDelRation] = useState('Preparada en Sitio');
-  const [delScheduled, setDelScheduled] = useState(320);
-  const [delDelivered, setDelDelivered] = useState(320);
+  const [delScheduled, setDelScheduled] = useState(0);
+  const [delDelivered, setDelDelivered] = useState(0);
   const [delObs, setDelObs] = useState('');
   const [delPhotos, setDelPhotos] = useState<string[]>([]);
   const [newPhoto, setNewPhoto] = useState('');
 
   // Daily Attendance states
   const [attDate, setAttDate] = useState(new Date().toISOString().split('T')[0]);
-  const [attSede, setAttSede] = useState('Sede Principal Campestre');
+  const [attSede, setAttSede] = useState(sedes[0] || '');
 
   // Control checklists states
   const [isControlModalOpen, setIsControlModalOpen] = useState(false);
@@ -86,16 +90,15 @@ export function PaeExecution({
 
   const canEdit = userRole === 'rector' || userRole === 'secretaria' || userRole === 'coordinador' || userRole === 'docente' || userRole === 'director_grupo';
 
-  const sedes = ['Sede Principal Campestre', 'Sede Anexa Primaria'];
   const shifts = ['Mañana', 'Tarde', 'Única'];
 
   // --- DAILY DELIVERIES HANDLERS ---
   const handleOpenAddDelivery = () => {
-    setDelSede('Sede Principal Campestre');
+    setDelSede(sedes[0] || '');
     setDelShift('Única');
     setDelRation('Preparada en Sitio');
-    setDelScheduled(320);
-    setDelDelivered(320);
+    setDelScheduled(0);
+    setDelDelivered(0);
     setDelObs('');
     setDelPhotos([]);
     setIsDeliveryModalOpen(true);
@@ -336,7 +339,11 @@ export function PaeExecution({
                   onChange={(e) => setAttSede(e.target.value)}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-700 outline-none hover:bg-slate-100 cursor-pointer"
                 >
-                  {sedes.map(s => <option key={s} value={s}>{s}</option>)}
+                  {sedes.length === 0 ? (
+                    <option value="">Sin sedes PAE configuradas</option>
+                  ) : (
+                    sedes.map(s => <option key={s} value={s}>{s}</option>)
+                  )}
                 </select>
               </div>
               
@@ -593,7 +600,11 @@ export function PaeExecution({
                         onChange={(e) => setDelSede(e.target.value)}
                         className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-700 outline-none hover:bg-slate-100 cursor-pointer"
                       >
-                        {sedes.map(s => <option key={s} value={s}>{s}</option>)}
+                        {sedes.length === 0 ? (
+                          <option value="">Sin sedes PAE configuradas</option>
+                        ) : (
+                          sedes.map(s => <option key={s} value={s}>{s}</option>)
+                        )}
                       </select>
                     </div>
                     <div>

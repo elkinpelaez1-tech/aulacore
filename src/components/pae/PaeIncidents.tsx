@@ -52,6 +52,7 @@ interface PaeIncidentsProps {
   onSaveSpqrs: (data: Spqr[]) => void;
   plans: PlanMejoramiento[];
   onSavePlans: (data: PlanMejoramiento[]) => void;
+  availableSedes?: string[];
 }
 
 export function PaeIncidents({
@@ -61,9 +62,12 @@ export function PaeIncidents({
   spqrs = [],
   onSaveSpqrs,
   plans = [],
-  onSavePlans
+  onSavePlans,
+  availableSedes = []
 }: PaeIncidentsProps) {
   const [activeSubTab, setActiveSubTab] = useState<'incidents' | 'spqr' | 'eta' | 'improvement_plans'>('incidents');
+
+  const sedes = availableSedes && availableSedes.length > 0 ? availableSedes : [];
 
   // Incident form states
   const [isIncidentModalOpen, setIsIncidentModalOpen] = useState(false);
@@ -77,10 +81,10 @@ export function PaeIncidents({
 
   // ETA form states
   const [isEtaModalOpen, setIsEtaModalOpen] = useState(false);
-  const [etaSede, setEtaSede] = useState('Sede Principal Campestre');
-  const [etaAfectados, setEtaAfectados] = useState(5);
-  const [etaSintomas, setEtaSintomas] = useState('Dolor abdominal, náuseas, vómito');
-  const [etaMedical, setEtaMedical] = useState(true);
+  const [etaSede, setEtaSede] = useState(sedes[0] || '');
+  const [etaAfectados, setEtaAfectados] = useState(0);
+  const [etaSintomas, setEtaSintomas] = useState('');
+  const [etaMedical, setEtaMedical] = useState(false);
   const [etaDesc, setEtaDesc] = useState('');
 
   // Plan form states
@@ -315,7 +319,14 @@ export function PaeIncidents({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {incidents.filter(i => i.incident_type !== 'ETA').map((inc) => (
+                {incidents.filter(i => i.incident_type !== 'ETA').length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="p-8 text-center text-xs text-slate-400 font-semibold">
+                      No hay incidencias registradas.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  incidents.filter(i => i.incident_type !== 'ETA').map((inc) => (
                   <TableRow key={inc.id}>
                     <TableCell className="font-bold text-slate-950 text-xs pl-6">{inc.incident_date}</TableCell>
                     <TableCell className="font-black text-slate-800 text-xs">{inc.incident_type}</TableCell>
@@ -352,7 +363,7 @@ export function PaeIncidents({
                       )}
                     </TableCell>
                   </TableRow>
-                ))}
+                )))}
               </TableBody>
             </Table>
           </CardContent>
@@ -381,7 +392,14 @@ export function PaeIncidents({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {spqrs.map((s) => (
+                {spqrs.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="p-8 text-center text-xs text-slate-400 font-semibold">
+                      No hay solicitudes SPQR registradas.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  spqrs.map((s) => (
                   <TableRow key={s.id} className="hover:bg-slate-50/50 transition-colors">
                     <TableCell className="font-semibold text-slate-900 text-xs pl-6">
                       <div className="flex flex-col">
@@ -412,7 +430,7 @@ export function PaeIncidents({
                       )}
                     </TableCell>
                   </TableRow>
-                ))}
+                )))}
               </TableBody>
             </Table>
           </CardContent>
@@ -715,8 +733,11 @@ export function PaeIncidents({
                       onChange={(e) => setEtaSede(e.target.value)}
                       className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-700 outline-none hover:bg-slate-100 cursor-pointer"
                     >
-                      <option value="Sede Principal Campestre">Sede Principal Campestre</option>
-                      <option value="Sede Anexa Primaria">Sede Anexa Primaria</option>
+                      {sedes.length === 0 ? (
+                        <option value="">Sin sedes PAE configuradas</option>
+                      ) : (
+                        sedes.map(s => <option key={s} value={s}>{s}</option>)
+                      )}
                     </select>
                   </div>
 

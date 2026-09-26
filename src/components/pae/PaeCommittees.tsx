@@ -71,18 +71,8 @@ export function PaeCommittees({
 
   const canEdit = userRole === 'rector' || userRole === 'secretaria' || userRole === 'coordinador';
 
-  const defaultCaeMembers = [
-    { name: 'Dr. Ramón Ramírez', role: 'Rector / Presidente' },
-    { name: 'Lic. Diana Carolina Reyes', role: 'Docente Responsable' },
-    { name: 'Carlos Ortiz', role: 'Representante de Padres' },
-    { name: 'Alejandro Ortiz', role: 'Representante de Estudiantes' }
-  ];
-
-  const defaultCopaeMembers = [
-    { name: 'Dr. Ramón Ramírez', role: 'Rector' },
-    { name: 'Dra. Claudia Marcela Pérez', role: 'Nutricionista Supervisor' },
-    { name: 'Dra. Patricia Gómez Ruiz', role: 'Representante del Operador' }
-  ];
+  const defaultCaeMembers: Array<{ name: string; role: string }> = [];
+  const defaultCopaeMembers: Array<{ name: string; role: string }> = [];
 
   // --- MEETINGS HANDLERS ---
   const handleOpenAddMeeting = () => {
@@ -202,33 +192,41 @@ export function PaeCommittees({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {meetings.map((meet) => (
-                  <TableRow key={meet.id} className="hover:bg-slate-50/50 transition-colors">
-                    <TableCell className="font-black text-slate-950 text-sm pl-6">{meet.committee_type}</TableCell>
-                    <TableCell className="font-bold text-slate-700 text-xs">{meet.meeting_date} ({meet.meeting_time})</TableCell>
-                    <TableCell className="font-semibold text-slate-600 text-xs">{meet.location}</TableCell>
-                    <TableCell className="text-xs font-semibold text-slate-500 max-w-sm truncate" title={meet.description}>
-                      {meet.description}
-                    </TableCell>
-                    <TableCell className="text-center font-bold text-xs">
-                      <span className={cn(
-                        "px-2.5 py-0.5 rounded text-[10px] font-black border",
-                        meet.status === 'Realizado' ? "bg-emerald-50 text-emerald-800 border-emerald-200" : "bg-slate-50 text-slate-500 border-slate-200"
-                      )}>
-                        {meet.status}
-                      </span>
-                    </TableCell>
-                    <TableCell className="pr-6 text-right">
-                      {meet.acta_pdf_url ? (
-                        <Button variant="ghost" className="h-8 text-xs font-bold text-indigo-650 hover:bg-indigo-50" onClick={() => downloadPaeCommitteePDF(meet)}>
-                          Ver Acta
-                        </Button>
-                      ) : (
-                        <span className="text-slate-400 text-xs italic">Pendiente</span>
-                      )}
+                {meetings.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="p-8 text-center text-xs text-slate-400 font-semibold">
+                      No hay comité CAE registrado.
                     </TableCell>
                   </TableRow>
-                ))}
+                ) : (
+                  meetings.map((meet) => (
+                    <TableRow key={meet.id} className="hover:bg-slate-50/50 transition-colors">
+                      <TableCell className="font-black text-slate-950 text-sm pl-6">{meet.committee_type}</TableCell>
+                      <TableCell className="font-bold text-slate-700 text-xs">{meet.meeting_date} ({meet.meeting_time})</TableCell>
+                      <TableCell className="font-semibold text-slate-600 text-xs">{meet.location}</TableCell>
+                      <TableCell className="text-xs font-semibold text-slate-500 max-w-sm truncate" title={meet.description}>
+                        {meet.description}
+                      </TableCell>
+                      <TableCell className="text-center font-bold text-xs">
+                        <span className={cn(
+                          "px-2.5 py-0.5 rounded text-[10px] font-black border",
+                          meet.status === 'Realizado' ? "bg-emerald-50 text-emerald-800 border-emerald-200" : "bg-slate-50 text-slate-500 border-slate-200"
+                        )}>
+                          {meet.status}
+                        </span>
+                      </TableCell>
+                      <TableCell className="pr-6 text-right">
+                        {meet.acta_pdf_url ? (
+                          <Button variant="ghost" className="h-8 text-xs font-bold text-indigo-650 hover:bg-indigo-50" onClick={() => downloadPaeCommitteePDF(meet)}>
+                            Ver Acta
+                          </Button>
+                        ) : (
+                          <span className="text-slate-400 text-xs italic">Pendiente</span>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </CardContent>
@@ -265,26 +263,34 @@ export function PaeCommittees({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {mesas.map((mesa) => (
-                  <TableRow key={mesa.id} className="hover:bg-slate-50/50 transition-colors">
-                    <TableCell className="font-black text-slate-955 text-sm pl-6">Vigencia {mesa.vigencia_year}</TableCell>
-                    <TableCell className="text-center font-bold text-slate-700 text-xs">Mesa {mesa.mesa_number}</TableCell>
-                    <TableCell className="font-bold text-slate-700 text-xs">{mesa.meeting_date}</TableCell>
-                    <TableCell className="text-center font-extrabold text-slate-800 text-xs">{mesa.attendees_count} ciudadanos</TableCell>
-                    <TableCell className="text-xs font-semibold text-slate-500 max-w-sm truncate" title={mesa.compromisos}>
-                      {mesa.compromisos}
-                    </TableCell>
-                    <TableCell className="pr-6 text-right">
-                      {mesa.acta_pdf_url ? (
-                        <Button variant="ghost" className="h-8 text-xs font-bold text-indigo-650 hover:bg-indigo-50" onClick={() => downloadPaeMesaPDF(mesa)}>
-                          Ver Acta
-                        </Button>
-                      ) : (
-                        <span className="text-slate-400 text-xs italic">Pendiente</span>
-                      )}
+                {mesas.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="p-8 text-center text-xs text-slate-400 font-semibold">
+                      No hay mesas públicas registradas.
                     </TableCell>
                   </TableRow>
-                ))}
+                ) : (
+                  mesas.map((mesa) => (
+                    <TableRow key={mesa.id} className="hover:bg-slate-50/50 transition-colors">
+                      <TableCell className="font-black text-slate-955 text-sm pl-6">Vigencia {mesa.vigencia_year}</TableCell>
+                      <TableCell className="text-center font-bold text-slate-700 text-xs">Mesa {mesa.mesa_number}</TableCell>
+                      <TableCell className="font-bold text-slate-700 text-xs">{mesa.meeting_date}</TableCell>
+                      <TableCell className="text-center font-extrabold text-slate-800 text-xs">{mesa.attendees_count} ciudadanos</TableCell>
+                      <TableCell className="text-xs font-semibold text-slate-500 max-w-sm truncate" title={mesa.compromisos}>
+                        {mesa.compromisos}
+                      </TableCell>
+                      <TableCell className="pr-6 text-right">
+                        {mesa.acta_pdf_url ? (
+                          <Button variant="ghost" className="h-8 text-xs font-bold text-indigo-650 hover:bg-indigo-50" onClick={() => downloadPaeMesaPDF(mesa)}>
+                            Ver Acta
+                          </Button>
+                        ) : (
+                          <span className="text-slate-400 text-xs italic">Pendiente</span>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </CardContent>
