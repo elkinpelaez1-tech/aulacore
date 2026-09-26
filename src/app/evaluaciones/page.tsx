@@ -71,10 +71,9 @@ export default function EvaluacionesIAPage() {
   // Selected student for open rubrics grading
   const [gradingStudentId, setGradingStudentId] = useState<string | null>(null);
 
-  // Sincronización cascading live state
-  const [globalGpa9B, setGlobalGpa9B] = useState(0.0);
-  const [alertCount9B, setAlertCount9B] = useState(0);
-  const [dropoutRiskSofia, setDropoutRiskSofia] = useState('Sin Datos');
+  // Estados para métricas y alertas
+  const [globalGpa, setGlobalGpa] = useState(0.0);
+  const [alertCount, setAlertCount] = useState(0);
 
   // Print Assessment Preview States
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
@@ -408,37 +407,11 @@ export default function EvaluacionesIAPage() {
     setIsPreviewOpen(true);
   };
 
-  // Sincronización en cascada: updates GPA, active alerts, heatmap averages
+  // Sincronización de calificaciones
   const handleSyncGrades = () => {
-    // Get Sofía's grade for the selected exam
-    const sofiaRes = selectedResults.find(r => r.studentId === 's-107');
-    const newGrade = sofiaRes?.score || 4.2; // default high grade for test
-
-    // Execute the cascade calculations
-    setGlobalGpa9B(3.4); // Increases 9-B average from 2.8 to 3.4
-    setAlertCount9B(1); // Clears one of Sofía's alerts (subjects failed Period 4 is resolved!)
-    setDropoutRiskSofia('Medio'); // Risk drops from Alto to Medio!
-
-    // Temporarily update MOCK_STUDENTS for local state consistency
-    const sofia = MOCK_STUDENTS.find(s => s.id === 's-107');
-    if (sofia) {
-      sofia.gpa = 3.4;
-      sofia.alerts = [{ id: 'a5', type: 'asistencia', message: 'Ausentismo recurrente (>20%)' }]; // Academico alert cleared!
-      sofia.academicRisk = 'Medio';
-    }
-
-    // Recalculate 9-B Course mock details in MOCK_COURSES
-    const course9B = MOCK_COURSES.find(c => c.name === '9-B');
-    if (course9B) {
-      course9B.metrics.averageGpa = 3.4;
-      course9B.metrics.activeAlerts = 2; // Alerts down
-      course9B.metrics.studentsAtRisk = 1; // Down from 2
-      course9B.academicRisk = 'Medio';
-    }
-
     showToast(
-      'Sincronización Cascading Completada',
-      `El GPA de Sofía Ramírez subió a 3.4 (+0.6). Alerta "3 materias perdidas" RESUELTA. Promedio del curso 9-B subió a 3.4. IA Predictiva recalculó el riesgo a MEDIO.`
+      'Calificaciones Sincronizadas',
+      'Las calificaciones de la evaluación han sido actualizadas exitosamente.'
     );
   };
 
@@ -642,7 +615,7 @@ export default function EvaluacionesIAPage() {
                 <div>
                   <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Promedio GPA Evaluativo</span>
                   <span className="text-3xl font-black text-emerald-600 mt-1 block">
-                    {evaluations.length === 0 ? '0.0 / 5.0' : `${globalGpa9B} / 5.0`}
+                    {evaluations.length === 0 ? '0.0 / 5.0' : `${globalGpa} / 5.0`}
                   </span>
                 </div>
                 <div className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
@@ -654,7 +627,7 @@ export default function EvaluacionesIAPage() {
                 <div>
                   <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Alertas Académicas IA</span>
                   <span className="text-3xl font-black text-rose-500 mt-1 block">
-                    {evaluations.length === 0 ? 0 : alertCount9B} Activas
+                    {evaluations.length === 0 ? 0 : alertCount} Activas
                   </span>
                 </div>
                 <div className="w-10 h-10 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center shrink-0">
@@ -1673,49 +1646,48 @@ export default function EvaluacionesIAPage() {
               {/* Promedio Global */}
               <div className="bg-white border border-slate-200 p-6 rounded-3xl shadow-sm flex flex-col justify-between">
                 <div>
-                  <span className="text-[10px] font-bold text-slate-450 uppercase block tracking-widest mb-1.5">GPA de Curso 9-B</span>
-                  <h4 className="text-3xl font-black text-slate-900 leading-none">
-                    {globalGpa9B.toFixed(2)} / 5.0
+                  <span className="text-[10px] font-bold text-slate-400 uppercase block tracking-widest mb-1.5">GPA del Curso</span>
+                  <h4 className="text-3xl font-black text-slate-800 leading-none">
+                    -- / 5.0
                   </h4>
-                  <span className="text-[9px] bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded font-black inline-block mt-2 border border-emerald-100">
-                    +0.6 Incremento en Calificaciones
+                  <span className="text-[10px] text-slate-500 font-semibold inline-block mt-2">
+                    Sin evaluaciones registradas
                   </span>
                 </div>
                 <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mt-6">
-                  <div className="bg-gradient-to-r from-indigo-500 to-indigo-650 h-full rounded-full w-[68%]" />
+                  <div className="bg-slate-200 h-full rounded-full w-0" />
                 </div>
               </div>
 
               {/* Riesgo de Deserción */}
               <div className="bg-white border border-slate-200 p-6 rounded-3xl shadow-sm flex flex-col justify-between">
                 <div>
-                  <span className="text-[10px] font-bold text-slate-450 uppercase block tracking-widest mb-1.5">Riesgo IA (Sofía Ramírez)</span>
-                  <h4 className={cn(
-                    "text-3xl font-black leading-none",
-                    dropoutRiskSofia === 'Alto' ? 'text-rose-500' : 'text-amber-500'
-                  )}>
-                    {dropoutRiskSofia.toUpperCase()}
+                  <span className="text-[10px] font-bold text-slate-400 uppercase block tracking-widest mb-1.5">Riesgo IA</span>
+                  <h4 className="text-3xl font-black text-slate-800 leading-none">
+                    --
                   </h4>
-                  <span className="text-[9px] bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded font-black inline-block mt-2 border border-indigo-100">
-                    Filtro predictivo: Estabilidad Media
+                  <span className="text-[10px] text-slate-500 font-semibold inline-block mt-2">
+                    Sin alertas predictivas activas
                   </span>
                 </div>
                 <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mt-6">
-                  <div className="bg-gradient-to-r from-indigo-500 to-indigo-650 h-full rounded-full w-[55%]" />
+                  <div className="bg-slate-200 h-full rounded-full w-0" />
                 </div>
               </div>
 
               {/* Cruce Predictivo */}
               <div className="bg-white border border-slate-200 p-6 rounded-3xl shadow-sm flex flex-col justify-between">
                 <div>
-                  <span className="text-[10px] font-bold text-slate-450 uppercase block tracking-widest mb-1.5">Correlación OMR/Asistencia</span>
-                  <h4 className="text-3xl font-black text-slate-900 leading-none">82% Estabilidad</h4>
-                  <p className="text-[9px] text-slate-450 font-bold uppercase mt-2">
-                    Caída en Matemáticas alineada con faltas de asistencia RFID los martes.
+                  <span className="text-[10px] font-bold text-slate-400 uppercase block tracking-widest mb-1.5">Correlación OMR / Asistencia</span>
+                  <h4 className="text-3xl font-black text-slate-800 leading-none">
+                    --
+                  </h4>
+                  <p className="text-[10px] text-slate-500 font-semibold mt-2 leading-relaxed">
+                    Requiere evaluaciones OMR y registro de asistencia activo
                   </p>
                 </div>
                 <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mt-6">
-                  <div className="bg-gradient-to-r from-indigo-500 to-indigo-650 h-full rounded-full w-[82%]" />
+                  <div className="bg-slate-200 h-full rounded-full w-0" />
                 </div>
               </div>
 
@@ -1723,35 +1695,23 @@ export default function EvaluacionesIAPage() {
 
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
               
-              {/* Distribución de Calificaciones (Gráficas HTML) */}
+              {/* Distribución de Calificaciones */}
               <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-6">
                 <div>
                   <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
-                    <BarChart3 className="w-5 h-5 text-indigo-650" /> Distribución de Calificaciones P3
+                    <BarChart3 className="w-5 h-5 text-indigo-650" /> Distribución de Calificaciones
                   </h3>
                   <p className="text-xs text-slate-500 mt-0.5">Análisis cuantitativo de aprobados vs reprobados en el grupo</p>
                 </div>
 
-                <div className="space-y-4">
-                  {[
-                    { range: 'Superior (4.6 - 5.0)', count: 8, percentage: 32, color: 'from-emerald-400 to-emerald-500' },
-                    { range: 'Alto (4.0 - 4.5)', count: 12, percentage: 48, color: 'from-indigo-400 to-indigo-500' },
-                    { range: 'Básico (3.0 - 3.9)', count: 4, percentage: 16, color: 'from-amber-400 to-amber-500' },
-                    { range: 'Bajo (1.0 - 2.9)', count: 1, percentage: 4, color: 'from-rose-400 to-rose-500' }
-                  ].map((item, index) => (
-                    <div key={index} className="space-y-1.5">
-                      <div className="flex justify-between text-xs font-semibold text-slate-650">
-                        <span>{item.range}</span>
-                        <span className="font-black text-slate-800">{item.count} Estudiantes ({item.percentage}%)</span>
-                      </div>
-                      <div className="w-full bg-slate-100 h-3 rounded-full overflow-hidden">
-                        <div 
-                          className={cn("bg-gradient-to-r h-full rounded-full transition-all duration-500", item.color)} 
-                          style={{ width: `${item.percentage}%` }}
-                        />
-                      </div>
-                    </div>
-                  ))}
+                <div className="py-12 px-4 text-center flex flex-col items-center justify-center border border-dashed border-slate-200 rounded-2xl bg-slate-50/50">
+                  <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mb-3">
+                    <BarChart3 className="w-6 h-6" />
+                  </div>
+                  <p className="text-sm font-bold text-slate-700">Sin evaluaciones finalizadas para tabular desempeño</p>
+                  <p className="text-xs text-slate-500 mt-1 max-w-sm">
+                    Cuando los estudiantes completen y se califiquen las evaluaciones del periodo, se tabulará la distribución de desempeño.
+                  </p>
                 </div>
               </div>
 
@@ -1764,35 +1724,14 @@ export default function EvaluacionesIAPage() {
                   <p className="text-xs text-slate-500 mt-0.5">Fortalezas y debilidades curriculares arrojadas por la IA</p>
                 </div>
 
-                <div className="space-y-4">
-                  {[
-                    { skill: 'Planteamiento Algebraico', mastery: 85, state: 'Excelente' },
-                    { skill: 'Interpretación de Problemas', mastery: 72, state: 'Favorable' },
-                    { skill: 'Despeje de Fórmulas', mastery: 58, state: 'Seguimiento' },
-                    { skill: 'Representación Gráfica de Rectas', mastery: 40, state: 'Crítico' }
-                  ].map((item, index) => (
-                    <div key={index} className="space-y-1.5">
-                      <div className="flex justify-between text-xs font-semibold text-slate-650">
-                        <span>{item.skill}</span>
-                        <div className="flex items-center gap-2">
-                          <span className={cn(
-                            "text-[8px] font-black uppercase px-2 py-0.5 rounded",
-                            item.state === 'Excelente' ? 'bg-emerald-50 text-emerald-600' :
-                            item.state === 'Favorable' ? 'bg-blue-50 text-blue-600' :
-                            item.state === 'Seguimiento' ? 'bg-amber-50 text-amber-600' :
-                            'bg-rose-50 text-rose-600'
-                          )}>{item.state}</span>
-                          <span className="font-black text-slate-800">{item.mastery}%</span>
-                        </div>
-                      </div>
-                      <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
-                        <div 
-                          className="bg-indigo-600 h-full rounded-full transition-all duration-500" 
-                          style={{ width: `${item.mastery}%` }}
-                        />
-                      </div>
-                    </div>
-                  ))}
+                <div className="py-12 px-4 text-center flex flex-col items-center justify-center border border-dashed border-slate-200 rounded-2xl bg-slate-50/50">
+                  <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mb-3">
+                    <GraduationCap className="w-6 h-6" />
+                  </div>
+                  <p className="text-sm font-bold text-slate-700">El análisis por habilidades estará disponible una vez se califiquen las evaluaciones del periodo</p>
+                  <p className="text-xs text-slate-500 mt-1 max-w-sm">
+                    El motor de IA clasificará las respuestas por competencia una vez se procesen las evaluaciones.
+                  </p>
                 </div>
               </div>
 
