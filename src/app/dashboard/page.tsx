@@ -91,9 +91,9 @@ export default function DashboardPage() {
   const [docEngineStudentName, setDocEngineStudentName] = useState('');
   const [docEngineCourseName, setDocEngineCourseName] = useState('');
   const [docEngineMetadata, setDocEngineMetadata] = useState<Record<string, any>>({});
-  
+
   const [showCurriculumBuilder, setShowCurriculumBuilder] = useState(false);
-  
+
   // Buscador de verificación rápida de Rector
   const [searchVerifyCode, setSearchVerifyCode] = useState('');
 
@@ -120,7 +120,7 @@ export default function DashboardPage() {
 
     // Sincronizar en caliente si cambia en otra pestaña o componente
     window.addEventListener('storage', loadPreRegs);
-    
+
     // Sondeo de sincronización local
     const interval = setInterval(loadPreRegs, 2000);
 
@@ -140,7 +140,7 @@ export default function DashboardPage() {
   });
 
   // --- ESTADOS INTERACTIVOS PARA DEMO SaaS PREMIUM ---
-  
+
   // 1. Asistencia en caliente (Director de Grupo)
   const [attendanceList, setAttendanceList] = useState<Record<string, 'Asiste' | 'Falta' | 'Tarde'>>({});
 
@@ -185,7 +185,7 @@ export default function DashboardPage() {
 
   // 3. Planilla de Notas (Docente)
   const [gradesList, setGradesList] = useState<GradeRecord[]>([]);
-  const [selectedSubject, setSelectedSubject] = useState<'Matemáticas' | 'Ciencias Naturales y Educación Ambiental'>('Matemáticas');
+  const [selectedSubject, setSelectedSubject] = useState<string>('');
   const [newGradeValue, setNewGradeValue] = useState<Record<string, string>>({});
 
   const handleUpdateGrade = (studentId: string, noteType: 'exams' | 'homeworks' | 'participation', index: number, value: string) => {
@@ -209,26 +209,10 @@ export default function DashboardPage() {
         updatedNotes[noteType][index] = numVal;
 
         // Calcular nuevo promedio ponderado
-        const avgExams = updatedNotes.exams.reduce((a, b) => a + b, 0) / updatedNotes.exams.length;
-        const avgHomeworks = updatedNotes.homeworks.reduce((a, b) => a + b, 0) / updatedNotes.homeworks.length;
-        const avgPart = updatedNotes.participation.reduce((a, b) => a + b, 0) / updatedNotes.participation.length;
+        const avgExams = updatedNotes.exams.reduce((a, b) => a + b, 0) / (updatedNotes.exams.length || 1);
+        const avgHomeworks = updatedNotes.homeworks.reduce((a, b) => a + b, 0) / (updatedNotes.homeworks.length || 1);
+        const avgPart = updatedNotes.participation.reduce((a, b) => a + b, 0) / (updatedNotes.participation.length || 1);
         const finalGrade = Math.round((avgExams * 0.3 + avgHomeworks * 0.4 + avgPart * 0.3) * 10) / 10;
-
-        // Insertar log de auditoría real en Supabase para grade_audit_logs
-        supabase.from('grade_audit_logs').insert({
-          student_id: studentId === 'est-01' ? '77777777-7777-7777-7777-777777777777' :
-                      studentId === 'est-02' ? '88888888-8888-8888-8888-888888888888' :
-                      '99999999-9999-9999-9999-999999999999',
-          subject: selectedSubject,
-          academic_period_id: '22222222-2222-2222-2222-333333333333', // Periodo P2
-          previous_grade: previousVal,
-          new_grade: numVal,
-          changed_by: '44444444-4444-4444-4444-444444444444', // Profesor Gómez
-          change_reason: 'Actualización ordinaria de planilla docente'
-        }).then(({ error }: any) => {
-          if (error) console.error('Error escribiendo log de auditoría:', error);
-          else console.log('Audit log registrado en Supabase.');
-        });
 
         return {
           ...grade,
@@ -491,8 +475,8 @@ export default function DashboardPage() {
                     onClick={() => setRectorTab('institutional')}
                     className={cn(
                       "text-xs font-bold px-4 py-2 rounded-lg transition-all cursor-pointer border-none outline-none",
-                      rectorTab === 'institutional' 
-                        ? "bg-white text-slate-900 shadow-sm font-black" 
+                      rectorTab === 'institutional'
+                        ? "bg-white text-slate-900 shadow-sm font-black"
                         : "text-slate-300 hover:bg-slate-850 hover:text-white bg-transparent"
                     )}
                   >
@@ -502,8 +486,8 @@ export default function DashboardPage() {
                     onClick={() => setRectorTab('student360')}
                     className={cn(
                       "text-xs font-bold px-4 py-2 rounded-lg transition-all cursor-pointer border-none outline-none",
-                      rectorTab === 'student360' 
-                        ? "bg-white text-slate-900 shadow-sm font-black" 
+                      rectorTab === 'student360'
+                        ? "bg-white text-slate-900 shadow-sm font-black"
                         : "text-slate-300 hover:bg-slate-855 hover:text-white bg-transparent"
                     )}
                   >
@@ -513,8 +497,8 @@ export default function DashboardPage() {
                     onClick={() => setRectorTab('audit_vault')}
                     className={cn(
                       "text-xs font-bold px-4 py-2 rounded-lg transition-all cursor-pointer border-none outline-none",
-                      rectorTab === 'audit_vault' 
-                        ? "bg-white text-slate-900 shadow-sm font-black" 
+                      rectorTab === 'audit_vault'
+                        ? "bg-white text-slate-900 shadow-sm font-black"
                         : "text-slate-300 hover:bg-slate-850 hover:text-white bg-transparent"
                     )}
                   >
@@ -522,7 +506,7 @@ export default function DashboardPage() {
                   </button>
                 </div>
 
-                <Button 
+                <Button
                   onClick={runIaDiagnosis}
                   disabled={iaProcessing}
                   className="bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700 text-white font-semibold rounded-xl px-5 py-2.5 shadow-md flex items-center gap-2 transition duration-200 cursor-pointer h-10 shrink-0 border-none outline-none"
@@ -591,7 +575,7 @@ export default function DashboardPage() {
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                     {filteredRectorPreRegs.map((student: any) => (
-                      <div 
+                      <div
                         key={student.nationalId}
                         className="p-4 border border-slate-150 rounded-2xl bg-slate-50/20 hover:bg-white hover:border-indigo-400 hover:shadow-md transition-all duration-300 flex flex-col justify-between gap-4"
                       >
@@ -609,7 +593,7 @@ export default function DashboardPage() {
                               {student.email}
                             </span>
                           </div>
-                          
+
                           <span className={cn(
                             "text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded border shadow-3xs shrink-0",
                             student.gradeLevel === 'Media Técnica' && "bg-amber-50 text-amber-700 border-amber-250",
@@ -646,7 +630,7 @@ export default function DashboardPage() {
                             <span className="text-slate-400 font-semibold">Pre-registro:</span>
                             <span className="text-slate-700">{student.registrationDate}</span>
                           </div>
-                          
+
                           <div className="flex items-center justify-between gap-2 mt-1">
                             <span className="text-[9.5px] font-black text-amber-700 bg-amber-50 border border-amber-250 px-2 py-1 rounded-md uppercase tracking-wider animate-pulse flex items-center gap-1 shrink-0">
                               <Clock className="w-3 h-3 text-amber-500 shrink-0" />
@@ -666,10 +650,10 @@ export default function DashboardPage() {
 
             {/* GRID PRINCIPAL DE RECTORÍA (2 Columnas: Analítica y Operativa) */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              
+
               {/* COLUMNA ANALÍTICA IZQUIERDA (lg:col-span-2) */}
               <div className="lg:col-span-2 space-y-6">
-                
+
                 {/* 1. GRÁFICO INTERACTIVO POWER BI DUAL */}
                 <Card className="w-full border-slate-200 shadow-sm overflow-hidden bg-white rounded-2xl flex flex-col justify-between">
                   <CardHeader className="bg-gradient-to-r from-slate-50 to-slate-100/50 border-b border-slate-200 px-6 py-4 flex flex-row items-center justify-between">
@@ -691,7 +675,7 @@ export default function DashboardPage() {
                       </select>
                     </div>
                   </CardHeader>
-                  
+
                   <CardContent className="p-12 relative flex-1 flex flex-col items-center justify-center text-center space-y-3">
                     <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center">
                       <BarChart3 className="w-6 h-6" />
@@ -843,7 +827,7 @@ export default function DashboardPage() {
 
               {/* COLUMNA OPERATIVA DERECHA (lg:col-span-1) */}
               <div className="lg:col-span-1 space-y-6">
-                
+
                 {/* 1. STUDENT 365 SPOTLIGHT */}
                 <Card className="border-slate-200 shadow-sm overflow-hidden bg-gradient-to-b from-slate-900 to-slate-950 text-white rounded-2xl">
                   <CardHeader className="bg-slate-955/80 px-6 py-4 flex flex-row items-center gap-3 border-b border-slate-800/60">
@@ -855,9 +839,9 @@ export default function DashboardPage() {
                   </CardHeader>
                   <CardContent className="p-6 text-center space-y-4">
                     <div className="relative inline-block">
-                      <img 
-                        src={MOCK_STUDENTS[0].avatar} 
-                        alt={MOCK_STUDENTS[0].name} 
+                      <img
+                        src={MOCK_STUDENTS[0].avatar}
+                        alt={MOCK_STUDENTS[0].name}
                         className="w-20 h-20 rounded-full border-4 border-indigo-500/20 object-cover mx-auto"
                       />
                       <span className="absolute bottom-0 right-0 w-5 h-5 bg-emerald-500 text-white text-xs rounded-full flex items-center justify-center font-bold shadow-md">✓</span>
@@ -1199,10 +1183,10 @@ export default function DashboardPage() {
 
             return (
               <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 animate-fade-in">
-                
+
                 {/* Columna de búsqueda y KPIs (1 col) */}
                 <div className="xl:col-span-1 space-y-6">
-                  
+
                   {/* Búsqueda rápida */}
                   <Card className="border-slate-200 shadow-sm bg-white p-5 space-y-4 rounded-xl">
                     <h4 className="font-extrabold text-slate-900 text-sm border-b pb-2 flex items-center gap-1.5">
@@ -1255,7 +1239,7 @@ export default function DashboardPage() {
 
                 {/* Columna de historial y auditoría (2 cols) */}
                 <div className="xl:col-span-2 space-y-6">
-                  
+
                   {/* Historial de Documentos Emitidos */}
                   <Card className="border-slate-200 shadow-sm bg-white rounded-xl overflow-hidden">
                     <CardHeader className="bg-slate-50 border-b border-slate-200 px-5 py-4 flex flex-row items-center justify-between">
@@ -1370,23 +1354,23 @@ export default function DashboardPage() {
               <div>
                 <span className="text-xs font-semibold tracking-wider uppercase text-emerald-200 flex items-center gap-2">
                   Portal del Docente
-                  <span className="bg-emerald-600/30 text-emerald-100 px-2 py-0.5 rounded text-[9px]">2026-I</span>
+                  <span className="bg-emerald-600/30 text-emerald-100 px-2 py-0.5 rounded text-[9px]">Periodo académico no configurado</span>
                 </span>
                 <h1 className="text-3xl font-bold tracking-tight mt-1">Planilla y Control Académico</h1>
                 <p className="text-sm text-emerald-100/70 mt-1">Gestión de notas, planeaciones y asistencia.</p>
               </div>
               <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
-                <Button 
+                <Button
                   onClick={() => setShowCurriculumBuilder(true)}
                   className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold h-10 border border-emerald-500 shadow-sm gap-2"
                 >
                   <BookOpen className="w-4 h-4" />
                   Abrir CurriculumEngine
                 </Button>
-                
+
                 {/* Control de Cierre de Periodo */}
                 <div className="flex items-center gap-2.5 bg-emerald-950/80 p-1.5 rounded-lg border border-emerald-800/40 text-xs font-semibold">
-                  <span className="text-emerald-300 text-[11px] font-bold">Estado Periodo P2:</span>
+                  <span className="text-emerald-300 text-[11px] font-bold">Estado Periodo:</span>
                   <select
                     value={periodStatus}
                     onChange={(e) => setPeriodStatus(e.target.value as 'abierto' | 'en_revisión' | 'cerrado' | 'publicado')}
@@ -1397,27 +1381,6 @@ export default function DashboardPage() {
                     <option value="cerrado">🔴 Cerrado</option>
                     <option value="publicado">🔵 Publicado</option>
                   </select>
-                </div>
-
-                <div className="flex items-center gap-2 bg-emerald-900/60 p-1 rounded-lg border border-emerald-800/50">
-                  <button 
-                    onClick={() => setSelectedSubject('Matemáticas')}
-                    className={cn(
-                      "text-xs font-bold px-3 py-1.5 rounded-md cursor-pointer transition border-none outline-none",
-                      selectedSubject === 'Matemáticas' ? "bg-white text-slate-950 shadow-md font-black" : "text-white hover:bg-white/10 bg-transparent"
-                    )}
-                  >
-                    Matemáticas
-                  </button>
-                  <button 
-                    onClick={() => setSelectedSubject('Ciencias Naturales y Educación Ambiental')}
-                    className={cn(
-                      "text-xs font-bold px-3 py-1.5 rounded-md cursor-pointer transition border-none outline-none",
-                      selectedSubject === 'Ciencias Naturales y Educación Ambiental' ? "bg-white text-slate-950 shadow-md font-black" : "text-white hover:bg-white/10 bg-transparent"
-                    )}
-                  >
-                    Ciencias Naturales
-                  </button>
                 </div>
               </div>
             </div>
@@ -1438,8 +1401,8 @@ export default function DashboardPage() {
                 )} />
                 <div className="text-xs">
                   <span className="font-extrabold uppercase block tracking-wider text-[11px]">
-                    {periodStatus === 'en_revisión' ? 'Periodo En Revisión' : 
-                     periodStatus === 'cerrado' ? 'Periodo Cerrado Administrativamente' : 
+                    {periodStatus === 'en_revisión' ? 'Periodo En Revisión' :
+                     periodStatus === 'cerrado' ? 'Periodo Cerrado Administrativamente' :
                      'Periodo Publicado Oficialmente'}
                   </span>
                   <p className="font-medium mt-0.5 leading-relaxed text-slate-700">
@@ -1456,7 +1419,7 @@ export default function DashboardPage() {
               <Card className="p-4 border-slate-200 border-l-4 border-l-emerald-600 shadow-sm flex items-center justify-between">
                 <div>
                   <span className="text-xs text-slate-400 font-bold uppercase tracking-wider block">Materia Activa</span>
-                  <span className="text-base font-extrabold text-slate-900">{selectedSubject} (10-A)</span>
+                  <span className="text-base font-extrabold text-slate-900">{selectedSubject || 'Sin asignaciones'}</span>
                 </div>
                 <BookOpen className="w-8 h-8 text-emerald-600" />
               </Card>
@@ -1464,7 +1427,7 @@ export default function DashboardPage() {
               <Card className="p-4 border-slate-200 border-l-4 border-l-teal-600 shadow-sm flex items-center justify-between">
                 <div>
                   <span className="text-xs text-slate-400 font-bold uppercase tracking-wider block">Periodo</span>
-                  <span className="text-base font-extrabold text-slate-900">Período 2026-I</span>
+                  <span className="text-base font-extrabold text-slate-900">Periodo académico no configurado</span>
                 </div>
                 <Calendar className="w-8 h-8 text-teal-600" />
               </Card>
@@ -1472,133 +1435,139 @@ export default function DashboardPage() {
               <Card className="p-4 border-slate-200 border-l-4 border-l-blue-600 shadow-sm flex items-center justify-between">
                 <div>
                   <span className="text-xs text-slate-400 font-bold uppercase tracking-wider block">Cierre de Periodo</span>
-                  <span className="text-base font-extrabold text-red-600">Quedan 7 días</span>
+                  <span className="text-base font-extrabold text-slate-500">Sin fecha de cierre</span>
                 </div>
                 <Clock className="w-8 h-8 text-blue-600" />
               </Card>
             </div>
 
-            {/* Planilla de Notas Interactiva */}
-            <Card className="border-slate-200 shadow-sm overflow-hidden">
-              <CardHeader className="bg-slate-50/70 border-b border-slate-200 px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                <div>
-                  <CardTitle className="text-lg font-bold text-slate-950">Planilla Oficial de {selectedSubject} (10-A)</CardTitle>
-                  <p className="text-xs text-slate-500">Ponderaciones: Exámenes (30%), Tareas (40%), Participación (30%). Edita notas en caliente.</p>
-                </div>
-                <div className={cn(
-                  "text-xs font-bold px-3 py-1 rounded-full border shadow-sm",
-                  periodStatus === 'abierto' && "bg-emerald-100 text-emerald-900 border-emerald-200",
-                  periodStatus === 'en_revisión' && "bg-amber-100 text-amber-900 border-amber-250 animate-pulse",
-                  (periodStatus === 'cerrado' || periodStatus === 'publicado') && "bg-red-100 text-red-900 border-red-200"
-                )}>
-                  {periodStatus === 'abierto' ? 'Modo Edición Habilitado' :
-                   periodStatus === 'en_revisión' ? 'Modo Solo Lectura (Revisión)' :
-                   'Calificaciones Congeladas (Bloqueado)'}
-                </div>
-              </CardHeader>
-              <CardContent className="p-0">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-slate-50/30">
-                      <TableHead className="font-semibold text-slate-700 pl-6">Estudiante</TableHead>
-                      <TableHead className="font-semibold text-slate-700 text-center">Examen 1 (30%)</TableHead>
-                      <TableHead className="font-semibold text-slate-700 text-center">Examen 2 (30%)</TableHead>
-                      <TableHead className="font-semibold text-slate-700 text-center">Tarea 1 (40%)</TableHead>
-                      <TableHead className="font-semibold text-slate-700 text-center">Tarea 2 (40%)</TableHead>
-                      <TableHead className="font-semibold text-slate-700 text-center">Part. (30%)</TableHead>
-                      <TableHead className="font-semibold text-slate-700 pr-6 text-right">Promedio Final</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {gradesList.filter(g => g.subject === selectedSubject).map((grade) => (
-                      <TableRow key={grade.id} className="hover:bg-slate-50/50">
-                        <TableCell className="font-bold text-slate-950 pl-6 text-sm">{grade.studentName}</TableCell>
-                        
-                        {/* Examen 1 */}
-                        <TableCell className="text-center">
-                          <input 
-                            type="number" 
-                            step="0.1" 
-                            min="1.0" 
-                            max="10.0"
-                            disabled={periodStatus !== 'abierto'}
-                            defaultValue={grade.notes.exams[0]}
-                            onBlur={(e) => handleUpdateGrade(grade.studentId, 'exams', 0, e.target.value)}
-                            className="w-14 border border-slate-200 text-center p-1 rounded font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-200 text-slate-800 bg-white disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
-                          />
-                        </TableCell>
-                        
-                        {/* Examen 2 */}
-                        <TableCell className="text-center">
-                          <input 
-                            type="number" 
-                            step="0.1" 
-                            min="1.0" 
-                            max="10.0"
-                            disabled={periodStatus !== 'abierto'}
-                            defaultValue={grade.notes.exams[1]}
-                            onBlur={(e) => handleUpdateGrade(grade.studentId, 'exams', 1, e.target.value)}
-                            className="w-14 border border-slate-200 text-center p-1 rounded font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-200 text-slate-800 bg-white disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
-                          />
-                        </TableCell>
- 
-                        {/* Tarea 1 */}
-                        <TableCell className="text-center">
-                          <input 
-                            type="number" 
-                            step="0.1" 
-                            min="1.0" 
-                            max="10.0"
-                            disabled={periodStatus !== 'abierto'}
-                            defaultValue={grade.notes.homeworks[0]}
-                            onBlur={(e) => handleUpdateGrade(grade.studentId, 'homeworks', 0, e.target.value)}
-                            className="w-14 border border-slate-200 text-center p-1 rounded font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-200 text-slate-800 bg-white disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
-                          />
-                        </TableCell>
- 
-                        {/* Tarea 2 */}
-                        <TableCell className="text-center">
-                          <input 
-                            type="number" 
-                            step="0.1" 
-                            min="1.0" 
-                            max="10.0"
-                            disabled={periodStatus !== 'abierto'}
-                            defaultValue={grade.notes.homeworks[1]}
-                            onBlur={(e) => handleUpdateGrade(grade.studentId, 'homeworks', 1, e.target.value)}
-                            className="w-14 border border-slate-200 text-center p-1 rounded font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-200 text-slate-800 bg-white disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
-                          />
-                        </TableCell>
- 
-                        {/* Participación */}
-                        <TableCell className="text-center">
-                          <input 
-                            type="number" 
-                            step="0.1" 
-                            min="1.0" 
-                            max="10.0"
-                            disabled={periodStatus !== 'abierto'}
-                            defaultValue={grade.notes.participation[0]}
-                            onBlur={(e) => handleUpdateGrade(grade.studentId, 'participation', 0, e.target.value)}
-                            className="w-14 border border-slate-200 text-center p-1 rounded font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-200 text-slate-800 bg-white disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
-                          />
-                        </TableCell>
- 
-                        {/* Nota Final */}
-                        <TableCell className="pr-6 text-right">
-                          <span className={cn(
-                            "font-extrabold px-3 py-1.5 rounded-lg text-sm shadow-inner inline-block min-w-12 text-center",
-                            grade.finalGrade >= 7.0 ? "bg-emerald-50 text-emerald-700 border border-emerald-100" : "bg-red-50 text-red-700 border border-red-100"
-                          )}>
-                            {grade.finalGrade}
-                          </span>
-                        </TableCell>
+            {/* Planilla de Notas Interactiva o Empty State */}
+            {gradesList.length > 0 ? (
+              <Card className="border-slate-200 shadow-sm overflow-hidden">
+                <CardHeader className="bg-slate-50/70 border-b border-slate-200 px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                  <div>
+                    <CardTitle className="text-lg font-bold text-slate-950">Planilla Oficial de Calificaciones</CardTitle>
+                    <p className="text-xs text-slate-500">Registro y edición de calificaciones del periodo activo.</p>
+                  </div>
+                  <div className={cn(
+                    "text-xs font-bold px-3 py-1 rounded-full border shadow-sm",
+                    periodStatus === 'abierto' && "bg-emerald-100 text-emerald-900 border-emerald-200",
+                    periodStatus === 'en_revisión' && "bg-amber-100 text-amber-900 border-amber-250 animate-pulse",
+                    (periodStatus === 'cerrado' || periodStatus === 'publicado') && "bg-red-100 text-red-900 border-red-200"
+                  )}>
+                    {periodStatus === 'abierto' ? 'Modo Edición Habilitado' :
+                     periodStatus === 'en_revisión' ? 'Modo Solo Lectura (Revisión)' :
+                     'Calificaciones Congeladas (Bloqueado)'}
+                  </div>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-slate-50/30">
+                        <TableHead className="font-semibold text-slate-700 pl-6">Estudiante</TableHead>
+                        <TableHead className="font-semibold text-slate-700 text-center">Evaluación 1</TableHead>
+                        <TableHead className="font-semibold text-slate-700 text-center">Evaluación 2</TableHead>
+                        <TableHead className="font-semibold text-slate-700 text-center">Actividad 1</TableHead>
+                        <TableHead className="font-semibold text-slate-700 text-center">Actividad 2</TableHead>
+                        <TableHead className="font-semibold text-slate-700 text-center">Seguimiento</TableHead>
+                        <TableHead className="font-semibold text-slate-700 pr-6 text-right">Promedio Final</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
+                    </TableHeader>
+                    <TableBody>
+                      {gradesList.filter(g => !selectedSubject || g.subject === selectedSubject).map((grade) => (
+                        <TableRow key={grade.id} className="hover:bg-slate-50/50">
+                          <TableCell className="font-bold text-slate-950 pl-6 text-sm">{grade.studentName}</TableCell>
+
+                          <TableCell className="text-center">
+                            <input
+                              type="number"
+                              step="0.1"
+                              min="1.0"
+                              max="10.0"
+                              disabled={periodStatus !== 'abierto'}
+                              defaultValue={grade.notes.exams[0]}
+                              onBlur={(e) => handleUpdateGrade(grade.studentId, 'exams', 0, e.target.value)}
+                              className="w-14 border border-slate-200 text-center p-1 rounded font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-200 text-slate-800 bg-white disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
+                            />
+                          </TableCell>
+
+                          <TableCell className="text-center">
+                            <input
+                              type="number"
+                              step="0.1"
+                              min="1.0"
+                              max="10.0"
+                              disabled={periodStatus !== 'abierto'}
+                              defaultValue={grade.notes.exams[1]}
+                              onBlur={(e) => handleUpdateGrade(grade.studentId, 'exams', 1, e.target.value)}
+                              className="w-14 border border-slate-200 text-center p-1 rounded font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-200 text-slate-800 bg-white disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
+                            />
+                          </TableCell>
+
+                          <TableCell className="text-center">
+                            <input
+                              type="number"
+                              step="0.1"
+                              min="1.0"
+                              max="10.0"
+                              disabled={periodStatus !== 'abierto'}
+                              defaultValue={grade.notes.homeworks[0]}
+                              onBlur={(e) => handleUpdateGrade(grade.studentId, 'homeworks', 0, e.target.value)}
+                              className="w-14 border border-slate-200 text-center p-1 rounded font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-200 text-slate-800 bg-white disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
+                            />
+                          </TableCell>
+
+                          <TableCell className="text-center">
+                            <input
+                              type="number"
+                              step="0.1"
+                              min="1.0"
+                              max="10.0"
+                              disabled={periodStatus !== 'abierto'}
+                              defaultValue={grade.notes.homeworks[1]}
+                              onBlur={(e) => handleUpdateGrade(grade.studentId, 'homeworks', 1, e.target.value)}
+                              className="w-14 border border-slate-200 text-center p-1 rounded font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-200 text-slate-800 bg-white disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
+                            />
+                          </TableCell>
+
+                          <TableCell className="text-center">
+                            <input
+                              type="number"
+                              step="0.1"
+                              min="1.0"
+                              max="10.0"
+                              disabled={periodStatus !== 'abierto'}
+                              defaultValue={grade.notes.participation[0]}
+                              onBlur={(e) => handleUpdateGrade(grade.studentId, 'participation', 0, e.target.value)}
+                              className="w-14 border border-slate-200 text-center p-1 rounded font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-200 text-slate-800 bg-white disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
+                            />
+                          </TableCell>
+
+                          <TableCell className="pr-6 text-right">
+                            <span className={cn(
+                              "font-extrabold px-3 py-1.5 rounded-lg text-sm shadow-inner inline-block min-w-12 text-center",
+                              grade.finalGrade >= 7.0 ? "bg-emerald-50 text-emerald-700 border border-emerald-100" : "bg-red-50 text-red-700 border border-red-100"
+                            )}>
+                              {grade.finalGrade}
+                            </span>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card className="border-slate-200 shadow-sm overflow-hidden p-12 text-center bg-white flex flex-col items-center justify-center">
+                <div className="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600 mb-4 border border-emerald-100">
+                  <BookOpen className="w-7 h-7" />
+                </div>
+                <h4 className="text-base font-bold text-slate-800 mb-1">Sin asignaciones académicas activas</h4>
+                <p className="text-xs text-slate-500 max-w-md leading-relaxed">
+                  No tienes cursos o asignaturas asignadas para el periodo escolar actual. Cuando la coordinación parametrice la carga académica y matricule a los estudiantes, tus planillas aparecerán aquí.
+                </p>
+              </Card>
+            )}
           </div>
           )
         )}
